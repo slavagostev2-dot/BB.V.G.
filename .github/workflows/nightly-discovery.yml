@@ -8,6 +8,9 @@ on:
       - "source_catalog.txt"
       - "public_sources.txt"
       - ".github/workflows/nightly-discovery.yml"
+      - "preflight.py"
+      - "self_test.py"
+      - "requirements.txt"
   workflow_dispatch:
   schedule:
     # 20:27 UTC = 03:27 в Барнауле. Не начало часа.
@@ -38,6 +41,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+
+      - name: Verify repository layout
+        run: python preflight.py
 
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
@@ -74,7 +80,7 @@ jobs:
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Wake or restart fast monitor
-        if: ${{ always() }}
+        if: ${{ success() && github.event_name != 'push' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run monitor.yml --ref main -f continuous=true

@@ -11,6 +11,8 @@ on:
       - "identifier_sources.json"
       - "requirements.txt"
       - "self_test.py"
+      - "preflight.py"
+      - "nightly_discovery.py"
       - ".github/workflows/monitor.yml"
   workflow_dispatch:
     inputs:
@@ -49,6 +51,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+
+      - name: Verify repository layout
+        run: python preflight.py
 
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
@@ -113,7 +118,7 @@ jobs:
           done
 
       - name: Start next continuous shift
-        if: ${{ always() && (github.event_name != 'workflow_dispatch' || inputs.continuous == true) }}
+        if: ${{ success() && (github.event_name != 'workflow_dispatch' || inputs.continuous == true) }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run monitor.yml --ref main -f continuous=true
