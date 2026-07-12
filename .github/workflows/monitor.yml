@@ -76,6 +76,8 @@ jobs:
           HEARTBEAT_HOURS: "6"
           HEALTH_ALERT_COOLDOWN_HOURS: "6"
           STATUS_REPORT_HOURS: "12"
+          MAX_NEW_POST_AGE_MINUTES: "360"
+          FRESH_UNKNOWN_POST_MINUTES: "20"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
           AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
           CONTINUOUS: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}

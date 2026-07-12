@@ -1,16 +1,6 @@
 name: Nightly Telegram source discovery
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "nightly_discovery.py"
-      - "source_catalog.txt"
-      - "public_sources.txt"
-      - ".github/workflows/nightly-discovery.yml"
-      - "preflight.py"
-      - "self_test.py"
-      - "requirements.txt"
   workflow_dispatch:
   schedule:
     # 20:27 UTC = 03:27 в Барнауле. Не начало часа.
@@ -61,26 +51,22 @@ jobs:
           REQUEST_TIMEOUT_SECONDS: "15"
           DISCOVERY_LOOKBACK_HOURS: "48"
           DISCOVERY_PAGES: "4"
+          MAX_NEW_POST_AGE_MINUTES: "360"
+          FRESH_UNKNOWN_POST_MINUTES: "0"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
         run: python nightly_discovery.py
 
       - name: Save discovery and promotions
         shell: bash
         run: |
-          if git diff --quiet -- public_sources.txt source_catalog.txt discovery_state.json; then
+          if git diff --quiet -- public_sources.txt source_catalog.txt discovery_state.json state.json; then
             echo "Discovery state did not change."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public_sources.txt source_catalog.txt discovery_state.json
+          git add public_sources.txt source_catalog.txt discovery_state.json state.json
           git commit -m "Update Telegram source discovery [skip ci]"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
-
-      - name: Wake or restart fast monitor
-        if: ${{ success() && github.event_name != 'push' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --ref main -f continuous=true
