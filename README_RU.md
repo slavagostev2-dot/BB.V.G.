@@ -1,66 +1,58 @@
-# План работ BetBoom Wheel Monitor
+from __future__ import annotations
 
-## Этап 1 — автоматический запуск и надёжность
+import json
+from pathlib import Path
 
-Статус: реализовано в этой версии.
+ROOT = Path(__file__).resolve().parent
 
-1. Основной workflow после загрузки файлов запускается событием `push`.
-2. Один runner выполняет проверку примерно каждые 5 минут в течение одной смены.
-3. Перед ограничением GitHub в 6 часов workflow запускает следующую смену через `workflow_dispatch`.
-4. Раз в четыре часа остаётся резервный cron-перезапуск.
-5. При первом автоматическом запуске и затем раз в 12 часов бот отправляет служебный статус.
-6. Ошибка одной проверки не останавливает последующие проверки.
 
-## Этап 2 — обнаружение колёс
+def require_text(path: str, markers: tuple[str, ...]) -> None:
+    file_path = ROOT / path
+    if not file_path.is_file():
+        raise SystemExit(f"PRECHECK ERROR: missing file: {path}")
+    text = file_path.read_text(encoding="utf-8")
+    missing = [marker for marker in markers if marker not in text]
+    if missing:
+        raise SystemExit(
+            f"PRECHECK ERROR: {path} has wrong contents; missing markers: {missing}"
+        )
 
-Статус: реализовано в этой версии.
 
-- Старые идентификаторы `/freestream/...` не перебираются.
-- Проверяются только новые публикации в Telegram-источниках.
-- Страница BetBoom открывается один раз только для новой найденной ссылки и только для определения таймера.
-- Одинаковый идентификатор колеса считается одним колесом независимо от канала, регистра букв, `www` и параметров ссылки.
-- Повтор блокируется до времени прокрутки плюс 30 минут; при неизвестном времени — на 24 часа.
+def read_list(path: str) -> list[str]:
+    values: list[str] = []
+    for raw in (ROOT / path).read_text(encoding="utf-8").splitlines():
+        value = raw.split("#", 1)[0].strip().lstrip("@")
+        if value:
+            values.append(value)
+    return values
 
-## Этап 3 — определение времени
 
-Статус: расширено, но требует примеров реальных публикаций.
+def main() -> None:
+    require_text("requirements.txt", ("requests==", "beautifulsoup4==", "tzdata"))
+    require_text("monitor.py", ("from __future__ import annotations", "def main()"))
+    require_text("nightly_discovery.py", ("import monitor", "def main()"))
+    require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
+    require_text("self_test.py", ("import monitor", "def main()"))
+    require_text("public_sources.txt", ("gazazor",))
+    require_text("source_catalog.txt", ("Ночной каталог",))
 
-Монитор понимает:
+    try:
+        mapping = json.loads((ROOT / "identifier_sources.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"PRECHECK ERROR: invalid identifier_sources.json: {exc}") from exc
+    if not isinstance(mapping, dict) or not isinstance(mapping.get("mappings"), list):
+        raise SystemExit("PRECHECK ERROR: identifier_sources.json has an unexpected structure")
 
-- `через 20 минут`;
-- `через 1 час 20 минут`;
-- `через полчаса`, `через час`, `через полтора часа`;
-- `прокрутка сегодня в 18:30`;
-- `завтра в 18:30`;
-- дату и время вида `13.07 в 18:30`;
-- таймер вида `00:15:30`;
-- Unix/ISO-время и JSON-поля окончания на странице колеса.
+    fast = {item.casefold() for item in read_list("public_sources.txt")}
+    nightly = {item.casefold() for item in read_list("source_catalog.txt")}
+    overlap = sorted(fast & nightly)
+    if overlap:
+        raise SystemExit(
+            "PRECHECK ERROR: fast and nightly source lists overlap: " + ", ".join(overlap)
+        )
 
-Если BetBoom отдаёт таймер только через закрытый JavaScript API, точное время может остаться неопределённым. Для дальнейшего улучшения нужны реальные примеры постов и активных страниц.
+    print("Preflight checks passed.")
 
-## Этап 4 — два разных списка источников
 
-Статус: реализовано технически; состав списков ещё не прошёл полный ручной аудит.
-
-- `public_sources.txt` — быстрая проверка.
-- `source_catalog.txt` — ночные кандидаты.
-- Пересечения запрещены тестом.
-- Ночной поиск при свежем колесе сразу уведомляет пользователя, переносит источник в быстрый список и удаляет его из ночного.
-- Если сохранение изменений в GitHub не сработает, уведомление о найденном колесе всё равно уже будет отправлено.
-
-## Этап 5 — аудит партнёров BetBoom
-
-Статус: отложено до стабилизации автоматического процесса.
-
-Порядок:
-
-1. Составить подтверждённый перечень действующих партнёров и амбассадоров BetBoom.
-2. Для каждого найти основной, ставочный, резервный и связанный публичный Telegram-канал.
-3. Каналы с подтверждёнными историческими колёсами оставить в быстром списке.
-4. Каналы партнёров без колёс поместить только в ночной список.
-5. Непартнёров удалить после ручной проверки, а не по одному совпадению имени.
-6. Пустые, удалённые и закрытые источники вынести в отдельный отчёт, чтобы не удалять полезный канал из-за временного сбоя Telegram.
-
-## Этап 6 — поиск новых чатов-сборщиков
-
-`gazazor` уже находится в быстром списке. Другие чаты не следует добавлять по непроверенным результатам поиска. Безопасный вариант — собирать кандидатов из пересланных сообщений и упоминаний в подтверждённых чатах, затем проверять их вручную перед добавлением.
+if __name__ == "__main__":
+    main()
