@@ -52,5 +52,13 @@
 - `avice*` → `@aviciixd`
 - `blindzone` → `@Blindzonexbet`
 - `dayneez` → `@DayneezBet`
+- `danila.gorilla`, `gorilla` → `@danila_gorilla`, `@gorilla_armor`
+- `krat` → `@KRATtv`
+- `shadowkek` → `@shadowkekw`, `@burdakekw`
+- `relax` → `@relaxcis`, `@RelaxCisBet`
+
+Кроме авторских каналов, в быструю проверку добавлены публичные сборщики
+`@frixa_betboom` и `@amam0610`, где регулярно появляются ссылки на разные
+колёса.
 
 Некоторые ссылки имеют одноразовые или неочевидные идентификаторы (`PFMHP6WT`, `O0XEAX75` и подобные). Они добавлены в базу идентификаторов, но не приписаны случайному Telegram-каналу без подтверждения.
