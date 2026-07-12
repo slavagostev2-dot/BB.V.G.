@@ -6,14 +6,20 @@ on:
     branches: [main]
     paths:
       - "monitor.py"
+      - "monitor_data.py"
+      - "daily_report.py"
       - "telegram_monitor.py"
+      - "nightly_discovery.py"
       - "public_sources.txt"
+      - "source_catalog.txt"
+      - "partners_catalog.json"
       - "identifier_sources.json"
       - "requirements.txt"
       - "self_test.py"
       - "preflight.py"
-      - "nightly_discovery.py"
       - ".github/workflows/monitor.yml"
+      - ".github/workflows/nightly-discovery.yml"
+      - ".github/workflows/daily-report.yml"
   workflow_dispatch:
     inputs:
       continuous:
@@ -22,8 +28,6 @@ on:
         type: boolean
         default: false
   schedule:
-    # Резервный перезапуск. Основной цикл сам запускает следующую смену.
-    # Минута 23 выбрана не в начале часа, когда GitHub чаще задерживает cron.
     - cron: "23 */4 * * *"
 
 permissions:
@@ -60,8 +64,9 @@ jobs:
 
       - name: Check project files
         run: |
-          python -m py_compile monitor.py telegram_monitor.py nightly_discovery.py
+          python -m py_compile monitor.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
           python -m json.tool identifier_sources.json >/dev/null
+          python -m json.tool partners_catalog.json >/dev/null
           python self_test.py
 
       - name: Run monitor loop
@@ -77,9 +82,15 @@ jobs:
           HEALTH_ALERT_COOLDOWN_HOURS: "6"
           STATUS_REPORT_HOURS: "12"
           MAX_NEW_POST_AGE_MINUTES: "360"
+          NEW_SOURCE_CATCHUP_MINUTES: "1440"
           FRESH_UNKNOWN_POST_MINUTES: "20"
           PENDING_RECHECK_HOURS: "24"
           PENDING_RECHECK_MINUTES: "4"
+          QUARANTINE_FAILURE_THRESHOLD: "3"
+          QUARANTINE_EMPTY_THRESHOLD: "4"
+          QUARANTINE_RECHECK_HOURS: "6"
+          UNAVAILABLE_REPORT_DAYS: "2"
+          BOT_FEEDBACK_ENABLED: "true"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
           AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
           CONTINUOUS: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
@@ -96,20 +107,26 @@ jobs:
             iterations=1
           fi
 
+          runtime_files=(
+            state.json discovery_state.json source_health.json source_stats.json
+            unknown_timer_samples.json public_sources.txt source_catalog.txt
+          )
+
           for ((iteration=1; iteration<=iterations; iteration++)); do
             started_at=$(date +%s)
             echo "=== Check $iteration/$iterations at $(date -u +%FT%TZ) ==="
 
-            # Pick up sources promoted by the nightly workflow while this runner is alive.
-            git pull --rebase origin "${GITHUB_REF_NAME:-main}" || true
+            python monitor.py 2>&1 | tee monitor-run.log || echo "Monitor iteration failed; the loop will retry."
 
-            python monitor.py || echo "Monitor iteration failed; the loop will retry."
-
-            if ! git diff --quiet -- state.json; then
-              git add state.json
-              git commit -m "Update monitor state [skip ci]" || true
-              git pull --rebase origin "${GITHUB_REF_NAME:-main}" || true
-              git push origin "HEAD:${GITHUB_REF_NAME:-main}" || echo "State push failed; will retry next iteration."
+            # Persist immediately after the first/manual run, then approximately hourly,
+            # and once more before the runner ends. This avoids hundreds of commits daily.
+            if (( iterations == 1 || iteration == 1 || iteration % 12 == 0 || iteration == iterations )); then
+              if ! git diff --quiet -- "${runtime_files[@]}"; then
+                git add "${runtime_files[@]}"
+                git commit -m "Update monitor runtime data [skip ci]" || true
+                git pull --rebase origin "${GITHUB_REF_NAME:-main}" || true
+                git push origin "HEAD:${GITHUB_REF_NAME:-main}" || echo "Runtime push failed; will retry later."
+              fi
             fi
 
             if (( iteration < iterations )); then

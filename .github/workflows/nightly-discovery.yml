@@ -3,12 +3,10 @@ name: Nightly Telegram source discovery
 on:
   workflow_dispatch:
   schedule:
-    # 20:27 UTC = 03:27 в Барнауле. Не начало часа.
     - cron: "27 20 * * *"
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: betboom-wheel-nightly-discovery
@@ -17,7 +15,7 @@ concurrency:
 jobs:
   discovery:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout repository
@@ -40,7 +38,7 @@ jobs:
 
       - name: Check project files
         run: |
-          python -m py_compile monitor.py nightly_discovery.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py daily_report.py
           python self_test.py
 
       - name: Scan nightly source catalog
@@ -53,20 +51,24 @@ jobs:
           DISCOVERY_PAGES: "4"
           MAX_NEW_POST_AGE_MINUTES: "360"
           FRESH_UNKNOWN_POST_MINUTES: "0"
+          QUARANTINE_FAILURE_THRESHOLD: "3"
+          QUARANTINE_EMPTY_THRESHOLD: "4"
+          QUARANTINE_RECHECK_HOURS: "6"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
         run: python nightly_discovery.py
 
-      - name: Save discovery and promotions
+      - name: Save discovery, health and statistics
         shell: bash
         run: |
-          if git diff --quiet -- public_sources.txt source_catalog.txt discovery_state.json state.json; then
-            echo "Discovery state did not change."
+          files=(public_sources.txt source_catalog.txt discovery_state.json)
+          if git diff --quiet -- "${files[@]}"; then
+            echo "Discovery data did not change."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public_sources.txt source_catalog.txt discovery_state.json state.json
+          git add "${files[@]}"
           git commit -m "Update Telegram source discovery [skip ci]"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
