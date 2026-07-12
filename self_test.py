@@ -1,66 +1,57 @@
-# BetBoom Wheel Monitor — GitHub Actions
+from __future__ import annotations
 
-Монитор работает без VPS и без постоянно включённого компьютера.
+from datetime import datetime, timedelta
+from pathlib import Path
 
-## Что делает объединённая версия
+import monitor
 
-- автоматически запускается каждые 5 минут;
-- проверяет только публичные Telegram-каналы и чаты из `public_sources.txt`;
-- не перебирает и не опрашивает старые адреса `betboom.ru/freestream/...`;
-- извлекает обычные, скрытые и кнопочные ссылки из новых Telegram-публикаций;
-- открывает новую ссылку один раз, чтобы попытаться прочитать таймер или время окончания;
-- если страница не дала время, анализирует текст Telegram-поста;
-- подавляет одинаковую ссылку из разных каналов до прокрутки и ещё 30 минут;
-- если время определить нельзя, подавляет повтор на 24 часа;
-- проверяет Telegram-источники параллельно в 12 потоков;
-- сохраняет защиту от повторов в `state.json`;
-- использует `identifier_sources.json` для подписи связанных каналов, но не для проверки старых ссылок.
 
-## Основные файлы
+ROOT = Path(__file__).resolve().parent
 
-```text
-.github/workflows/monitor.yml      автоматический запуск каждые 5 минут
-monitor.py                         объединённый Telegram-only монитор
-telegram_monitor.py                совместимый короткий запуск monitor.py
-public_sources.txt                 быстрый список Telegram-источников
-source_catalog.txt                 каталог для ночной глубокой проверки
-identifier_sources.json            подтверждённые связи ID → Telegram-каналы
-EXPORT_ANALYSIS_RU.md              результаты анализа архива чата
-state.json                         состояние и защита от повторов
-nightly_discovery.py               ночная проверка каталога источников
-```
 
-## Источники
+def main() -> None:
+    assert monitor.normalize_url(
+        "http://www.betboom.ru/freestream/Shoke/?x=1"
+    ) == "https://betboom.ru/freestream/Shoke"
+    assert monitor.wheel_key(
+        "https://betboom.ru/freestream/Shoke"
+    ) == monitor.wheel_key("https://www.betboom.ru/freestream/shoke/?from=tg")
 
-`public_sources.txt` проверяется каждые 5 минут. В него добавлен публичный чат `@gazazor`.
+    published = datetime(2026, 7, 13, 12, 0, tzinfo=monitor.UTC)
+    deadline, _ = monitor.infer_deadline("Крутим через 1 час 20 минут", published)
+    assert deadline == published + timedelta(hours=1, minutes=20)
 
-`source_catalog.txt` — отдельный ночной список дополнительных каналов-кандидатов. Он не дублирует быстрый список. Если в кандидате появляется свежая ссылка на колесо, ночной поиск переносит источник в `public_sources.txt`.
+    deadline, _ = monitor.infer_deadline("Прокрутка сегодня в 18:30", published)
+    assert deadline is not None
+    local = deadline.astimezone(monitor.MOSCOW)
+    assert (local.hour, local.minute) == (18, 30)
 
-Закрытые каналы и группы через публичную страницу `t.me/s/...` прочитать нельзя.
+    deadline = monitor.countdown_deadline("До прокрутки 00:15:30", published)
+    assert deadline == published + timedelta(minutes=15, seconds=30)
 
-## Настройка GitHub
+    deadline = monitor.deadline_from_json(
+        {"wheel": {"remainingSeconds": 900}}, published
+    )
+    assert deadline == published + timedelta(minutes=15)
 
-В Repository Secrets должны существовать:
+    quick = {item.casefold() for item in monitor.read_list(ROOT / "public_sources.txt")}
+    nightly = {item.casefold() for item in monitor.read_list(ROOT / "source_catalog.txt")}
+    assert not quick.intersection(nightly), "Быстрый и ночной списки пересекаются"
+    assert "gazazor" in quick
 
-- `BOT_TOKEN`
-- `BOT_CHAT_ID`
+    project_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (
+            ROOT / "monitor.py",
+            ROOT / "nightly_discovery.py",
+            ROOT / ".github/workflows/monitor.yml",
+        )
+    )
+    assert "known_freestream_ids" not in project_text
+    assert "check_known_links" not in project_text
 
-В `Settings → Actions → General → Workflow permissions` необходимо включить `Read and write permissions`.
+    print("Self-test passed.")
 
-После загрузки файлов workflow запускается сам по событию `push`. Ручной запуск:
 
-`Actions → Monitor BetBoom wheels → Run workflow`.
-
-При первом чтении нового Telegram-источника его старые публикации используются как исходная точка и не рассылаются.
-
-## Автоматический запуск и состояние
-
-Расписание: каждые 5 минут. GitHub иногда запускает scheduled workflow с задержкой.
-
-`state.json` не меняется после каждого пустого запуска. Контрольная запись выполняется примерно раз в 6 часов, поэтому репозиторий не получает новый служебный коммит каждые 5 минут.
-
-Коммиты `Update monitor state [skip ci]` не запускают монитор повторно, потому что `state.json` отсутствует в списке `push.paths`.
-
-## Ограничения определения времени
-
-BetBoom может полностью формировать таймер только JavaScript-кодом. В таком случае монитор попробует найти время в данных страницы и в Telegram-посте. Если оба способа не дали результата, уведомление придёт со значением `не определено`, а повтор этой ссылки будет заблокирован на 24 часа.
+if __name__ == "__main__":
+    main()

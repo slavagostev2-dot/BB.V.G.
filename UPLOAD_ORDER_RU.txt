@@ -1,0 +1,10 @@
+Загрузить все файлы этого комплекта в корень репозитория с сохранением путей.
+
+После загрузки проверить в GitHub:
+1. monitor.py начинается с: from __future__ import annotations
+2. preflight.py начинается с: from __future__ import annotations и import json
+3. requirements.txt содержит только requests, beautifulsoup4 и tzdata
+4. nightly_discovery.py начинается с: from __future__ import annotations и import html
+5. identifier_sources.json начинается с символа {
+
+Старые красные workflow не перезапускать. Новый commit сам создаст новые runs.
