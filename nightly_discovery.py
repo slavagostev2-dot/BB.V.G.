@@ -212,30 +212,27 @@ def main() -> int:
         source_unconfirmed = 0
 
         for message, link in sorted(recent_items, key=lambda item: item[0].date):
-            key = monitor.wheel_key(link)
-            if key in discovery["notified_wheels"] or monitor.is_suppressed(
-                monitor_state, link
-            ):
+            post_key = monitor.notification_key(message, link)
+            if post_key in discovery["notified_wheels"]:
                 duplicate_wheels += 1
                 continue
 
-            should_notify, deadline, method, status = monitor.assess_new_wheel(
+            should_notify, deadline, method, status = monitor.assess_pending_wheel(
                 message, link
             )
             if not should_notify:
-                monitor.remember_filtered(
-                    monitor_state,
-                    link,
-                    method,
-                    inactive=status == "inactive",
-                )
-                monitor_state_changed = True
+                # Do not globally suppress an inactive candidate: the same page may
+                # become active later with the “Участвовать” button.
                 if status == "inactive":
                     inactive_wheels += 1
                     source_inactive += 1
                 else:
                     unconfirmed_wheels += 1
                     source_unconfirmed += 1
+                continue
+
+            if monitor.is_activation_suppressed(monitor_state, link):
+                duplicate_wheels += 1
                 continue
 
             qualified.append((message, link, deadline, method))
@@ -261,7 +258,7 @@ def main() -> int:
             promoted.append(username)
 
         for message, link, deadline, method in qualified:
-            key = monitor.wheel_key(link)
+            post_key = monitor.notification_key(message, link)
             try:
                 monitor.notify_new_link(message, link, deadline, method, mappings)
             except Exception as exc:
@@ -272,8 +269,9 @@ def main() -> int:
                 continue
 
             monitor.remember_alert(monitor_state, link, deadline)
+            monitor.remember_activation(monitor_state, link, deadline)
             monitor_state_changed = True
-            discovery["notified_wheels"][key] = {
+            discovery["notified_wheels"][post_key] = {
                 "identifier": monitor.wheel_identifier(link),
                 "url": monitor.normalize_url(link),
                 "source": username,

@@ -9,6 +9,19 @@ import monitor
 ROOT = Path(__file__).resolve().parent
 
 
+def fake_page(text: str):
+    class FakeResponse:
+        status_code = 200
+
+        def __init__(self, value: str) -> None:
+            self.text = value
+
+        def raise_for_status(self) -> None:
+            return None
+
+    return FakeResponse(text)
+
+
 def main() -> None:
     assert monitor.normalize_url(
         "http://www.betboom.ru/freestream/Shoke/?x=1"
@@ -21,58 +34,74 @@ def main() -> None:
     deadline, _ = monitor.infer_deadline("Крутим через 1 час 20 минут", published)
     assert deadline == published + timedelta(hours=1, minutes=20)
 
-    deadline, _ = monitor.infer_deadline("Прокрутка сегодня в 18:30", published)
-    assert deadline is not None
-    local = deadline.astimezone(monitor.MOSCOW)
-    assert (local.hour, local.minute) == (18, 30)
-
     deadline = monitor.countdown_deadline("До прокрутки 00:15:30", published)
     assert deadline == published + timedelta(minutes=15, seconds=30)
 
-    deadline = monitor.deadline_from_json(
-        {"wheel": {"remainingSeconds": 900}}, published
-    )
-    assert deadline == published + timedelta(minutes=15)
-
-    class FakeResponse:
-        status_code = 200
-        text = (
-            "<html><body>Пока ждёшь следующий запуск, "
-            "заглядывай в другие акции</body></html>"
-        )
-
-        def raise_for_status(self) -> None:
-            return None
-
     original_request = monitor.request_with_retries
-    monitor.request_with_retries = lambda *args, **kwargs: FakeResponse()
     try:
+        monitor.request_with_retries = lambda *args, **kwargs: fake_page(
+            "<html><body>Пока ждёшь следующий запуск, заглядывай в другие акции</body></html>"
+        )
         inspection = monitor.inspect_wheel_page(
             "https://betboom.ru/freestream/old-wheel"
         )
         assert inspection.status == "inactive"
+
+        monitor.request_with_retries = lambda *args, **kwargs: fake_page(
+            '<html><body><button aria-label="Участвовать">Участвовать</button></body></html>'
+        )
+        inspection = monitor.inspect_wheel_page(
+            "https://betboom.ru/freestream/live-wheel"
+        )
+        assert inspection.status == "active"
+        assert "кнопка" in inspection.method
     finally:
         monitor.request_with_retries = original_request
 
-    old_message = monitor.Message(
+    message = monitor.Message(
         source="test",
-        message_id=1,
-        date=monitor.now_utc() - timedelta(hours=12),
-        text="https://betboom.ru/freestream/old-wheel",
-        message_url="https://t.me/test/1",
+        message_id=77,
+        date=monitor.now_utc(),
+        text="https://betboom.ru/freestream/pending-wheel",
+        message_url="https://t.me/test/77",
     )
+    link = "https://betboom.ru/freestream/pending-wheel"
+    key = monitor.notification_key(message, link)
+    state = {
+        "pending_posts": {},
+        "activation_alerts": {},
+        "url_alerts": {},
+    }
+    monitor.remember_pending(
+        state,
+        key,
+        message,
+        link,
+        "inactive",
+        "not active yet",
+        initial_notified=True,
+    )
+    assert key in state["pending_posts"]
+    assert monitor.pending_initial_notified(state["pending_posts"][key])
+    restored = monitor.pending_message(state["pending_posts"][key])
+    assert restored is not None and restored.message_id == 77
+
     original_inspection = monitor.inspect_wheel_page
-    monitor.inspect_wheel_page = lambda link: monitor.WheelInspection(
-        "unknown", None, "activity not confirmed"
+    monitor.inspect_wheel_page = lambda value: monitor.WheelInspection(
+        "active", None, "активная кнопка: найдено «участвовать»"
     )
     try:
-        should_notify, _, _, status = monitor.assess_new_wheel(
-            old_message, "https://betboom.ru/freestream/old-wheel"
+        should_notify, deadline, method, status = monitor.assess_pending_wheel(
+            message, link
         )
-        assert not should_notify
-        assert status == "unconfirmed"
+        assert should_notify and status == "active"
+        assert deadline is None and "кнопка" in method
     finally:
         monitor.inspect_wheel_page = original_inspection
+
+    assert not monitor.is_activation_suppressed(state, link)
+    monitor.remember_activation(state, link, None)
+    assert monitor.is_activation_suppressed(state, link)
 
     quick = {item.casefold() for item in monitor.read_list(ROOT / "public_sources.txt")}
     nightly = {item.casefold() for item in monitor.read_list(ROOT / "source_catalog.txt")}

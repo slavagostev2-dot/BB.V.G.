@@ -50,13 +50,15 @@ MANUAL_RUN = os.getenv("MANUAL_RUN", "").strip().lower() in {
     "on",
 }
 
-NOTIFICATION_KEY_VERSION = 5
+NOTIFICATION_KEY_VERSION = 7
 MAX_NEW_POST_AGE_MINUTES = max(
     5, int(os.getenv("MAX_NEW_POST_AGE_MINUTES", "360"))
 )
 FRESH_UNKNOWN_POST_MINUTES = max(
     0, int(os.getenv("FRESH_UNKNOWN_POST_MINUTES", "20"))
 )
+PENDING_RECHECK_HOURS = max(1, int(os.getenv("PENDING_RECHECK_HOURS", "24")))
+PENDING_RECHECK_MINUTES = max(1, int(os.getenv("PENDING_RECHECK_MINUTES", "4")))
 
 INACTIVE_PAGE_PHRASES = (
     "пока ждёшь следующий запуск",
@@ -78,6 +80,12 @@ ACTIVE_PAGE_PHRASES = (
     "до старта колеса",
     "участвовать в колесе",
     "крутить колесо",
+)
+
+ACTIVE_BUTTON_PHRASES = (
+    "участвовать",
+    "принять участие",
+    "participate",
 )
 
 USER_AGENT = (
@@ -211,10 +219,12 @@ def load_state() -> dict:
     except (FileNotFoundError, json.JSONDecodeError):
         state = {}
 
-    state.setdefault("version", 4)
+    state.setdefault("version", 5)
     state.setdefault("initialized_sources", [])
     state.setdefault("seen", {})
     state.setdefault("url_alerts", {})
+    state.setdefault("activation_alerts", {})
+    state.setdefault("pending_posts", {})
     state.setdefault("health", {})
 
     # Migrate old link-keyed formats to one global key per wheel identifier.
@@ -252,7 +262,7 @@ def load_state() -> dict:
 
     state.pop("known_status", None)
     state.pop("recent_url_alerts", None)
-    state["version"] = 4
+    state["version"] = 5
     return state
 
 
@@ -272,6 +282,24 @@ def save_state(state: dict) -> None:
         and (
             (parsed := parse_datetime(entry.get("alerted_at"))) is None
             or parsed >= alert_cutoff
+        )
+    }
+    state["activation_alerts"] = {
+        link: entry
+        for link, entry in state.get("activation_alerts", {}).items()
+        if isinstance(entry, dict)
+        and (
+            (parsed := parse_datetime(entry.get("alerted_at"))) is None
+            or parsed >= alert_cutoff
+        )
+    }
+    state["pending_posts"] = {
+        key: entry
+        for key, entry in state.get("pending_posts", {}).items()
+        if isinstance(entry, dict)
+        and (
+            (expires := parse_datetime(entry.get("expires_at"))) is None
+            or expires > now_utc()
         )
     }
 
@@ -660,8 +688,27 @@ def inspect_wheel_page(link: str) -> WheelInspection:
                 "active", deadline, "время окончания в данных страницы"
             )
 
+    for node in soup.select(
+        "button, a, [role=button], input[type=button], input[type=submit]"
+    ):
+        label = " ".join(
+            value
+            for value in (
+                node.get_text(" ", strip=True),
+                str(node.get("value") or "").strip(),
+                str(node.get("aria-label") or "").strip(),
+                str(node.get("title") or "").strip(),
+            )
+            if value
+        ).casefold()
+        for phrase in ACTIVE_BUTTON_PHRASES:
+            if phrase.casefold() in label:
+                return WheelInspection(
+                    "active", None, f"активная кнопка: найдено «{phrase}»"
+                )
+
     for phrase in ACTIVE_PAGE_PHRASES:
-        if phrase.casefold() in combined_lower:
+        if phrase.casefold() in visible.casefold():
             return WheelInspection(
                 "active", None, f"страница активна: найдено «{phrase}»"
             )
@@ -820,6 +867,35 @@ def remember_alert(state: dict, link: str, deadline: datetime | None) -> None:
     state["url_alerts"][wheel_key(link)] = entry
 
 
+def is_activation_suppressed(state: dict, link: str) -> bool:
+    entry = state.get("activation_alerts", {}).get(wheel_key(link))
+    if not isinstance(entry, dict):
+        return False
+    until = parse_datetime(entry.get("suppress_until"))
+    return bool(until and now_utc() < until)
+
+
+def remember_activation(
+    state: dict,
+    link: str,
+    deadline: datetime | None,
+) -> None:
+    alerted_at = now_utc()
+    if deadline:
+        suppress_until = max(
+            deadline + timedelta(minutes=DEADLINE_GRACE_MINUTES),
+            alerted_at + timedelta(hours=1),
+        )
+    else:
+        suppress_until = alerted_at + timedelta(hours=UNKNOWN_DEDUP_HOURS)
+    state["activation_alerts"][wheel_key(link)] = {
+        "identifier": wheel_identifier(link),
+        "url": normalize_url(link),
+        "alerted_at": alerted_at.isoformat(),
+        "suppress_until": suppress_until.isoformat(),
+    }
+
+
 def remember_filtered(
     state: dict,
     link: str,
@@ -837,6 +913,101 @@ def remember_filtered(
         "status": "inactive" if inactive else "unconfirmed",
         "reason": reason[:300],
     }
+
+
+def pending_message(entry: dict) -> Message | None:
+    try:
+        source = str(entry["source"])
+        message_id = int(entry["message_id"])
+        date = parse_datetime(entry.get("message_date"))
+        message_url = str(entry["message_url"])
+        text = str(entry.get("message_text") or entry.get("url") or "")
+    except (KeyError, TypeError, ValueError):
+        return None
+    if date is None:
+        return None
+    return Message(
+        source=source,
+        message_id=message_id,
+        date=date,
+        text=text,
+        message_url=message_url,
+    )
+
+
+def remember_pending(
+    state: dict,
+    key: str,
+    message: Message,
+    link: str,
+    status: str,
+    reason: str,
+    *,
+    initial_notified: bool = False,
+) -> None:
+    now = now_utc()
+    previous = state.get("pending_posts", {}).get(key)
+    first_seen = (
+        parse_datetime(previous.get("first_seen_at"))
+        if isinstance(previous, dict)
+        else None
+    ) or now
+    initial_notified_at = (
+        parse_datetime(previous.get("initial_notified_at"))
+        if isinstance(previous, dict)
+        else None
+    )
+    if initial_notified and initial_notified_at is None:
+        initial_notified_at = now
+    entry = {
+        "source": message.source,
+        "message_id": message.message_id,
+        "message_date": message.date.astimezone(UTC).isoformat(),
+        "message_url": message.message_url,
+        "message_text": message.text[:4000],
+        "identifier": wheel_identifier(link),
+        "url": normalize_url(link),
+        "status": status,
+        "reason": reason[:300],
+        "first_seen_at": first_seen.isoformat(),
+        "last_checked_at": now.isoformat(),
+        "expires_at": (first_seen + timedelta(hours=PENDING_RECHECK_HOURS)).isoformat(),
+    }
+    if initial_notified_at:
+        entry["initial_notified_at"] = initial_notified_at.isoformat()
+    state["pending_posts"][key] = entry
+
+
+def pending_initial_notified(entry: dict) -> bool:
+    return parse_datetime(entry.get("initial_notified_at")) is not None
+
+
+def pending_check_due(entry: dict) -> bool:
+    checked = parse_datetime(entry.get("last_checked_at"))
+    return not checked or now_utc() - checked >= timedelta(
+        minutes=PENDING_RECHECK_MINUTES
+    )
+
+
+def pending_expired(entry: dict) -> bool:
+    expires = parse_datetime(entry.get("expires_at"))
+    return bool(expires and now_utc() >= expires)
+
+
+def assess_pending_wheel(
+    message: Message,
+    link: str,
+) -> tuple[bool, datetime | None, str, str]:
+    post_deadline, post_method = infer_deadline(message.text, message.date)
+    inspection = inspect_wheel_page(link)
+    if inspection.status == "active":
+        deadline = inspection.deadline
+        if deadline is None and post_deadline and post_deadline > now_utc():
+            deadline = post_deadline
+        return True, deadline, inspection.method, "active"
+    if post_deadline and post_deadline > now_utc():
+        return True, post_deadline, post_method, "telegram_deadline"
+    return False, inspection.deadline, inspection.method, inspection.status
 
 
 def notify_new_link(
@@ -865,6 +1036,35 @@ def notify_new_link(
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
         f"⏳ До прокрутки: <b>{html.escape(human_remaining(deadline))}</b>\n"
         f"Определение времени: {html.escape(method)}",
+        link,
+    )
+
+
+def notify_activation(
+    message: Message,
+    link: str,
+    deadline: datetime | None,
+    method: str,
+    mappings: list[dict],
+) -> None:
+    identifier_raw = wheel_identifier(link)
+    identifier = html.escape(identifier_raw)
+    published = message.date.astimezone(DISPLAY_TZ)
+    related = related_sources(identifier_raw, mappings)
+    related_line = ""
+    if related:
+        related_line = "Связанные каналы: " + ", ".join(
+            f"@{html.escape(source)}" for source in related
+        ) + "\n"
+    send_message(
+        "✅ <b>Колесо BetBoom стало активно</b>\n\n"
+        f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
+        f"@{html.escape(message.source)}</a>\n"
+        f"Идентификатор: <code>{identifier}</code>\n"
+        f"{related_line}"
+        f"Пост: {published:%d.%m.%Y %H:%M}\n"
+        f"⏳ До прокрутки: <b>{html.escape(human_remaining(deadline))}</b>\n"
+        f"Подтверждение: {html.escape(method)}",
         link,
     )
 
@@ -932,12 +1132,20 @@ def main() -> int:
     mappings = load_identifier_sources()
     initialized = set(state["initialized_sources"])
     seen: dict[str, str] = state["seen"]
+    pending: dict[str, dict] = state["pending_posts"]
 
     messages_by_source, errors = fetch_all_sources(sources)
+    visible_items: dict[str, tuple[Message, str]] = {}
+    for messages in messages_by_source.values():
+        for message in messages:
+            for link in extract_links(message.text):
+                visible_items[notification_key(message, link)] = (message, link)
 
+    # On a format upgrade, silently baseline every currently visible post.
     if state.get("notification_key_version") != NOTIFICATION_KEY_VERSION:
         stamp = now_utc().isoformat()
         baseline_items = 0
+        pending.clear()
         for source, messages in messages_by_source.items():
             for message in messages:
                 for link in extract_links(message.text):
@@ -963,14 +1171,104 @@ def main() -> int:
         )
         return 0
 
-    found = 0
+    preliminary_sent = 0
+    activation_sent = 0
     duplicates = 0
     initialized_now = 0
     send_errors = 0
     stale_skipped = 0
-    inactive_skipped = 0
-    unconfirmed_skipped = 0
+    inactive_waiting = 0
+    unconfirmed_waiting = 0
+    pending_expired_count = 0
     changed = False
+
+    # Recheck posts that already produced at most one preliminary alert or were
+    # held silently. Repeated checks are silent until the page becomes active.
+    for key, entry in list(pending.items()):
+        if key in seen:
+            pending.pop(key, None)
+            changed = True
+            continue
+        if pending_expired(entry):
+            seen[key] = now_utc().isoformat()
+            pending.pop(key, None)
+            pending_expired_count += 1
+            changed = True
+            continue
+        if not pending_check_due(entry):
+            continue
+
+        pair = visible_items.get(key)
+        if pair is None:
+            message = pending_message(entry)
+            link = str(entry.get("url") or "")
+            if message is None or not link:
+                seen[key] = now_utc().isoformat()
+                pending.pop(key, None)
+                changed = True
+                continue
+        else:
+            message, link = pair
+
+        should_notify, deadline, method, status = assess_pending_wheel(message, link)
+        if status == "active":
+            if is_activation_suppressed(state, link):
+                seen[key] = now_utc().isoformat()
+                pending.pop(key, None)
+                duplicates += 1
+                changed = True
+                continue
+            try:
+                notify_activation(message, link, deadline, method, mappings)
+            except Exception as exc:
+                send_errors += 1
+                errors.append(
+                    f"@{message.source} message {message.message_id}: "
+                    f"activation notification failed: {type(exc).__name__}: {exc}"
+                )
+                remember_pending(state, key, message, link, "send_error", str(exc))
+                changed = True
+                continue
+            remember_activation(state, link, deadline)
+            remember_alert(state, link, deadline)
+            seen[key] = now_utc().isoformat()
+            pending.pop(key, None)
+            activation_sent += 1
+            changed = True
+            continue
+
+        # An edited post can gain a future deadline before the button appears.
+        if should_notify and not pending_initial_notified(entry):
+            if not is_suppressed(state, link):
+                try:
+                    notify_new_link(message, link, deadline, method, mappings)
+                except Exception as exc:
+                    send_errors += 1
+                    errors.append(
+                        f"@{message.source} message {message.message_id}: "
+                        f"preliminary notification failed: {type(exc).__name__}: {exc}"
+                    )
+                else:
+                    remember_alert(state, link, deadline)
+                    preliminary_sent += 1
+                    remember_pending(
+                        state,
+                        key,
+                        message,
+                        link,
+                        status,
+                        method,
+                        initial_notified=True,
+                    )
+                    changed = True
+                    continue
+
+        remember_pending(state, key, message, link, status, method)
+        if status == "inactive":
+            inactive_waiting += 1
+        else:
+            unconfirmed_waiting += 1
+        changed = True
 
     for source in sources:
         messages = messages_by_source.get(source)
@@ -986,7 +1284,7 @@ def main() -> int:
         if source not in initialized:
             stamp = now_utc().isoformat()
             for key, _, _ in items:
-                if key not in seen:
+                if key not in seen and key not in pending:
                     seen[key] = stamp
                     changed = True
             initialized.add(source)
@@ -995,7 +1293,7 @@ def main() -> int:
             continue
 
         for key, message, link in items:
-            if key in seen:
+            if key in seen or key in pending:
                 continue
 
             if message_age(message) > timedelta(minutes=MAX_NEW_POST_AGE_MINUTES):
@@ -1004,41 +1302,60 @@ def main() -> int:
                 changed = True
                 continue
 
-            if is_suppressed(state, link):
-                seen[key] = now_utc().isoformat()
-                duplicates += 1
-                changed = True
-                continue
-
             should_notify, deadline, method, status = assess_new_wheel(message, link)
-            if not should_notify:
+
+            if status == "active":
+                if is_activation_suppressed(state, link):
+                    seen[key] = now_utc().isoformat()
+                    duplicates += 1
+                    changed = True
+                    continue
+                try:
+                    notify_new_link(message, link, deadline, method, mappings)
+                except Exception as exc:
+                    send_errors += 1
+                    errors.append(
+                        f"@{source} message {message.message_id}: "
+                        f"notification failed: {type(exc).__name__}: {exc}"
+                    )
+                    continue
+                remember_activation(state, link, deadline)
+                remember_alert(state, link, deadline)
                 seen[key] = now_utc().isoformat()
-                remember_filtered(
-                    state,
-                    link,
-                    method,
-                    inactive=status == "inactive",
-                )
-                if status == "inactive":
-                    inactive_skipped += 1
-                else:
-                    unconfirmed_skipped += 1
+                activation_sent += 1
                 changed = True
                 continue
 
-            try:
-                notify_new_link(message, link, deadline, method, mappings)
-            except Exception as exc:
-                send_errors += 1
-                errors.append(
-                    f"@{source} message {message.message_id}: "
-                    f"notification failed: {type(exc).__name__}: {exc}"
-                )
-                continue
+            # A new post may produce one preliminary alert. The same post then
+            # remains pending and all repeated checks stay silent until activation.
+            initial_notified = False
+            if should_notify and not is_suppressed(state, link):
+                try:
+                    notify_new_link(message, link, deadline, method, mappings)
+                except Exception as exc:
+                    send_errors += 1
+                    errors.append(
+                        f"@{source} message {message.message_id}: "
+                        f"notification failed: {type(exc).__name__}: {exc}"
+                    )
+                else:
+                    remember_alert(state, link, deadline)
+                    preliminary_sent += 1
+                    initial_notified = True
 
-            seen[key] = now_utc().isoformat()
-            remember_alert(state, link, deadline)
-            found += 1
+            remember_pending(
+                state,
+                key,
+                message,
+                link,
+                status,
+                method,
+                initial_notified=initial_notified,
+            )
+            if status == "inactive":
+                inactive_waiting += 1
+            else:
+                unconfirmed_waiting += 1
             changed = True
 
     state["initialized_sources"] = sorted(initialized)
@@ -1048,11 +1365,14 @@ def main() -> int:
         "sources": len(sources),
         "reachable_sources": len(messages_by_source),
         "initialized_now": initialized_now,
-        "new_links": found,
+        "preliminary_sent": preliminary_sent,
+        "activation_sent": activation_sent,
+        "pending_total": len(pending),
+        "pending_expired": pending_expired_count,
         "duplicates_suppressed": duplicates,
         "stale_skipped": stale_skipped,
-        "inactive_skipped": inactive_skipped,
-        "unconfirmed_skipped": unconfirmed_skipped,
+        "inactive_waiting": inactive_waiting,
+        "unconfirmed_waiting": unconfirmed_waiting,
         "source_errors": len(errors),
         "notification_errors": send_errors,
     }
@@ -1082,12 +1402,12 @@ def main() -> int:
                 "🤖 <b>Автоматический монитор работает</b>\n\n"
                 f"Telegram-источников: {len(sources)}\n"
                 f"Доступно сейчас: {len(messages_by_source)}\n"
-                f"Новых активных колёс: {found}\n"
-                f"Неактивных отброшено: {inactive_skipped}\n"
-                f"Старых публикаций отброшено: {stale_skipped}\n"
+                f"Новых постов отправлено: {preliminary_sent}\n"
+                f"Колёс активировалось: {activation_sent}\n"
+                f"Ожидают активности: {len(pending)}\n"
                 f"Повторов подавлено: {duplicates}\n"
                 f"Ошибок источников: {len(errors)}\n\n"
-                "Следующая проверка — примерно через 5 минут."
+                "Повторная проверка одного поста проходит без сообщений."
             )
             state["last_automatic_status_at"] = now_utc().isoformat()
             changed = True
@@ -1099,9 +1419,9 @@ def main() -> int:
 
     print(
         f"Sources: {len(sources)}; reachable: {len(messages_by_source)}; "
-        f"initialized now: {initialized_now}; new active links: {found}; "
-        f"inactive skipped: {inactive_skipped}; stale skipped: {stale_skipped}; "
-        f"unconfirmed skipped: {unconfirmed_skipped}; "
+        f"initialized now: {initialized_now}; preliminary: {preliminary_sent}; "
+        f"activated: {activation_sent}; pending: {len(pending)}; "
+        f"pending expired: {pending_expired_count}; stale skipped: {stale_skipped}; "
         f"duplicates suppressed: {duplicates}; errors: {len(errors)}"
     )
     for error in errors[:30]:
@@ -1112,10 +1432,9 @@ def main() -> int:
             "✅ <b>Ручная проверка завершена</b>\n\n"
             f"Telegram-источников: {len(sources)}\n"
             f"Доступно: {len(messages_by_source)}\n"
-            f"Новых активных колёс: {found}\n"
-            f"Неактивных отброшено: {inactive_skipped}\n"
-            f"Старых публикаций отброшено: {stale_skipped}\n"
-            f"Неподтверждённых отброшено: {unconfirmed_skipped}\n"
+            f"Новых постов отправлено: {preliminary_sent}\n"
+            f"Колёс активировалось: {activation_sent}\n"
+            f"Ожидают активности: {len(pending)}\n"
             f"Повторов подавлено: {duplicates}\n"
             f"Ошибок: {len(errors)}"
         )
