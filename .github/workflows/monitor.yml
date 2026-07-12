@@ -36,7 +36,7 @@ permissions:
 
 concurrency:
   group: betboom-wheel-monitor-continuous
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   monitor:
@@ -116,10 +116,12 @@ jobs:
             started_at=$(date +%s)
             echo "=== Check $iteration/$iterations at $(date -u +%FT%TZ) ==="
 
+            # Синхронный запуск: следующая итерация не начнётся,
+            # пока monitor.py полностью не завершится.
             python monitor.py 2>&1 | tee monitor-run.log || echo "Monitor iteration failed; the loop will retry."
 
-            # Persist immediately after the first/manual run, then approximately hourly,
-            # and once more before the runner ends. This avoids hundreds of commits daily.
+            # Сохраняем состояние после первой/ручной проверки, примерно раз в час
+            # и перед завершением runner.
             if (( iterations == 1 || iteration == 1 || iteration % 12 == 0 || iteration == iterations )); then
               if ! git diff --quiet -- "${runtime_files[@]}"; then
                 git add "${runtime_files[@]}"
@@ -132,9 +134,13 @@ jobs:
             if (( iteration < iterations )); then
               elapsed=$(( $(date +%s) - started_at ))
               sleep_for=$(( 300 - elapsed ))
-              if (( sleep_for < 5 )); then sleep_for=5; fi
-              echo "Next check in ${sleep_for}s."
-              sleep "$sleep_for"
+
+              if (( sleep_for > 0 )); then
+                echo "Previous check finished in ${elapsed}s. Next check in ${sleep_for}s."
+                sleep "$sleep_for"
+              else
+                echo "Previous check took ${elapsed}s; 5 minutes already elapsed. Starting next check immediately."
+              fi
             fi
           done
 
