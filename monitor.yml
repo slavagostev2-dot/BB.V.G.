@@ -1,0 +1,151 @@
+name: Monitor BetBoom wheels
+run-name: BetBoom monitor — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "monitor.py"
+      - "monitor_data.py"
+      - "daily_report.py"
+      - "telegram_monitor.py"
+      - "nightly_discovery.py"
+      - "public_sources.txt"
+      - "source_catalog.txt"
+      - "partners_catalog.json"
+      - "identifier_sources.json"
+      - "requirements.txt"
+      - "self_test.py"
+      - "preflight.py"
+      - ".github/workflows/monitor.yml"
+      - ".github/workflows/nightly-discovery.yml"
+      - ".github/workflows/daily-report.yml"
+  workflow_dispatch:
+    inputs:
+      continuous:
+        description: "Непрерывный режим с проверкой каждые 5 минут"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    - cron: "23 */4 * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: betboom-wheel-monitor-continuous
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Verify repository layout
+        run: python preflight.py
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Check project files
+        run: |
+          python -m py_compile monitor.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
+          python -m json.tool identifier_sources.json >/dev/null
+          python -m json.tool partners_catalog.json >/dev/null
+          python self_test.py
+
+      - name: Run monitor loop
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          DISPLAY_TIMEZONE: Asia/Barnaul
+          REQUEST_TIMEOUT_SECONDS: "15"
+          MAX_WORKERS: "12"
+          UNKNOWN_DEDUP_HOURS: "24"
+          DEADLINE_GRACE_MINUTES: "30"
+          HEARTBEAT_HOURS: "6"
+          HEALTH_ALERT_COOLDOWN_HOURS: "6"
+          STATUS_REPORT_HOURS: "12"
+          MAX_NEW_POST_AGE_MINUTES: "360"
+          NEW_SOURCE_CATCHUP_MINUTES: "1440"
+          FRESH_UNKNOWN_POST_MINUTES: "20"
+          PENDING_RECHECK_HOURS: "24"
+          PENDING_RECHECK_MINUTES: "4"
+          QUARANTINE_FAILURE_THRESHOLD: "3"
+          QUARANTINE_EMPTY_THRESHOLD: "4"
+          QUARANTINE_RECHECK_HOURS: "6"
+          UNAVAILABLE_REPORT_DAYS: "2"
+          BOT_FEEDBACK_ENABLED: "true"
+          MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
+          AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
+          CONTINUOUS: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [[ "$CONTINUOUS" == "true" ]]; then
+            iterations=68
+          else
+            iterations=1
+          fi
+
+          runtime_files=(
+            state.json discovery_state.json source_health.json source_stats.json
+            unknown_timer_samples.json public_sources.txt source_catalog.txt
+          )
+
+          for ((iteration=1; iteration<=iterations; iteration++)); do
+            started_at=$(date +%s)
+            echo "=== Check $iteration/$iterations at $(date -u +%FT%TZ) ==="
+
+            # Синхронный запуск: следующая итерация не начнётся,
+            # пока monitor.py полностью не завершится.
+            python monitor.py 2>&1 | tee monitor-run.log || echo "Monitor iteration failed; the loop will retry."
+
+            # Сохраняем состояние после первой/ручной проверки, примерно раз в час
+            # и перед завершением runner.
+            if (( iterations == 1 || iteration == 1 || iteration % 12 == 0 || iteration == iterations )); then
+              if ! git diff --quiet -- "${runtime_files[@]}"; then
+                git add "${runtime_files[@]}"
+                git commit -m "Update monitor runtime data [skip ci]" || true
+                git pull --rebase origin "${GITHUB_REF_NAME:-main}" || true
+                git push origin "HEAD:${GITHUB_REF_NAME:-main}" || echo "Runtime push failed; will retry later."
+              fi
+            fi
+
+            if (( iteration < iterations )); then
+              elapsed=$(( $(date +%s) - started_at ))
+              sleep_for=$(( 300 - elapsed ))
+
+              if (( sleep_for > 0 )); then
+                echo "Previous check finished in ${elapsed}s. Next check in ${sleep_for}s."
+                sleep "$sleep_for"
+              else
+                echo "Previous check took ${elapsed}s; 5 minutes already elapsed. Starting next check immediately."
+              fi
+            fi
+          done
+
+      - name: Start next continuous shift
+        if: ${{ success() && (github.event_name != 'workflow_dispatch' || inputs.continuous == true) }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run monitor.yml --ref main -f continuous=true
