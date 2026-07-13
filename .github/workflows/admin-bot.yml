@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "admin_bot.py"
+      - "admin_runtime.py"
       - "requirements.txt"
       - ".github/workflows/admin-bot.yml"
   workflow_dispatch:
@@ -44,8 +45,8 @@ jobs:
 
       - name: Check admin panel
         run: |
-          python -m py_compile admin_bot.py
-          python admin_bot.py --self-test
+          python -m py_compile admin_bot.py admin_runtime.py
+          python admin_runtime.py --self-test
 
       - name: Run Telegram admin panel
         env:
@@ -61,7 +62,7 @@ jobs:
           MONITOR_INTERVAL_MINUTES: "5"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_bot.py
+        run: python admin_runtime.py
 
       - name: Start next admin-panel shift
         if: ${{ success() }}
