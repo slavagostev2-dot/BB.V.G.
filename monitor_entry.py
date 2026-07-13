@@ -12,15 +12,28 @@ _original_assess_pending = monitor.assess_pending_wheel
 
 
 def _strict_result(message, result):
-    """Do not keep a wheel active indefinitely without a real participation signal."""
+    """Keep a wheel live only with a real participation button or future timer."""
     age = monitor.message_age(message)
+    method = str(result.method or "").casefold()
+    button_confirmed = "активная кнопка" in method
+    future_timer = bool(result.deadline and result.deadline > monitor.now_utc())
+    text_only_active = result.status == "active" and not button_confirmed and not future_timer
 
-    # A real active button or a future timer remains authoritative.
-    if result.status in {"active", "telegram_deadline"}:
+    if button_confirmed or future_timer or result.status == "telegram_deadline":
         return result
 
+    # Generic page text alone is not enough to keep the wheel active.
+    if text_only_active:
+        result = monitor.WheelAssessment(
+            False,
+            result.deadline,
+            f"общий текст страницы найден, но кнопки участия нет; {result.method}",
+            "unconfirmed",
+            result.page_excerpt,
+        )
+
     # Fresh Telegram posts get a short grace period while BetBoom updates the page.
-    if age <= timedelta(minutes=30) and result.status not in {"inactive"}:
+    if age <= timedelta(minutes=30) and result.status != "inactive":
         return monitor.WheelAssessment(
             True,
             result.deadline,
@@ -29,16 +42,13 @@ def _strict_result(message, result):
             result.page_excerpt,
         )
 
-    # After the grace period, absence of an active button/timer means the wheel is over.
-    if result.status not in {"active", "telegram_deadline"}:
-        return monitor.WheelAssessment(
-            False,
-            result.deadline,
-            f"кнопка участия и действующий таймер не найдены; {result.method}",
-            "inactive",
-            result.page_excerpt,
-        )
-    return result
+    return monitor.WheelAssessment(
+        False,
+        result.deadline,
+        f"кнопка участия и действующий таймер не найдены; {result.method}",
+        "inactive",
+        result.page_excerpt,
+    )
 
 
 def assess_new_with_strict_confirmation(message, link, state=None):
