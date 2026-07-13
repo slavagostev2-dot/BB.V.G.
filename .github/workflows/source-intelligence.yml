@@ -1,0 +1,63 @@
+name: Telegram source intelligence
+run-name: Source intelligence — ${{ github.event_name }}
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 18 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: betboom-source-intelligence
+  cancel-in-progress: false
+
+jobs:
+  intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Check intelligence module
+        run: |
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py
+          python self_test.py
+
+      - name: Scan Telegram source network
+        env:
+          DISPLAY_TIMEZONE: Asia/Barnaul
+          REQUEST_TIMEOUT_SECONDS: "15"
+          INTELLIGENCE_SOURCE_LIMIT: "70"
+          INTELLIGENCE_CANDIDATE_LIMIT: "100"
+          INTELLIGENCE_VERIFY_LIMIT: "40"
+        run: python source_intelligence.py
+
+      - name: Save intelligence state
+        shell: bash
+        run: |
+          if git diff --quiet -- intelligence_state.json; then
+            echo "Intelligence data did not change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add intelligence_state.json
+          git commit -m "Update Telegram source intelligence [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
