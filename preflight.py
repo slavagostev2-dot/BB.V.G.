@@ -53,13 +53,39 @@ def main() -> None:
             "def sources_without_recent_wheels",
         ),
     )
+    require_text(
+        "bbvg_monitor_runtime.py",
+        (
+            "MANUAL_WHEEL_TTL_DAYS",
+            "inactive_wheels",
+            "needs_manual_time",
+            "remember_without_pending",
+            "🚫 Неактивное",
+        ),
+    )
+    require_text(
+        "bbvg_monitor_main.py",
+        (
+            "recover_deadline_manual_first",
+            "process_active_without_unknown_time_spam",
+        ),
+    )
+    require_text(
+        "admin_panel_runtime_v20.py",
+        (
+            "BB V.G.",
+            "Указать время",
+            "Неактивное",
+            "hide_wheel_for_current_user",
+        ),
+    )
     require_text("nightly_discovery.py", ("import monitor", "def main()"))
-    require_text("daily_report.py", ("Ежедневный отчёт", "def main()"))
+    require_text("daily_report.py", ("Ежедневный отчёт", "BB V.G.", "def main()"))
     require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
     require_text("self_test.py", ("import monitor", "def main()"))
     require_text("public_sources.txt", ("narodCast", "kolesaBB"))
     require_text("source_catalog.txt", ("Ночное наблюдение",))
-    require_text(".github/workflows/daily-report.yml", ("Daily BetBoom monitor report", "daily_report.py"))
+    require_text(".github/workflows/daily-report.yml", ("BB V.G. daily report", "daily_report.py"))
 
     mapping = read_json("identifier_sources.json")
     if not isinstance(mapping.get("mappings"), list):
@@ -116,7 +142,7 @@ def main() -> None:
     if any(info.get("relationship") == "confirmed_ambassador" for info in metadata.values()):
         raise SystemExit("PRECHECK ERROR: confirmed_ambassador classification is obsolete")
 
-    print("Preflight checks passed.")
+    print("BB V.G. preflight checks passed.")
 
 
 if __name__ == "__main__":
