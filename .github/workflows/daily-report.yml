@@ -39,8 +39,10 @@ jobs:
 
       - name: Check report code
         run: |
-          python -m py_compile monitor.py monitor_data.py daily_report.py
+          python -m py_compile monitor.py monitor_data.py daily_report.py daily_report_entry.py notification_router.py
+          python notification_router.py
           python -m json.tool partners_catalog.json >/dev/null
+          python -m json.tool bot_access.json >/dev/null
 
       - name: Send daily report
         env:
@@ -49,5 +51,4 @@ jobs:
           DISPLAY_TIMEZONE: Asia/Barnaul
           UNAVAILABLE_REPORT_DAYS: "2"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
-        run: python daily_report.py
-
+        run: python daily_report_entry.py
