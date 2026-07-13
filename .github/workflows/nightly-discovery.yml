@@ -6,6 +6,10 @@ on:
     paths:
       - "nightly_discovery.py"
       - "nightly_discovery_entry.py"
+      - "bbvg_monitor_features.py"
+      - "notification_router_v2.py"
+      - "source_registry.py"
+      - "source_reputation.py"
       - "public_sources.txt"
       - "source_catalog.txt"
       - ".github/workflows/nightly-discovery.yml"
@@ -46,8 +50,9 @@ jobs:
 
       - name: Check project files
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py daily_report.py notification_router.py
-          python notification_router.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py bbvg_monitor_features.py source_registry.py source_reputation.py notification_router_v2.py daily_report.py
+          python notification_router_v2.py
+          python source_reputation.py
           python -m json.tool bot_access.json >/dev/null
           python self_test.py
 
@@ -67,10 +72,13 @@ jobs:
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
         run: python nightly_discovery_entry.py
 
-      - name: Save discovery, health and statistics
+      - name: Save discovery, source registry and reputation
         shell: bash
         run: |
-          files=(public_sources.txt source_catalog.txt discovery_state.json)
+          files=(
+            public_sources.txt source_catalog.txt discovery_state.json
+            source_registry.json source_reputation.json
+          )
           if git diff --quiet -- "${files[@]}"; then
             echo "Discovery data did not change."
             exit 0
