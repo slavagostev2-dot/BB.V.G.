@@ -13,6 +13,7 @@ on:
       - "admin_panel_runtime_v4.py"
       - "admin_panel_runtime_v5.py"
       - "admin_panel_runtime_v6.py"
+      - "admin_panel_runtime_v7.py"
       - "candidate_moderation.json"
       - "intelligence_state.json"
       - "requirements.txt"
@@ -56,11 +57,12 @@ jobs:
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         run: |
-          python -m py_compile admin_bot.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py
+          python -m py_compile admin_bot.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py
           python admin_panel_runtime_v3.py --self-test
           python admin_panel_runtime_v4.py --self-test
           python admin_panel_runtime_v5.py --self-test
           python admin_panel_runtime_v6.py --self-test
+          python admin_panel_runtime_v7.py --self-test
           python -m json.tool bot_access.json >/dev/null
           python -m json.tool candidate_moderation.json >/dev/null
 
@@ -79,7 +81,7 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 6,
+              "version": 7,
           }
           with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
@@ -107,7 +109,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v6.py
+        run: python admin_panel_runtime_v7.py
 
       - name: Start next control-center shift
         if: ${{ success() }}
