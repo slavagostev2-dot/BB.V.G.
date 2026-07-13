@@ -38,7 +38,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: betboom-wheel-monitor-continuous
+  group: ${{ github.event_name == 'push' && format('betboom-wheel-monitor-push-{0}', github.sha) || 'betboom-wheel-monitor-continuous' }}
   cancel-in-progress: false
 
 jobs:
@@ -75,7 +75,7 @@ jobs:
           python self_test.py
 
       - name: Queue next continuous shift
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
+        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -107,7 +107,7 @@ jobs:
           BOT_FEEDBACK_ENABLED: "false"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
           AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
-          CONTINUOUS: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
+          CONTINUOUS: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
         shell: bash
         run: |
           set -uo pipefail
