@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/sync-source-tiers.yml"
       - "public_sources.txt"
+      - "candidate_moderation.json"
   workflow_dispatch:
 
 permissions:
@@ -44,8 +45,23 @@ jobs:
               return result
 
           active = read_list('public_sources.txt')
-          catalog = read_list('source_catalog.txt')
           active_keys = {value.casefold() for value in active}
+
+          try:
+              moderation = json.loads(Path('candidate_moderation.json').read_text(encoding='utf-8'))
+          except (FileNotFoundError, json.JSONDecodeError):
+              moderation = {}
+          ignored_raw = moderation.get('ignored', {}) if isinstance(moderation, dict) else {}
+          ignored = {
+              str(value).strip().lstrip('@').casefold()
+              for value in (ignored_raw.keys() if isinstance(ignored_raw, dict) else [])
+              if str(value).strip()
+          }
+
+          catalog = [
+              value for value in read_list('source_catalog.txt')
+              if value.casefold() not in ignored
+          ]
           catalog_keys = {value.casefold() for value in catalog}
           payload = json.loads(Path('source_stats.json').read_text(encoding='utf-8'))
           sources = payload.get('sources', {}) if isinstance(payload, dict) else {}
@@ -55,7 +71,12 @@ jobs:
               for source in sources:
                   value = str(source).strip().lstrip('@')
                   key = value.casefold()
-                  if value and key not in active_keys and key not in catalog_keys:
+                  if (
+                      value
+                      and key not in active_keys
+                      and key not in catalog_keys
+                      and key not in ignored
+                  ):
                       catalog.append(value)
                       catalog_keys.add(key)
                       added.append(value)
@@ -67,6 +88,7 @@ jobs:
               encoding='utf-8',
           )
           print(f'Primary sources: {len(active)}')
+          print(f'Ignored sources: {len(ignored)}')
           print(f'Added to nightly: {len(added)}')
           print(f'Nightly sources: {len(catalog)}')
           PY
