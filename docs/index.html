@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#08080c">
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="BB V.G. — актуальные колёса, статистика и источники">
+  <meta name="description" content="BB V.G. — актуальные колёса, единый список источников и рейтинг">
   <title>BB V.G.</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css?v=5.0.0">
+  <link rel="stylesheet" href="bbvg-v6.css?v=6.0.0">
   <script src="https://telegram.org/js/telegram-web-app.js?62"></script>
   <script src="runtime-config.js?v=5.0.0"></script>
 </head>
@@ -24,12 +25,14 @@
       <section id="page-home" class="page active" data-page="home"></section>
       <section id="page-stats" class="page" data-page="stats"></section>
       <section id="page-sources" class="page" data-page="sources"></section>
+      <section id="page-rating" class="page" data-page="rating"></section>
       <section id="page-profile" class="page" data-page="profile"></section>
     </main>
-    <nav class="bottom-nav" aria-label="Навигация приложения">
+    <nav class="bottom-nav five-items" aria-label="Навигация приложения">
       <button class="nav-item active" type="button" data-route="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-5v6H5a1.5 1.5 0 0 1-1.5-1.5z"/></svg><span>Главная</span></button>
       <button class="nav-item" type="button" data-route="stats"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11m7 9V4m7 16v-6M3 20h18"/></svg><span>Статистика</span></button>
       <button class="nav-item" type="button" data-route="sources"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4m8.4-8.4a6 6 0 0 1 0 8.4M4.3 4.3a11 11 0 0 0 0 15.4m15.4-15.4a11 11 0 0 1 0 15.4"/></svg><span>Источники</span></button>
+      <button class="nav-item" type="button" data-route="rating"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v4a4 4 0 0 1-8 0zM6 5H3v2a4 4 0 0 0 4 4m11-6h3v2a4 4 0 0 1-4 4M12 12v5m-4 3h8"/></svg><span>Рейтинг</span></button>
       <button class="nav-item" type="button" data-route="profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span>Профиль</span></button>
     </nav>
   </div>
@@ -37,5 +40,6 @@
   <dialog id="dialog" class="dialog"><button class="dialog-close" type="button" data-action="close-dialog" aria-label="Закрыть">×</button><div id="dialogBody"></div></dialog>
   <script src="app.js?v=4.0.1"></script>
   <script src="bbvg-controls.js?v=2.0.0"></script>
+  <script src="bbvg-v6.js?v=6.0.0"></script>
 </body>
 </html>
