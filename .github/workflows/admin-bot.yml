@@ -7,6 +7,7 @@ on:
     paths:
       - "admin_bot.py"
       - "admin_action.py"
+      - "admin_action_v2.py"
       - "admin_runtime.py"
       - "admin_panel_v2.py"
       - "admin_panel_runtime_v2.py"
@@ -29,6 +30,10 @@ on:
       - "admin_panel_runtime_v19.py"
       - "admin_panel_runtime_v20.py"
       - "admin_panel_runtime_v21.py"
+      - "admin_panel_runtime_v22.py"
+      - "notification_router_v2.py"
+      - "source_registry.py"
+      - "source_reputation.py"
       - "candidate_moderation.json"
       - "intelligence_state.json"
       - "requirements.txt"
@@ -72,8 +77,11 @@ jobs:
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         run: |
-          python -m py_compile admin_bot.py admin_action.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py admin_panel_runtime_v8.py admin_panel_runtime_v9.py admin_panel_runtime_v10.py admin_panel_runtime_v11.py admin_panel_runtime_v12.py admin_panel_runtime_v13.py admin_panel_runtime_v14.py admin_panel_runtime_v15.py admin_panel_runtime_v16.py admin_panel_runtime_v17.py admin_panel_runtime_v18.py admin_panel_runtime_v19.py admin_panel_runtime_v20.py admin_panel_runtime_v21.py
+          python -m py_compile admin_bot.py admin_action.py admin_action_v2.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py admin_panel_runtime_v8.py admin_panel_runtime_v9.py admin_panel_runtime_v10.py admin_panel_runtime_v11.py admin_panel_runtime_v12.py admin_panel_runtime_v13.py admin_panel_runtime_v14.py admin_panel_runtime_v15.py admin_panel_runtime_v16.py admin_panel_runtime_v17.py admin_panel_runtime_v18.py admin_panel_runtime_v19.py admin_panel_runtime_v20.py admin_panel_runtime_v21.py admin_panel_runtime_v22.py notification_router_v2.py source_registry.py source_reputation.py
           python admin_action.py --self-test
+          python admin_action_v2.py --self-test
+          python notification_router_v2.py
+          python source_reputation.py
           python admin_panel_runtime_v3.py --self-test
           python admin_panel_runtime_v4.py --self-test
           python admin_panel_runtime_v5.py --self-test
@@ -92,10 +100,13 @@ jobs:
           python admin_panel_runtime_v19.py --self-test
           python admin_panel_runtime_v20.py --self-test
           python admin_panel_runtime_v21.py --self-test
+          python admin_panel_runtime_v22.py --self-test
           python -m json.tool bot_access.json >/dev/null
           python -m json.tool candidate_moderation.json >/dev/null
           python -m json.tool miniapp_deployment.json >/dev/null
           python -m json.tool source_requests.json >/dev/null
+          python -m json.tool source_registry.json >/dev/null
+          python -m json.tool source_reputation.json >/dev/null
 
       - name: Record panel status
         shell: bash
@@ -113,7 +124,7 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 21,
+              "version": 22,
           }
           with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
@@ -141,7 +152,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v21.py
+        run: python admin_panel_runtime_v22.py
 
       - name: Start next control-center shift
         if: ${{ success() }}
