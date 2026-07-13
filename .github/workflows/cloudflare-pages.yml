@@ -26,6 +26,7 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -51,35 +52,71 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Build Mini App runtime config
+        if: steps.credentials.outputs.configured == 'true'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+          from pathlib import Path
+
+          username = ""
+          token = os.environ.get("BOT_TOKEN", "").strip()
+          if token:
+              try:
+                  with urllib.request.urlopen(
+                      f"https://api.telegram.org/bot{token}/getMe", timeout=20
+                  ) as response:
+                      payload = json.load(response)
+                  username = str((payload.get("result") or {}).get("username") or "")
+              except Exception as exc:
+                  print(f"Could not resolve bot username: {type(exc).__name__}")
+
+          Path("docs/runtime-config.js").write_text(
+              "window.BB_CONFIG=" + json.dumps({"botUsername": username}, ensure_ascii=False) + ";\n",
+              encoding="utf-8",
+          )
+          print("Runtime config prepared")
+          PY
+
       - name: Validate Mini App
         if: steps.credentials.outputs.configured == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          scripts=(
-            docs/core.js
-            docs/data.js
-            docs/views-main.js
-            docs/views-secondary.js
-            docs/interactions.js
-            docs/bootstrap.js
-            docs/service-worker.js
-          )
-          for script in "${scripts[@]}"; do
-            node --check "$script"
-          done
+          node --check docs/app.js
+          node --check docs/runtime-config.js
+          node --check docs/service-worker.js
           python - <<'PY'
           from pathlib import Path
 
           html = Path("docs/index.html").read_text(encoding="utf-8")
           required = [
-              "core.js", "data.js", "views-main.js", "views-secondary.js",
-              "interactions.js", "bootstrap.js", "styles.css",
+              "app.js", "runtime-config.js", "styles.css",
+              "icon.svg", "manifest.webmanifest",
           ]
           missing = [name for name in required if name not in html]
           if missing:
               raise SystemExit(f"Missing assets in index.html: {', '.join(missing)}")
-          print("Mini App validation passed")
+
+          css = Path("docs/styles.css").read_text(encoding="utf-8")
+          if "splash.svg" not in css or not Path("docs/splash.svg").exists():
+              raise SystemExit("Generated splash background is missing")
+          if not Path("docs/icon.svg").exists():
+              raise SystemExit("Generated app icon is missing")
+
+          app = Path("docs/app.js").read_text(encoding="utf-8")
+          forbidden = ["pending_posts||{}", "favorites", "healthStatus", "Ближайшие колёса", "Сводка"]
+          found = [value for value in forbidden if value in app]
+          if found:
+              raise SystemExit(f"Removed Mini App features returned: {', '.join(found)}")
+          required_features = ["sourceRequestForm", "source_request", "active_wheels", "data-route=\"home\""]
+          absent = [value for value in required_features if value not in (app + html)]
+          if absent:
+              raise SystemExit(f"Required Mini App features are missing: {', '.join(absent)}")
+          print("Mini App v3 validation passed")
           PY
 
       - name: Create Cloudflare Pages project if needed
