@@ -3,87 +3,66 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#0a0b0e">
-  <meta name="color-scheme" content="dark light">
-  <meta name="description" content="BetBoom Monitor — действующие колёса, статистика и источники в Telegram">
+  <meta name="theme-color" content="#0a0a0c">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="BetBoom Monitor — актуальные колёса, статистика и источники">
   <title>BetBoom Monitor</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=2.0.0">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="styles.css?v=3.0.0">
+  <script src="https://telegram.org/js/telegram-web-app.js?62"></script>
+  <script src="runtime-config.js?v=3.0.0"></script>
 </head>
 <body>
-  <div id="app" class="app-shell">
+  <div id="splash" class="splash" aria-label="Загрузка приложения">
+    <div class="splash-shade"></div>
+    <div class="splash-copy">
+      <strong>BetBoom Monitor</strong>
+      <span>Загружаем актуальные колёса</span>
+      <i></i>
+    </div>
+  </div>
+
+  <div id="app" class="app-shell" hidden>
     <header class="app-header">
-      <button id="profileButton" class="user-chip" type="button" aria-label="Открыть профиль">
-        <span id="userAvatar" class="avatar" aria-hidden="true">BB</span>
-        <span class="user-copy">
-          <strong id="userName">BetBoom Monitor</strong>
-          <small id="connectionText">Подключение…</small>
-        </span>
+      <button class="brand" type="button" data-route="home" aria-label="На главную">
+        <img src="icon.svg" alt="">
+        <span><strong>BetBoom Monitor</strong><small id="headerSubtitle">Актуальные колёса</small></span>
       </button>
-      <button id="refreshButton" class="icon-button" type="button" aria-label="Обновить данные" title="Обновить">
-        <span class="refresh-icon" aria-hidden="true">↻</span>
+      <button id="refreshButton" class="icon-button" type="button" aria-label="Обновить">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0 2 5.3M20 4v7h-7"/></svg>
       </button>
     </header>
 
-    <div id="pullIndicator" class="pull-indicator" aria-hidden="true">Потяните для обновления</div>
-
-    <main id="pageContainer" class="page-container" aria-live="polite">
+    <main class="page-wrap">
       <section id="page-home" class="page active" data-page="home"></section>
-      <section id="page-wheels" class="page" data-page="wheels"></section>
       <section id="page-stats" class="page" data-page="stats"></section>
       <section id="page-sources" class="page" data-page="sources"></section>
       <section id="page-profile" class="page" data-page="profile"></section>
     </main>
 
-    <nav class="bottom-nav" aria-label="Основная навигация">
-      <button class="nav-item active" type="button" data-route="home" aria-label="Главная">
-        <span class="nav-icon" aria-hidden="true">⌂</span>
+    <nav class="bottom-nav" aria-label="Навигация приложения">
+      <button class="nav-item active" type="button" data-route="home">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.8 12 3l9 7.8v9.7a.5.5 0 0 1-.5.5H15v-6H9v6H3.5a.5.5 0 0 1-.5-.5z"/></svg>
         <span>Главная</span>
       </button>
-      <button class="nav-item" type="button" data-route="wheels" aria-label="Колёса">
-        <span class="nav-icon" aria-hidden="true">◉</span>
-        <span>Колёса</span>
-        <span id="wheelNavBadge" class="nav-badge hidden">0</span>
-      </button>
-      <button class="nav-item" type="button" data-route="stats" aria-label="Статистика">
-        <span class="nav-icon" aria-hidden="true">▥</span>
+      <button class="nav-item" type="button" data-route="stats">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10m7 10V4m7 16v-7"/></svg>
         <span>Статистика</span>
       </button>
-      <button class="nav-item" type="button" data-route="sources" aria-label="Источники">
-        <span class="nav-icon" aria-hidden="true">◌</span>
+      <button class="nav-item" type="button" data-route="sources">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4m8.4-8.4a6 6 0 0 1 0 8.4M4.3 4.3a11 11 0 0 0 0 15.4m15.4-15.4a11 11 0 0 1 0 15.4"/></svg>
         <span>Источники</span>
       </button>
-      <button class="nav-item" type="button" data-route="profile" aria-label="Профиль">
-        <span class="nav-icon" aria-hidden="true">◎</span>
+      <button class="nav-item" type="button" data-route="profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>
         <span>Профиль</span>
       </button>
     </nav>
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <dialog id="detailsDialog" class="details-dialog">
-    <button id="closeDialog" class="dialog-close" type="button" aria-label="Закрыть">×</button>
-    <div id="dialogContent"></div>
-  </dialog>
-
-  <div id="loadingOverlay" class="loading-overlay">
-    <div class="brand-loader">
-      <div class="loader-mark">BB</div>
-      <strong>BetBoom Monitor</strong>
-      <span>Загружаем актуальные данные</span>
-      <div class="loader-line"><i></i></div>
-    </div>
-  </div>
-
-  <noscript>Для работы приложения требуется JavaScript.</noscript>
-  <script src="core.js?v=2.0.0"></script>
-  <script src="data.js?v=2.0.0"></script>
-  <script src="views-main.js?v=2.0.0"></script>
-  <script src="views-secondary.js?v=2.0.0"></script>
-  <script src="interactions.js?v=2.0.0"></script>
-  <script src="bootstrap.js?v=2.0.0"></script>
+  <dialog id="dialog" class="dialog"><button class="dialog-close" type="button" data-action="close-dialog" aria-label="Закрыть">×</button><div id="dialogBody"></div></dialog>
+  <script src="app.js?v=3.0.0"></script>
 </body>
 </html>
