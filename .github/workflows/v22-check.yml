@@ -20,14 +20,20 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
-      - name: Validate Python and data
+      - name: Compile Python modules
+        run: python -m py_compile admin_action_v2.py admin_panel_runtime_v22.py admin_panel_v22_access.py admin_panel_v22_callbacks.py admin_panel_v22_views.py bbvg_monitor_features.py bbvg_monitor_main.py nightly_discovery_entry.py notification_router_v2.py source_registry.py source_reputation.py
+      - name: Test notification routing
+        run: python notification_router_v2.py
+      - name: Test source reputation
+        run: python source_reputation.py
+      - name: Test administrator actions
+        run: python admin_action_v2.py --self-test
+      - name: Test Telegram panel v22
+        run: python admin_panel_runtime_v22.py --self-test
+      - name: Test unified source registry
+        run: python source_registry.py
+      - name: Validate JSON data
         run: |
-          python -m py_compile admin_action_v2.py admin_panel_runtime_v22.py admin_panel_v22_access.py admin_panel_v22_callbacks.py admin_panel_v22_views.py bbvg_monitor_features.py bbvg_monitor_main.py nightly_discovery_entry.py notification_router_v2.py source_registry.py source_reputation.py
-          python notification_router_v2.py
-          python source_reputation.py
-          python admin_action_v2.py --self-test
-          python admin_panel_runtime_v22.py --self-test
-          python source_registry.py
           python -m json.tool source_registry.json >/dev/null
           python -m json.tool source_reputation.json >/dev/null
       - name: Validate Mini App JavaScript
