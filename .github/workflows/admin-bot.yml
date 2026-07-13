@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -47,6 +47,34 @@ jobs:
         run: |
           python -m py_compile admin_bot.py admin_runtime.py
           python admin_runtime.py --self-test
+
+      - name: Record admin-panel heartbeat
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          value = {
+              "status": "running",
+              "started_at": datetime.now(timezone.utc).isoformat(),
+              "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+              "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+              "event": os.environ.get("GITHUB_EVENT_NAME", ""),
+          }
+          with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
+              json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
+              stream.write("\n")
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add admin_panel_status.json
+          git commit -m "Update Telegram admin panel status [skip ci]" || true
+          git pull --rebase origin main
+          git push origin HEAD:main
 
       - name: Run Telegram admin panel
         env:
