@@ -51,6 +51,37 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Validate Mini App
+        if: steps.credentials.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts=(
+            docs/core.js
+            docs/data.js
+            docs/views-main.js
+            docs/views-secondary.js
+            docs/interactions.js
+            docs/bootstrap.js
+            docs/service-worker.js
+          )
+          for script in "${scripts[@]}"; do
+            node --check "$script"
+          done
+          python - <<'PY'
+          from pathlib import Path
+
+          html = Path("docs/index.html").read_text(encoding="utf-8")
+          required = [
+              "core.js", "data.js", "views-main.js", "views-secondary.js",
+              "interactions.js", "bootstrap.js", "styles.css",
+          ]
+          missing = [name for name in required if name not in html]
+          if missing:
+              raise SystemExit(f"Missing assets in index.html: {', '.join(missing)}")
+          print("Mini App validation passed")
+          PY
+
       - name: Create Cloudflare Pages project if needed
         if: steps.credentials.outputs.configured == 'true'
         shell: bash
