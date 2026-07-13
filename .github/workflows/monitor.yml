@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - "monitor.py"
+      - "monitor_entry.py"
+      - "notification_router.py"
+      - "bot_access.json"
       - "monitor_data.py"
       - "daily_report.py"
       - "telegram_monitor.py"
@@ -34,8 +37,6 @@ permissions:
   contents: write
   actions: write
 
-# При изменении кода старая длительная смена отменяется, чтобы новая версия
-# начала работать сразу и не продолжала записывать устаревшее состояние.
 concurrency:
   group: betboom-wheel-monitor-continuous
   cancel-in-progress: true
@@ -66,9 +67,11 @@ jobs:
 
       - name: Check project files
         run: |
-          python -m py_compile monitor.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
+          python -m py_compile monitor.py monitor_entry.py notification_router.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
+          python notification_router.py
           python -m json.tool identifier_sources.json >/dev/null
           python -m json.tool partners_catalog.json >/dev/null
+          python -m json.tool bot_access.json >/dev/null
           python self_test.py
 
       - name: Run monitor loop
@@ -94,7 +97,6 @@ jobs:
           UNAVAILABLE_REPORT_DAYS: "2"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-          # Telegram updates обрабатывает отдельный постоянный admin-bot.
           BOT_FEEDBACK_ENABLED: "false"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
           AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
@@ -121,12 +123,8 @@ jobs:
             started_at=$(date +%s)
             echo "=== Check $iteration/$iterations at $(date -u +%FT%TZ) ==="
 
-            # Синхронный запуск: следующая итерация не начнётся,
-            # пока monitor.py полностью не завершится.
-            python monitor.py 2>&1 | tee monitor-run.log || echo "Monitor iteration failed; the loop will retry."
+            python monitor_entry.py 2>&1 | tee monitor-run.log || echo "Monitor iteration failed; the loop will retry."
 
-            # Сохраняем состояние после первой/ручной проверки, примерно раз в час
-            # и перед завершением runner.
             if (( iterations == 1 || iteration == 1 || iteration % 12 == 0 || iteration == iterations )); then
               if ! git diff --quiet -- "${runtime_files[@]}"; then
                 git add "${runtime_files[@]}"
