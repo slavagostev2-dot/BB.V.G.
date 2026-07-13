@@ -29,7 +29,22 @@ jobs:
       - name: Test administrator actions
         run: python admin_action_v2.py --self-test
       - name: Test Telegram panel v22
-        run: python admin_panel_runtime_v22.py --self-test
+        id: panel_test
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python admin_panel_runtime_v22.py --self-test 2>&1 | tee panel-test.log
+      - name: Upload panel test diagnostics
+        if: ${{ steps.panel_test.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: panel-test-diagnostics
+          path: panel-test.log
+          retention-days: 1
+      - name: Stop on panel test failure
+        if: ${{ steps.panel_test.outcome == 'failure' }}
+        run: exit 1
       - name: Test unified source registry
         run: python source_registry.py
       - name: Validate JSON data
