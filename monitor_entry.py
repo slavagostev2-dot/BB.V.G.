@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 from datetime import datetime, timedelta
 
 import monitor
@@ -10,8 +11,101 @@ notification_router.install(monitor)
 
 _original_assess_new = monitor.assess_new_wheel
 _original_assess_pending = monitor.assess_pending_wheel
+_original_fetch_all_sources = monitor.fetch_all_sources
 _original_mark_participating = monitor.mark_participating
 _original_process_active_wheels = monitor.process_active_wheels
+
+_IDENTIFIER_MAPPINGS = monitor.load_identifier_sources()
+try:
+    _identifier_config = json.loads(
+        monitor.IDENTIFIER_SOURCES_PATH.read_text(encoding="utf-8")
+    )
+except (OSError, json.JSONDecodeError):
+    _identifier_config = {}
+_COLLECTOR_SOURCES = {
+    str(value).strip().lstrip("@").casefold()
+    for value in _identifier_config.get("collectors", [])
+    if str(value).strip()
+}
+_CANONICAL_MESSAGES: dict[str, monitor.Message] = {}
+
+
+def _mapped_sources(identifier: str) -> set[str]:
+    return {
+        value.casefold()
+        for value in monitor.related_sources(identifier, _IDENTIFIER_MAPPINGS)
+    }
+
+
+def _source_rank(identifier: str, source: str) -> int:
+    normalized = source.strip().lstrip("@").casefold()
+    if normalized in _mapped_sources(identifier):
+        return 0
+    if normalized in _COLLECTOR_SOURCES:
+        return 2
+    return 1
+
+
+def _message_rank(message: monitor.Message, identifier: str) -> tuple:
+    return (
+        _source_rank(identifier, message.source),
+        message.date.astimezone(monitor.UTC),
+        message.message_id,
+    )
+
+
+def fetch_all_sources_with_originals(sources):
+    """Use the mapped creator or earliest non-collector post as wheel origin."""
+    messages_by_source, source_errors, empty_sources = _original_fetch_all_sources(sources)
+    candidates: dict[str, list[monitor.Message]] = {}
+
+    for messages in messages_by_source.values():
+        for message in messages:
+            for link in monitor.extract_links(message.text):
+                candidates.setdefault(monitor.wheel_key(link), []).append(message)
+
+    _CANONICAL_MESSAGES.clear()
+    for key, rows in candidates.items():
+        if not rows:
+            continue
+        identifier = monitor.wheel_identifier(
+            next(
+                link
+                for message in rows
+                for link in monitor.extract_links(message.text)
+                if monitor.wheel_key(link) == key
+            )
+        )
+        _CANONICAL_MESSAGES[key] = min(
+            rows,
+            key=lambda message: _message_rank(message, identifier),
+        )
+
+    # Most wheel posts contain one identifier. Replacing reposts with the
+    # canonical message makes deadline inference, source attribution and
+    # duplicate keys consistently use the original publication.
+    for source, messages in list(messages_by_source.items()):
+        rewritten: list[monitor.Message] = []
+        seen_messages: set[tuple[str, int]] = set()
+        for message in messages:
+            wheel_keys = {
+                monitor.wheel_key(link)
+                for link in monitor.extract_links(message.text)
+            }
+            canonical = (
+                _CANONICAL_MESSAGES.get(next(iter(wheel_keys)))
+                if len(wheel_keys) == 1
+                else None
+            )
+            selected = canonical or message
+            marker = (selected.source.casefold(), selected.message_id)
+            if marker in seen_messages:
+                continue
+            seen_messages.add(marker)
+            rewritten.append(selected)
+        messages_by_source[source] = rewritten
+
+    return messages_by_source, source_errors, empty_sources
 
 
 def _notification_first(message, result):
@@ -31,11 +125,19 @@ def _notification_first(message, result):
 
 
 def assess_new_notification_first(message, link, state=None):
-    return _notification_first(message, _original_assess_new(message, link, state))
+    canonical = _CANONICAL_MESSAGES.get(monitor.wheel_key(link), message)
+    return _notification_first(
+        canonical,
+        _original_assess_new(canonical, link, state),
+    )
 
 
 def assess_pending_notification_first(message, link, state=None):
-    return _notification_first(message, _original_assess_pending(message, link, state))
+    canonical = _CANONICAL_MESSAGES.get(monitor.wheel_key(link), message)
+    return _notification_first(
+        canonical,
+        _original_assess_pending(canonical, link, state),
+    )
 
 
 def _deadline_from_record(record):
@@ -62,46 +164,81 @@ def _record_wheel_key(record):
     return monitor.wheel_key(url) if url else ""
 
 
+def _record_time(record: dict) -> datetime:
+    return (
+        monitor.parse_datetime(record.get("message_date"))
+        or monitor.parse_datetime(record.get("created_at"))
+        or monitor.parse_datetime(record.get("first_seen_at"))
+        or monitor.parse_datetime(record.get("first_notified_at"))
+        or datetime.max.replace(tzinfo=monitor.UTC)
+    )
+
+
+def _best_origin_record(state: dict, key: str, entry: dict) -> dict:
+    identifier = str(entry.get("identifier") or key)
+    rows: list[dict] = [entry]
+    participant = state.get("participating_wheels", {}).get(key)
+    if isinstance(participant, dict) and _record_wheel_key(participant) in {"", key}:
+        rows.append(participant)
+    for collection_name in ("button_contexts", "pending_posts"):
+        collection = state.get(collection_name, {})
+        if not isinstance(collection, dict):
+            continue
+        for record in collection.values():
+            if isinstance(record, dict) and _record_wheel_key(record) == key:
+                rows.append(record)
+
+    useful = [
+        record
+        for record in rows
+        if str(record.get("source") or "")
+        and (record.get("message_text") or record.get("message_date"))
+    ]
+    if not useful:
+        return entry
+    return min(
+        useful,
+        key=lambda record: (
+            _source_rank(identifier, str(record.get("source") or "")),
+            _record_time(record),
+            int(record.get("message_id", 0) or 0),
+        ),
+    )
+
+
+def _apply_origin(entry: dict, origin: dict) -> bool:
+    changed = False
+    for field in (
+        "source",
+        "message_id",
+        "message_date",
+        "message_url",
+        "message_text",
+    ):
+        value = origin.get(field)
+        if value not in (None, "") and entry.get(field) != value:
+            entry[field] = value
+            changed = True
+    origin_method = str(origin.get("method") or "")
+    if origin_method and _deadline_from_record(origin):
+        if entry.get("method") != origin_method:
+            entry["method"] = origin_method[:300]
+            changed = True
+    return changed
+
+
 def _recover_deadline(state, key, entry):
+    origin = _best_origin_record(state, key, entry)
+    deadline = _deadline_from_record(origin)
+    if deadline:
+        return deadline
+
     direct = _deadline_from_record(entry)
     if direct:
         return direct
 
     participant = state.get("participating_wheels", {}).get(key)
-    direct = _deadline_from_record(participant)
-    if direct:
-        return direct
-
-    first_notified = monitor.parse_datetime(entry.get("first_notified_at"))
-    oldest_allowed = (
-        first_notified - timedelta(days=1)
-        if first_notified
-        else monitor.now_utc() - timedelta(days=monitor.BUTTON_CONTEXT_DAYS)
-    )
-    evidence = []
-    collections = (
-        state.get("button_contexts", {}).values(),
-        state.get("pending_posts", {}).values(),
-    )
-    for records in collections:
-        for record in records:
-            if not isinstance(record, dict) or _record_wheel_key(record) != key:
-                continue
-            observed_at = (
-                monitor.parse_datetime(record.get("created_at"))
-                or monitor.parse_datetime(record.get("first_seen_at"))
-                or monitor.parse_datetime(record.get("message_date"))
-            )
-            if observed_at and observed_at < oldest_allowed:
-                continue
-            deadline = _deadline_from_record(record)
-            if deadline:
-                evidence.append((observed_at or deadline, deadline))
-
-    if not evidence:
-        return None
-    evidence.sort(key=lambda item: item[0], reverse=True)
-    return evidence[0][1]
+    return _deadline_from_record(participant)
 
 
 def mark_participating_with_tracking(state, context):
@@ -112,6 +249,19 @@ def mark_participating_with_tracking(state, context):
     if not key:
         return
     current = monitor.now_utc()
+    canonical = _CANONICAL_MESSAGES.get(key)
+    if canonical is not None:
+        context = dict(context)
+        context.update(
+            {
+                "source": canonical.source,
+                "message_id": canonical.message_id,
+                "message_date": canonical.date.astimezone(monitor.UTC).isoformat(),
+                "message_url": canonical.message_url,
+                "message_text": canonical.text[:4000],
+            }
+        )
+
     deadline = _deadline_from_record(context)
     url = str(context.get("url") or "")
     participant = state.setdefault("participating_wheels", {}).get(key)
@@ -154,6 +304,7 @@ def mark_participating_with_tracking(state, context):
     else:
         entry["participating"] = True
         entry["participating_at"] = current.isoformat()
+        _apply_origin(entry, context)
 
     if deadline and not monitor.parse_datetime(entry.get("deadline")):
         entry["deadline"] = deadline.isoformat()
@@ -163,7 +314,7 @@ def mark_participating_with_tracking(state, context):
 
 
 def process_active_wheels_with_draw_alert(state, stats):
-    """Send one alert when a known or recovered draw deadline is reached."""
+    """Send one alert using the original source and its original publication time."""
     current = monitor.now_utc()
     sent = state.setdefault("completed_wheel_alerts", {})
     changed = False
@@ -173,8 +324,12 @@ def process_active_wheels_with_draw_alert(state, stats):
         if not isinstance(entry, dict):
             continue
         normalized = str(key).casefold()
+        origin = _best_origin_record(state, normalized, entry)
+        if _apply_origin(entry, origin):
+            changed = True
+
         deadline = _recover_deadline(state, normalized, entry)
-        if deadline and not monitor.parse_datetime(entry.get("deadline")):
+        if deadline and monitor.parse_datetime(entry.get("deadline")) != deadline:
             entry["deadline"] = deadline.isoformat()
             entry["expires_at"] = monitor.participation_expiry(
                 deadline, current=current
@@ -205,7 +360,7 @@ def process_active_wheels_with_draw_alert(state, stats):
             monitor.send_message(
                 "🎯 <b>Время прокрутки колеса наступило</b>\n\n"
                 f"Идентификатор: <code>{html.escape(identifier)}</code>\n"
-                f"Источник: @{html.escape(source)}\n"
+                f"Оригинальный источник: @{html.escape(source)}\n"
                 f"Ваша отметка участия: {'✅ участвую' if participated else '❌ не отмечена'}\n\n"
                 "Колесо уже должно быть прокручено. Откройте страницу и проверьте результат.",
                 reply_markup=markup,
@@ -216,6 +371,7 @@ def process_active_wheels_with_draw_alert(state, stats):
         else:
             sent[normalized] = {
                 "identifier": identifier,
+                "source": source,
                 "url": url,
                 "deadline": deadline.isoformat(),
                 "notified_at": current.isoformat(),
@@ -232,6 +388,7 @@ def process_active_wheels_with_draw_alert(state, stats):
     return result
 
 
+monitor.fetch_all_sources = fetch_all_sources_with_originals
 monitor.assess_new_wheel = assess_new_notification_first
 monitor.assess_pending_wheel = assess_pending_notification_first
 monitor.mark_participating = mark_participating_with_tracking
