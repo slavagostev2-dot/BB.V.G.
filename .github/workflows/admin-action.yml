@@ -44,15 +44,20 @@ jobs:
 
       - name: Validate BB V.G. action code
         run: |
-          python -m py_compile admin_action.py monitor.py monitor_data.py
+          python -m py_compile admin_action.py admin_action_v2.py monitor.py monitor_data.py source_reputation.py source_registry.py notification_router_v2.py
           python admin_action.py --self-test
+          python admin_action_v2.py --self-test
+          python source_reputation.py
+          python notification_router_v2.py
 
       - name: Apply BB V.G. action
         env:
           ADMIN_ACTION: ${{ inputs.action }}
           ADMIN_VALUE: ${{ inputs.value }}
           DISPLAY_TIMEZONE: Asia/Barnaul
-        run: python admin_action.py
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+        run: python admin_action_v2.py
 
       - name: Save changed runtime state
         shell: bash
@@ -61,10 +66,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- state.json source_health.json; then
+          files=(state.json source_health.json source_reputation.json source_registry.json)
+          if git diff --quiet -- "${files[@]}"; then
             echo "No state changes to commit."
           else
-            git add state.json source_health.json
+            git add "${files[@]}"
             git commit -m "Apply BB V.G. admin action [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
