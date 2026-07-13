@@ -11,57 +11,49 @@ _original_assess_new = monitor.assess_new_wheel
 _original_assess_pending = monitor.assess_pending_wheel
 
 
-def _strict_result(message, result):
-    """Keep a wheel live only with a real participation button or future timer."""
-    age = monitor.message_age(message)
-    method = str(result.method or "").casefold()
-    button_confirmed = "активная кнопка" in method
-    future_timer = bool(result.deadline and result.deadline > monitor.now_utc())
-    text_only_active = result.status == "active" and not button_confirmed and not future_timer
+def _notification_first(message, result):
+    """Do not block the first notification because BetBoom page detection was inconclusive.
 
-    if button_confirmed or future_timer or result.status == "telegram_deadline":
+    Page/button inspection is used later by the Telegram panel when it builds the
+    current active-wheel list. Initial delivery is based on a fresh Telegram post
+    containing a valid wheel URL. Existing monitor deduplication still suppresses
+    the same wheel when it is reposted by another source during the configured
+    deduplication window.
+    """
+    age = monitor.message_age(message)
+
+    # Keep authoritative positive results unchanged so known deadlines and methods
+    # continue to be shown in the notification.
+    if result.should_notify:
         return result
 
-    # Generic page text alone is not enough to keep the wheel active.
-    if text_only_active:
-        result = monitor.WheelAssessment(
-            False,
-            result.deadline,
-            f"общий текст страницы найден, но кнопки участия нет; {result.method}",
-            "unconfirmed",
-            result.page_excerpt,
-        )
-
-    # Fresh Telegram posts get a short grace period while BetBoom updates the page.
-    if age <= timedelta(minutes=30) and result.status != "inactive":
+    # A newly published Telegram post with a valid freestream URL must be delivered
+    # even when the BetBoom page is temporarily incomplete, redirects to a generic
+    # page, or its participation button was not parsed successfully.
+    if age <= timedelta(minutes=monitor.MAX_NEW_POST_AGE_MINUTES):
         return monitor.WheelAssessment(
             True,
             result.deadline,
-            f"страховочное уведомление для свежего поста; {result.method}",
-            "fresh_unconfirmed",
+            f"новая уникальная публикация; {result.method}",
+            "preliminary",
             result.page_excerpt,
         )
 
-    return monitor.WheelAssessment(
-        False,
-        result.deadline,
-        f"кнопка участия и действующий таймер не найдены; {result.method}",
-        "inactive",
-        result.page_excerpt,
-    )
+    # Old catch-up posts stay filtered. This prevents historical links from being
+    # delivered as new notifications after a source is first added.
+    return result
 
 
-def assess_new_with_strict_confirmation(message, link, state=None):
-    return _strict_result(message, _original_assess_new(message, link, state))
+def assess_new_notification_first(message, link, state=None):
+    return _notification_first(message, _original_assess_new(message, link, state))
 
 
-def assess_pending_with_strict_confirmation(message, link, state=None):
-    return _strict_result(message, _original_assess_pending(message, link, state))
+def assess_pending_notification_first(message, link, state=None):
+    return _notification_first(message, _original_assess_pending(message, link, state))
 
 
-monitor.assess_new_wheel = assess_new_with_strict_confirmation
-monitor.assess_pending_wheel = assess_pending_with_strict_confirmation
-
+monitor.assess_new_wheel = assess_new_notification_first
+monitor.assess_pending_wheel = assess_pending_notification_first
 
 if __name__ == "__main__":
     raise SystemExit(monitor.main())
