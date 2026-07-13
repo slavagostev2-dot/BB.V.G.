@@ -1,5 +1,5 @@
-name: Stop legacy monitor process
-run-name: Stop legacy monitor
+name: Replace legacy monitor process
+run-name: Replace legacy monitor with BB V.G.
 
 on:
   push:
@@ -10,15 +10,21 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: betboom-wheel-monitor-continuous
   cancel-in-progress: true
 
 jobs:
-  stop-legacy:
+  replace-legacy:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     steps:
-      - name: Confirm BB V.G. replacement
-        run: echo "Legacy monitor stopped; BB V.G. runtime is active."
+      - name: Confirm legacy shutdown
+        run: echo "Legacy monitor stopped; starting BB V.G. runtime."
+
+      - name: Start continuous BB V.G. monitor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run monitor.yml --ref main -f continuous=true
