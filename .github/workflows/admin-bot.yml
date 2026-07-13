@@ -1,5 +1,5 @@
-name: Telegram Admin Panel
-run-name: Telegram admin panel — ${{ github.event_name }}
+name: Telegram Control Center
+run-name: Telegram control center — ${{ github.event_name }}
 
 on:
   push:
@@ -7,6 +7,8 @@ on:
     paths:
       - "admin_bot.py"
       - "admin_runtime.py"
+      - "admin_panel_v2.py"
+      - "admin_panel_runtime_v2.py"
       - "requirements.txt"
       - ".github/workflows/admin-bot.yml"
   workflow_dispatch:
@@ -23,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  admin-panel:
+  control-center:
     runs-on: ubuntu-latest
     timeout-minutes: 350
 
@@ -43,12 +45,13 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Check admin panel
+      - name: Check Telegram control center
         run: |
-          python -m py_compile admin_bot.py admin_runtime.py
-          python admin_runtime.py --self-test
+          python -m py_compile admin_bot.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py
+          python admin_panel_runtime_v2.py --self-test
+          python -m json.tool bot_access.json >/dev/null
 
-      - name: Record admin-panel heartbeat
+      - name: Record panel status
         shell: bash
         run: |
           set -euo pipefail
@@ -63,6 +66,7 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
+              "version": 2,
           }
           with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
@@ -72,27 +76,28 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add admin_panel_status.json
-          git commit -m "Update Telegram admin panel status [skip ci]" || true
+          git commit -m "Update Telegram control center status [skip ci]" || true
           git pull --rebase origin main
           git push origin HEAD:main
 
-      - name: Run Telegram admin panel
+      - name: Run Telegram control center
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_BRANCH: main
           DISPLAY_TIMEZONE: Asia/Barnaul
           RUN_SECONDS: "19800"
           REQUEST_TIMEOUT_SECONDS: "20"
-          ADMIN_CACHE_SECONDS: "15"
+          ADMIN_CACHE_SECONDS: "20"
           MONITOR_INTERVAL_MINUTES: "5"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_runtime.py
+        run: python admin_panel_runtime_v2.py
 
-      - name: Start next admin-panel shift
+      - name: Start next control-center shift
         if: ${{ success() }}
         env:
           GH_TOKEN: ${{ github.token }}
