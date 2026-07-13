@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: betboom-monitor-watchdog
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   watchdog:
@@ -39,7 +39,10 @@ jobs:
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
-          threshold = timedelta(minutes=20)
+          # Runtime data is committed every 15 minutes. A 45-minute threshold
+          # tolerates GitHub scheduling and push delays without restarting a
+          # healthy long-running shift.
+          threshold = timedelta(minutes=45)
           latest = None
           reason = "нет файла статистики"
           try:
@@ -73,7 +76,7 @@ jobs:
               output.write(f"latest={latest.isoformat() if latest else ''}\n")
           PY
 
-      - name: Restart continuous monitor when stale
+      - name: Queue monitor recovery when stale
         if: ${{ steps.freshness.outputs.stale == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -81,4 +84,4 @@ jobs:
 
       - name: Report healthy monitor
         if: ${{ steps.freshness.outputs.stale != 'true' }}
-        run: echo "Monitor data is fresh; restart is not required."
+        run: echo "Monitor data is fresh; recovery is not required."
