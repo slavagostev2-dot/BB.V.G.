@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 concurrency:
@@ -19,12 +19,34 @@ concurrency:
 jobs:
   replace-legacy:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
-      - name: Confirm legacy shutdown
-        run: echo "Legacy monitor stopped; starting BB V.G. runtime."
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Start continuous BB V.G. monitor
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --repo "${GITHUB_REPOSITORY}" --ref main -f continuous=true
+        run: |
+          set -euo pipefail
+          gh workflow run monitor.yml --repo "${GITHUB_REPOSITORY}" --ref main -f continuous=true
+          sleep 8
+          run_id=$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow monitor.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [[ -z "$run_id" || "$run_id" == "null" ]]; then
+            echo "Continuous monitor run was not found." >&2
+            exit 1
+          fi
+          printf '{\n  "brand": "BB V.G.",\n  "continuous_run_id": "%s",\n  "status": "dispatched"\n}\n' "$run_id" > continuous_handoff.json
+
+      - name: Save handoff confirmation
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add continuous_handoff.json
+          git commit -m "Confirm continuous BB V.G. handoff [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
