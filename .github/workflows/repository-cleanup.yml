@@ -1,0 +1,125 @@
+name: One-time repository cleanup
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/repository-cleanup.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: betboom-repository-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Remove confirmed clutter
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Temporary files left from manual update archives.
+          git rm -f --ignore-unmatch \
+            SHA256SUMS.txt \
+            UPLOAD_RU.txt \
+            UPLOAD_ORDER_RU.txt
+
+          # Delete root workflow copies only after proving they are exact duplicates.
+          if [[ -f monitor.yml && -f .github/workflows/monitor.yml ]] &&
+             cmp -s monitor.yml .github/workflows/monitor.yml; then
+            git rm -f monitor.yml
+          fi
+
+          if [[ -f nightly-discovery.yml && -f .github/workflows/daily-report.yml ]] &&
+             cmp -s nightly-discovery.yml .github/workflows/daily-report.yml; then
+            git rm -f nightly-discovery.yml
+          fi
+
+          # Remove tracked build artefacts, logs, archives and editor backups.
+          while IFS= read -r -d '' file; do
+            git rm -f --ignore-unmatch -- "$file"
+          done < <(
+            git ls-files -z \
+              '*.zip' \
+              '*.pyc' \
+              '*.pyo' \
+              '*.log' \
+              '*.tmp' \
+              '*.bak' \
+              '*.old' \
+              '*~' \
+              '.DS_Store' \
+              'Thumbs.db'
+          )
+
+          # Remove tracked Python cache directories, if any.
+          while IFS= read -r -d '' file; do
+            git rm -f --ignore-unmatch -- "$file"
+          done < <(git ls-files -z | grep -zE '(^|/)__pycache__/|(^|/)\.pytest_cache/|(^|/)\.mypy_cache/|(^|/)\.ruff_cache/' || true)
+
+          cat > .gitignore <<'EOF'
+          # Python
+          __pycache__/
+          *.py[cod]
+          .pytest_cache/
+          .mypy_cache/
+          .ruff_cache/
+
+          # Virtual environments
+          .venv/
+          venv/
+          env/
+
+          # Runtime logs and temporary files
+          *.log
+          *.tmp
+          *.bak
+          *.old
+          *~
+
+          # Editors and operating systems
+          .vscode/
+          .idea/
+          *.swp
+          *.swo
+          .DS_Store
+          Thumbs.db
+
+          # Local archives
+          *.zip
+
+          # Runtime JSON state files are intentionally NOT ignored.
+          EOF
+
+          git add .gitignore
+
+          # This workflow is one-time and removes itself after completing cleanup.
+          git rm -f .github/workflows/repository-cleanup.yml
+
+          if git diff --cached --quiet; then
+            echo "Nothing to clean."
+            exit 0
+          fi
+
+          echo "Files changed by cleanup:"
+          git diff --cached --name-status
+
+          git commit -m "Clean repository clutter [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
