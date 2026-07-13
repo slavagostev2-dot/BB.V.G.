@@ -11,6 +11,9 @@ import monitor
 import monitor_data as data_store
 
 
+BRAND_NAME = "BB V.G."
+
+
 def counter(value: dict, name: str) -> int:
     return int(value.get(name, 0)) if isinstance(value, dict) else 0
 
@@ -137,7 +140,7 @@ def main() -> int:
         unavailable_lines.append("• длительно недоступных каналов нет")
 
     text = (
-        f"📊 <b>Ежедневный отчёт BetBoom Monitor — {report_day}</b>\n\n"
+        f"📊 <b>Ежедневный отчёт {BRAND_NAME} — {report_day}</b>\n\n"
         f"<b>Источники</b>\n"
         f"Быстрая проверка: {len(fast)}\n"
         f"Ночная проверка: {len(nightly)}\n"
@@ -147,11 +150,11 @@ def main() -> int:
         f"<b>За отчётный день</b>\n"
         f"Проверок: {counter(totals, 'checks')}\n"
         f"Новых постов с колёсами: {counter(totals, 'wheel_posts')}\n"
-        f"Предварительных уведомлений: {counter(totals, 'preliminary_sent')}\n"
-        f"Подтверждённых активаций: {counter(totals, 'activation_sent')}\n"
+        f"Отправлено уведомлений: {counter(totals, 'preliminary_sent')}\n"
+        f"Колёс с найденным временем: {counter(totals, 'activation_sent')}\n"
         f"Повторов подавлено: {counter(totals, 'duplicates_suppressed')}\n"
         f"Ошибок источников: {counter(totals, 'errors')}\n"
-        f"Неизвестных форматов таймера в базе: {unknown_count}\n\n"
+        f"Неизвестных форматов времени в базе: {unknown_count}\n\n"
         f"<b>Где чаще появляются колёса</b>\n"
         + "\n".join(top_lines)
         + "\n\n<b>Недоступны несколько дней</b>\n"
@@ -159,7 +162,7 @@ def main() -> int:
     )
 
     monitor.send_message(text)
-    print(f"Daily report sent for {report_day}.")
+    print(f"{BRAND_NAME} daily report sent for {report_day}.")
     return 0
 
 
