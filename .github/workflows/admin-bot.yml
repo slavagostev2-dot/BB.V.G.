@@ -1,0 +1,70 @@
+name: Telegram Admin Panel
+run-name: Telegram admin panel — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "admin_bot.py"
+      - "requirements.txt"
+      - ".github/workflows/admin-bot.yml"
+  workflow_dispatch:
+  schedule:
+    # Резервный запуск раз в 6 часов, если цепочка смен прервалась.
+    - cron: "37 */6 * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: betboom-telegram-admin-panel
+  cancel-in-progress: true
+
+jobs:
+  admin-panel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Check admin panel
+        run: |
+          python -m py_compile admin_bot.py
+          python admin_bot.py --self-test
+
+      - name: Run Telegram admin panel
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_BRANCH: main
+          DISPLAY_TIMEZONE: Asia/Barnaul
+          RUN_SECONDS: "19800"
+          REQUEST_TIMEOUT_SECONDS: "20"
+          ADMIN_CACHE_SECONDS: "15"
+          MONITOR_INTERVAL_MINUTES: "5"
+          SOURCE_INACTIVITY_DAYS: "7"
+          SOURCE_INACTIVITY_REPORT_DAYS: "7"
+        run: python admin_bot.py
+
+      - name: Start next admin-panel shift
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run admin-bot.yml --ref main
