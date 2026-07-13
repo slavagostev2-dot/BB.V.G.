@@ -1,0 +1,24 @@
+name: Stop legacy monitor process
+run-name: Stop legacy monitor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stop-legacy-monitor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: betboom-wheel-monitor-continuous
+  cancel-in-progress: true
+
+jobs:
+  stop-legacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Confirm replacement
+        run: echo "Legacy monitor concurrency group replaced by BB V.G."
