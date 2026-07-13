@@ -94,7 +94,8 @@ jobs:
           UNAVAILABLE_REPORT_DAYS: "2"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-          BOT_FEEDBACK_ENABLED: "true"
+          # Telegram updates обрабатывает отдельный постоянный admin-bot.
+          BOT_FEEDBACK_ENABLED: "false"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
           AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
           CONTINUOUS: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
