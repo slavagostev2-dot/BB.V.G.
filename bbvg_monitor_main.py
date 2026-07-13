@@ -9,6 +9,7 @@ monitor = runtime.monitor
 _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels
+_original_send_message = monitor.send_message
 
 
 def recover_deadline_manual_first(state: dict, key: str, entry: dict):
@@ -38,6 +39,32 @@ def wheel_markup_with_direct_key(state, message, link, **kwargs):
     return markup
 
 
+def branded_send_message(text: str, url=None, reply_markup=None):
+    value = str(text or "")
+    value = value.replace(
+        "🤖 <b>Автоматический монитор работает</b>",
+        "🤖 <b>BB V.G. работает</b>",
+    )
+    value = value.replace(
+        "⚠️ <b>Монитор не смог проверить ни один Telegram-источник</b>",
+        "⚠️ <b>BB V.G. не смог проверить ни один Telegram-источник</b>",
+    )
+    value = value.replace(
+        "✅ <b>Ручная проверка завершена</b>",
+        "✅ <b>Ручная проверка BB V.G. завершена</b>",
+    )
+    value = value.replace(
+        "Повторная проверка одного поста проходит без сообщений.",
+        "Колёса без найденного времени ожидают ручного ввода администратора.",
+    )
+    value = "\n".join(
+        line
+        for line in value.splitlines()
+        if not line.startswith("Ожидают активности:")
+    )
+    return _original_send_message(value, url=url, reply_markup=reply_markup)
+
+
 def process_active_without_unknown_time_spam(state: dict, stats: dict):
     """Unknown-time wheels wait silently until an administrator supplies a deadline."""
     changed = False
@@ -53,8 +80,6 @@ def process_active_without_unknown_time_spam(state: dict, stats: dict):
         if not entry.get("manual_time_waiting_since"):
             entry["manual_time_waiting_since"] = current.isoformat()
             changed = True
-        # The legacy reminder engine interprets this timestamp as the last reminder.
-        # Keeping it ahead of the wheel TTL prevents repeated "time not found" alerts.
         suppress_until = monitor.parse_datetime(entry.get("last_unknown_reminder_at"))
         minimum = current + timedelta(days=runtime.MANUAL_WHEEL_TTL_DAYS)
         if suppress_until is None or suppress_until < minimum:
@@ -70,6 +95,7 @@ def process_active_without_unknown_time_spam(state: dict, stats: dict):
 runtime.base_runtime._recover_deadline = recover_deadline_manual_first
 monitor.wheel_reply_markup = wheel_markup_with_direct_key
 monitor.process_active_wheels = process_active_without_unknown_time_spam
+monitor.send_message = branded_send_message
 
 
 if __name__ == "__main__":
