@@ -1,11 +1,11 @@
-name: Apply Telegram admin action
-run-name: Telegram action — ${{ inputs.action }}
+name: Apply BB V.G. admin action
+run-name: BB V.G. action — ${{ inputs.action }}
 
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: "Admin action name"
+        description: "BB V.G. action name"
         required: true
         type: string
       value:
@@ -17,10 +17,8 @@ permissions:
   contents: write
   actions: write
 
-# Действие получает тот же concurrency-lock, что и монитор: старая смена
-# сначала останавливается, затем состояние меняется без гонки за state.json.
 concurrency:
-  group: betboom-wheel-monitor-continuous
+  group: bb-vg-monitor-continuous
   cancel-in-progress: true
 
 jobs:
@@ -44,12 +42,12 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Validate action code
+      - name: Validate BB V.G. action code
         run: |
           python -m py_compile admin_action.py monitor.py monitor_data.py
           python admin_action.py --self-test
 
-      - name: Apply action
+      - name: Apply BB V.G. action
         env:
           ADMIN_ACTION: ${{ inputs.action }}
           ADMIN_VALUE: ${{ inputs.value }}
@@ -67,12 +65,12 @@ jobs:
             echo "No state changes to commit."
           else
             git add state.json source_health.json
-            git commit -m "Apply Telegram admin action [skip ci]"
+            git commit -m "Apply BB V.G. admin action [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
 
-      - name: Restart continuous monitor
+      - name: Restart continuous BB V.G. monitor
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run monitor.yml --ref main -f continuous=true
