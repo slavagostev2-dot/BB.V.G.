@@ -1,0 +1,86 @@
+name: Sync source monitoring tiers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-source-tiers.yml"
+      - "public_sources.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: betboom-source-tier-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Move historical non-primary sources to nightly catalog
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          def read_list(path):
+              result = []
+              seen = set()
+              for raw in Path(path).read_text(encoding='utf-8').splitlines():
+                  value = raw.split('#', 1)[0].strip().lstrip('@')
+                  key = value.casefold()
+                  if value and key not in seen:
+                      result.append(value)
+                      seen.add(key)
+              return result
+
+          active = read_list('public_sources.txt')
+          catalog = read_list('source_catalog.txt')
+          active_keys = {value.casefold() for value in active}
+          catalog_keys = {value.casefold() for value in catalog}
+          payload = json.loads(Path('source_stats.json').read_text(encoding='utf-8'))
+          sources = payload.get('sources', {}) if isinstance(payload, dict) else {}
+
+          added = []
+          if isinstance(sources, dict):
+              for source in sources:
+                  value = str(source).strip().lstrip('@')
+                  key = value.casefold()
+                  if value and key not in active_keys and key not in catalog_keys:
+                      catalog.append(value)
+                      catalog_keys.add(key)
+                      added.append(value)
+
+          Path('source_catalog.txt').write_text(
+              '# Ночная проверка: резервные источники и каналы без найденных колёс.\n'
+              '# Возврат в основную проверку выполняется только администратором.\n\n'
+              + '\n'.join(catalog) + '\n',
+              encoding='utf-8',
+          )
+          print(f'Primary sources: {len(active)}')
+          print(f'Added to nightly: {len(added)}')
+          print(f'Nightly sources: {len(catalog)}')
+          PY
+
+      - name: Save synchronized catalog
+        shell: bash
+        run: |
+          if git diff --quiet -- source_catalog.txt; then
+            echo "Source tiers are already synchronized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source_catalog.txt
+          git commit -m "Synchronize source monitoring tiers [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
