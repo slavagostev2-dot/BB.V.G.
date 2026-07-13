@@ -1,112 +1,142 @@
 {
-  "active_size": 45,
-  "catalog_size": 10,
+  "active_size": 66,
+  "catalog_size": 0,
   "duplicate_wheels": 0,
-  "error_count": 0,
+  "error_count": 10,
   "health_sources": {
     "YBNFedor": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:03.291423+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:37.008803+00:00",
+      "last_checked_at": "2026-07-13T23:31:37.008803+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/YBNFedor (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 56,
+      "last_problem_at": "2026-07-13T23:31:37.008803+00:00",
       "last_success_at": "2026-07-13T12:30:03.291423+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "betboom_esports": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:16.281940+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:29.458918+00:00",
+      "last_checked_at": "2026-07-13T23:31:29.458918+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboom_esports (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 76,
+      "last_problem_at": "2026-07-13T23:31:29.458918+00:00",
       "last_success_at": "2026-07-13T12:30:16.281940+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "betboom_esports_cs": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:18.890437+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:30.594888+00:00",
+      "last_checked_at": "2026-07-13T23:31:30.594888+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboom_esports_cs (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 80,
+      "last_problem_at": "2026-07-13T23:31:30.594888+00:00",
       "last_success_at": "2026-07-13T12:30:18.890437+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "betboomru": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:10.618689+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:28.235128+00:00",
+      "last_checked_at": "2026-07-13T23:31:28.235128+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomru (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 80,
+      "last_problem_at": "2026-07-13T23:31:28.235128+00:00",
       "last_success_at": "2026-07-13T12:30:10.618689+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "betboomstreamersbattle": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:13.478333+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:31.742905+00:00",
+      "last_checked_at": "2026-07-13T23:31:31.742905+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomstreamersbattle (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 61,
+      "last_problem_at": "2026-07-13T23:31:31.742905+00:00",
       "last_success_at": "2026-07-13T12:30:13.478333+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "betboomteam": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:23.475934+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:33.842618+00:00",
+      "last_checked_at": "2026-07-13T23:31:33.842618+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomteam (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 71,
+      "last_problem_at": "2026-07-13T23:31:33.842618+00:00",
       "last_success_at": "2026-07-13T12:30:23.475934+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "betboomteamcs2": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:26.078369+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:34.880347+00:00",
+      "last_checked_at": "2026-07-13T23:31:34.880347+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomteamcs2 (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 64,
+      "last_problem_at": "2026-07-13T23:31:34.880347+00:00",
       "last_success_at": "2026-07-13T12:30:26.078369+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "blast_betboom": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:21.174249+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:32.809346+00:00",
+      "last_checked_at": "2026-07-13T23:31:32.809346+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/blast_betboom (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 62,
+      "last_problem_at": "2026-07-13T23:31:32.809346+00:00",
       "last_success_at": "2026-07-13T12:30:21.174249+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "pandafx2": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:06.052487+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:35.999738+00:00",
+      "last_checked_at": "2026-07-13T23:31:35.999738+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/pandafx2 (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 75,
+      "last_problem_at": "2026-07-13T23:31:35.999738+00:00",
       "last_success_at": "2026-07-13T12:30:06.052487+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     },
     "risenhaha": {
-      "checks": 2,
+      "checks": 3,
       "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-07-13T12:30:08.061523+00:00",
+      "consecutive_errors": 1,
+      "first_unavailable_at": "2026-07-13T23:31:38.128417+00:00",
+      "last_checked_at": "2026-07-13T23:31:38.128417+00:00",
+      "last_error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/risenhaha (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
       "last_messages_count": 77,
+      "last_problem_at": "2026-07-13T23:31:38.128417+00:00",
       "last_success_at": "2026-07-13T12:30:08.061523+00:00",
-      "status": "ok",
+      "status": "error",
       "successful_checks": 2
     }
   },
   "inactive_wheels": 0,
-  "last_run_at": "2026-07-13T12:30:26.079293+00:00",
+  "last_run_at": "2026-07-13T23:31:38.128494+00:00",
   "notifications": 0,
   "notified_wheels": {
     "mantis1": {
@@ -161,17 +191,12 @@
   },
   "promoted": [],
   "quarantined_skipped": 0,
+  "recommended_for_primary": [],
   "sources": {
     "YBNFedor": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:00.367299+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": "2026-06-29T16:15:16+00:00",
-      "messages_checked": 56,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 1
+      "checked_at": "2026-07-13T23:31:35.999785+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/YBNFedor (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "ZZoneRM": {
       "checked_at": "2026-07-12T18:21:51.710148+00:00",
@@ -193,81 +218,39 @@
       "wheel_links_found": 0
     },
     "betboom_esports": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:13.479072+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 76,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:28.235183+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboom_esports (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "betboom_esports_cs": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:16.282908+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 80,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:29.458974+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboom_esports_cs (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "betboomru": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:08.062588+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 80,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:27.110739+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomru (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "betboomstreamersbattle": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:10.619990+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 61,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:30.594936+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomstreamersbattle (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "betboomteam": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:21.174958+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 71,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:32.809396+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomteam (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "betboomteamcs2": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:23.476584+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 64,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:33.842685+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/betboomteamcs2 (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "blast_betboom": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:18.891385+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 62,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:31.742954+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/blast_betboom (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "blindzonexgod": {
       "active_wheel_links": 0,
@@ -338,26 +321,14 @@
       "wheel_links_found": 2
     },
     "pandafx2": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:03.292329+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": null,
-      "messages_checked": 75,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 0
+      "checked_at": "2026-07-13T23:31:34.880395+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/pandafx2 (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "risenhaha": {
-      "active_wheel_links": 0,
-      "checked_at": "2026-07-13T12:30:06.052933+00:00",
-      "inactive_wheel_links": 0,
-      "latest_wheel_at": "2026-07-09T15:54:40+00:00",
-      "messages_checked": 77,
-      "recent_wheel_links": 0,
-      "status": "ok",
-      "unconfirmed_wheel_links": 0,
-      "wheel_links_found": 1
+      "checked_at": "2026-07-13T23:31:37.008850+00:00",
+      "error": "ConnectionError: HTTPSConnectionPool(host='t.me', port=443): Max retries exceeded with url: /s/risenhaha (Caused by NameResolutionError(\"HTTPSConnection(host='t.me', port=443): Failed to resolve 't.me' ([Errno -2] Name or service not known)\"))",
+      "status": "error"
     },
     "smurf_gigachad": {
       "checked_at": "2026-07-12T18:21:32.715649+00:00",
@@ -427,86 +398,144 @@
         "messages_scanned": 1415,
         "successful_checks": 20
       }
+    },
+    "2026-07-14": {
+      "sources": {
+        "YBNFedor": {
+          "checks": 1,
+          "errors": 1
+        },
+        "betboom_esports": {
+          "checks": 1,
+          "errors": 1
+        },
+        "betboom_esports_cs": {
+          "checks": 1,
+          "errors": 1
+        },
+        "betboomru": {
+          "checks": 1,
+          "errors": 1
+        },
+        "betboomstreamersbattle": {
+          "checks": 1,
+          "errors": 1
+        },
+        "betboomteam": {
+          "checks": 1,
+          "errors": 1
+        },
+        "betboomteamcs2": {
+          "checks": 1,
+          "errors": 1
+        },
+        "blast_betboom": {
+          "checks": 1,
+          "errors": 1
+        },
+        "pandafx2": {
+          "checks": 1,
+          "errors": 1
+        },
+        "risenhaha": {
+          "checks": 1,
+          "errors": 1
+        }
+      },
+      "totals": {
+        "checks": 10,
+        "errors": 10
+      }
     }
   },
   "stats_sources": {
     "YBNFedor": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:03.291450+00:00",
-      "last_checked_at": "2026-07-13T12:30:03.291450+00:00",
-      "last_updated_at": "2026-07-13T12:30:03.291450+00:00",
+      "last_checked_at": "2026-07-13T23:31:37.008826+00:00",
+      "last_updated_at": "2026-07-13T23:31:37.008826+00:00",
       "messages_scanned": 111,
       "successful_checks": 2
     },
     "betboom_esports": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:16.281966+00:00",
-      "last_checked_at": "2026-07-13T12:30:16.281966+00:00",
-      "last_updated_at": "2026-07-13T12:30:16.281966+00:00",
+      "last_checked_at": "2026-07-13T23:31:29.458947+00:00",
+      "last_updated_at": "2026-07-13T23:31:29.458947+00:00",
       "messages_scanned": 152,
       "successful_checks": 2
     },
     "betboom_esports_cs": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:18.890462+00:00",
-      "last_checked_at": "2026-07-13T12:30:18.890462+00:00",
-      "last_updated_at": "2026-07-13T12:30:18.890462+00:00",
+      "last_checked_at": "2026-07-13T23:31:30.594911+00:00",
+      "last_updated_at": "2026-07-13T23:31:30.594911+00:00",
       "messages_scanned": 160,
       "successful_checks": 2
     },
     "betboomru": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:10.618716+00:00",
-      "last_checked_at": "2026-07-13T12:30:10.618716+00:00",
-      "last_updated_at": "2026-07-13T12:30:10.618716+00:00",
+      "last_checked_at": "2026-07-13T23:31:28.235154+00:00",
+      "last_updated_at": "2026-07-13T23:31:28.235154+00:00",
       "messages_scanned": 160,
       "successful_checks": 2
     },
     "betboomstreamersbattle": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:13.478358+00:00",
-      "last_checked_at": "2026-07-13T12:30:13.478358+00:00",
-      "last_updated_at": "2026-07-13T12:30:13.478358+00:00",
+      "last_checked_at": "2026-07-13T23:31:31.742928+00:00",
+      "last_updated_at": "2026-07-13T23:31:31.742928+00:00",
       "messages_scanned": 122,
       "successful_checks": 2
     },
     "betboomteam": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:23.475960+00:00",
-      "last_checked_at": "2026-07-13T12:30:23.475960+00:00",
-      "last_updated_at": "2026-07-13T12:30:23.475960+00:00",
+      "last_checked_at": "2026-07-13T23:31:33.842656+00:00",
+      "last_updated_at": "2026-07-13T23:31:33.842656+00:00",
       "messages_scanned": 142,
       "successful_checks": 2
     },
     "betboomteamcs2": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:26.078395+00:00",
-      "last_checked_at": "2026-07-13T12:30:26.078395+00:00",
-      "last_updated_at": "2026-07-13T12:30:26.078395+00:00",
+      "last_checked_at": "2026-07-13T23:31:34.880370+00:00",
+      "last_updated_at": "2026-07-13T23:31:34.880370+00:00",
       "messages_scanned": 128,
       "successful_checks": 2
     },
     "blast_betboom": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:21.174273+00:00",
-      "last_checked_at": "2026-07-13T12:30:21.174273+00:00",
-      "last_updated_at": "2026-07-13T12:30:21.174273+00:00",
+      "last_checked_at": "2026-07-13T23:31:32.809370+00:00",
+      "last_updated_at": "2026-07-13T23:31:32.809370+00:00",
       "messages_scanned": 136,
       "successful_checks": 2
     },
     "pandafx2": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:06.052512+00:00",
-      "last_checked_at": "2026-07-13T12:30:06.052512+00:00",
-      "last_updated_at": "2026-07-13T12:30:06.052512+00:00",
+      "last_checked_at": "2026-07-13T23:31:35.999761+00:00",
+      "last_updated_at": "2026-07-13T23:31:35.999761+00:00",
       "messages_scanned": 150,
       "successful_checks": 2
     },
     "risenhaha": {
-      "checks": 2,
+      "checks": 3,
+      "errors": 1,
       "first_checked_at": "2026-07-13T12:30:08.061547+00:00",
-      "last_checked_at": "2026-07-13T12:30:08.061547+00:00",
-      "last_updated_at": "2026-07-13T12:30:08.061547+00:00",
+      "last_checked_at": "2026-07-13T23:31:38.128443+00:00",
+      "last_updated_at": "2026-07-13T23:31:38.128443+00:00",
       "messages_scanned": 154,
       "successful_checks": 2
     }
