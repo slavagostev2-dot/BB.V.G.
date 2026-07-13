@@ -40,8 +40,8 @@ permissions:
   actions: write
 
 concurrency:
-  group: ${{ github.event_name == 'push' && format('bb-vg-monitor-push-{0}', github.sha) || 'bb-vg-monitor-continuous' }}
-  cancel-in-progress: false
+  group: bb-vg-monitor-continuous
+  cancel-in-progress: true
 
 jobs:
   monitor:
@@ -86,7 +86,7 @@ jobs:
           python self_test.py
 
       - name: Queue next continuous shift
-        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -116,7 +116,7 @@ jobs:
           BOT_FEEDBACK_ENABLED: "false"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
           AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
-          CONTINUOUS: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
+          CONTINUOUS: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
         shell: bash
         run: |
           set -uo pipefail
@@ -140,9 +140,9 @@ jobs:
             echo "=== BB V.G. check $iteration at $(date -u +%FT%TZ) ==="
 
             iteration_ok=true
-            python bbvg_monitor_main.py 2>&1 | tee monitor-run.log || iteration_ok=false
+            timeout --signal=TERM --kill-after=30s 600s python bbvg_monitor_main.py 2>&1 | tee monitor-run.log || iteration_ok=false
             if [[ "$iteration_ok" != "true" ]]; then
-              echo "BB V.G. monitor iteration failed; the loop will retry."
+              echo "BB V.G. monitor iteration failed or exceeded 10 minutes; the loop will save status and retry."
             fi
 
             ITERATION="$iteration" ITERATION_OK="$iteration_ok" GITHUB_RUN_ID_VALUE="${GITHUB_RUN_ID:-}" python - <<'PY'
