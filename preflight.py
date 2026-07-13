@@ -32,13 +32,23 @@ def read_json(path: str) -> dict:
 
 def main() -> None:
     require_text("requirements.txt", ("requests==", "beautifulsoup4==", "tzdata"))
-    require_text("monitor.py", ("from __future__ import annotations", "def main()", "process_bot_feedback"))
+    require_text(
+        "monitor.py",
+        (
+            "from __future__ import annotations",
+            "def main()",
+            "process_bot_feedback",
+            "def process_active_wheels",
+            "def active_wheels_text",
+            "✅ Участвую",
+        ),
+    )
     require_text("monitor_data.py", ("def load_health", "def load_stats", "def operational_sources"))
     require_text("nightly_discovery.py", ("import monitor", "def main()"))
     require_text("daily_report.py", ("Ежедневный отчёт", "def main()"))
     require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
     require_text("self_test.py", ("import monitor", "def main()"))
-    require_text("public_sources.txt", ("gazazor",))
+    require_text("public_sources.txt", ("narodCast", "kolesaBB"))
     require_text("source_catalog.txt", ("Ночной каталог",))
     require_text(".github/workflows/daily-report.yml", ("Daily BetBoom monitor report", "daily_report.py"))
 
@@ -82,6 +92,20 @@ def main() -> None:
         raise SystemExit(
             "PRECHECK ERROR: fast and nightly source lists overlap: " + ", ".join(overlap)
         )
+
+    forbidden = {"frixa_betboom", "gazazor"}
+    stale = sorted((fast | nightly) & forbidden)
+    if stale:
+        raise SystemExit("PRECHECK ERROR: removed sources are still operational: " + ", ".join(stale))
+    if "narodcast" not in fast:
+        raise SystemExit("PRECHECK ERROR: narodCast must remain in the fast list")
+
+    metadata = data_store.flatten_partner_channels(catalog)
+    narod = metadata.get("narodcast", {})
+    if narod.get("relationship") != "betboom_partner":
+        raise SystemExit("PRECHECK ERROR: narodCast must be classified as a partner source")
+    if any(info.get("relationship") == "confirmed_ambassador" for info in metadata.values()):
+        raise SystemExit("PRECHECK ERROR: confirmed_ambassador classification is obsolete")
 
     print("Preflight checks passed.")
 

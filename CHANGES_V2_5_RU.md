@@ -1,145 +1,37 @@
-name: Monitor BetBoom wheels
-run-name: BetBoom monitor — ${{ github.event_name }}
+# Изменения v2.5
 
-on:
-  push:
-    branches: [main]
-    paths:
-      - "monitor.py"
-      - "monitor_data.py"
-      - "daily_report.py"
-      - "telegram_monitor.py"
-      - "nightly_discovery.py"
-      - "public_sources.txt"
-      - "source_catalog.txt"
-      - "partners_catalog.json"
-      - "identifier_sources.json"
-      - "requirements.txt"
-      - "self_test.py"
-      - "preflight.py"
-      - ".github/workflows/monitor.yml"
-      - ".github/workflows/nightly-discovery.yml"
-      - ".github/workflows/daily-report.yml"
-  workflow_dispatch:
-    inputs:
-      continuous:
-        description: "Непрерывный режим с проверкой каждые 5 минут"
-        required: false
-        type: boolean
-        default: false
-  schedule:
-    - cron: "23 */4 * * *"
+1. Добавлен `partners_catalog.json` с раздельной классификацией официальных каналов, амбассадоров, источников с историей колёс, сборщиков и исключённых источников.
+2. Быстрый и ночной списки формируются с учётом каталога; один канал не может находиться в обоих режимах.
+3. Добавлен карантин: 3 последовательные ошибки или 4 пустые проверки переводят источник в карантин; повторная проверка выполняется раз в 6 часов.
+4. Каналы не удаляются автоматически из-за временной недоступности.
+5. Ведётся статистика по источникам, новым постам, активациям, ошибкам и подавленным повторам.
+6. Добавлен ежедневный отчёт в 08:12 по Барнаулу за завершившийся предыдущий день.
+7. В отчёте показываются источники, карантин, ошибки, найденные колёса, повторы, рейтинг источников и каналы, недоступные несколько дней.
+8. Неизвестные форматы таймера сохраняются в `unknown_timer_samples.json` с короткими обезличенными фрагментами публичного поста и страницы.
+9. Уведомления получили кнопки: открыть колесо, открыть пост, перепроверить, отметить активным, отметить неактивным и сохранить пример «нет времени».
+10. Ночной монитор переводит источник в быстрый список только после подтверждения активной страницы колеса.
+11. Первый запуск новой версии создаёт новую базовую точку и не рассылает старые видимые публикации.
 
-permissions:
-  contents: write
-  actions: write
+## Дополнение v2.5.2
 
-concurrency:
-  group: betboom-wheel-monitor-continuous
-  cancel-in-progress: true
+- Все известные ставочные и дополнительные каналы партнёров перенесены в пятиминутную проверку: `aunkeretg`, `dekocsoff`, `ct0mislove`, `blindzonexgod`, `dayneZz`.
+- Все подтверждённые сборщики общих колёс закреплены в быстром списке: `homakolesa`, `narodCast`, `dartwager`, `frixa_betboom`, `amam0610`, `gazazor`, `kolesaBB`.
+- Эти источники удалены из ночного списка, чтобы не было пересечений и пропусков между режимами.
 
-jobs:
-  monitor:
-    runs-on: ubuntu-latest
-    timeout-minutes: 350
+## Дополнение v2.5.4
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
+- Удалена отдельная классификация `confirmed_ambassador`; все владельцы подтверждённых колёс имеют единый статус `betboom_partner`.
+- `narodCast` перенесён из раздела сборщиков в самостоятельные партнёрские источники и остаётся в быстрой проверке.
+- `frixa_betboom` и `gazazor` удалены из оперативных списков, каталога и списка сборщиков.
+- Добавлена автоматическая очистка устаревших записей удалённых каналов из health/statistics/unknown samples при следующем запуске.
+- `pandafx2` добавлен в общий каталог как ночной канал PandaFX, чтобы каталог покрывал обе оперативные базы полностью.
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
 
-      - name: Verify repository layout
-        run: python preflight.py
+## Дополнение v2.6
 
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
-
-      - name: Check project files
-        run: |
-          python -m py_compile monitor.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
-          python -m json.tool identifier_sources.json >/dev/null
-          python -m json.tool partners_catalog.json >/dev/null
-          python self_test.py
-
-      - name: Run monitor loop
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
-          DISPLAY_TIMEZONE: Asia/Barnaul
-          REQUEST_TIMEOUT_SECONDS: "15"
-          MAX_WORKERS: "12"
-          UNKNOWN_DEDUP_HOURS: "24"
-          DEADLINE_GRACE_MINUTES: "30"
-          HEARTBEAT_HOURS: "6"
-          HEALTH_ALERT_COOLDOWN_HOURS: "6"
-          STATUS_REPORT_HOURS: "12"
-          MAX_NEW_POST_AGE_MINUTES: "360"
-          NEW_SOURCE_CATCHUP_MINUTES: "1440"
-          FRESH_UNKNOWN_POST_MINUTES: "20"
-          PENDING_RECHECK_HOURS: "24"
-          PENDING_RECHECK_MINUTES: "4"
-          QUARANTINE_FAILURE_THRESHOLD: "3"
-          QUARANTINE_EMPTY_THRESHOLD: "4"
-          QUARANTINE_RECHECK_HOURS: "6"
-          UNAVAILABLE_REPORT_DAYS: "2"
-          BOT_FEEDBACK_ENABLED: "true"
-          MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
-          AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
-          CONTINUOUS: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
-        shell: bash
-        run: |
-          set -uo pipefail
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          if [[ "$CONTINUOUS" == "true" ]]; then
-            iterations=68
-          else
-            iterations=1
-          fi
-
-          runtime_files=(
-            state.json discovery_state.json source_health.json source_stats.json
-            unknown_timer_samples.json public_sources.txt source_catalog.txt
-          )
-
-          for ((iteration=1; iteration<=iterations; iteration++)); do
-            started_at=$(date +%s)
-            echo "=== Check $iteration/$iterations at $(date -u +%FT%TZ) ==="
-
-            python monitor.py 2>&1 | tee monitor-run.log || echo "Monitor iteration failed; the loop will retry."
-
-            # Persist immediately after the first/manual run, then approximately hourly,
-            # and once more before the runner ends. This avoids hundreds of commits daily.
-            if (( iterations == 1 || iteration == 1 || iteration % 12 == 0 || iteration == iterations )); then
-              if ! git diff --quiet -- "${runtime_files[@]}"; then
-                git add "${runtime_files[@]}"
-                git commit -m "Update monitor runtime data [skip ci]" || true
-                git pull --rebase origin "${GITHUB_REF_NAME:-main}" || true
-                git push origin "HEAD:${GITHUB_REF_NAME:-main}" || echo "Runtime push failed; will retry later."
-              fi
-            fi
-
-            if (( iteration < iterations )); then
-              elapsed=$(( $(date +%s) - started_at ))
-              sleep_for=$(( 300 - elapsed ))
-              if (( sleep_for < 5 )); then sleep_for=5; fi
-              echo "Next check in ${sleep_for}s."
-              sleep "$sleep_for"
-            fi
-          done
-
-      - name: Start next continuous shift
-        if: ${{ success() && (github.event_name != 'workflow_dispatch' || inputs.continuous == true) }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --ref main -f continuous=true
+- В уведомления добавлена кнопка `Участвую`. После отметки повторные уведомления и напоминания по этому колесу не отправляются.
+- Для колеса с известным временем отправляется одно напоминание за час до прокрутки, но не ранее чем через 10 минут после первого уведомления.
+- Для колеса без найденного времени напоминание отправляется каждые 30 минут до отметки участия или завершения колеса.
+- Добавлен реестр активных колёс с пометкой участия и временем до прокрутки.
+- Список открывается кнопкой `Активные колёса` и командами `/active` или `/wheels`.
+- Активные колёса перепроверяются, а завершённые автоматически исчезают из списка.

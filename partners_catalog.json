@@ -1,10 +1,13 @@
 {
-  "version": 1,
+  "version": 2,
   "updated_at": "2026-07-13",
   "policy": {
-    "fast": "подтверждённая история колёс, ставочный/дополнительный канал партнёра, активное колесо или сборщик-сигнал",
-    "nightly": "официальный партнёр/канал или подтверждённый альтернативный канал без регулярных колёс",
-    "disabled": "публично подтверждённый бывший партнёр или нерелевантный источник",
+    "partner": "если в собственном канале человека подтверждённо публиковалось колесо BetBoom, источник считается партнёрским",
+    "collector": "канал или чат, который собирает и перепубликовывает колёса разных авторов; партнёром конкретного колеса не считается",
+    "fast": "партнёрский источник с историей колёс, дополнительный канал партнёра или подтверждённый сборщик-сигнал",
+    "nightly": "официальный или кандидатный источник без необходимости пятиминутной проверки",
+    "disabled": "бывший партнёр или нерелевантный источник",
+    "catalog_scope": "все источники быстрой и ночной баз, а также отдельные сборщики, исключённые и неразмеченные организации",
     "conservative_removal": true
   },
   "entities": [
@@ -61,7 +64,7 @@
     },
     {
       "name": "Mechanogun / Zoner",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -70,11 +73,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Dyrachyo",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -83,11 +86,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "PAPA",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -96,11 +99,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Solo",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -109,11 +112,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Nix",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -122,11 +125,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Bolt",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -135,11 +138,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Aunkere",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -154,11 +157,11 @@
           "priority_reason": "betting_or_secondary_channel_requested_for_fast_monitoring"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Staya",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -167,11 +170,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Adam",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -180,11 +183,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Neret",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -193,11 +196,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Stray",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -206,11 +209,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Shoke",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -219,11 +222,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "OverDrive / ihuntnoobs",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -232,11 +235,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Deko",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -251,11 +254,11 @@
           "priority_reason": "betting_or_secondary_channel_requested_for_fast_monitoring"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "MAGER",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -264,11 +267,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "CTOM",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -283,11 +286,11 @@
           "priority_reason": "betting_or_secondary_channel_requested_for_fast_monitoring"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "AcooL",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -296,11 +299,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Chopper",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -309,11 +312,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Hooch",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -322,11 +325,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Lolly",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -335,11 +338,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Avice",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -348,11 +351,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Blindzone",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -367,11 +370,11 @@
           "priority_reason": "betting_or_secondary_channel_requested_for_fast_monitoring"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Dayneez",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -386,11 +389,11 @@
           "priority_reason": "betting_or_secondary_channel_requested_for_fast_monitoring"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Danila Gorilla",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -404,11 +407,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "KRAT",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -417,12 +420,12 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Shadowkek",
-      "relationship": "confirmed_ambassador",
-      "verification": "public_award_2025_and_wheel_history",
+      "relationship": "betboom_partner",
+      "verification": "confirmed_freestream_history",
       "channels": [
         {
           "username": "shadowkekw",
@@ -435,11 +438,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Публично указан как представитель BetBoom в премии 2025."
+      "notes": "Партнёр BetBoom по подтверждённой истории публикаций колёс."
     },
     {
       "name": "Relaxcis",
-      "relationship": "wheel_affiliate_history",
+      "relationship": "betboom_partner",
       "verification": "confirmed_freestream_history",
       "channels": [
         {
@@ -453,11 +456,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Формальный статус амбассадора не заявляется без публичного подтверждения."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "KZ Mantis",
-      "relationship": "wheel_affiliate_recent",
+      "relationship": "betboom_partner",
       "verification": "recent_freestream_post_detected",
       "channels": [
         {
@@ -466,11 +469,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Канал оставлен из-за подтверждённой публикации колеса; формальный статус партнёра не утверждается."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Smurf Gigachad",
-      "relationship": "wheel_affiliate_recent",
+      "relationship": "betboom_partner",
       "verification": "recent_freestream_post_detected",
       "channels": [
         {
@@ -479,24 +482,29 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Канал оставлен из-за подтверждённой публикации колеса; формальный статус партнёра не утверждается."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "PandaFX",
-      "relationship": "wheel_affiliate_recent",
+      "relationship": "betboom_partner",
       "verification": "recent_freestream_post_detected",
       "channels": [
         {
           "username": "pandafx",
           "type": "main",
           "scan_mode": "fast"
+        },
+        {
+          "username": "pandafx2",
+          "type": "secondary",
+          "scan_mode": "nightly"
         }
       ],
-      "notes": "Канал оставлен из-за подтверждённой публикации колеса; формальный статус партнёра не утверждается."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "GShikaryan",
-      "relationship": "wheel_affiliate_recent",
+      "relationship": "betboom_partner",
       "verification": "recent_freestream_post_detected",
       "channels": [
         {
@@ -505,11 +513,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Канал оставлен из-за подтверждённой публикации колеса; формальный статус партнёра не утверждается."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "ZZoneRM",
-      "relationship": "wheel_affiliate_recent",
+      "relationship": "betboom_partner",
       "verification": "recent_freestream_post_detected",
       "channels": [
         {
@@ -518,11 +526,11 @@
           "scan_mode": "fast"
         }
       ],
-      "notes": "Канал оставлен из-за подтверждённой публикации колеса; формальный статус партнёра не утверждается."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "YBN Fedor",
-      "relationship": "wheel_affiliate_recent",
+      "relationship": "betboom_partner",
       "verification": "recent_freestream_post_detected",
       "channels": [
         {
@@ -531,11 +539,11 @@
           "scan_mode": "nightly"
         }
       ],
-      "notes": "Канал оставлен из-за подтверждённой публикации колеса; формальный статус партнёра не утверждается."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
     },
     {
       "name": "Risen",
-      "relationship": "wheel_affiliate_recent",
+      "relationship": "betboom_partner",
       "verification": "recent_freestream_post_detected",
       "channels": [
         {
@@ -544,7 +552,20 @@
           "scan_mode": "nightly"
         }
       ],
-      "notes": "Канал оставлен из-за подтверждённой публикации колеса; формальный статус партнёра не утверждается."
+      "notes": "Партнёр BetBoom по подтверждённой публикации колеса в собственном канале."
+    },
+    {
+      "name": "NarodCast",
+      "relationship": "betboom_partner",
+      "verification": "owner_classification_and_fast_source_history",
+      "channels": [
+        {
+          "username": "narodCast",
+          "type": "main",
+          "scan_mode": "fast"
+        }
+      ],
+      "notes": "Самостоятельный партнёрский источник; не является сборщиком колёс разных авторов."
     }
   ],
   "collectors": [
@@ -554,28 +575,13 @@
       "scan_mode": "fast"
     },
     {
-      "username": "narodCast",
-      "name": "Публичный чат/сборщик",
-      "scan_mode": "fast"
-    },
-    {
       "username": "dartwager",
       "name": "Публичный чат/сборщик",
       "scan_mode": "fast"
     },
     {
-      "username": "frixa_betboom",
-      "name": "Публичный сборщик BetBoom",
-      "scan_mode": "fast"
-    },
-    {
       "username": "amam0610",
       "name": "Публичный сборщик",
-      "scan_mode": "fast"
-    },
-    {
-      "username": "gazazor",
-      "name": "Газазор — чат со ссылками",
       "scan_mode": "fast"
     },
     {

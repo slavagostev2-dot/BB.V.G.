@@ -76,6 +76,8 @@ def main() -> None:
         "button_contexts": {},
         "manual_overrides": {},
         "seen": {},
+        "active_wheels": {},
+        "participating_wheels": {},
     }
     monitor.remember_pending(
         state,
@@ -118,11 +120,43 @@ def main() -> None:
         page_excerpt="пример страницы",
     )
     labels = [button["text"] for row in markup["inline_keyboard"] for button in row]
+    assert "🎡 Открыть колесо" in labels
+    assert "✅ Участвую" in labels
+    assert "📋 Активные колёса" in labels
     assert "🔄 Проверить" in labels
     assert "✅ Активно" in labels
     assert "🚫 Неактивно" in labels
     assert "🕒 Нет времени" in labels
     assert markup_state["button_contexts"]
+
+    context = next(iter(markup_state["button_contexts"].values()))
+    markup_state.setdefault("active_wheels", {})
+    markup_state.setdefault("participating_wheels", {})
+    monitor.remember_active_wheel(
+        markup_state,
+        message,
+        link,
+        published + timedelta(hours=2),
+        "active",
+        "test",
+    )
+    assert "pending-wheel" in markup_state["active_wheels"]
+    monitor.mark_participating(markup_state, context)
+    assert monitor.is_participating(markup_state, link)
+    assert "✅ участвую" in monitor.active_wheels_text(markup_state)
+
+    known_entry = {
+        "first_notified_at": published.isoformat(),
+        "deadline": (published + timedelta(hours=3)).isoformat(),
+    }
+    assert not monitor.known_reminder_due(known_entry, published + timedelta(hours=1))
+    assert monitor.known_reminder_due(known_entry, published + timedelta(hours=2))
+    known_entry["known_reminder_sent_at"] = (published + timedelta(hours=2)).isoformat()
+    assert not monitor.known_reminder_due(known_entry, published + timedelta(hours=2, minutes=5))
+
+    unknown_entry = {"first_notified_at": published.isoformat()}
+    assert not monitor.unknown_reminder_due(unknown_entry, published + timedelta(minutes=29))
+    assert monitor.unknown_reminder_due(unknown_entry, published + timedelta(minutes=30))
 
     unknown = {"version": 1, "samples": []}
     added = data_store.record_unknown_timer_sample(
@@ -153,14 +187,17 @@ def main() -> None:
 
     catalog = data_store.load_partner_catalog()
     channels = data_store.flatten_partner_channels(catalog)
-    assert channels["shadowkekw"]["relationship"] == "confirmed_ambassador"
-    assert channels["gazazor"]["scan_mode"] == "fast"
+    assert channels["shadowkekw"]["relationship"] == "betboom_partner"
     assert channels["aunkeretg"]["scan_mode"] == "fast"
     assert channels["dekocsoff"]["scan_mode"] == "fast"
     assert channels["ct0mislove"]["scan_mode"] == "fast"
     assert channels["blindzonexgod"]["scan_mode"] == "fast"
     assert channels["daynezz"]["scan_mode"] == "fast"
     assert channels["betboomteamcs2"]["scan_mode"] == "nightly"
+    assert channels["narodcast"]["relationship"] == "betboom_partner"
+    assert channels["narodcast"]["channel_type"] == "main"
+    assert "frixa_betboom" not in channels
+    assert "gazazor" not in channels
 
     quick = {
         item.casefold()
@@ -175,14 +212,13 @@ def main() -> None:
         )
     }
     assert not quick.intersection(nightly), "Быстрый и ночной списки пересекаются"
-    assert "gazazor" in quick
     assert "kolesabb" in quick
     assert "homakolesa" in quick
     assert "narodcast" in quick
+    assert "frixa_betboom" not in quick
+    assert "gazazor" not in quick
     assert "dartwager" in quick
-    assert "frixa_betboom" in quick
     assert "amam0610" in quick
-    assert "gazazor" in quick
     assert "aunkeretg" in quick
     assert "dekocsoff" in quick
     assert "ct0mislove" in quick

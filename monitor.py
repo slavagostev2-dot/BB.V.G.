@@ -44,6 +44,19 @@ BOT_FEEDBACK_ENABLED = os.getenv("BOT_FEEDBACK_ENABLED", "true").strip().lower()
     "1", "true", "yes", "on"
 }
 BUTTON_CONTEXT_DAYS = max(1, int(os.getenv("BUTTON_CONTEXT_DAYS", "7")))
+PARTICIPATION_DELAY_MINUTES = max(
+    1, int(os.getenv("PARTICIPATION_DELAY_MINUTES", "10"))
+)
+KNOWN_REMINDER_BEFORE_MINUTES = max(
+    1, int(os.getenv("KNOWN_REMINDER_BEFORE_MINUTES", "60"))
+)
+UNKNOWN_REMINDER_INTERVAL_MINUTES = max(
+    5, int(os.getenv("UNKNOWN_REMINDER_INTERVAL_MINUTES", "30"))
+)
+ACTIVE_WHEEL_UNKNOWN_HOURS = max(
+    6, int(os.getenv("ACTIVE_WHEEL_UNKNOWN_HOURS", "48"))
+)
+BOT_COMMANDS_VERSION = 1
 AUTO_RUN = os.getenv("AUTO_RUN", "").strip().lower() in {
     "1",
     "true",
@@ -239,7 +252,7 @@ def load_state() -> dict:
     except (FileNotFoundError, json.JSONDecodeError):
         state = {}
 
-    state.setdefault("version", 5)
+    state.setdefault("version", 6)
     state.setdefault("initialized_sources", [])
     state.setdefault("seen", {})
     state.setdefault("url_alerts", {})
@@ -249,6 +262,9 @@ def load_state() -> dict:
     state.setdefault("button_contexts", {})
     state.setdefault("manual_overrides", {})
     state.setdefault("telegram_update_offset", 0)
+    state.setdefault("active_wheels", {})
+    state.setdefault("participating_wheels", {})
+    state.setdefault("bot_commands_version", 0)
 
     # Migrate old link-keyed formats to one global key per wheel identifier.
     migrated_alerts: dict[str, dict] = {}
@@ -285,7 +301,7 @@ def load_state() -> dict:
 
     state.pop("known_status", None)
     state.pop("recent_url_alerts", None)
-    state["version"] = 5
+    state["version"] = 6
     return state
 
 
@@ -338,6 +354,24 @@ def save_state(state: dict) -> None:
     state["manual_overrides"] = {
         key: entry
         for key, entry in state.get("manual_overrides", {}).items()
+        if isinstance(entry, dict)
+        and (
+            (expires := parse_datetime(entry.get("expires_at"))) is None
+            or expires >= now_utc()
+        )
+    }
+    state["active_wheels"] = {
+        key: entry
+        for key, entry in state.get("active_wheels", {}).items()
+        if isinstance(entry, dict)
+        and (
+            (expires := parse_datetime(entry.get("expires_at"))) is None
+            or expires >= now_utc()
+        )
+    }
+    state["participating_wheels"] = {
+        key: entry
+        for key, entry in state.get("participating_wheels", {}).items()
         if isinstance(entry, dict)
         and (
             (expires := parse_datetime(entry.get("expires_at"))) is None
@@ -888,6 +922,332 @@ def send_message(
     return telegram_api("sendMessage", payload)
 
 
+def button_context_token(message: Message, link: str) -> str:
+    raw = f"{message.source.casefold()}:{message.message_id}:{wheel_key(link)}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:14]
+
+
+def participation_expiry(deadline: datetime | None, *, current: datetime | None = None) -> datetime:
+    current = current or now_utc()
+    if deadline:
+        return max(
+            deadline + timedelta(minutes=DEADLINE_GRACE_MINUTES),
+            current + timedelta(hours=2),
+        )
+    return current + timedelta(hours=ACTIVE_WHEEL_UNKNOWN_HOURS)
+
+
+def is_participating(state: dict, link_or_key: str) -> bool:
+    key = wheel_key(link_or_key) if "://" in link_or_key else link_or_key.casefold()
+    entry = state.get("participating_wheels", {}).get(key)
+    if not isinstance(entry, dict):
+        return False
+    expires = parse_datetime(entry.get("expires_at"))
+    if expires and expires < now_utc():
+        state.get("participating_wheels", {}).pop(key, None)
+        return False
+    return True
+
+
+def mark_participating(state: dict, context: dict) -> None:
+    key = str(context.get("wheel_key") or "").casefold()
+    url = str(context.get("url") or "")
+    if not key and url:
+        key = wheel_key(url)
+    if not key:
+        return
+    active_entry = state.get("active_wheels", {}).get(key)
+    deadline = parse_datetime(active_entry.get("deadline")) if isinstance(active_entry, dict) else None
+    stored_url = normalize_url(url) if url else str(active_entry.get("url") if isinstance(active_entry, dict) else "")
+    state.setdefault("participating_wheels", {})[key] = {
+        "identifier": str(context.get("identifier") or key),
+        "url": stored_url,
+        "marked_at": now_utc().isoformat(),
+        "expires_at": participation_expiry(deadline).isoformat(),
+    }
+    if isinstance(active_entry, dict):
+        active_entry["participating"] = True
+        active_entry["participating_at"] = now_utc().isoformat()
+
+
+def remember_active_wheel(
+    state: dict,
+    message: Message,
+    link: str,
+    deadline: datetime | None,
+    status: str,
+    method: str,
+    page_excerpt: str = "",
+) -> None:
+    current = now_utc()
+    key = wheel_key(link)
+    previous = state.setdefault("active_wheels", {}).get(key)
+    first_notified = (
+        parse_datetime(previous.get("first_notified_at"))
+        if isinstance(previous, dict)
+        else None
+    ) or current
+    entry = dict(previous) if isinstance(previous, dict) else {}
+    entry.update(
+        {
+            "identifier": wheel_identifier(link),
+            "url": normalize_url(link),
+            "source": message.source,
+            "message_id": message.message_id,
+            "message_date": message.date.astimezone(UTC).isoformat(),
+            "message_url": message.message_url,
+            "message_text": message.text[:4000],
+            "status": status,
+            "method": method[:300],
+            "page_excerpt": page_excerpt[:1200],
+            "first_notified_at": first_notified.isoformat(),
+            "last_notification_at": current.isoformat(),
+            "last_checked_at": current.isoformat(),
+            "expires_at": participation_expiry(deadline, current=current).isoformat(),
+            "button_token": button_context_token(message, link),
+            "participating": is_participating(state, key),
+        }
+    )
+    if deadline:
+        entry["deadline"] = deadline.isoformat()
+    else:
+        entry.pop("deadline", None)
+    state["active_wheels"][key] = entry
+
+
+def active_entry_message(entry: dict) -> Message | None:
+    try:
+        source = str(entry["source"])
+        message_id = int(entry["message_id"])
+        date = parse_datetime(entry.get("message_date"))
+        message_url = str(entry["message_url"])
+        text = str(entry.get("message_text") or entry.get("url") or "")
+    except (KeyError, TypeError, ValueError):
+        return None
+    if date is None:
+        return None
+    return Message(source, message_id, date, text, message_url)
+
+
+def known_reminder_due(entry: dict, current: datetime | None = None) -> bool:
+    current = current or now_utc()
+    if parse_datetime(entry.get("known_reminder_sent_at")):
+        return False
+    deadline = parse_datetime(entry.get("deadline"))
+    first_notified = parse_datetime(entry.get("first_notified_at"))
+    if not deadline or not first_notified:
+        return False
+    due_at = max(
+        first_notified + timedelta(minutes=PARTICIPATION_DELAY_MINUTES),
+        deadline - timedelta(minutes=KNOWN_REMINDER_BEFORE_MINUTES),
+    )
+    return due_at <= current <= deadline + timedelta(minutes=DEADLINE_GRACE_MINUTES)
+
+
+def unknown_reminder_due(entry: dict, current: datetime | None = None) -> bool:
+    current = current or now_utc()
+    if parse_datetime(entry.get("deadline")):
+        return False
+    previous = (
+        parse_datetime(entry.get("last_unknown_reminder_at"))
+        or parse_datetime(entry.get("last_notification_at"))
+        or parse_datetime(entry.get("first_notified_at"))
+    )
+    return bool(previous and current - previous >= timedelta(minutes=UNKNOWN_REMINDER_INTERVAL_MINUTES))
+
+
+def active_wheels_text(state: dict) -> str:
+    entries = [entry for entry in state.get("active_wheels", {}).values() if isinstance(entry, dict)]
+    if not entries:
+        return "🎡 <b>Активных колёс сейчас нет.</b>"
+    entries.sort(
+        key=lambda item: (
+            parse_datetime(item.get("deadline")) is None,
+            parse_datetime(item.get("deadline")) or datetime.max.replace(tzinfo=UTC),
+            str(item.get("identifier") or "").casefold(),
+        )
+    )
+    lines = [f"🎡 <b>Активные колёса: {len(entries)}</b>", ""]
+    for index, entry in enumerate(entries, 1):
+        identifier_raw = str(entry.get("identifier") or "без идентификатора")
+        identifier = html.escape(identifier_raw)
+        source = html.escape(str(entry.get("source") or "неизвестно"))
+        deadline = parse_datetime(entry.get("deadline"))
+        timing = human_remaining(deadline) if deadline else "время не найдено"
+        participation = "✅ участвую" if is_participating(state, identifier_raw) else "❌ не отмечено"
+        lines.append(
+            f"{index}. <code>{identifier}</code> — {html.escape(timing)} — {participation}\n"
+            f"   источник: @{source}"
+        )
+    return "\n".join(lines)[:4000]
+
+
+def active_wheels_markup(state: dict) -> dict:
+    rows: list[list[dict]] = []
+    entries = [entry for entry in state.get("active_wheels", {}).values() if isinstance(entry, dict)]
+    entries.sort(
+        key=lambda item: (
+            parse_datetime(item.get("deadline")) is None,
+            parse_datetime(item.get("deadline")) or datetime.max.replace(tzinfo=UTC),
+        )
+    )
+    for entry in entries[:25]:
+        url = str(entry.get("url") or "")
+        token = str(entry.get("button_token") or "")
+        identifier_raw = str(entry.get("identifier") or "колесо")
+        identifier = identifier_raw[:20]
+        row: list[dict] = []
+        if url:
+            row.append({"text": f"🎡 {identifier}", "url": url})
+        if token and not is_participating(state, identifier_raw):
+            row.append({"text": "✅ Участвую", "callback_data": f"bb:p:{token}"})
+        if row:
+            rows.append(row)
+    rows.append([{"text": "🔄 Обновить список", "callback_data": "bb:l:active"}])
+    return {"inline_keyboard": rows}
+
+
+def send_active_wheels(state: dict) -> None:
+    send_message(active_wheels_text(state), reply_markup=active_wheels_markup(state))
+
+
+def ensure_bot_commands(state: dict) -> bool:
+    if int(state.get("bot_commands_version", 0)) >= BOT_COMMANDS_VERSION:
+        return False
+    try:
+        telegram_api(
+            "setMyCommands",
+            {
+                "commands": [
+                    {"command": "active", "description": "Показать активные колёса"},
+                    {"command": "wheels", "description": "Показать активные колёса"},
+                ]
+            },
+        )
+        telegram_api(
+            "setChatMenuButton",
+            {
+                "chat_id": os.environ["BOT_CHAT_ID"],
+                "menu_button": {"type": "commands"},
+            },
+        )
+    except Exception as exc:
+        print(f"WARNING bot command setup failed: {type(exc).__name__}: {exc}")
+        return False
+    state["bot_commands_version"] = BOT_COMMANDS_VERSION
+    return True
+
+
+def process_active_wheels(state: dict, stats: dict) -> dict[str, int | bool]:
+    result: dict[str, int | bool] = {
+        "tracked": 0,
+        "known_reminders": 0,
+        "unknown_reminders": 0,
+        "removed": 0,
+        "changed": False,
+    }
+    active = state.setdefault("active_wheels", {})
+    current = now_utc()
+    for key, entry in list(active.items()):
+        if not isinstance(entry, dict):
+            active.pop(key, None)
+            result["removed"] = int(result["removed"]) + 1
+            result["changed"] = True
+            continue
+        result["tracked"] = int(result["tracked"]) + 1
+        url = str(entry.get("url") or "")
+        deadline = parse_datetime(entry.get("deadline"))
+        expires = parse_datetime(entry.get("expires_at"))
+        if expires and current >= expires:
+            active.pop(key, None)
+            result["removed"] = int(result["removed"]) + 1
+            result["changed"] = True
+            continue
+
+        if url:
+            try:
+                inspection = inspect_wheel_page(url)
+            except Exception as exc:
+                entry["last_check_error"] = f"{type(exc).__name__}: {exc}"[:300]
+            else:
+                entry["last_checked_at"] = current.isoformat()
+                entry["status"] = inspection.status
+                entry["method"] = inspection.method[:300]
+                if inspection.page_excerpt:
+                    entry["page_excerpt"] = inspection.page_excerpt[:1200]
+                if inspection.deadline:
+                    deadline = inspection.deadline
+                    entry["deadline"] = deadline.isoformat()
+                    entry["expires_at"] = participation_expiry(deadline, current=current).isoformat()
+                    participant = state.get("participating_wheels", {}).get(key)
+                    if isinstance(participant, dict):
+                        participant["expires_at"] = participation_expiry(deadline, current=current).isoformat()
+                if inspection.status == "inactive":
+                    active.pop(key, None)
+                    result["removed"] = int(result["removed"]) + 1
+                    result["changed"] = True
+                    continue
+                result["changed"] = True
+
+        if deadline and current > deadline + timedelta(minutes=DEADLINE_GRACE_MINUTES):
+            active.pop(key, None)
+            result["removed"] = int(result["removed"]) + 1
+            result["changed"] = True
+            continue
+        if is_participating(state, key):
+            entry["participating"] = True
+            continue
+
+        message = active_entry_message(entry)
+        if message is None or not url:
+            continue
+        if known_reminder_due(entry, current):
+            try:
+                send_message(
+                    "⏰ <b>Напоминание о колесе BetBoom</b>\n\n"
+                    f"Идентификатор: <code>{html.escape(str(entry.get('identifier') or key))}</code>\n"
+                    f"Источник: @{html.escape(str(entry.get('source') or 'неизвестно'))}\n"
+                    f"⏳ До прокрутки: <b>{html.escape(human_remaining(deadline))}</b>\n\n"
+                    "Вы ещё не отметили участие.",
+                    reply_markup=wheel_reply_markup(
+                        state, message, url, active=True, status="reminder",
+                        method=str(entry.get("method") or "reminder"),
+                        page_excerpt=str(entry.get("page_excerpt") or ""),
+                    ),
+                )
+            except Exception as exc:
+                entry["last_reminder_error"] = f"{type(exc).__name__}: {exc}"[:300]
+            else:
+                entry["known_reminder_sent_at"] = current.isoformat()
+                entry["last_notification_at"] = current.isoformat()
+                data_store.increment_stat(stats, str(entry.get("source") or "unknown"), "known_deadline_reminders")
+                result["known_reminders"] = int(result["known_reminders"]) + 1
+                result["changed"] = True
+        elif unknown_reminder_due(entry, current):
+            try:
+                send_message(
+                    "⏰ <b>Напоминание о колесе BetBoom</b>\n\n"
+                    f"Идентификатор: <code>{html.escape(str(entry.get('identifier') or key))}</code>\n"
+                    f"Источник: @{html.escape(str(entry.get('source') or 'неизвестно'))}\n"
+                    "⏳ Время прокрутки пока не найдено.\n\n"
+                    "Вы ещё не отметили участие; следующее напоминание будет через 30 минут.",
+                    reply_markup=wheel_reply_markup(
+                        state, message, url, active=True, status="reminder_unknown",
+                        method=str(entry.get("method") or "unknown reminder"),
+                        page_excerpt=str(entry.get("page_excerpt") or ""),
+                    ),
+                )
+            except Exception as exc:
+                entry["last_reminder_error"] = f"{type(exc).__name__}: {exc}"[:300]
+            else:
+                entry["last_unknown_reminder_at"] = current.isoformat()
+                entry["last_notification_at"] = current.isoformat()
+                data_store.increment_stat(stats, str(entry.get("source") or "unknown"), "unknown_deadline_reminders")
+                result["unknown_reminders"] = int(result["unknown_reminders"]) + 1
+                result["changed"] = True
+    return result
+
+
 def register_button_context(
     state: dict,
     message: Message,
@@ -897,8 +1257,7 @@ def register_button_context(
     method: str,
     page_excerpt: str = "",
 ) -> str:
-    raw = f"{message.source.casefold()}:{message.message_id}:{wheel_key(link)}"
-    token = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:14]
+    token = button_context_token(message, link)
     state.setdefault("button_contexts", {})[token] = {
         "created_at": now_utc().isoformat(),
         "post_key": notification_key(message, link),
@@ -930,10 +1289,16 @@ def wheel_reply_markup(
     token = register_button_context(
         state, message, link, status=status, method=method, page_excerpt=page_excerpt
     )
-    primary_text = "✅ Участвовать" if active else "🎡 Открыть колесо"
+    participating = is_participating(state, link)
+    participation_text = "✅ Участие отмечено" if participating else "✅ Участвую"
+    participation_action = "n" if participating else "p"
     return {
         "inline_keyboard": [
-            [{"text": primary_text, "url": normalize_url(link)}],
+            [{"text": "🎡 Открыть колесо", "url": normalize_url(link)}],
+            [
+                {"text": participation_text, "callback_data": f"bb:{participation_action}:{token}"},
+                {"text": "📋 Активные колёса", "callback_data": "bb:l:active"},
+            ],
             [
                 {"text": "📨 Пост", "url": message.message_url},
                 {"text": "🔄 Проверить", "callback_data": f"bb:c:{token}"},
@@ -959,14 +1324,22 @@ def process_bot_feedback(
     unknown_samples: dict,
     stats: dict,
 ) -> dict[str, int]:
-    result = {"callbacks": 0, "active": 0, "inactive": 0, "timer": 0, "recheck": 0}
+    result = {
+        "callbacks": 0,
+        "participating": 0,
+        "lists": 0,
+        "active": 0,
+        "inactive": 0,
+        "timer": 0,
+        "recheck": 0,
+    }
     if not BOT_FEEDBACK_ENABLED:
         return result
     try:
         payload = {
             "offset": int(state.get("telegram_update_offset", 0)),
             "timeout": 0,
-            "allowed_updates": ["callback_query"],
+            "allowed_updates": ["callback_query", "message"],
         }
         response = telegram_api("getUpdates", payload)
     except Exception as exc:
@@ -980,6 +1353,22 @@ def process_bot_feedback(
         state["telegram_update_offset"] = max(
             int(state.get("telegram_update_offset", 0)), update_id + 1
         )
+
+        incoming = update.get("message")
+        if isinstance(incoming, dict):
+            chat = incoming.get("chat")
+            actual_chat = str(chat.get("id")) if isinstance(chat, dict) else ""
+            text = str(incoming.get("text") or "").strip().casefold()
+            command = text.split("@", 1)[0].split(maxsplit=1)[0] if text else ""
+            if actual_chat == str(os.environ.get("BOT_CHAT_ID", "")) and command in {"/active", "/wheels"}:
+                try:
+                    send_active_wheels(state)
+                except Exception as exc:
+                    print(f"WARNING active list failed: {type(exc).__name__}: {exc}")
+                else:
+                    result["lists"] += 1
+            continue
+
         query = update.get("callback_query")
         if not isinstance(query, dict):
             continue
@@ -999,71 +1388,87 @@ def process_bot_feedback(
         if len(parts) != 3:
             continue
         action, token = parts[1], parts[2]
-        context = state.get("button_contexts", {}).get(token)
-        if not isinstance(context, dict):
-            answer = "Контекст устарел."
-        else:
-            result["callbacks"] += 1
-            source = str(context.get("source") or "unknown")
-            wheel = str(context.get("wheel_key") or "")
-            post_key = str(context.get("post_key") or "")
-            pending_entry = state.get("pending_posts", {}).get(post_key)
-            if action == "c":
-                if isinstance(pending_entry, dict):
-                    pending_entry["last_checked_at"] = (
-                        now_utc() - timedelta(hours=1)
-                    ).isoformat()
-                result["recheck"] += 1
-                data_store.increment_stat(stats, source, "manual_rechecks")
-                answer = "Повторная проверка поставлена в очередь."
-            elif action == "a":
-                state.setdefault("manual_overrides", {})[wheel] = {
-                    "status": "active",
-                    "set_at": now_utc().isoformat(),
-                    "expires_at": (now_utc() + timedelta(hours=6)).isoformat(),
-                }
-                if isinstance(pending_entry, dict):
-                    pending_entry["last_checked_at"] = (
-                        now_utc() - timedelta(hours=1)
-                    ).isoformat()
-                result["active"] += 1
-                data_store.increment_stat(stats, source, "manual_active_marks")
-                answer = "Отмечено активным; уведомление будет обработано."
-            elif action == "i":
-                state.setdefault("manual_overrides", {})[wheel] = {
-                    "status": "inactive",
-                    "set_at": now_utc().isoformat(),
-                    "expires_at": (now_utc() + timedelta(hours=24)).isoformat(),
-                }
-                if post_key:
-                    state.get("pending_posts", {}).pop(post_key, None)
-                    state.setdefault("seen", {})[post_key] = now_utc().isoformat()
-                url = str(context.get("url") or "")
-                if url:
-                    remember_filtered(state, url, "отмечено кнопкой бота", inactive=True)
-                result["inactive"] += 1
-                data_store.increment_stat(stats, source, "manual_inactive_marks")
-                answer = "Отмечено неактивным; повторные уведомления подавлены."
-            elif action == "t":
-                added = data_store.record_unknown_timer_sample(
-                    unknown_samples,
-                    source=source,
-                    message_id=int(context.get("message_id", 0)),
-                    message_url=str(context.get("message_url") or ""),
-                    wheel_url=str(context.get("url") or ""),
-                    wheel_identifier=str(context.get("identifier") or ""),
-                    status=str(context.get("status") or "unknown"),
-                    method=str(context.get("method") or "manual feedback"),
-                    telegram_text=str(context.get("message_text") or ""),
-                    page_excerpt=str(context.get("page_excerpt") or ""),
-                    reason="manual_timer_feedback",
-                )
-                if added:
-                    data_store.increment_stat(stats, source, "unknown_timer_samples")
-                result["timer"] += 1
-                answer = "Пример сохранён для доработки парсера."
+
+        if action == "l":
+            try:
+                send_active_wheels(state)
+            except Exception as exc:
+                answer = f"Не удалось показать список: {type(exc).__name__}"
             else:
-                answer = "Неизвестная команда."
+                result["callbacks"] += 1
+                result["lists"] += 1
+                answer = "Список активных колёс отправлен."
+        else:
+            context = state.get("button_contexts", {}).get(token)
+            if not isinstance(context, dict):
+                answer = "Контекст устарел."
+            else:
+                result["callbacks"] += 1
+                source = str(context.get("source") or "unknown")
+                wheel = str(context.get("wheel_key") or "")
+                post_key = str(context.get("post_key") or "")
+                pending_entry = state.get("pending_posts", {}).get(post_key)
+                if action == "p":
+                    already = is_participating(state, wheel)
+                    mark_participating(state, context)
+                    result["participating"] += 1
+                    data_store.increment_stat(stats, source, "participation_marks")
+                    answer = "Участие уже было отмечено." if already else "Участие отмечено. Напоминаний по этому колесу больше не будет."
+                elif action == "n":
+                    answer = "Участие уже отмечено."
+                elif action == "c":
+                    if isinstance(pending_entry, dict):
+                        pending_entry["last_checked_at"] = (now_utc() - timedelta(hours=1)).isoformat()
+                    result["recheck"] += 1
+                    data_store.increment_stat(stats, source, "manual_rechecks")
+                    answer = "Повторная проверка поставлена в очередь."
+                elif action == "a":
+                    state.setdefault("manual_overrides", {})[wheel] = {
+                        "status": "active",
+                        "set_at": now_utc().isoformat(),
+                        "expires_at": (now_utc() + timedelta(hours=6)).isoformat(),
+                    }
+                    if isinstance(pending_entry, dict):
+                        pending_entry["last_checked_at"] = (now_utc() - timedelta(hours=1)).isoformat()
+                    result["active"] += 1
+                    data_store.increment_stat(stats, source, "manual_active_marks")
+                    answer = "Отмечено активным; уведомление будет обработано."
+                elif action == "i":
+                    state.setdefault("manual_overrides", {})[wheel] = {
+                        "status": "inactive",
+                        "set_at": now_utc().isoformat(),
+                        "expires_at": (now_utc() + timedelta(hours=24)).isoformat(),
+                    }
+                    if post_key:
+                        state.get("pending_posts", {}).pop(post_key, None)
+                        state.setdefault("seen", {})[post_key] = now_utc().isoformat()
+                    state.get("active_wheels", {}).pop(wheel, None)
+                    url = str(context.get("url") or "")
+                    if url:
+                        remember_filtered(state, url, "отмечено кнопкой бота", inactive=True)
+                    result["inactive"] += 1
+                    data_store.increment_stat(stats, source, "manual_inactive_marks")
+                    answer = "Отмечено неактивным; повторные уведомления подавлены."
+                elif action == "t":
+                    added = data_store.record_unknown_timer_sample(
+                        unknown_samples,
+                        source=source,
+                        message_id=int(context.get("message_id", 0)),
+                        message_url=str(context.get("message_url") or ""),
+                        wheel_url=str(context.get("url") or ""),
+                        wheel_identifier=str(context.get("identifier") or ""),
+                        status=str(context.get("status") or "unknown"),
+                        method=str(context.get("method") or "manual feedback"),
+                        telegram_text=str(context.get("message_text") or ""),
+                        page_excerpt=str(context.get("page_excerpt") or ""),
+                        reason="manual_timer_feedback",
+                    )
+                    if added:
+                        data_store.increment_stat(stats, source, "unknown_timer_samples")
+                    result["timer"] += 1
+                    answer = "Пример сохранён для доработки парсера."
+                else:
+                    answer = "Неизвестная команда."
         if query_id:
             try:
                 telegram_api(
@@ -1073,7 +1478,6 @@ def process_bot_feedback(
             except Exception as exc:
                 print(f"WARNING callback answer failed: {type(exc).__name__}: {exc}")
     return result
-
 
 def notification_key(message: Message, link: str) -> str:
     raw = f"{message.source.casefold()}:{message.message_id}:{wheel_key(link)}"
@@ -1324,6 +1728,10 @@ def notify_new_link(
         ),
         url=link if state is None else None,
     )
+    if state is not None:
+        remember_active_wheel(
+            state, message, link, deadline, "preliminary", method, page_excerpt
+        )
 
 
 def notify_activation(
@@ -1361,6 +1769,10 @@ def notify_activation(
         ),
         url=link if state is None else None,
     )
+    if state is not None:
+        remember_active_wheel(
+            state, message, link, deadline, "active", method, page_excerpt
+        )
 
 
 def fetch_all_sources(
@@ -1459,7 +1871,9 @@ def main() -> int:
     health = data_store.load_health()
     stats = data_store.load_stats()
     unknown_samples = data_store.load_unknown_samples()
+    commands_changed = ensure_bot_commands(state)
     callback_summary = process_bot_feedback(state, unknown_samples, stats)
+    reminder_summary = process_active_wheels(state, stats)
 
     sources = data_store.operational_sources(read_list(SOURCES_PATH), "fast")
     checked_sources = [
@@ -1552,7 +1966,7 @@ def main() -> int:
     unconfirmed_waiting = 0
     pending_expired_count = 0
     unknown_samples_added = 0
-    changed = bool(callback_summary.get("callbacks"))
+    changed = bool(callback_summary.get("callbacks")) or commands_changed or bool(reminder_summary.get("changed"))
 
     # Recheck posts that already produced at most one preliminary alert or were
     # held silently. Repeated checks are silent until the page becomes active.
@@ -1591,6 +2005,16 @@ def main() -> int:
             unknown_samples_added += 1
 
         if assessment.status == "active":
+            if is_participating(state, link):
+                remember_active_wheel(
+                    state, message, link, assessment.deadline, "active",
+                    assessment.method, assessment.page_excerpt,
+                )
+                seen[key] = now_utc().isoformat()
+                pending.pop(key, None)
+                data_store.increment_stat(stats, message.source, "participated_suppressed")
+                changed = True
+                continue
             if is_activation_suppressed(state, link):
                 seen[key] = now_utc().isoformat()
                 pending.pop(key, None)
@@ -1629,6 +2053,15 @@ def main() -> int:
 
         # An edited post can gain a future deadline before the button appears.
         if assessment.should_notify and not pending_initial_notified(entry):
+            if is_participating(state, link):
+                remember_active_wheel(
+                    state, message, link, assessment.deadline, assessment.status,
+                    assessment.method, assessment.page_excerpt,
+                )
+                state.get("pending_posts", {}).pop(key, None)
+                seen[key] = now_utc().isoformat()
+                changed = True
+                continue
             if not is_suppressed(state, link):
                 try:
                     notify_new_link(
@@ -1730,6 +2163,15 @@ def main() -> int:
                 unknown_samples_added += 1
 
             if assessment.status == "active":
+                if is_participating(state, link):
+                    remember_active_wheel(
+                        state, message, link, assessment.deadline, "active",
+                        assessment.method, assessment.page_excerpt,
+                    )
+                    seen[key] = now_utc().isoformat()
+                    data_store.increment_stat(stats, source, "participated_suppressed")
+                    changed = True
+                    continue
                 if is_activation_suppressed(state, link):
                     seen[key] = now_utc().isoformat()
                     duplicates += 1
@@ -1765,6 +2207,14 @@ def main() -> int:
             # A new post may produce one preliminary alert. The same post then
             # remains pending and all repeated checks stay silent until activation.
             initial_notified = False
+            if assessment.should_notify and is_participating(state, link):
+                remember_active_wheel(
+                    state, message, link, assessment.deadline, assessment.status,
+                    assessment.method, assessment.page_excerpt,
+                )
+                seen[key] = now_utc().isoformat()
+                changed = True
+                continue
             if assessment.should_notify and not is_suppressed(state, link):
                 try:
                     notify_new_link(
@@ -1826,6 +2276,8 @@ def main() -> int:
         "source_errors": len(errors),
         "notification_errors": send_errors,
         "callbacks": callback_summary,
+        "reminders": reminder_summary,
+        "active_wheels": len(state.get("active_wheels", {})),
     }
 
     if MANUAL_RUN or heartbeat_due(state):

@@ -15,6 +15,8 @@ PARTNERS_CATALOG_PATH = ROOT / "partners_catalog.json"
 SOURCE_HEALTH_PATH = ROOT / "source_health.json"
 SOURCE_STATS_PATH = ROOT / "source_stats.json"
 UNKNOWN_TIMER_PATH = ROOT / "unknown_timer_samples.json"
+PUBLIC_SOURCES_PATH = ROOT / "public_sources.txt"
+NIGHTLY_SOURCES_PATH = ROOT / "source_catalog.txt"
 
 QUARANTINE_FAILURE_THRESHOLD = max(
     1, int(os.getenv("QUARANTINE_FAILURE_THRESHOLD", "3"))
@@ -185,14 +187,80 @@ def source_label(username: str) -> str:
     return f"@{username}" + (f" ({entity})" if entity and entity != username else "")
 
 
+def _read_source_values(path: Path) -> list[str]:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+    result: list[str] = []
+    for line in lines:
+        value = clean_username(line.split("#", 1)[0])
+        if value:
+            result.append(value)
+    return result
+
+
+def configured_source_keys() -> set[str]:
+    """Return every currently operational fast/nightly source."""
+    configured = operational_sources(_read_source_values(PUBLIC_SOURCES_PATH), "fast")
+    configured += operational_sources(_read_source_values(NIGHTLY_SOURCES_PATH), "nightly")
+    return {clean_username(value).casefold() for value in configured if clean_username(value)}
+
+
+def _prune_source_mapping(value: object, allowed: set[str]) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    return {
+        username: entry
+        for username, entry in value.items()
+        if clean_username(username).casefold() in allowed
+    }
+
+
+def prune_unconfigured_runtime_sources(data: dict[str, Any]) -> None:
+    """Remove stale source records after a channel is removed from both bases."""
+    allowed = configured_source_keys()
+    if not allowed:
+        return
+    if "sources" in data:
+        data["sources"] = _prune_source_mapping(data.get("sources"), allowed)
+
+    daily = data.get("daily")
+    if isinstance(daily, dict):
+        for entry in daily.values():
+            if not isinstance(entry, dict):
+                continue
+            source_rows = _prune_source_mapping(entry.get("sources"), allowed)
+            entry["sources"] = source_rows
+            totals: dict[str, int] = {}
+            for row in source_rows.values():
+                if not isinstance(row, dict):
+                    continue
+                for key, raw in row.items():
+                    if isinstance(raw, int) and not isinstance(raw, bool):
+                        totals[key] = totals.get(key, 0) + raw
+            entry["totals"] = totals
+
+    samples = data.get("samples")
+    if isinstance(samples, list):
+        data["samples"] = [
+            item
+            for item in samples
+            if not isinstance(item, dict)
+            or clean_username(item.get("source")).casefold() in allowed
+        ]
+
+
 def load_health() -> dict[str, Any]:
     data = load_json(SOURCE_HEALTH_PATH, {"version": 1, "sources": {}})
     data.setdefault("version", 1)
     data.setdefault("sources", {})
+    prune_unconfigured_runtime_sources(data)
     return data
 
 
 def save_health(data: dict[str, Any]) -> None:
+    prune_unconfigured_runtime_sources(data)
     save_json(SOURCE_HEALTH_PATH, data)
 
 
@@ -304,6 +372,7 @@ def load_stats() -> dict[str, Any]:
     data.setdefault("version", 1)
     data.setdefault("sources", {})
     data.setdefault("daily", {})
+    prune_unconfigured_runtime_sources(data)
     return data
 
 
@@ -385,6 +454,7 @@ def prune_stats(data: dict[str, Any], at: datetime | None = None) -> None:
 
 
 def save_stats(data: dict[str, Any]) -> None:
+    prune_unconfigured_runtime_sources(data)
     prune_stats(data)
     save_json(SOURCE_STATS_PATH, data)
 
@@ -413,6 +483,7 @@ def load_unknown_samples() -> dict[str, Any]:
     data = load_json(UNKNOWN_TIMER_PATH, {"version": 1, "samples": []})
     data.setdefault("version", 1)
     data.setdefault("samples", [])
+    prune_unconfigured_runtime_sources(data)
     return data
 
 
@@ -461,4 +532,5 @@ def record_unknown_timer_sample(
 
 
 def save_unknown_samples(data: dict[str, Any]) -> None:
+    prune_unconfigured_runtime_sources(data)
     save_json(UNKNOWN_TIMER_PATH, data)
