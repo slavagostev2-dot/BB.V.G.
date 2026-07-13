@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
-import subprocess
 from pathlib import Path
 
 import monitor_data as data_store
@@ -60,7 +58,7 @@ def main() -> None:
     require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
     require_text("self_test.py", ("import monitor", "def main()"))
     require_text("public_sources.txt", ("narodCast", "kolesaBB"))
-    require_text("source_catalog.txt", ("Ночной каталог",))
+    require_text("source_catalog.txt", ("Ночное наблюдение",))
     require_text(".github/workflows/daily-report.yml", ("Daily BetBoom monitor report", "daily_report.py"))
 
     mapping = read_json("identifier_sources.json")
@@ -121,26 +119,5 @@ def main() -> None:
     print("Preflight checks passed.")
 
 
-def record_failure(message: str) -> None:
-    path = ROOT / "preflight_failure.txt"
-    path.write_text(message.strip() + "\n", encoding="utf-8")
-    if os.getenv("GITHUB_ACTIONS") != "true":
-        return
-    commands = (
-        ["git", "config", "user.name", "github-actions[bot]"],
-        ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
-        ["git", "add", "preflight_failure.txt"],
-        ["git", "commit", "-m", "Record monitor preflight failure [skip ci]"],
-        ["git", "pull", "--rebase", "origin", "main"],
-        ["git", "push", "origin", "HEAD:main"],
-    )
-    for command in commands:
-        subprocess.run(command, cwd=ROOT, check=False)
-
-
 if __name__ == "__main__":
-    try:
-        main()
-    except SystemExit as exc:
-        record_failure(str(exc))
-        raise
+    main()
