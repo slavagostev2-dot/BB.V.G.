@@ -10,6 +10,7 @@ TARGET = ROOT / "admin_panel_v2.py"
 
 
 def main() -> None:
+    # The payload is split only to pass it safely through the repository API.
     payload = "".join(
         (PAYLOAD_DIR / f"part{index:02d}.txt").read_text(encoding="utf-8").strip()
         for index in range(1, 7)
