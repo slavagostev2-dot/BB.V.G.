@@ -1,5 +1,5 @@
-name: Monitor BetBoom wheels
-run-name: BetBoom monitor — ${{ github.event_name }}
+name: BB V.G. wheel monitor
+run-name: BB V.G. monitor — ${{ github.event_name }}
 
 on:
   push:
@@ -7,6 +7,8 @@ on:
     paths:
       - "monitor.py"
       - "monitor_entry.py"
+      - "bbvg_monitor_runtime.py"
+      - "bbvg_monitor_main.py"
       - "notification_router.py"
       - "bot_access.json"
       - "monitor_data.py"
@@ -38,7 +40,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: ${{ github.event_name == 'push' && format('betboom-wheel-monitor-push-{0}', github.sha) || 'betboom-wheel-monitor-continuous' }}
+  group: ${{ github.event_name == 'push' && format('bb-vg-monitor-push-{0}', github.sha) || 'bb-vg-monitor-continuous' }}
   cancel-in-progress: false
 
 jobs:
@@ -65,10 +67,19 @@ jobs:
       - name: Verify repository layout
         run: python preflight.py
 
-      - name: Check project files
+      - name: Check BB V.G. project files
         run: |
-          python -m py_compile monitor.py monitor_entry.py notification_router.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py notification_router.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
           python notification_router.py
+          python - <<'PY'
+          import bbvg_monitor_main as runtime
+
+          assert runtime.monitor.remember_pending.__module__ == "bbvg_monitor_runtime"
+          assert runtime.monitor.wheel_reply_markup.__module__ == "bbvg_monitor_main"
+          state = {"inactive_wheels": {}, "pending_posts": {}, "active_wheels": {}}
+          assert runtime.runtime._inactive_entry(state, "test") is None
+          print("BB V.G. monitor runtime validation passed")
+          PY
           python -m json.tool identifier_sources.json >/dev/null
           python -m json.tool partners_catalog.json >/dev/null
           python -m json.tool bot_access.json >/dev/null
@@ -81,7 +92,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run monitor.yml --ref main -f continuous=true
 
-      - name: Run monitor loop
+      - name: Run BB V.G. monitor loop
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
@@ -96,8 +107,6 @@ jobs:
           MAX_NEW_POST_AGE_MINUTES: "360"
           NEW_SOURCE_CATCHUP_MINUTES: "1440"
           FRESH_UNKNOWN_POST_MINUTES: "20"
-          PENDING_RECHECK_HOURS: "24"
-          PENDING_RECHECK_MINUTES: "4"
           QUARANTINE_FAILURE_THRESHOLD: "3"
           QUARANTINE_EMPTY_THRESHOLD: "4"
           QUARANTINE_RECHECK_HOURS: "6"
@@ -128,12 +137,12 @@ jobs:
           while true; do
             iteration=$((iteration + 1))
             started_at=$(date +%s)
-            echo "=== Check $iteration at $(date -u +%FT%TZ) ==="
+            echo "=== BB V.G. check $iteration at $(date -u +%FT%TZ) ==="
 
             iteration_ok=true
-            python monitor_entry.py 2>&1 | tee monitor-run.log || iteration_ok=false
+            python bbvg_monitor_main.py 2>&1 | tee monitor-run.log || iteration_ok=false
             if [[ "$iteration_ok" != "true" ]]; then
-              echo "Monitor iteration failed; the loop will retry."
+              echo "BB V.G. monitor iteration failed; the loop will retry."
             fi
 
             ITERATION="$iteration" ITERATION_OK="$iteration_ok" GITHUB_RUN_ID_VALUE="${GITHUB_RUN_ID:-}" python - <<'PY'
@@ -161,7 +170,8 @@ jobs:
           ) if isinstance(source_rows, dict) else 0
 
           payload = {
-              "version": 1,
+              "version": 2,
+              "brand": "BB V.G.",
               "status": "running" if os.environ.get("ITERATION_OK") == "true" else "iteration_error",
               "run_id": os.environ.get("GITHUB_RUN_ID_VALUE", ""),
               "iteration": int(os.environ.get("ITERATION", "0") or 0),
@@ -170,6 +180,7 @@ jobs:
               "reachable_sources": int(summary.get("reachable_sources", 0) or 0) if isinstance(summary, dict) else 0,
               "source_errors": int(summary.get("source_errors", 0) or 0) if isinstance(summary, dict) else 0,
               "checks_total": checks_total,
+              "pending_wheels": 0,
           }
           Path("monitor_status.json").write_text(
               json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -178,12 +189,10 @@ jobs:
           PY
 
             now_ts=$(date +%s)
-            # Persist immediately after startup, then every 15 minutes. This keeps
-            # Telegram statistics fresh without creating a commit after every check.
             if [[ "$CONTINUOUS" != "true" ]] || (( last_commit_at == 0 || now_ts - last_commit_at >= 900 || now_ts >= shift_end )); then
               if ! git diff --quiet -- "${runtime_files[@]}"; then
                 git add "${runtime_files[@]}"
-                git commit -m "Update monitor runtime data [skip ci]" || true
+                git commit -m "Update BB V.G. runtime data [skip ci]" || true
                 git pull --rebase origin "${GITHUB_REF_NAME:-main}" || true
                 git push origin "HEAD:${GITHUB_REF_NAME:-main}" || echo "Runtime push failed; will retry later."
               fi
