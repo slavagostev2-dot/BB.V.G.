@@ -1,5 +1,5 @@
-name: Monitor watchdog
-run-name: Monitor watchdog — ${{ github.event_name }}
+name: BB V.G. monitor watchdog
+run-name: BB V.G. watchdog — ${{ github.event_name }}
 
 on:
   push:
@@ -15,7 +15,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: betboom-monitor-watchdog
+  group: bb-vg-monitor-watchdog
   cancel-in-progress: false
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
         with:
           ref: main
 
-      - name: Check monitor freshness
+      - name: Check BB V.G. monitor freshness
         id: freshness
         shell: bash
         run: |
@@ -39,9 +39,6 @@ jobs:
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
-          # Runtime data is committed every 15 minutes. A 45-minute threshold
-          # tolerates GitHub scheduling and push delays without restarting a
-          # healthy long-running shift.
           threshold = timedelta(minutes=45)
           latest = None
           reason = "нет файла статистики"
@@ -76,12 +73,12 @@ jobs:
               output.write(f"latest={latest.isoformat() if latest else ''}\n")
           PY
 
-      - name: Queue monitor recovery when stale
+      - name: Queue BB V.G. recovery when stale
         if: ${{ steps.freshness.outputs.stale == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run monitor.yml --ref main -f continuous=true
 
-      - name: Report healthy monitor
+      - name: Report healthy BB V.G. monitor
         if: ${{ steps.freshness.outputs.stale != 'true' }}
-        run: echo "Monitor data is fresh; recovery is not required."
+        run: echo "BB V.G. runtime data is fresh; recovery is not required."
