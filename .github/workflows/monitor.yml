@@ -39,7 +39,7 @@ permissions:
 
 concurrency:
   group: betboom-wheel-monitor-continuous
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   monitor:
@@ -73,6 +73,13 @@ jobs:
           python -m json.tool partners_catalog.json >/dev/null
           python -m json.tool bot_access.json >/dev/null
           python self_test.py
+
+      - name: Queue next continuous shift
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run monitor.yml --ref main -f continuous=true
 
       - name: Run monitor loop
         env:
@@ -208,9 +215,3 @@ jobs:
               echo "Previous check took ${elapsed}s; configured interval already elapsed."
             fi
           done
-
-      - name: Start next continuous shift
-        if: ${{ success() && (github.event_name != 'workflow_dispatch' || inputs.continuous == true) }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --ref main -f continuous=true
