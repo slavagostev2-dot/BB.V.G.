@@ -1,0 +1,84 @@
+name: Monitor watchdog
+run-name: Monitor watchdog — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/monitor-watchdog.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: betboom-monitor-watchdog
+  cancel-in-progress: true
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Check monitor freshness
+        id: freshness
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          threshold = timedelta(minutes=20)
+          latest = None
+          reason = "нет файла статистики"
+          try:
+              payload = json.loads(Path("source_stats.json").read_text(encoding="utf-8"))
+              sources = payload.get("sources", {}) if isinstance(payload, dict) else {}
+              for entry in sources.values():
+                  if not isinstance(entry, dict):
+                      continue
+                  raw = entry.get("last_checked_at") or entry.get("last_updated_at")
+                  if not raw:
+                      continue
+                  try:
+                      value = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+                  except ValueError:
+                      continue
+                  if value.tzinfo is None:
+                      value = value.replace(tzinfo=timezone.utc)
+                  value = value.astimezone(timezone.utc)
+                  if latest is None or value > latest:
+                      latest = value
+          except Exception as exc:
+              reason = f"ошибка чтения статистики: {type(exc).__name__}"
+
+          now = datetime.now(timezone.utc)
+          stale = latest is None or now - latest > threshold
+          if latest is not None:
+              reason = f"последняя проверка {latest.isoformat()}, возраст {now - latest}"
+          print(reason)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"stale={'true' if stale else 'false'}\n")
+              output.write(f"latest={latest.isoformat() if latest else ''}\n")
+          PY
+
+      - name: Restart continuous monitor when stale
+        if: ${{ steps.freshness.outputs.stale == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run monitor.yml --ref main -f continuous=true
+
+      - name: Report healthy monitor
+        if: ${{ steps.freshness.outputs.stale != 'true' }}
+        run: echo "Monitor data is fresh; restart is not required."
