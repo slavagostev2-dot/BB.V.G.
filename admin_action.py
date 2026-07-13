@@ -32,8 +32,27 @@ def save_json(path: Path, value: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
+def normalized_wheel_key(value: str) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    try:
+        return monitor.wheel_key(raw) if "://" in raw else raw.casefold()
+    except Exception:
+        return raw.casefold()
+
+
+def record_wheel_key(record: Any) -> str:
+    if not isinstance(record, dict):
+        return ""
+    value = str(record.get("wheel_key") or record.get("identifier") or "")
+    if value:
+        return normalized_wheel_key(value)
+    return normalized_wheel_key(str(record.get("url") or ""))
+
+
 def wheel_context(state: dict[str, Any], key: str) -> dict[str, Any] | None:
-    normalized = key.casefold()
+    normalized = normalized_wheel_key(key)
     entry = state.get("active_wheels", {}).get(normalized)
     if not isinstance(entry, dict):
         for candidate_key, candidate in state.get("active_wheels", {}).items():
@@ -46,23 +65,123 @@ def wheel_context(state: dict[str, Any], key: str) -> dict[str, Any] | None:
             "wheel_key": normalized,
             "identifier": str(entry.get("identifier") or normalized),
             "url": str(entry.get("url") or ""),
+            "source": str(entry.get("source") or ""),
+            "message_id": entry.get("message_id", 0),
+            "message_date": str(entry.get("message_date") or ""),
+            "message_url": str(entry.get("message_url") or ""),
+            "message_text": str(entry.get("message_text") or ""),
         }
     for pending in state.get("pending_posts", {}).values():
         if not isinstance(pending, dict):
             continue
-        identifier = str(pending.get("identifier") or "").casefold()
-        url = str(pending.get("url") or "")
-        try:
-            pending_key = monitor.wheel_key(url) if url else identifier
-        except Exception:
-            pending_key = identifier
-        if normalized in {identifier, pending_key.casefold()}:
+        pending_key = record_wheel_key(pending)
+        if normalized == pending_key:
             return {
-                "wheel_key": pending_key.casefold(),
+                "wheel_key": pending_key,
                 "identifier": str(pending.get("identifier") or pending_key),
-                "url": url,
+                "url": str(pending.get("url") or ""),
+                "source": str(pending.get("source") or ""),
+                "message_id": pending.get("message_id", 0),
+                "message_date": str(pending.get("message_date") or ""),
+                "message_url": str(pending.get("message_url") or ""),
+                "message_text": str(pending.get("message_text") or ""),
             }
     return None
+
+
+def split_action_value(value: str) -> tuple[str, str]:
+    left, separator, right = str(value or "").partition("|")
+    return left.strip(), right.strip() if separator else ""
+
+
+def remove_matching_records(collection: Any, key: str) -> int:
+    if not isinstance(collection, dict):
+        return 0
+    removed = 0
+    for record_key in list(collection):
+        record = collection.get(record_key)
+        direct = normalized_wheel_key(str(record_key))
+        related = record_wheel_key(record)
+        if key in {direct, related}:
+            collection.pop(record_key, None)
+            removed += 1
+    return removed
+
+
+def set_manual_deadline(state: dict[str, Any], key: str, deadline_text: str) -> None:
+    normalized = normalized_wheel_key(key)
+    deadline = monitor.parse_datetime(deadline_text)
+    if not normalized or deadline is None:
+        raise ValueError("Некорректное колесо или время")
+    deadline = deadline.astimezone(monitor.UTC)
+
+    context = wheel_context(state, normalized)
+    if context is None:
+        raise ValueError("Колесо не найдено")
+    active = state.setdefault("active_wheels", {})
+    entry = active.get(normalized)
+    if not isinstance(entry, dict):
+        now = monitor.now_utc()
+        entry = {
+            "identifier": str(context.get("identifier") or normalized),
+            "url": str(context.get("url") or ""),
+            "source": str(context.get("source") or "неизвестно"),
+            "message_id": int(context.get("message_id", 0) or 0),
+            "message_date": str(context.get("message_date") or now.isoformat()),
+            "message_url": str(context.get("message_url") or ""),
+            "message_text": str(context.get("message_text") or "")[:4000],
+            "first_notified_at": now.isoformat(),
+            "last_notification_at": now.isoformat(),
+            "participating": monitor.is_participating(state, normalized),
+        }
+        active[normalized] = entry
+
+    entry["deadline"] = deadline.isoformat()
+    entry["deadline_source"] = "manual"
+    entry["method"] = "время вручную указано администратором BB V.G."
+    entry["status"] = "scheduled"
+    entry["needs_manual_time"] = False
+    entry["last_checked_at"] = monitor.now_utc().isoformat()
+    entry["expires_at"] = monitor.participation_expiry(deadline).isoformat()
+
+    state.setdefault("manual_deadlines", {})[normalized] = {
+        "deadline": deadline.isoformat(),
+        "updated_at": monitor.now_utc().isoformat(),
+    }
+    participant = state.setdefault("participating_wheels", {}).get(normalized)
+    if isinstance(participant, dict):
+        participant["deadline"] = deadline.isoformat()
+        participant["expires_at"] = monitor.participation_expiry(deadline).isoformat()
+    state.setdefault("completed_wheel_alerts", {}).pop(normalized, None)
+    remove_matching_records(state.setdefault("pending_posts", {}), normalized)
+
+
+def mark_globally_inactive(state: dict[str, Any], key: str, actor: str) -> int:
+    normalized = normalized_wheel_key(key)
+    if not normalized:
+        raise ValueError("Колесо не указано")
+
+    removed = 0
+    for name in (
+        "active_wheels",
+        "participating_wheels",
+        "pending_posts",
+        "button_contexts",
+        "url_alerts",
+        "activation_alerts",
+        "completed_wheel_alerts",
+        "manual_deadlines",
+    ):
+        removed += remove_matching_records(state.setdefault(name, {}), normalized)
+
+    now = monitor.now_utc()
+    state.setdefault("inactive_wheels", {})[normalized] = {
+        "identifier": normalized,
+        "marked_at": now.isoformat(),
+        "marked_by": str(actor or "admin"),
+        "expires_at": (now + timedelta(days=30)).isoformat(),
+    }
+    return removed
 
 
 def apply_action(
@@ -92,8 +211,18 @@ def apply_action(
         monitor.mark_participating(state, context)
         result["state_changed"] = True
         result["detail"] = "Участие отмечено"
+    elif action == "set_deadline":
+        key, deadline_text = split_action_value(value)
+        set_manual_deadline(state, key, deadline_text)
+        result["state_changed"] = True
+        result["detail"] = "Время прокрутки установлено вручную"
+    elif action == "mark_inactive_global":
+        key, actor = split_action_value(value)
+        removed = mark_globally_inactive(state, key, actor)
+        result["state_changed"] = True
+        result["detail"] = f"Колесо удалено для всех; очищено записей: {removed}"
     elif action == "remove_active":
-        normalized = value.casefold()
+        normalized = normalized_wheel_key(value)
         removed = state.setdefault("active_wheels", {}).pop(normalized, None)
         if removed is None:
             for key in list(state.get("active_wheels", {})):
@@ -105,7 +234,7 @@ def apply_action(
             "Колесо удалено из активного списка" if removed else "Колесо уже отсутствует"
         )
     elif action == "recheck_wheel":
-        normalized = value.casefold()
+        normalized = normalized_wheel_key(value)
         forced_at = (monitor.now_utc() - timedelta(hours=1)).isoformat()
         matched = 0
         active = state.get("active_wheels", {})
@@ -114,18 +243,6 @@ def apply_action(
                 continue
             identifier = str(entry.get("identifier") or "").casefold()
             if normalized in {str(key).casefold(), identifier}:
-                entry["last_checked_at"] = forced_at
-                matched += 1
-        for entry in state.get("pending_posts", {}).values():
-            if not isinstance(entry, dict):
-                continue
-            identifier = str(entry.get("identifier") or "").casefold()
-            url = str(entry.get("url") or "")
-            try:
-                pending_key = monitor.wheel_key(url).casefold() if url else identifier
-            except Exception:
-                pending_key = identifier
-            if normalized in {identifier, pending_key}:
                 entry["last_checked_at"] = forced_at
                 matched += 1
         if not matched:
@@ -195,13 +312,15 @@ def self_test() -> None:
     }
     result = apply_action(state, health, "participate_token", "token1")
     assert result["state_changed"] and "wheel1" in state["participating_wheels"]
-    result = apply_action(state, health, "recheck_wheel", "wheel1")
-    assert result["state_changed"]
+    future = (monitor.now_utc() + timedelta(hours=2)).isoformat()
+    result = apply_action(state, health, "set_deadline", f"wheel1|{future}")
+    assert result["state_changed"] and state["active_wheels"]["wheel1"]["deadline_source"] == "manual"
     result = apply_action(state, health, "clear_quarantine", "bad")
     assert result["health_changed"] and health["sources"]["bad"]["status"] == "ok"
-    result = apply_action(state, health, "remove_active", "wheel1")
-    assert result["state_changed"] and not state["active_wheels"]
-    print("admin_action self-test passed")
+    result = apply_action(state, health, "mark_inactive_global", "wheel1|123")
+    assert result["state_changed"] and "wheel1" in state["inactive_wheels"]
+    assert "wheel1" not in state["active_wheels"]
+    print("BB V.G. admin action self-test passed")
 
 
 def main() -> int:
