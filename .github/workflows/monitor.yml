@@ -9,12 +9,17 @@ on:
       - "monitor_entry.py"
       - "bbvg_monitor_runtime.py"
       - "bbvg_monitor_main.py"
+      - "bbvg_monitor_features.py"
       - "notification_router.py"
+      - "notification_router_v2.py"
+      - "source_registry.py"
+      - "source_reputation.py"
       - "bot_access.json"
       - "monitor_data.py"
       - "daily_report.py"
       - "telegram_monitor.py"
       - "nightly_discovery.py"
+      - "nightly_discovery_entry.py"
       - "public_sources.txt"
       - "source_catalog.txt"
       - "partners_catalog.json"
@@ -69,12 +74,13 @@ jobs:
 
       - name: Check BB V.G. project files
         run: |
-          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py notification_router.py monitor_data.py telegram_monitor.py nightly_discovery.py daily_report.py
-          python notification_router.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py bbvg_monitor_features.py notification_router.py notification_router_v2.py source_registry.py source_reputation.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py daily_report.py
+          python notification_router_v2.py
+          python source_reputation.py
           python - <<'PY'
           import bbvg_monitor_main as runtime
 
-          assert runtime.monitor.remember_pending.__module__ == "bbvg_monitor_runtime"
+          assert runtime.monitor.remember_pending.__module__ == "bbvg_monitor_features"
           assert runtime.monitor.wheel_reply_markup.__module__ == "bbvg_monitor_main"
           state = {"inactive_wheels": {}, "pending_posts": {}, "active_wheels": {}}
           assert runtime.runtime._inactive_entry(state, "test") is None
@@ -83,6 +89,8 @@ jobs:
           python -m json.tool identifier_sources.json >/dev/null
           python -m json.tool partners_catalog.json >/dev/null
           python -m json.tool bot_access.json >/dev/null
+          python -m json.tool source_registry.json >/dev/null
+          python -m json.tool source_reputation.json >/dev/null
           python self_test.py
 
       - name: Queue next continuous shift
@@ -126,6 +134,7 @@ jobs:
 
           runtime_files=(
             state.json discovery_state.json source_health.json source_stats.json
+            source_registry.json source_reputation.json
             unknown_timer_samples.json public_sources.txt source_catalog.txt
             monitor_status.json
           )
@@ -160,9 +169,14 @@ jobs:
               stats = json.loads(Path("source_stats.json").read_text(encoding="utf-8"))
           except Exception:
               stats = {}
+          try:
+              registry = json.loads(Path("source_registry.json").read_text(encoding="utf-8"))
+          except Exception:
+              registry = {}
 
           summary = state.get("last_run_summary", {}) if isinstance(state, dict) else {}
           source_rows = stats.get("sources", {}) if isinstance(stats, dict) else {}
+          registry_summary = registry.get("summary", {}) if isinstance(registry, dict) else {}
           checks_total = sum(
               int(entry.get("checks", 0) or 0)
               for entry in source_rows.values()
@@ -170,17 +184,23 @@ jobs:
           ) if isinstance(source_rows, dict) else 0
 
           payload = {
-              "version": 2,
+              "version": 3,
               "brand": "BB V.G.",
               "status": "running" if os.environ.get("ITERATION_OK") == "true" else "iteration_error",
               "run_id": os.environ.get("GITHUB_RUN_ID_VALUE", ""),
               "iteration": int(os.environ.get("ITERATION", "0") or 0),
               "last_iteration_at": now.isoformat(),
-              "checked_sources": int(summary.get("checked_sources", 0) or 0) if isinstance(summary, dict) else 0,
+              "checked_sources": int(registry_summary.get("checked_sources", summary.get("checked_sources", 0)) or 0),
+              "total_sources": int(registry_summary.get("total_sources", 0) or 0),
+              "available_sources": int(registry_summary.get("available_sources", 0) or 0),
+              "unavailable_sources": int(registry_summary.get("unavailable_sources", 0) or 0),
               "reachable_sources": int(summary.get("reachable_sources", 0) or 0) if isinstance(summary, dict) else 0,
               "source_errors": int(summary.get("source_errors", 0) or 0) if isinstance(summary, dict) else 0,
               "checks_total": checks_total,
-              "pending_wheels": 0,
+              "pending_wheels": sum(
+                  1 for entry in state.get("active_wheels", {}).values()
+                  if isinstance(entry, dict) and str(entry.get("admin_verdict") or "") != "active"
+              ) if isinstance(state, dict) else 0,
           }
           Path("monitor_status.json").write_text(
               json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
