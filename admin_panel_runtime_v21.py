@@ -25,6 +25,73 @@ ADMIN_NOTIFICATION_OPTIONS = (
 class TelegramPanelRuntimeV21(TelegramPanelRuntimeV20):
     """Current BB V.G. panel with role-safe unified notifications."""
 
+    def register_user(self, message: dict[str, Any]) -> str:
+        sender = message.get("from") if isinstance(message, dict) else None
+        user_id = str(sender.get("id") or "") if isinstance(sender, dict) else ""
+        access = self.load_access()
+        users = access.get("users") if isinstance(access.get("users"), dict) else {}
+        known_user = bool(user_id and user_id in users)
+        if user_id and not known_user:
+            # A shift handoff may leave another long-running process with an old
+            # access cache. Re-read GitHub before deciding that the user is new.
+            access = self.load_access(force=True)
+            users = access.get("users") if isinstance(access.get("users"), dict) else {}
+            known_user = user_id in users
+
+        role = super().register_user(message)
+        if user_id and not known_user:
+            self.notify_owner_about_new_user(user_id)
+        return role
+
+    def notify_owner_about_new_user(self, user_id: str) -> None:
+        access = self.load_access()
+        owner_id = str(access.get("owner_id") or "")
+        users = access.get("users") if isinstance(access.get("users"), dict) else {}
+        record = users.get(user_id) if isinstance(users.get(user_id), dict) else {}
+        owner = users.get(owner_id) if isinstance(users.get(owner_id), dict) else {}
+        owner_chat_id = str(owner.get("chat_id") or owner_id)
+        if not owner_chat_id or owner_id == user_id or not record:
+            return
+        full_name = " ".join(
+            value
+            for value in (
+                str(record.get("first_name") or "").strip(),
+                str(record.get("last_name") or "").strip(),
+            )
+            if value
+        ) or "Пользователь"
+        username = str(record.get("username") or "").strip()
+        username_line = f"\nUsername: @{html.escape(username)}" if username else ""
+        try:
+            self.send(
+                "👤 <b>Новый пользователь BB V.G.</b>\n\n"
+                f"{html.escape(full_name)}{username_line}\n"
+                f"Telegram ID: <code>{html.escape(user_id)}</code>\n\n"
+                "Пользователь добавлен в раздел «Доступ и администраторы».",
+                chat_id=owner_chat_id,
+                reply_markup={
+                    "inline_keyboard": [[{
+                        "text": "👥 Открыть список пользователей",
+                        "callback_data": "page:access",
+                    }]]
+                },
+            )
+        except Exception as exc:
+            # Registration must still succeed if the informational message fails.
+            print(f"WARNING new user notification: {type(exc).__name__}: {exc}")
+
+    def show_access(self) -> None:
+        self.load_access(force=True)
+        super().show_access()
+
+    def show_user_detail(self, user_id: str) -> None:
+        self.load_access(force=True)
+        super().show_user_detail(user_id)
+
+    def show_recipients(self) -> None:
+        self.load_access(force=True)
+        super().show_recipients()
+
     def miniapp_url_for_chat(self) -> str:
         deployment = self.miniapp_deployment()
         deployed = str(deployment.get("url") or "").strip()
@@ -300,6 +367,30 @@ def self_test() -> None:
     assert "page:settings" in user_callbacks
     assert len(USER_NOTIFICATION_OPTIONS) == 3
     assert len(ADMIN_NOTIFICATION_OPTIONS) == 3
+    access = {
+        "owner_id": "1",
+        "admins": [],
+        "blocked_users": [],
+        "notification_recipients": [],
+        "settings": {"public_panel": True, "notifications": True},
+        "users": {
+            "1": {"id": "1", "chat_id": "101", "first_name": "Владелец"},
+            "2": {"id": "2", "chat_id": "202", "first_name": "Новый", "username": "new_user"},
+        },
+    }
+    load_calls: list[bool] = []
+    sent: list[tuple[str, dict[str, Any]]] = []
+    bot.load_access = lambda force=False: load_calls.append(force) or access  # type: ignore[method-assign]
+    bot.send = lambda text, **kwargs: sent.append((text, kwargs)) or {}  # type: ignore[method-assign]
+    bot.current_role = "owner"
+    bot.notify_owner_about_new_user("2")
+    assert sent and sent[-1][1]["chat_id"] == "101"
+    assert "@new_user" in sent[-1][0]
+    sent.clear()
+    bot.show_access()
+    assert load_calls[-1] is False and True in load_calls
+    assert sent and "Известных пользователей: 2" in sent[-1][0]
+    assert "🔄 Обновить список" in str(sent[-1][1].get("reply_markup"))
     print("admin_panel_runtime_v21 current UI self-test passed")
 
 
