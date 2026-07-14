@@ -8,6 +8,7 @@ on:
       - "admin_bot.py"
       - "admin_action.py"
       - "admin_action_v2.py"
+      - "admin_action_v3.py"
       - "admin_runtime.py"
       - "admin_panel_v2.py"
       - "admin_panel_runtime_v25.py"
@@ -17,6 +18,7 @@ on:
       - "admin_panel_runtime_v29.py"
       - "admin_panel_runtime_v30.py"
       - "admin_panel_runtime_v31.py"
+      - "admin_panel_runtime_v32.py"
       - "bot_private_state.py"
       - "bot_private_state.enc.json"
       - "bot_notification_state.py"
@@ -66,31 +68,33 @@ jobs:
         run: |
           set -euo pipefail
           python -m py_compile \
-            admin_bot.py admin_action.py admin_action_v2.py admin_runtime.py \
+            admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_runtime.py \
             admin_panel_v2.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
             admin_panel_runtime_v26.py admin_panel_runtime_v27.py admin_panel_runtime_v28.py \
             admin_panel_runtime_v29.py admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            bot_private_state.py bot_notification_state.py \
+            admin_panel_runtime_v32.py bot_private_state.py bot_notification_state.py \
             migrate_bot_private_state.py rating_policy.py
           python bot_private_state.py
           python migrate_bot_private_state.py --check
           python admin_action_v2.py --self-test
+          python admin_action_v3.py --self-test
           python admin_panel_runtime_v25.py --self-test
           python admin_panel_runtime_v28.py --self-test
           python admin_panel_runtime_v29.py --self-test
           python admin_panel_runtime_v30.py --self-test
           python admin_panel_runtime_v31.py --self-test
+          python admin_panel_runtime_v32.py --self-test
           python - <<'PY'
           import inspect
           from pathlib import Path
           from admin_panel_runtime_v28 import TelegramPanelRuntimeV28
-          from admin_panel_runtime_v31 import TelegramPanelRuntimeV31
+          from admin_panel_runtime_v32 import TelegramPanelRuntimeV32
 
           def callbacks(rows):
               return [button.get("callback_data") for row in rows for button in row]
 
-          admin_main = callbacks(TelegramPanelRuntimeV31.compact_menu_rows(True))
-          user_main = callbacks(TelegramPanelRuntimeV31.compact_menu_rows(False))
+          admin_main = callbacks(TelegramPanelRuntimeV32.compact_menu_rows(True))
+          user_main = callbacks(TelegramPanelRuntimeV32.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
           assert len(user_main) == len(set(user_main))
           assert set(admin_main) == {
@@ -105,23 +109,27 @@ jobs:
               "page:analytics",
               "page:sources",
               "page:settings",
-              "page:status",
           }
+          assert "page:status" not in user_main
+          assert "page:reports" not in admin_main
 
-          admin_analytics = callbacks(TelegramPanelRuntimeV31.analytics_menu_rows(True))
-          user_analytics = callbacks(TelegramPanelRuntimeV31.analytics_menu_rows(False))
-          assert "page:reports" in admin_analytics
-          assert "page:reports" not in user_analytics
-          assert "page:report:inactive" in admin_analytics
-          assert "page:report:inactive" in user_analytics
+          analytics = inspect.getsource(TelegramPanelRuntimeV32.show_analytics)
+          assert "summary:send" in analytics
+          assert "page:report:inactive" in analytics
+          assert "page:reports" not in analytics
+          active = inspect.getsource(TelegramPanelRuntimeV32.show_active)
+          assert "wheel:finished:" in active
+          assert "sources_for_item" in active
+          handler32 = inspect.getsource(TelegramPanelRuntimeV32.handle_callback)
+          assert "confirm_finished_global" in handler32
+          assert "candidate:defer:" in handler32
 
-          control = callbacks(TelegramPanelRuntimeV31.control_menu_rows())
+          control = callbacks(TelegramPanelRuntimeV32.control_menu_rows())
           assert "control:daily" not in control
-          assert "summary:send" in inspect.getsource(TelegramPanelRuntimeV31.show_reports)
-          assert "report:errors" not in inspect.getsource(TelegramPanelRuntimeV31.show_reports)
+          assert "page:status" in control
 
-          admin_sources = callbacks(TelegramPanelRuntimeV31.source_menu_rows(True))
-          user_sources = callbacks(TelegramPanelRuntimeV31.source_menu_rows(False))
+          admin_sources = callbacks(TelegramPanelRuntimeV32.source_menu_rows(True))
+          user_sources = callbacks(TelegramPanelRuntimeV32.source_menu_rows(False))
           assert len(admin_sources) == len(set(admin_sources))
           assert len(user_sources) == len(set(user_sources))
           assert {"page:discovery", "page:intelligence", "source:add"} <= set(admin_sources)
@@ -152,7 +160,7 @@ jobs:
           assert combined.count("mariomaxtv") == 1
           assert combined.count("adekvatik") == 1
           assert combined.count("jestercast") == 1
-          print("BB V.G. v31 summaries, analytics and source validation passed")
+          print("BB V.G. v32 compact lifecycle, analytics and source validation passed")
           PY
           python -m json.tool candidate_moderation.json >/dev/null
 
@@ -199,7 +207,7 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 31,
+              "version": 32,
               "storage": "encrypted_bot_state",
               "miniapp": "archived",
           }
@@ -236,7 +244,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v31.py
+        run: python admin_panel_runtime_v32.py
 
       - name: Start next control-center shift
         if: ${{ success() }}
@@ -245,4 +253,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run admin-bot.yml --ref main
 
-# v31: concise summaries, analytics cleanup and protected wheel metadata.
+# v32: compact active wheels, unified analytics and confirmed-finished rating.
