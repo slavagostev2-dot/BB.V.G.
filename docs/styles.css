@@ -273,3 +273,9 @@ body{background:var(--bg)}
 .profile-summary .profile-stat span{margin-top:6px;line-height:1.25}
 :root.light-theme .profile-summary{border-color:#d8cde0;background:linear-gradient(145deg,#fff,#f5f0f8)}
 @media(max-width:380px){.profile-summary{padding-left:5px;padding-right:5px}.profile-summary .profile-stat strong{font-size:17px}}
+
+/* BB V.G. 5.10 — compact source total below the request form. */
+.source-count-note{display:flex;align-items:center;gap:7px;width:max-content;max-width:100%;margin:-2px 2px 12px;color:var(--muted);font-size:10px;line-height:1.35}
+.source-count-note span{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--matte-accent);box-shadow:0 0 0 3px rgba(152,115,170,.1)}
+.source-count-note strong{color:var(--text);font-size:11px}
+.source-count-note+.search-row{margin-top:0}
