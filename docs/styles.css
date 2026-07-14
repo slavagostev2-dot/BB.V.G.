@@ -184,3 +184,92 @@ body{background:var(--bg)}
 :root.light-theme .stats-grid .metric-icon{border-color:#d9cce1;background:#f1eaf5;color:#735384}
 :root.light-theme .header-profile img{box-shadow:0 0 0 3px rgba(113,52,184,.08)}
 @media(max-width:380px){.header-profile{gap:8px;max-width:calc(100% - 90px)}.header-profile img{width:37px;height:37px;flex-basis:37px}.stats-grid .metric{min-height:72px;padding:11px}.stats-grid .metric strong{font-size:19px}}
+
+/* BB V.G. 5.9 — clearer matte hierarchy with a lighter graphite dark theme. */
+:root:not(.light-theme){
+  --bg:#141219;
+  --panel:#1e1b24;
+  --panel2:#25212c;
+  --panel3:#2c2733;
+  --line:#3f3848;
+  --line2:#5d4b69;
+  --muted:#ada5b3;
+  --control-bg:#28222f;
+  --control-hover:#312a39;
+  --control-fg:#dcc7e8;
+  --control-border:#594963;
+  --soft-purple:#32273c;
+  --soft-purple-fg:#d2b5e2;
+  --nav-icon:#b9b0c0;
+  --surface-shadow:0 10px 25px rgba(5,4,7,.23);
+  --matte-edge:#463e4f;
+  --matte-highlight:rgba(255,255,255,.055);
+  --matte-shadow:0 12px 28px rgba(4,3,6,.22);
+  --matte-accent:#9873aa;
+}
+:root:not(.light-theme) body{
+  background:
+    radial-gradient(circle at 18% -8%,rgba(110,78,128,.18),transparent 34%),
+    linear-gradient(180deg,#17141d 0,#121017 100%);
+}
+:root:not(.light-theme) .app-header{
+  border-bottom-color:#342e3c;
+  background:rgba(23,20,30,.95);
+  box-shadow:0 9px 25px rgba(3,2,5,.22);
+}
+:root:not(.light-theme) .header-profile img{
+  border-color:#6b5576;
+  box-shadow:0 0 0 3px rgba(151,111,172,.13);
+}
+:root:not(.light-theme) .card,
+:root:not(.light-theme) .metric,
+:root:not(.light-theme) .source-form{
+  border-color:var(--matte-edge);
+  background:linear-gradient(145deg,#231f29 0,#1c1922 78%);
+  box-shadow:inset 0 1px 0 var(--matte-highlight),var(--matte-shadow);
+}
+:root:not(.light-theme) .overview{
+  border-color:#5a4766;
+  background:linear-gradient(145deg,#27212f 0,#1a1720 82%);
+}
+:root:not(.light-theme) .overview .metric{border-color:#4a3d54;background:rgba(31,26,38,.78)}
+:root:not(.light-theme) .overview:before{border-color:#755889;opacity:.62}
+:root:not(.light-theme) .overview:after{border-color:#684c79;background:radial-gradient(circle,#a06cc1 0 5px,#2d2235 6px 16px,transparent 17px),repeating-conic-gradient(from 0deg,rgba(169,120,195,.48) 0 2deg,transparent 2deg 30deg)}
+:root:not(.light-theme) .icon-button,
+:root:not(.light-theme) .square-button,
+:root:not(.light-theme) .filter-button{
+  border-color:var(--control-border);
+  background:linear-gradient(145deg,#2c2633,#221e29);
+  color:var(--control-fg);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 5px 13px rgba(4,3,6,.16);
+}
+:root:not(.light-theme) .metric-icon,
+:root:not(.light-theme) .source-form-icon{
+  border-color:#604d6b;
+  background:#35283f;
+  color:#d9b9e9;
+}
+:root:not(.light-theme) .input,
+:root:not(.light-theme) .search,
+:root:not(.light-theme) .button:not(.primary):not(.success),
+:root:not(.light-theme) .chip,
+:root:not(.light-theme) .dialog-option{border-color:#443b4d;background:#25212c}
+:root:not(.light-theme) .empty{border-color:#453b50;background:rgba(31,27,37,.46)}
+:root:not(.light-theme) .count-pill{border:1px solid #403648;background:#2a2431;color:#c0b6c7}
+:root:not(.light-theme) .setting,
+:root:not(.light-theme) .rank-row,
+:root:not(.light-theme) .source-row,
+:root:not(.light-theme) .countdown-row{border-color:#3b3443}
+:root:not(.light-theme) .bottom-nav{
+  border-top-color:#3a3342;
+  background:rgba(25,22,31,.97);
+  box-shadow:0 -9px 26px rgba(4,3,6,.24);
+}
+:root:not(.light-theme) .nav-item.active{color:#bc7ff0}
+:root:not(.light-theme) .section-title:before{width:4px;height:14px;flex-basis:4px;opacity:.9}
+.profile-summary{padding:16px 10px}
+.profile-summary .profile-stats{grid-column:auto;margin:0;padding:0;border-top:0}
+.profile-summary .profile-stat strong{font-size:19px}
+.profile-summary .profile-stat span{margin-top:6px;line-height:1.25}
+:root.light-theme .profile-summary{border-color:#d8cde0;background:linear-gradient(145deg,#fff,#f5f0f8)}
+@media(max-width:380px){.profile-summary{padding-left:5px;padding-right:5px}.profile-summary .profile-stat strong{font-size:17px}}
