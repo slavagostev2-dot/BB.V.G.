@@ -1,4 +1,15 @@
 {
+  "admin_wheel_decisions": {
+    "zonertg5": {
+      "actor": "admin",
+      "day": "2026-07-14",
+      "decided_at": "2026-07-14T12:38:59.638123+00:00",
+      "decision": "confirmed",
+      "sources": [
+        "mechanogun"
+      ]
+    }
+  },
   "daily": {
     "2026-07-13": {
       "sources": {
@@ -523,6 +534,7 @@
           "successful_checks": 123
         },
         "mechanogun": {
+          "admin_confirmed_wheels": 1,
           "checks": 123,
           "draw_time_alerts": 1,
           "errors": 1,
@@ -615,6 +627,7 @@
         }
       },
       "totals": {
+        "admin_confirmed_wheels": 1,
         "checks": 7972,
         "draw_time_alerts": 1,
         "errors": 12,
@@ -1185,16 +1198,21 @@
       "transport_outages": 2
     },
     "mechanogun": {
+      "admin_confirmed_wheels": 1,
       "checks": 322,
       "draw_time_alerts": 1,
       "errors": 1,
       "first_checked_at": "2026-07-13T10:45:44.607420+00:00",
       "last_checked_at": "2026-07-14T12:29:56.520493+00:00",
       "last_transport_outage_at": "2026-07-14T02:39:35.575614+00:00",
-      "last_updated_at": "2026-07-14T12:29:56.520493+00:00",
+      "last_updated_at": "2026-07-14T12:38:59.638123+00:00",
       "last_wheel_post_at": "2026-07-14T07:58:37.784981+00:00",
       "messages_scanned": 6420,
       "preliminary_sent": 2,
+      "quality_decisions": {
+        "zonertg5": 40
+      },
+      "quality_score": 40,
       "recent_post_keys": {
         "26eac472265da6852012bd99c31f8676f998df594758920d75da8d624f87aa73": {
           "seen_at": "2026-07-14T07:58:37.784955+00:00",
