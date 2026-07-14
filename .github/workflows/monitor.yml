@@ -32,6 +32,11 @@ on:
         required: false
         type: boolean
         default: false
+      replace:
+        description: "Заменить текущий процесс после проверенного обновления"
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "23 */6 * * *"
 
@@ -41,7 +46,7 @@ permissions:
 
 concurrency:
   group: ${{ github.event_name == 'push' && 'bb-vg-monitor-validation' || 'bb-vg-monitor-continuous' }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+  cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.replace == true) }}
 
 jobs:
   monitor:
@@ -224,8 +229,14 @@ jobs:
 
           push_runtime || true
 
-      - name: Start or continue continuous monitoring
-        if: ${{ always() && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
+      - name: Replace monitor with validated code
+        if: ${{ success() && github.event_name == 'push' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run monitor.yml --ref main -f continuous=true -f replace=true
+
+      - name: Continue continuous monitoring
+        if: ${{ always() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -242,4 +253,4 @@ jobs:
             echo "A continuous BB V.G. monitor run is already queued."
             exit 0
           fi
-          gh workflow run monitor.yml --ref main -f continuous=true
+          gh workflow run monitor.yml --ref main -f continuous=true -f replace=false
