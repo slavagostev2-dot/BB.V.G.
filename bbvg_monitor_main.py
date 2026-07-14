@@ -3,9 +3,11 @@ from __future__ import annotations
 from datetime import timedelta
 
 import bbvg_monitor_runtime as runtime
+import monitor_resilience
 
 
 monitor = runtime.monitor
+monitor_resilience.install(monitor)
 _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels
@@ -41,27 +43,38 @@ def wheel_markup_with_direct_key(state, message, link, **kwargs):
 
 def branded_send_message(text: str, url=None, reply_markup=None):
     value = str(text or "")
-    value = value.replace(
-        "🤖 <b>Автоматический монитор работает</b>",
-        "🤖 <b>BB V.G. работает</b>",
-    )
-    value = value.replace(
-        "⚠️ <b>Монитор не смог проверить ни один Telegram-источник</b>",
-        "⚠️ <b>BB V.G. не смог проверить ни один Telegram-источник</b>",
-    )
-    value = value.replace(
-        "✅ <b>Ручная проверка завершена</b>",
-        "✅ <b>Ручная проверка BB V.G. завершена</b>",
-    )
-    value = value.replace(
-        "Повторная проверка одного поста проходит без сообщений.",
-        "Колёса без найденного времени ожидают ручного ввода администратора.",
-    )
-    value = "\n".join(
-        line
-        for line in value.splitlines()
-        if not line.startswith("Ожидают активности:")
-    )
+    if (
+        "⚠️ <b>Монитор не смог проверить ни один Telegram-источник</b>" in value
+        and monitor_resilience.outage_active()
+    ):
+        value = (
+            "⚠️ <b>Временная сетевая ошибка GitHub Actions</b>\n\n"
+            "GitHub Runner не смог подключиться к <code>t.me</code>.\n"
+            "Источники не признаны недоступными и не отправлены в карантин.\n"
+            "BB V.G. автоматически повторит проверку."
+        )
+    else:
+        value = value.replace(
+            "🤖 <b>Автоматический монитор работает</b>",
+            "🤖 <b>BB V.G. работает</b>",
+        )
+        value = value.replace(
+            "⚠️ <b>Монитор не смог проверить ни один Telegram-источник</b>",
+            "⚠️ <b>BB V.G. не смог проверить ни один Telegram-источник</b>",
+        )
+        value = value.replace(
+            "✅ <b>Ручная проверка завершена</b>",
+            "✅ <b>Ручная проверка BB V.G. завершена</b>",
+        )
+        value = value.replace(
+            "Повторная проверка одного поста проходит без сообщений.",
+            "Колёса без найденного времени ожидают ручного ввода администратора.",
+        )
+        value = "\n".join(
+            line
+            for line in value.splitlines()
+            if not line.startswith("Ожидают активности:")
+        )
     return _original_send_message(value, url=url, reply_markup=reply_markup)
 
 

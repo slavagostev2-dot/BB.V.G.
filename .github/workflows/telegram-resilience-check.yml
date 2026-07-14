@@ -1,0 +1,37 @@
+name: Telegram resilience checks
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Validate resilience layer
+        run: |
+          python -m py_compile monitor_resilience.py bbvg_monitor_main.py monitor.py monitor_data.py bbvg_monitor_runtime.py
+          python monitor_resilience.py
+          python - <<'PY'
+          import bbvg_monitor_main as runtime
+          import monitor_resilience
+
+          assert runtime.monitor.fetch_all_sources.__module__ == "monitor_resilience"
+          assert runtime.monitor._bbvg_resilience_installed is True
+          assert monitor_resilience.is_transient_transport_error(
+              "NameResolutionError: Failed to resolve t.me"
+          )
+          print("Telegram resilience integration passed")
+          PY
