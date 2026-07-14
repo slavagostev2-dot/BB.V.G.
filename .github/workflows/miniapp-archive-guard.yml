@@ -1,0 +1,28 @@
+name: Protect frozen Mini App archive
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "state_api/**"
+      - "private_state.py"
+      - "migrate_private_state.py"
+      - "private_state_deployment.json"
+      - "state_api_runtime.json"
+      - ".github/workflows/cloudflare-pages.yml"
+      - ".github/workflows/state-api.yml"
+      - ".github/workflows/migrate-private-state.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  protect:
+    if: github.head_ref != 'agent/stage1-bot-recovery-v2'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject changes to archived application
+        run: |
+          echo "Mini App is frozen. Archived files must not be changed until the user explicitly requests restoration." >&2
+          exit 1
