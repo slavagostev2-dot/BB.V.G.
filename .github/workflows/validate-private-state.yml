@@ -9,6 +9,9 @@ on:
       - "private_state.py"
       - "migrate_private_state.py"
       - "sitecustomize.py"
+      - "rating_policy.py"
+      - "admin_action_v2.py"
+      - "bbvg_monitor_main.py"
       - "admin_panel_runtime_v23.py"
       - "admin_panel_runtime_v24.py"
       - "docs/**"
@@ -17,6 +20,7 @@ on:
       - ".github/workflows/migrate-private-state.yml"
       - ".github/workflows/cloudflare-pages.yml"
       - ".github/workflows/admin-bot.yml"
+      - ".github/workflows/admin-action.yml"
       - ".github/workflows/validate-private-state.yml"
   workflow_dispatch:
 
@@ -63,7 +67,8 @@ jobs:
 
       - name: Check Python runtime
         run: |
-          python -m py_compile private_state.py migrate_private_state.py sitecustomize.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py
+          python -m py_compile private_state.py migrate_private_state.py sitecustomize.py rating_policy.py admin_action_v2.py bbvg_monitor_main.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py
+          python admin_action_v2.py --self-test
           python admin_panel_runtime_v22.py --self-test
           python admin_panel_runtime_v23.py --self-test
           python admin_panel_runtime_v24.py --self-test
@@ -86,7 +91,9 @@ jobs:
           controls = Path('docs/bbvg-controls.js').read_text(encoding='utf-8')
           panel23 = Path('admin_panel_runtime_v23.py').read_text(encoding='utf-8')
           panel24 = Path('admin_panel_runtime_v24.py').read_text(encoding='utf-8')
-          rating = Path('sitecustomize.py').read_text(encoding='utf-8')
+          rating = Path('rating_policy.py').read_text(encoding='utf-8')
+          action = Path('admin_action_v2.py').read_text(encoding='utf-8')
+          monitor = Path('bbvg_monitor_main.py').read_text(encoding='utf-8')
           html = Path('docs/index.html').read_text(encoding='utf-8')
 
           for marker in ('WebAppData', 'auth_date', '/v1/session', '/v1/source-requests'):
@@ -99,6 +106,8 @@ jobs:
           assert 'page:intelligence' in panel24 and 'page:discovery' in panel24
           assert 'page:ranking" not in callbacks' in panel24
           assert 'additive_only_v1' in rating
+          assert 'rating_policy.record_admin_wheel_decision' in action
+          assert 'monitor.data_store.load_stats = load_stats_additive' in monitor
           assert 'private-state.js?v=1.0.0' in html
           print('Private state, fallback, menu and rating invariants passed')
           PY
