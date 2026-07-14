@@ -1,47 +1,16 @@
-name: Migrate BB V.G. private state
+name: Archived Mini App state migration (disabled)
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: write
-
-concurrency:
-  group: bbvg-private-state-migration
-  cancel-in-progress: false
 
 jobs:
-  migrate:
+  archived:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-
     steps:
-      - name: Checkout complete history
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Validate migration source
+      - name: D1 migration is frozen
         run: |
-          python -m py_compile migrate_private_state.py
-          python migrate_private_state.py --check
-
-      - name: Migrate records to D1
-        run: python migrate_private_state.py
-
-      - name: Restart state consumers
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run cloudflare-pages.yml --ref main
-          gh workflow run admin-bot.yml --ref main
-          gh workflow run monitor.yml --ref main -f continuous=true
+          echo "Mini App state migration is archived and disabled."
+          echo "Telegram bot users are stored by the bot-only encrypted state workflow."
