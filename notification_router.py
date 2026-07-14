@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote
 
 ACCESS_PATH = Path(__file__).resolve().parent / "bot_access.json"
 UTC = timezone.utc
@@ -18,12 +18,12 @@ WHEEL_URL_RE = re.compile(
     re.IGNORECASE,
 )
 
-DEFAULT_SETTINGS = {
-    "wheel_notifications": True,
-    "service_notifications": True,
-    "daily_reports": True,
-    "weekly_reports": True,
-}
+USER_NOTIFICATION_MARKERS = (
+    "колесо betboom подтверждено администратором",
+    "напоминание о колесе betboom",
+    "время прокрутки колеса наступило",
+    "активные колёса",
+)
 
 
 def load_config() -> tuple[dict[str, Any], bool]:
@@ -35,34 +35,86 @@ def load_config() -> tuple[dict[str, Any], bool]:
 
 
 def classify(text: str) -> str:
-    lowered = text.casefold()
-    if "ежедневный отчёт" in lowered:
-        return "daily_reports"
-    if "колёса не обнаружены" in lowered or "без колёс" in lowered and text.lstrip().startswith("📭"):
-        return "weekly_reports"
-    if text.lstrip().startswith(("🤖", "⚠️", "✅ <b>Ручная проверка", "🩺")):
-        return "service_notifications"
-    return "wheel_notifications"
+    lowered = html.unescape(str(text or "")).casefold()
+    return "user" if any(marker in lowered for marker in USER_NOTIFICATION_MARKERS) else "admin"
 
 
-def enabled_for(config: dict[str, Any], category: str) -> bool:
-    settings = dict(DEFAULT_SETTINGS)
-    raw = config.get("settings")
-    if isinstance(raw, dict):
-        for key in settings:
-            if key in raw:
-                settings[key] = bool(raw[key])
-    return bool(settings.get(category, True))
+def user_notifications_enabled(config: dict[str, Any]) -> bool:
+    settings = config.get("settings") if isinstance(config.get("settings"), dict) else {}
+    if "notifications" in settings:
+        return bool(settings.get("notifications"))
+    return bool(settings.get("wheel_notifications", True))
 
 
-def recipients(config: dict[str, Any], config_exists: bool) -> list[str]:
-    values = config.get("notification_recipients") if isinstance(config, dict) else None
-    if isinstance(values, list):
-        result = sorted({str(value) for value in values if str(value)})
-        if result or config.get("owner_id"):
-            return result
+def user_for_chat(config: dict[str, Any], chat_id: str) -> tuple[str, dict[str, Any]]:
+    users = config.get("users") if isinstance(config.get("users"), dict) else {}
+    for user_id, record in users.items():
+        if not isinstance(record, dict):
+            continue
+        if str(record.get("chat_id") or user_id) == str(chat_id):
+            return str(user_id), record
+    return "", {}
+
+
+def admin_user_ids(config: dict[str, Any]) -> set[str]:
+    return {
+        value
+        for value in {
+            str(config.get("owner_id") or ""),
+            *{str(item) for item in config.get("admins", [])},
+        }
+        if value
+    }
+
+
+def chat_for_user(config: dict[str, Any], user_id: str) -> str:
+    users = config.get("users") if isinstance(config.get("users"), dict) else {}
+    record = users.get(str(user_id))
+    if isinstance(record, dict):
+        return str(record.get("chat_id") or user_id)
+    return str(user_id)
+
+
+def is_admin_chat(config: dict[str, Any], chat_id: str) -> bool:
+    user_id, _ = user_for_chat(config, chat_id)
+    if user_id:
+        return user_id in admin_user_ids(config)
+    return str(chat_id) in {chat_for_user(config, user_id) for user_id in admin_user_ids(config)}
+
+
+def recipients(config: dict[str, Any], config_exists: bool, category: str) -> list[str]:
+    if category == "admin":
+        result = {
+            chat_for_user(config, user_id)
+            for user_id in admin_user_ids(config)
+            if chat_for_user(config, user_id)
+        }
+        if result:
+            return sorted(result)
+    elif user_notifications_enabled(config):
+        users = config.get("users") if isinstance(config.get("users"), dict) else {}
+        legacy = {
+            str(value)
+            for value in config.get("notification_recipients", [])
+            if str(value)
+        }
+        result: set[str] = set()
+        for user_id, record in users.items():
+            if not isinstance(record, dict):
+                continue
+            chat_id = str(record.get("chat_id") or user_id)
+            enabled = record.get("notifications_enabled")
+            if enabled is None:
+                enabled = not legacy or chat_id in legacy
+            if bool(enabled):
+                result.add(chat_id)
+        if result:
+            return sorted(result)
+        if not users and legacy:
+            return sorted(legacy)
+
     fallback = str(os.getenv("BOT_CHAT_ID", "")).strip()
-    if fallback and (not config_exists or not config.get("owner_id")):
+    if fallback and not config_exists:
         return [fallback]
     return []
 
@@ -90,27 +142,6 @@ def wheel_key_from_message(text: str, url: str | None, reply_markup: dict | None
                 if match:
                     return unquote(match.group(1)).strip().casefold()
     return ""
-
-
-def user_for_chat(config: dict[str, Any], chat_id: str) -> tuple[str, dict[str, Any]]:
-    for user_id, record in config.get("users", {}).items():
-        if not isinstance(record, dict):
-            continue
-        if str(record.get("chat_id") or user_id) == str(chat_id):
-            return str(user_id), record
-    return "", {}
-
-
-def is_admin_chat(config: dict[str, Any], chat_id: str) -> bool:
-    user_id, _ = user_for_chat(config, chat_id)
-    return bool(
-        user_id
-        and user_id
-        in {
-            str(config.get("owner_id") or ""),
-            *{str(value) for value in config.get("admins", [])},
-        }
-    )
 
 
 def hidden_for_chat(config: dict[str, Any], chat_id: str, wheel_key: str) -> bool:
@@ -151,10 +182,15 @@ def markup_for_chat(reply_markup: dict | None, *, admin: bool) -> dict | None:
         for button in row:
             if not isinstance(button, dict):
                 continue
-            callback = str(button.get("callback_data") or "")
+            value = dict(button)
+            callback = str(value.get("callback_data") or "")
             if not admin and callback.startswith(("bb:t:", "wheel:time:")):
                 continue
-            filtered.append(button)
+            if callback.startswith(("bb:p:", "wheel:part:")):
+                value["text"] = "✅ Участвую" if admin else "✅ Я участвую"
+            if callback.startswith(("bb:x:", "wheel:inactive:")) and not admin:
+                value["text"] = "Скрыть у меня"
+            filtered.append(value)
         if filtered:
             rows.append(filtered)
     result["inline_keyboard"] = rows
@@ -162,6 +198,9 @@ def markup_for_chat(reply_markup: dict | None, *, admin: bool) -> dict | None:
 
 
 def install(monitor_module: Any) -> None:
+    if getattr(monitor_module, "_bbvg_notification_router_installed", False):
+        return
+
     def routed_send_message(
         text: str,
         url: str | None = None,
@@ -169,24 +208,20 @@ def install(monitor_module: Any) -> None:
     ) -> dict:
         config, exists = load_config()
         category = classify(text)
-        if not enabled_for(config, category):
-            print(f"Notification suppressed by setting: {category}")
-            return {"ok": True, "result": {"suppressed": True, "category": category}}
-
-        targets = recipients(config, exists)
+        targets = recipients(config, exists, category)
         if not targets:
             print(f"Notification has no recipients: {category}")
             return {"ok": True, "result": {"suppressed": True, "category": category}}
 
         key = wheel_key_from_message(text, url, reply_markup)
-        result: dict = {"ok": True, "result": {"sent": 0}}
+        result: dict[str, Any] = {"ok": True, "result": {"sent": 0}}
         errors: list[str] = []
         sent = 0
         skipped = 0
         for chat_id in targets:
-            if category == "wheel_notifications" and hidden_for_chat(config, chat_id, key):
+            admin = is_admin_chat(config, chat_id)
+            if category == "user" and hidden_for_chat(config, chat_id, key):
                 skipped += 1
-                print(f"Wheel {key} hidden for notification target {chat_id}")
                 continue
             payload: dict[str, Any] = {
                 "chat_id": chat_id,
@@ -194,10 +229,7 @@ def install(monitor_module: Any) -> None:
                 "parse_mode": "HTML",
                 "disable_web_page_preview": True,
             }
-            target_markup = markup_for_chat(
-                reply_markup,
-                admin=is_admin_chat(config, chat_id),
-            )
+            target_markup = markup_for_chat(reply_markup, admin=admin)
             if target_markup is not None:
                 payload["reply_markup"] = target_markup
             elif url:
@@ -208,33 +240,45 @@ def install(monitor_module: Any) -> None:
                 response = monitor_module.telegram_api("sendMessage", payload)
                 result = response
                 sent += 1
-                if isinstance(result.get("result"), dict):
-                    result["result"]["routed_to"] = chat_id
             except Exception as exc:
                 errors.append(f"{chat_id}:{type(exc).__name__}")
                 print(f"WARNING notification target {chat_id}: {type(exc).__name__}: {exc}")
+
         if errors and len(errors) == len(targets) - skipped:
             raise RuntimeError("All notification targets failed: " + ", ".join(errors))
         if not isinstance(result.get("result"), dict):
             result["result"] = {}
         result["result"]["sent"] = sent
         result["result"]["hidden_skipped"] = skipped
+        result["result"]["category"] = category
         return result
 
     monitor_module.send_message = routed_send_message
+    monitor_module._bbvg_notification_router_installed = True
 
 
 def self_test() -> None:
-    assert classify("📊 Ежедневный отчёт BB V.G.") == "daily_reports"
-    assert classify("📭 За 7 дней колёса не обнаружены") == "weekly_reports"
-    assert classify("🤖 BB V.G. работает") == "service_notifications"
-    assert classify("🎡 Новое колесо") == "wheel_notifications"
-    assert wheel_key_from_message("Идентификатор: <code>ZonerTG4</code>", None, None) == "zonertg4"
+    config = {
+        "owner_id": "1",
+        "admins": ["2"],
+        "notification_recipients": ["1", "3"],
+        "settings": {"wheel_notifications": True},
+        "users": {
+            "1": {"chat_id": "1"},
+            "2": {"chat_id": "2", "notifications_enabled": False},
+            "3": {"chat_id": "3", "notifications_enabled": True},
+        },
+    }
+    assert recipients(config, True, "admin") == ["1", "2"]
+    assert recipients(config, True, "user") == ["1", "3"]
+    assert classify("🎡 Новое колесо BetBoom") == "admin"
+    assert classify("✅ Колесо BetBoom подтверждено администратором") == "user"
+    assert classify("⚠️ BB V.G. не смог проверить источник") == "admin"
     user_markup = markup_for_chat(
         {"inline_keyboard": [[{"text": "Время", "callback_data": "bb:t:test"}, {"text": "Неактивное", "callback_data": "bb:x:test"}]]},
         admin=False,
     )
-    assert "bb:t:test" not in str(user_markup) and "bb:x:test" in str(user_markup)
+    assert "bb:t:test" not in str(user_markup) and "Скрыть у меня" in str(user_markup)
     print("BB V.G. notification router self-test passed")
 
 
