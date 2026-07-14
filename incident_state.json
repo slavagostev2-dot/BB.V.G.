@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:discovery_scan_failure:763d64204869a56e": {
       "detail": "Просканировано 0 из 66; ошибок 66. Поиск должен выполняться через telegram.me.",
@@ -90,17 +90,19 @@
       "first_seen_at": "2026-07-14T04:04:11.018046+00:00",
       "key": "system_checks:monitor_stale:e73e4f9e136f77bb",
       "kind": "monitor_stale",
-      "last_seen_at": "2026-07-14T14:58:13.596146+00:00",
+      "last_seen_at": "2026-07-14T15:10:22.771289+00:00",
       "metadata": {},
       "occurrences": 2,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-14T14:58:14.111851+00:00",
       "opened_sequence": 15,
+      "resolution_notification_pending": true,
       "resolution_notified_at": "2026-07-14T04:09:29.532413+00:00",
-      "resolved_sequence": 6,
+      "resolved_at": "2026-07-14T15:10:22.771289+00:00",
+      "resolved_sequence": 16,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Основной монитор давно не обновлялся"
     },
@@ -126,17 +128,17 @@
       "title": "Не для всех источников есть данные здоровья"
     }
   },
-  "last_change_at": "2026-07-14T14:58:13.596146+00:00",
-  "last_reconcile_at": "2026-07-14T14:58:13.596146+00:00",
+  "last_change_at": "2026-07-14T15:10:22.771289+00:00",
+  "last_reconcile_at": "2026-07-14T15:10:22.771289+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
-    "new_notification_count": 1,
+    "active": 0,
+    "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 15,
+  "sequence": 16,
   "status": "initializing",
-  "updated_at": "2026-07-14T14:58:14.111900+00:00",
+  "updated_at": "2026-07-14T15:10:22.771334+00:00",
   "version": 1
 }
