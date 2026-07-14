@@ -47,22 +47,35 @@ jobs:
         id: save
         shell: bash
         run: |
+          set -euo pipefail
           files=(public_sources.txt source_catalog.txt source_tier_state.json)
           if git diff --quiet -- "${files[@]}"; then
             echo "Source tiers did not change."
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${files[@]}"
           git commit -m "Maintain source monitoring tiers [skip ci]"
-          git pull --rebase origin main
-          git push origin HEAD:main
-          echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Restart continuous monitor with updated source lists
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Source tier push attempt ${attempt} failed; rebasing before retry."
+            if ! git pull --rebase origin main; then
+              git rebase --abort || true
+              exit 1
+            fi
+          done
+          exit 1
+
+      - name: Queue monitor reload with updated source lists
         if: ${{ steps.save.outputs.changed == 'true' }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run monitor.yml --ref main -f continuous=true
