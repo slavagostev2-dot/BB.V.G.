@@ -38,9 +38,9 @@ jobs:
           set -euo pipefail
           python -m py_compile \
             source_registry.py admin_action.py admin_action_v2.py rating_policy.py \
-            bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v24.py \
-            admin_panel_runtime_v25.py bot_private_state.py bot_notification_state.py \
-            migrate_bot_private_state.py system_checks_v2.py source_tier_maintenance_v2.py
+            bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
+            bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
+            system_checks_v2.py source_tier_maintenance_v2.py
           python source_registry.py --self-test
           python source_registry.py
           python - <<'PY'
@@ -54,13 +54,11 @@ jobs:
           print("Registry summary:", summary)
           PY
 
-      - name: Validate bot user state and callbacks
+      - name: Validate bot user state and first-button registration
         run: |
           set -euo pipefail
           python bot_private_state.py
           python migrate_bot_private_state.py --check
-          python admin_panel_runtime_v22.py --self-test
-          python admin_panel_runtime_v24.py --self-test
           python admin_panel_runtime_v25.py --self-test
 
       - name: Validate additive administrator rating
@@ -92,8 +90,8 @@ jobs:
           python source_tier_maintenance_v2.py --self-test
           python - <<'PY'
           import bbvg_monitor_main as runtime
-          import notification_router
           import bot_notification_state
+          import notification_router
           assert runtime.monitor.data_store.load_stats.__module__ == "bbvg_monitor_main"
           assert runtime.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
           assert notification_router.load_config is bot_notification_state.load_config
@@ -104,7 +102,8 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'admin_panel_runtime_v25.py' .github/workflows/admin-bot.yml
+          ! grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
           grep -q 'archived and disabled' .github/workflows/cloudflare-pages.yml
           grep -q 'archived and disabled' .github/workflows/state-api.yml
           grep -q 'Mini App — архивировано' MINI_APP_ARCHIVED.md
-          ! grep -q 'page:app' admin_panel_runtime_v25.py || grep -q 'if page == "app"' admin_panel_runtime_v25.py
+          grep -q 'if page == "app"' admin_panel_runtime_v25.py
