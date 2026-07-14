@@ -92,7 +92,7 @@
       <form id="sourceRequestForm" class="source-form">
         <div class="source-form-head"><span class="source-form-icon">${iconSvg.link}</span><h2>Предложить источник</h2></div>
         <p>Отправьте username канала или чата для проверки модератором.</p>
-        <div class="form-row"><input id="sourceRequestInput" class="input" type="text" autocomplete="off" maxlength="33" placeholder="https://telegram.me/имя_канала"><button class="form-button" type="submit">Отправить на проверку</button></div>
+        <div class="form-row"><input id="sourceRequestInput" class="input" type="text" autocomplete="off" maxlength="33" placeholder="telegram.me/имя"><button class="form-button" type="submit">Отправить</button></div>
       </form>
       <div class="search-row"><input id="sourceSearch" class="search" type="search" autocomplete="off" placeholder="Поиск источника" value="${esc(app.query)}"><button class="square-button" data-action="source-filter" aria-label="Фильтр">${filterIcon}</button></div>
       <article class="card">${rows.slice(0,100).map(sourceRow).join('')||'<div class="empty">Источники не найдены.</div>'}</article>
