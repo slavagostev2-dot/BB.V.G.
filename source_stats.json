@@ -27,6 +27,15 @@
       "sources": [
         "mechanogun"
       ]
+    },
+    "zzone1": {
+      "actor": "7178093128",
+      "day": "2026-07-14",
+      "decided_at": "2026-07-14T12:39:28.897557+00:00",
+      "decision": "inactive",
+      "sources": [
+        "ZZoneRM"
+      ]
     }
   },
   "daily": {
@@ -347,6 +356,7 @@
           "successful_checks": 99
         },
         "ZZoneRM": {
+          "admin_rejected_wheels": 1,
           "checks": 123,
           "messages_scanned": 2062,
           "preliminary_sent": 1,
@@ -650,6 +660,7 @@
       },
       "totals": {
         "admin_confirmed_wheels": 3,
+        "admin_rejected_wheels": 1,
         "checks": 7972,
         "draw_time_alerts": 1,
         "errors": 12,
@@ -735,7 +746,7 @@
       "first_checked_at": "2026-07-13T10:45:44.607811+00:00",
       "last_checked_at": "2026-07-14T12:29:56.520991+00:00",
       "last_transport_outage_at": "2026-07-14T02:39:35.575804+00:00",
-      "last_updated_at": "2026-07-14T12:39:18.526692+00:00",
+      "last_updated_at": "2026-07-14T12:39:28.897557+00:00",
       "last_wheel_post_at": "2026-07-14T11:12:45.350909+00:00",
       "messages_scanned": 5780,
       "preliminary_sent": 1,
@@ -806,14 +817,19 @@
       "successful_checks": 99
     },
     "ZZoneRM": {
+      "admin_rejected_wheels": 1,
       "checks": 322,
       "first_checked_at": "2026-07-13T10:45:44.607934+00:00",
       "last_checked_at": "2026-07-14T12:29:56.521152+00:00",
       "last_transport_outage_at": "2026-07-14T02:39:35.575860+00:00",
-      "last_updated_at": "2026-07-14T12:29:56.521152+00:00",
+      "last_updated_at": "2026-07-14T12:39:28.897557+00:00",
       "last_wheel_post_at": "2026-07-14T10:03:21.387131+00:00",
       "messages_scanned": 5221,
       "preliminary_sent": 1,
+      "quality_decisions": {
+        "zzone1": 0
+      },
+      "quality_score": 0,
       "recent_post_keys": {
         "053cf78948223997ac8e25cc73f3197b5187faaf4cc11807147877ea02be74ba": {
           "seen_at": "2026-07-14T10:03:21.387115+00:00",
@@ -981,7 +997,7 @@
       "first_checked_at": "2026-07-13T10:45:44.607526+00:00",
       "last_checked_at": "2026-07-14T12:29:56.520625+00:00",
       "last_transport_outage_at": "2026-07-14T02:39:35.575664+00:00",
-      "last_updated_at": "2026-07-14T12:39:18.526692+00:00",
+      "last_updated_at": "2026-07-14T12:39:28.897557+00:00",
       "last_wheel_post_at": "2026-07-14T10:47:42.601701+00:00",
       "messages_scanned": 5961,
       "preliminary_sent": 1,
@@ -1237,7 +1253,7 @@
       "first_checked_at": "2026-07-13T10:45:44.607420+00:00",
       "last_checked_at": "2026-07-14T12:29:56.520493+00:00",
       "last_transport_outage_at": "2026-07-14T02:39:35.575614+00:00",
-      "last_updated_at": "2026-07-14T12:39:18.526692+00:00",
+      "last_updated_at": "2026-07-14T12:39:28.897557+00:00",
       "last_wheel_post_at": "2026-07-14T07:58:37.784981+00:00",
       "messages_scanned": 6420,
       "preliminary_sent": 2,
@@ -1278,7 +1294,7 @@
       "first_checked_at": "2026-07-13T10:45:44.608029+00:00",
       "last_checked_at": "2026-07-14T12:29:56.521293+00:00",
       "last_transport_outage_at": "2026-07-14T02:39:35.575904+00:00",
-      "last_updated_at": "2026-07-14T12:39:18.526692+00:00",
+      "last_updated_at": "2026-07-14T12:39:28.897557+00:00",
       "messages_scanned": 6440,
       "quality_decisions": {
         "bolt": 40
