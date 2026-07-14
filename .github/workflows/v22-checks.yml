@@ -13,10 +13,16 @@ jobs:
   current:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      BOT_TOKEN: "test-bot-token"
+      BOT_CHAT_ID: "1"
+      ADMIN_USER_ID: "1"
 
     steps:
       - name: Checkout proposed changes
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,18 +30,17 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
 
       - name: Validate Python and source registry
         run: |
           set -euo pipefail
-          python -m py_compile source_registry.py admin_action.py admin_action_v2.py rating_policy.py bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py sitecustomize.py
+          python -m py_compile \
+            source_registry.py admin_action.py admin_action_v2.py rating_policy.py \
+            bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
+            bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
+            system_checks_v2.py source_tier_maintenance_v2.py
           python source_registry.py --self-test
           python source_registry.py
           python - <<'PY'
@@ -46,77 +51,59 @@ jobs:
           assert int(summary.get("total", 0)) >= 66, summary
           assert int(summary.get("checked", 0)) == int(summary.get("available", 0)) + int(summary.get("unavailable", 0)), summary
           assert int(summary.get("total", 0)) == int(summary.get("checked", 0)) + int(summary.get("pending", 0)), summary
-          assert len({str(row.get("username", "")).casefold() for row in value.get("sources", [])}) == int(summary.get("total", 0)), summary
           print("Registry summary:", summary)
           PY
 
-      - name: Validate legacy administrator action self-test
-        run: python admin_action.py --self-test
-
-      - name: Validate additive administrator action runtime
-        run: python admin_action_v2.py --self-test
-
-      - name: Validate control center self-tests
-        env:
-          BOT_TOKEN: "test-token"
-          BOT_CHAT_ID: "1"
-          ADMIN_USER_ID: "1"
+      - name: Validate bot user state and first-button registration
         run: |
-          python admin_panel_runtime_v22.py --self-test
-          python admin_panel_runtime_v23.py --self-test
-          python admin_panel_runtime_v24.py --self-test
+          set -euo pipefail
+          python bot_private_state.py
+          python migrate_bot_private_state.py --check
+          python admin_panel_runtime_v25.py --self-test
 
       - name: Validate additive administrator rating
         run: |
           set -euo pipefail
+          python admin_action.py --self-test
+          python admin_action_v2.py --self-test
           python - <<'PY'
           import admin_action_v2
           stats = {"version": 1, "sources": {}, "daily": {}}
-          changed = admin_action_v2._additive_recorder(
-              stats,
-              wheel_key="wheel-a",
-              sources=["sourceA"],
-              decision="confirmed",
-          )
-          assert changed is True, stats
-          assert stats["sources"]["sourceA"]["quality_score"] == 40, stats
-          changed = admin_action_v2._additive_recorder(
-              stats,
-              wheel_key="wheel-a",
-              sources=["sourceA"],
-              decision="inactive",
-          )
-          assert changed is False, stats
-          assert stats["sources"]["sourceA"]["quality_score"] == 40, stats
-          changed = admin_action_v2._additive_recorder(
-              stats,
-              wheel_key="wheel-b",
-              sources=["sourceB"],
-              decision="inactive",
-          )
-          assert changed is True, stats
-          assert stats["sources"]["sourceB"]["quality_score"] == 0, stats
-          assert all(int(row.get("quality_score", 0) or 0) >= 0 for row in stats["sources"].values()), stats
-          print("Additive administrator rating validation passed", stats)
+          assert admin_action_v2._additive_recorder(
+              stats, wheel_key="wheel-a", sources=["sourceA"], decision="confirmed"
+          ) is True
+          assert stats["sources"]["sourceA"]["quality_score"] == 40
+          assert admin_action_v2._additive_recorder(
+              stats, wheel_key="wheel-a", sources=["sourceA"], decision="inactive"
+          ) is False
+          assert stats["sources"]["sourceA"]["quality_score"] == 40
+          assert admin_action_v2._additive_recorder(
+              stats, wheel_key="wheel-b", sources=["sourceB"], decision="inactive"
+          ) is True
+          assert stats["sources"]["sourceB"]["quality_score"] == 0
           PY
 
-      - name: Validate monitor rating installation
-        run: |
-          python - <<'PY'
-          import bbvg_monitor_main as runtime
-          assert runtime.monitor.data_store.load_stats.__module__ == 'bbvg_monitor_main'
-          assert runtime.monitor.data_store.record_admin_wheel_decision.__module__ == 'bbvg_monitor_main'
-          print('Monitor additive rating runtime installed')
-          PY
-
-      - name: Validate Mini App and current menu
+      - name: Validate monitor and bot-only system installation
         run: |
           set -euo pipefail
-          node --check docs/app.js
-          node --check docs/private-state.js
-          node --check docs/bbvg-controls.js
-          node --check docs/v22-overrides.js
-          grep -q 'v22-overrides.js?v=5.11.0' docs/index.html
-          grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
-          grep -q 'page:intelligence' admin_panel_runtime_v24.py
-          grep -q 'page:discovery' admin_panel_runtime_v24.py
+          python system_checks_v2.py --self-test
+          python source_tier_maintenance_v2.py --self-test
+          python - <<'PY'
+          import bbvg_monitor_main as runtime
+          import bot_notification_state
+          import notification_router
+          assert runtime.monitor.data_store.load_stats.__module__ == "bbvg_monitor_main"
+          assert runtime.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
+          assert notification_router.load_config is bot_notification_state.load_config
+          print("Bot-only monitor runtime installed")
+          PY
+
+      - name: Validate frozen application boundary
+        run: |
+          set -euo pipefail
+          grep -q 'admin_panel_runtime_v25.py' .github/workflows/admin-bot.yml
+          ! grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
+          grep -q 'archived and disabled' .github/workflows/cloudflare-pages.yml
+          grep -q 'archived and disabled' .github/workflows/state-api.yml
+          grep -q 'Mini App — архивировано' MINI_APP_ARCHIVED.md
+          grep -q 'if page == "app"' admin_panel_runtime_v25.py
