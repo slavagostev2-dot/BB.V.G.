@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
+import personal_reminder_filter
 import wheel_publications_v2
 
 
@@ -94,8 +95,10 @@ def install(monitor_module: Any) -> None:
             if not isinstance(entry, dict):
                 continue
             normalized = str(key).casefold()
-            if monitor_module.is_participating(state, normalized):
-                continue
+            global_participating = monitor_module.is_participating(state, normalized)
+            personal_reminder_filter.set_global_participating(
+                normalized, global_participating
+            )
             if not final_reminder_due(monitor_module, entry, current):
                 continue
             deadline = monitor_module.parse_datetime(entry.get("deadline"))
@@ -149,6 +152,7 @@ def install(monitor_module: Any) -> None:
             normalized = str(key).casefold()
             _remember_completed(state, normalized, entry, deadline, current)
             state["active_wheels"].pop(key, None)
+            personal_reminder_filter.set_global_participating(normalized, False)
             result["removed"] = int(result.get("removed", 0) or 0) + 1
             changed = True
 
