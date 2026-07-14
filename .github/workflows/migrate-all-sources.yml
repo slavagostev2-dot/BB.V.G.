@@ -51,13 +51,27 @@ jobs:
           for entity in catalog.get("entities", []):
               if not isinstance(entity, dict):
                   continue
-              for channel in entity.get("channels", []):
+              channels = entity.get("channels", [])
+              configured_here = False
+              for channel in channels:
                   if not isinstance(channel, dict):
                       continue
                   username = str(channel.get("username") or "").strip().lstrip("@")
-                  if username.casefold() in source_keys and channel.get("scan_mode") != "fast":
-                      channel["scan_mode"] = "fast"
-                      changed += 1
+                  if username.casefold() in source_keys:
+                      configured_here = True
+                      if channel.get("scan_mode") != "fast":
+                          channel["scan_mode"] = "fast"
+                          changed += 1
+              if configured_here:
+                  notes = str(entity.get("notes") or "")
+                  replacements = (
+                      ("проверяются ночью, пока не подтверждена регулярная публикация колёс", "проверяются постоянно через telegram.me"),
+                      ("проверяются ночью", "проверяются постоянно через telegram.me"),
+                      ("ночной проверки", "постоянной проверки через telegram.me"),
+                  )
+                  for old, new in replacements:
+                      notes = notes.replace(old, new)
+                  entity["notes"] = notes
           for collector in catalog.get("collectors", []):
               if not isinstance(collector, dict):
                   continue
@@ -74,7 +88,7 @@ jobs:
 
           Path("source_catalog.txt").write_text(
               "# Кандидаты, найденные автоматически и ещё не утверждённые администратором.\n"
-              "# Все 66 известных источников находятся в public_sources.txt и проверяются постоянно.\n",
+              "# Все 66 известных источников находятся в public_sources.txt и проверяются постоянно через telegram.me.\n",
               encoding="utf-8",
           )
           print(f"Permanent sources: {len(sources)}; scan modes changed: {changed}")
@@ -86,7 +100,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add partners_catalog.json source_catalog.txt
-          git commit -m "Move all 66 sources to permanent telegram.me monitoring [skip ci]" || exit 0
+          git commit -m "Finish permanent telegram.me source migration [skip ci]" || exit 0
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
               exit 0
