@@ -1,0 +1,92 @@
+name: BB V.G. system health
+run-name: BB V.G. system health — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "system_checks.py"
+      - "incident_manager.py"
+      - "telegram_transport.py"
+      - "notification_router.py"
+      - "public_sources.txt"
+      - "source_catalog.txt"
+      - "partners_catalog.json"
+      - ".github/workflows/system-health.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bb-vg-system-health
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate health modules
+        env:
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+        run: |
+          python -m py_compile system_checks.py incident_manager.py telegram_transport.py notification_router.py monitor.py monitor_data.py
+          python telegram_transport.py
+          python incident_manager.py
+          python system_checks.py --self-test
+
+      - name: Run centralized checks
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+          MONITOR_MAX_AGE_MINUTES: "20"
+          REQUEST_TIMEOUT_SECONDS: "15"
+          DISPLAY_TIMEZONE: Asia/Barnaul
+        run: python system_checks.py
+
+      - name: Save incident state
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(incident_state.json system_check_state.json)
+          if git diff --quiet -- "${files[@]}"; then
+            echo "System health state did not change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${files[@]}"
+          git commit -m "Update BB V.G. incident state [skip ci]" || exit 0
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Health state push attempt ${attempt} failed; rebasing before retry."
+            if ! git pull --rebase origin main; then
+              git rebase --abort || true
+              exit 1
+            fi
+          done
+          exit 1
