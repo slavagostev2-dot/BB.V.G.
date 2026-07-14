@@ -1,27 +1,23 @@
-name: Validate private state migration
+name: Validate bot-only recovery
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - "state_api/**"
-      - "state_api_runtime.json"
-      - "private_state.py"
-      - "migrate_private_state.py"
-      - "sitecustomize.py"
+      - "admin_*.py"
+      - "bot_*.py"
+      - "bot_private_state.enc.json"
+      - "migrate_bot_private_state.py"
       - "rating_policy.py"
-      - "admin_action_v2.py"
       - "bbvg_monitor_main.py"
-      - "admin_panel_runtime_v23.py"
-      - "admin_panel_runtime_v24.py"
-      - "docs/**"
-      - "bot_access.json"
-      - ".github/workflows/state-api.yml"
-      - ".github/workflows/migrate-private-state.yml"
-      - ".github/workflows/cloudflare-pages.yml"
-      - ".github/workflows/admin-bot.yml"
-      - ".github/workflows/admin-action.yml"
-      - ".github/workflows/validate-private-state.yml"
+      - "daily_report_entry.py"
+      - "nightly_discovery_entry.py"
+      - "source_intelligence_entry.py"
+      - "source_tier_maintenance_v2.py"
+      - "system_checks_v2.py"
+      - "sitecustomize.py"
+      - "MINI_APP_ARCHIVED.md"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
@@ -32,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      BOT_TOKEN: "test-token"
+      BOT_TOKEN: "test-bot-token"
       BOT_CHAT_ID: "1"
       ADMIN_USER_ID: "1"
 
@@ -48,66 +44,56 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Check JavaScript syntax
+      - name: Validate bot runtime
         run: |
-          node --check state_api/src/index.js
-          node --check docs/app.js
-          node --check docs/private-state.js
-          node --check docs/bbvg-controls.js
-          node --check docs/v22-overrides.js
-          node --check docs/runtime-config.js
-
-      - name: Check Python runtime
-        run: |
-          python -m py_compile private_state.py migrate_private_state.py sitecustomize.py rating_policy.py admin_action_v2.py bbvg_monitor_main.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py
+          set -euo pipefail
+          python -m py_compile \
+            bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
+            admin_action.py admin_action_v2.py rating_policy.py \
+            admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
+            bbvg_monitor_main.py daily_report_entry.py nightly_discovery_entry.py \
+            source_intelligence_entry.py source_tier_maintenance_v2.py \
+            system_checks_v2.py sitecustomize.py
+          python bot_private_state.py
+          python migrate_bot_private_state.py --check
           python admin_action_v2.py --self-test
-          python admin_panel_runtime_v22.py --self-test
-          python admin_panel_runtime_v23.py --self-test
-          python admin_panel_runtime_v24.py --self-test
-          python migrate_private_state.py --check
+          python admin_panel_runtime_v25.py --self-test
+          python source_tier_maintenance_v2.py --self-test
+          python system_checks_v2.py --self-test
 
-      - name: Validate migration and fallback invariants
+      - name: Validate recovery invariants
         run: |
+          set -euo pipefail
           python - <<'PY'
           import json
           from pathlib import Path
 
-          access = json.loads(Path('bot_access.json').read_text(encoding='utf-8'))
-          assert access.get('users') == {}, 'Public bot_access.json still contains users'
-          assert not access.get('owner_id'), 'Public bot_access.json still contains owner_id'
-          assert access.get('admins') == [], 'Public bot_access.json still contains admins'
-          assert access.get('notification_recipients') == [], 'Public bot_access.json still contains recipients'
+          access = json.loads(Path("bot_access.json").read_text(encoding="utf-8"))
+          assert access.get("users") == {}, "Public bot_access.json must stay empty"
+          assert not access.get("owner_id"), "Public owner_id must stay empty"
+          assert access.get("admins") == [], "Public admins must stay empty"
+          assert access.get("notification_recipients") == [], "Public recipients must stay empty"
 
-          worker = Path('state_api/src/index.js').read_text(encoding='utf-8')
-          miniapp = Path('docs/private-state.js').read_text(encoding='utf-8')
-          controls = Path('docs/bbvg-controls.js').read_text(encoding='utf-8')
-          panel23 = Path('admin_panel_runtime_v23.py').read_text(encoding='utf-8')
-          panel24 = Path('admin_panel_runtime_v24.py').read_text(encoding='utf-8')
-          rating = Path('rating_policy.py').read_text(encoding='utf-8')
-          action = Path('admin_action_v2.py').read_text(encoding='utf-8')
-          monitor = Path('bbvg_monitor_main.py').read_text(encoding='utf-8')
-          html = Path('docs/index.html').read_text(encoding='utf-8')
+          panel = Path("admin_panel_runtime_v25.py").read_text(encoding="utf-8")
+          workflow = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
+          sitecustomize = Path("sitecustomize.py").read_text(encoding="utf-8")
+          pages = Path(".github/workflows/cloudflare-pages.yml").read_text(encoding="utf-8")
+          worker = Path(".github/workflows/state-api.yml").read_text(encoding="utf-8")
 
-          for marker in ('WebAppData', 'auth_date', '/v1/session', '/v1/source-requests'):
-              assert marker in worker, f'Missing Worker marker: {marker}'
-          for marker in ('/v1/me/participation', '/v1/me/hidden', '/v1/source-requests'):
-              assert marker in miniapp, f'Missing Mini App API marker: {marker}'
-          assert 'Система работает' not in controls
-          assert 'Данные временно обновляются с задержкой' in controls
-          assert 'using non-persistent in-memory access' in panel23
-          assert 'page:intelligence' in panel24 and 'page:discovery' in panel24
-          assert 'page:ranking" not in callbacks' in panel24
-          assert 'additive_only_v1' in rating
-          assert 'rating_policy.record_admin_wheel_decision' in action
-          assert 'monitor.data_store.load_stats = load_stats_additive' in monitor
-          assert 'private-state.js?v=1.0.0' in html
-          print('Private state, fallback, menu and rating invariants passed')
+          assert "register_user(registration_message)" in panel
+          assert 'assert "page:app" not in admin_callbacks' in panel
+          assert "admin_panel_runtime_v25.py" in workflow
+          assert "admin_panel_runtime_v23.py" not in workflow
+          assert "admin_panel_runtime_v24.py" not in workflow
+          assert "private_state_deployment.json" not in workflow
+          assert "Verify private state API" not in workflow
+          assert "import private_state" not in panel
+          assert "import private_state" not in sitecustomize
+          assert "archived and disabled" in pages
+          assert "archived and disabled" in worker
+          assert Path("MINI_APP_ARCHIVED.md").exists()
+          print("Bot-only recovery invariants passed")
           PY
