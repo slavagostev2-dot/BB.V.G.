@@ -46,3 +46,26 @@ jobs:
           )
           print("telegram.me transport integration passed")
           PY
+      - name: Probe requested source jestercast
+        env:
+          TELEGRAM_WEB_DOMAIN: telegram.me
+        run: |
+          python - <<'PY'
+          import json
+          import monitor
+
+          messages = monitor.fetch_public_channel("jestercast")
+          rows = []
+          for message in messages:
+              links = monitor.extract_links(message.text)
+              if links:
+                  rows.append({
+                      "message_id": message.message_id,
+                      "date": message.date.isoformat(),
+                      "message_url": message.message_url,
+                      "wheel_links": links,
+                      "text": message.text[:700],
+                  })
+          print("JESTERCAST_WHEEL_MESSAGES=" + json.dumps(rows, ensure_ascii=False))
+          assert rows, "@jestercast has no BetBoom wheel links in the public preview"
+          PY
