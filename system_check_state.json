@@ -23,26 +23,26 @@
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-14T16:54:51.007067+00:00",
+  "checked_at": "2026-07-14T17:32:30.305635+00:00",
   "discovery": {
-    "active_size": 70,
-    "candidate_count": 171,
+    "active_size": 72,
+    "candidate_count": 174,
     "catalog_size": 0,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-14T13:29:25.008164+00:00",
+    "discovery_last_run_at": "2026-07-14T17:31:50.243540+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-14T16:38:56.879315+00:00",
+    "intelligence_last_run_at": "2026-07-14T17:32:07.255637+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
-      "known_sources": 70,
-      "references_found": 202,
-      "sources_scanned": 70,
+      "known_sources": 72,
+      "references_found": 226,
+      "sources_scanned": 72,
       "strong_candidates": 0,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 130,
+      "unique_candidates": 126,
       "verified_candidates": 60,
       "workers": 12
     }
@@ -64,10 +64,10 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "checked_sources": 70,
-    "configured_sources": 70,
+    "checked_sources": 72,
+    "configured_sources": 72,
     "domain": "telegram.me",
-    "reachable_sources": 70,
+    "reachable_sources": 72,
     "single_source": "system_check_state.json",
     "status": "ok"
   },
@@ -79,13 +79,13 @@
   },
   "incident_sequence": 16,
   "inventory": {
-    "configured": 70,
+    "configured": 72,
     "domain": "telegram.me",
     "duplicates": 0,
     "expected": 66,
     "nightly": 0,
-    "operational": 70,
-    "total": 70
+    "operational": 72,
+    "total": 72
   },
   "miniapp": {
     "checked": false,
@@ -94,24 +94,24 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 70,
-    "checks_delta": 70,
-    "checks_total": 19992,
+    "checked_sources": 72,
+    "checks_delta": 72,
+    "checks_total": 20698,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 4,
+    "iteration": 1,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-14T16:54:14.651113+00:00",
+    "last_iteration_at": "2026-07-14T17:32:10.983782+00:00",
     "last_iteration_duration_seconds": 7,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-14T16:54:14.651113+00:00",
-    "last_successful_checks_total": 19992,
-    "last_successful_iteration_at": "2026-07-14T16:54:14.651113+00:00",
+    "last_process_heartbeat_at": "2026-07-14T17:32:10.983782+00:00",
+    "last_successful_checks_total": 20698,
+    "last_successful_iteration_at": "2026-07-14T17:32:10.983782+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 70,
+    "reachable_sources": 72,
     "restart_recommended": false,
-    "run_id": "29350510048",
-    "run_started_at": "2026-07-14T16:39:05.471094+00:00",
+    "run_id": "29354148063",
+    "run_started_at": "2026-07-14T17:32:03.311866+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
@@ -138,10 +138,12 @@
     "error_kind": "admin_system",
     "user_kinds": {
       "daily_reports": [
-        "7178093128"
+        "7178093128",
+        "906643757"
       ],
       "weekly_reports": [
-        "7178093128"
+        "7178093128",
+        "906643757"
       ],
       "wheels": [
         "1059267719",
@@ -166,13 +168,13 @@
     "score_mismatches": []
   },
   "source_health_summary": {
-    "configured_records": 70,
+    "configured_records": 72,
     "missing_sources": [],
     "problem_details": [],
     "problem_sources": [],
-    "records": 70,
+    "records": 72,
     "statuses": {
-      "ok": 70
+      "ok": 72
     },
     "transport_failure_types": {
       "dns": 0,
