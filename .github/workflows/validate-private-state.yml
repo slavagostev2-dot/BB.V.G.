@@ -85,10 +85,12 @@ jobs:
           worker = Path(".github/workflows/state-api.yml").read_text(encoding="utf-8")
 
           assert "register_user(registration_message)" in panel
-          assert "page:app\" not in admin_callbacks" in panel
+          assert 'assert "page:app" not in admin_callbacks' in panel
           assert "admin_panel_runtime_v25.py" in workflow
-          assert "private_state" not in workflow
-          assert "private_state" not in sitecustomize
+          assert "admin_panel_runtime_v23.py" not in workflow
+          assert "private_state_deployment.json" not in workflow
+          assert "Verify private state API" not in workflow
+          assert "import private_state" not in sitecustomize
           assert "archived and disabled" in pages
           assert "archived and disabled" in worker
           assert Path("MINI_APP_ARCHIVED.md").exists()
