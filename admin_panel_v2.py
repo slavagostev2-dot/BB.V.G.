@@ -1341,7 +1341,10 @@ class TelegramPanelV2(RuntimeAdminBot):
         try:
             while time.monotonic() < deadline:
                 try:
-                    payload: dict[str, Any] = {"timeout": 25, "allowed_updates": ["message", "callback_query"]}
+                    payload: dict[str, Any] = {
+                        "timeout": 25,
+                        "allowed_updates": ["message", "callback_query", "my_chat_member"],
+                    }
                     if self.offset is not None:
                         payload["offset"] = self.offset
                     response = self.telegram_api("getUpdates", payload)
