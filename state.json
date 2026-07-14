@@ -28,7 +28,9 @@
       "url": "https://betboom.ru/freestream/zonertg4"
     }
   },
-  "health": {},
+  "health": {
+    "last_all_failed_alert_at": "2026-07-14T02:34:34.476136+00:00"
+  },
   "inactive_wheels": {
     "vovapainufc": {
       "expires_at": "2026-08-12T19:21:10.359474+00:00",
@@ -108,11 +110,11 @@
     "zortelad"
   ],
   "last_automatic_status_at": "2026-07-13T18:23:46.362414+00:00",
-  "last_heartbeat_at": "2026-07-13T18:28:49.288647+00:00",
+  "last_heartbeat_at": "2026-07-14T02:34:34.181513+00:00",
   "last_run_kind": "schedule",
   "last_run_summary": {
     "activation_sent": 0,
-    "active_wheels": 1,
+    "active_wheels": 0,
     "callbacks": {
       "callbacks": 0,
       "lists": 0,
@@ -124,19 +126,20 @@
     "initialized_now": 0,
     "notification_errors": 0,
     "pending_expired": 0,
-    "pending_total": 2,
+    "pending_total": 0,
     "preliminary_sent": 0,
     "quarantined_skipped": 0,
-    "reachable_sources": 56,
+    "reachable_sources": 0,
     "reminders": {
-      "changed": true,
+      "changed": false,
       "draw_alerts": 0,
       "known_reminders": 0,
+      "pending_total": 0,
       "removed": 0,
-      "tracked": 1,
+      "tracked": 0,
       "unknown_reminders": 0
     },
-    "source_errors": 0,
+    "source_errors": 56,
     "source_inactivity": {
       "changed": false,
       "count": 0,
@@ -144,22 +147,14 @@
     },
     "sources": 56,
     "stale_skipped": 0,
-    "unconfirmed_waiting": 2,
+    "unconfirmed_waiting": 0,
     "unknown_timer_samples_added": 0
   },
   "last_source_inactivity_report_at": null,
   "manual_deadlines": {},
   "manual_overrides": {},
   "notification_key_version": 8,
-  "participating_wheels": {
-    "zonertg4": {
-      "deadline": "2026-07-13T18:01:29+00:00",
-      "expires_at": "2026-07-13T20:52:17.155742+00:00",
-      "identifier": "zonertg4",
-      "marked_at": "2026-07-13T14:33:46.518294+00:00",
-      "url": "https://betboom.ru/freestream/zonertg4"
-    }
-  },
+  "participating_wheels": {},
   "pending_posts": {},
   "seen": {
     "012299e0d83138e2bb8a30f9bedc98e45443d27f84571a20a8372b1c96f6ea50": "2026-07-12T18:26:18.034381+00:00",
