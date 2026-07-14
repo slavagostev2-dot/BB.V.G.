@@ -31,7 +31,12 @@ jobs:
           python-version: "3.12"
 
       - name: Check maintenance script
-        run: python -m py_compile source_tier_maintenance.py
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+        run: |
+          python -m py_compile source_tier_maintenance.py source_tier_maintenance_v2.py bot_private_state.py bot_notification_state.py
+          python source_tier_maintenance_v2.py --self-test
 
       - name: Move seven-day inactive sources to nightly monitoring
         env:
@@ -41,7 +46,7 @@ jobs:
           SOURCE_AUTO_DEMOTION_MIN_COVERAGE_DAYS: "6"
           SOURCE_AUTO_DEMOTION_MIN_CHECKS: "100"
           SOURCE_AUTO_DEMOTION_MAX_CHECK_AGE_HOURS: "2"
-        run: python source_tier_maintenance.py
+        run: python source_tier_maintenance_v2.py
 
       - name: Save source tier changes
         id: save
@@ -54,18 +59,15 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${files[@]}"
           git commit -m "Maintain dynamic BB V.G. source tiers [skip ci]"
-
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
               echo "changed=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            echo "Source tier push attempt ${attempt} failed; rebasing before retry."
             if ! git pull --rebase origin main; then
               git rebase --abort || true
               exit 1
