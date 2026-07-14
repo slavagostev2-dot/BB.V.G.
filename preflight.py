@@ -165,6 +165,7 @@ def main() -> None:
             "Активные колёса",
             "Всего участий",
             'class="card profile-summary"',
+            'class="source-count-note"',
         ),
     )
     require_text(
@@ -185,6 +186,11 @@ def main() -> None:
         raise SystemExit("PRECHECK ERROR: duplicate profile theme switch returned")
     if 'class="card profile-head"' in controls_source:
         raise SystemExit("PRECHECK ERROR: duplicate profile identity returned")
+    source_panel = controls_source.split("renderSources=function(){", 1)[-1].split(
+        "renderProfile=function(){", 1
+    )[0]
+    if 'class="stats-grid"' in source_panel:
+        raise SystemExit("PRECHECK ERROR: oversized source overview returned")
     if "serviceWorker.register" in (ROOT / "docs/app.js").read_text(encoding="utf-8"):
         raise SystemExit("PRECHECK ERROR: stale Mini App service worker registration returned")
 
