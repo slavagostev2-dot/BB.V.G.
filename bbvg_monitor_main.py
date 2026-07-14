@@ -7,12 +7,14 @@ import bbvg_monitor_runtime as runtime
 import bot_notification_state
 import notification_router
 import rating_policy
+import recurring_wheel_events
 import telegram_post_links_v2
 import telegram_transport
 
 
 monitor = runtime.monitor
 notification_router.load_config = bot_notification_state.load_config
+recurring_wheel_events.install(monitor, runtime.base_runtime)
 telegram_transport.install(monitor)
 telegram_post_links_v2.install(monitor)
 _original_recover_deadline = runtime.base_runtime._recover_deadline
