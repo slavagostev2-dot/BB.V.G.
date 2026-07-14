@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import bot_notification_state
 import monitor
 import nightly_discovery
 import notification_router
 import telegram_transport
 
+notification_router.load_config = bot_notification_state.load_config
 notification_router.install(monitor)
 telegram_transport.install(monitor)
 
