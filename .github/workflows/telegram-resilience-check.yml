@@ -22,16 +22,23 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Validate resilience layer
         run: |
-          python -m py_compile monitor_resilience.py bbvg_monitor_main.py monitor.py monitor_data.py bbvg_monitor_runtime.py
+          python -m py_compile monitor_resilience.py bbvg_monitor_main.py monitor.py monitor_data.py bbvg_monitor_runtime.py nightly_discovery.py
           python monitor_resilience.py
           python - <<'PY'
           import bbvg_monitor_main as runtime
           import monitor_resilience
+          import nightly_discovery
 
           assert runtime.monitor.fetch_all_sources.__module__ == "monitor_resilience"
+          assert runtime.monitor.request_with_retries.__module__ == "monitor_resilience"
           assert runtime.monitor._bbvg_resilience_installed is True
+          assert nightly_discovery.monitor.request_with_retries.__module__ == "monitor_resilience"
+          assert monitor_resilience.build_source_urls("test") == [
+              "https://t.me/s/test",
+              "https://telegram.me/s/test",
+          ]
           assert monitor_resilience.is_transient_transport_error(
               "NameResolutionError: Failed to resolve t.me"
           )
-          print("Telegram resilience integration passed")
+          print("Telegram domain fallback integration passed")
           PY
