@@ -7,6 +7,7 @@ on:
     paths:
       - "source_intelligence.py"
       - "source_intelligence_entry.py"
+      - "source_intelligence_alerts.py"
       - "nightly_discovery.py"
       - "telegram_transport.py"
       - ".github/workflows/source-intelligence.yml"
@@ -44,8 +45,9 @@ jobs:
 
       - name: Check intelligence module
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py telegram_transport.py notification_router.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py telegram_transport.py notification_router.py bot_notification_state.py
           python telegram_transport.py
+          python source_intelligence_alerts.py
           python self_test.py
 
       - name: Scan Telegram source network
