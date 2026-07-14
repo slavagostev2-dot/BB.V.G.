@@ -35,9 +35,9 @@ on:
         description: "Непрерывный режим"
         required: false
         type: boolean
-        default: false
+        default: true
       replace:
-        description: "Заменить текущий процесс после проверенного обновления"
+        description: "Заменить текущий процесс"
         required: false
         type: boolean
         default: false
@@ -49,7 +49,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: ${{ github.event_name == 'push' && 'bb-vg-monitor-validation' || 'bb-vg-monitor-continuous' }}
+  group: bb-vg-monitor-continuous
   cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.replace == true) }}
 
 jobs:
@@ -110,7 +110,6 @@ jobs:
           python self_test.py
 
       - name: Run BB V.G. monitor loop
-        if: ${{ github.event_name != 'push' }}
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
@@ -139,7 +138,7 @@ jobs:
           BOT_FEEDBACK_ENABLED: "false"
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
           AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
-          CONTINUOUS: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
+          CONTINUOUS: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
         shell: bash
         run: |
           set -uo pipefail
@@ -247,14 +246,8 @@ jobs:
 
           push_runtime || true
 
-      - name: Replace monitor with validated code
-        if: ${{ success() && github.event_name == 'push' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --ref main -f continuous=true -f replace=true
-
       - name: Continue continuous monitoring
-        if: ${{ always() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
+        if: ${{ always() && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
