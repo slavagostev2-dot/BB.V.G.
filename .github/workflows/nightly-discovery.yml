@@ -1,4 +1,4 @@
-name: Nightly Telegram source discovery
+name: Telegram candidate discovery
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - "nightly_discovery.py"
       - "nightly_discovery_entry.py"
+      - "telegram_transport.py"
       - "public_sources.txt"
       - "source_catalog.txt"
       - ".github/workflows/nightly-discovery.yml"
@@ -17,7 +18,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: betboom-wheel-nightly-discovery
+  group: betboom-wheel-candidate-discovery
   cancel-in-progress: false
 
 jobs:
@@ -45,16 +46,21 @@ jobs:
         run: python preflight.py
 
       - name: Check project files
+        env:
+          TELEGRAM_WEB_DOMAIN: telegram.me
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py daily_report.py notification_router.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py telegram_transport.py daily_report.py notification_router.py
+          python telegram_transport.py
           python notification_router.py
           python -m json.tool bot_access.json >/dev/null
           python self_test.py
 
-      - name: Scan reserve source catalog
+      - name: Scan candidate source catalog
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
           DISPLAY_TIMEZONE: Asia/Barnaul
           REQUEST_TIMEOUT_SECONDS: "15"
           DISCOVERY_LOOKBACK_HOURS: "48"
@@ -67,7 +73,7 @@ jobs:
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
         run: python nightly_discovery_entry.py
 
-      - name: Save discovery, health and statistics
+      - name: Save discovery state
         shell: bash
         run: |
           set -euo pipefail
@@ -80,7 +86,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${files[@]}"
-          git commit -m "Update Telegram source discovery [skip ci]"
+          git commit -m "Update Telegram candidate discovery [skip ci]"
 
           for attempt in 1 2 3; do
             if git push origin "HEAD:${GITHUB_REF_NAME:-main}"; then
