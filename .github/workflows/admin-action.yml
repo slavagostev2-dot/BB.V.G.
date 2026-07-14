@@ -18,8 +18,8 @@ permissions:
   actions: write
 
 concurrency:
-  group: bb-vg-monitor-continuous
-  cancel-in-progress: true
+  group: bb-vg-admin-actions
+  cancel-in-progress: false
 
 jobs:
   apply:
@@ -83,9 +83,9 @@ jobs:
           done
           exit 1
 
-      - name: Restart continuous BB V.G. monitor
+      - name: Ensure continuous BB V.G. monitor is queued
         if: ${{ always() }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --ref main -f continuous=true
+        run: gh workflow run monitor.yml --ref main -f continuous=true -f replace=false
