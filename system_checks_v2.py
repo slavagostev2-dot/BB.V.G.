@@ -4,11 +4,13 @@ import argparse
 from typing import Any
 
 import bot_notification_state
+import notification_navigation
 import notification_router
 import system_checks as legacy
 
 notification_router.load_config = bot_notification_state.load_config
 legacy.notification_router.load_config = bot_notification_state.load_config
+notification_navigation.install(legacy.monitor)
 
 
 def check_miniapp_archived(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
@@ -92,6 +94,7 @@ def self_test() -> None:
     check_miniapp_archived(details, findings)
     assert details["miniapp"]["status"] == "archived"
     assert not findings
+    assert legacy.monitor._bbvg_notification_navigation_installed is True
     print("BB V.G. bot-only system checks self-test passed")
 
 
