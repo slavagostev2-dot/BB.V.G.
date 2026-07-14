@@ -164,6 +164,7 @@ def main() -> None:
             "app.days===1?'':",
             "Активные колёса",
             "Всего участий",
+            'class="card profile-summary"',
         ),
     )
     require_text(
@@ -182,6 +183,8 @@ def main() -> None:
     controls_source = (ROOT / "docs/bbvg-controls.js").read_text(encoding="utf-8")
     if 'data-setting="lightTheme"' in controls_source:
         raise SystemExit("PRECHECK ERROR: duplicate profile theme switch returned")
+    if 'class="card profile-head"' in controls_source:
+        raise SystemExit("PRECHECK ERROR: duplicate profile identity returned")
     if "serviceWorker.register" in (ROOT / "docs/app.js").read_text(encoding="utf-8"):
         raise SystemExit("PRECHECK ERROR: stale Mini App service worker registration returned")
 
