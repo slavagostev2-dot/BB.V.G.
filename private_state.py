@@ -88,7 +88,13 @@ def load_access(default: dict[str, Any] | None = None) -> tuple[dict[str, Any], 
         value = _request_json("/v1/admin/access")
         return (value if isinstance(value, dict) else dict(fallback)), True
     value = _read_legacy(LEGACY_ACCESS_PATH, fallback)
-    return value, LEGACY_ACCESS_PATH.exists()
+    has_private_records = bool(
+        value.get("users")
+        or value.get("owner_id")
+        or value.get("admins")
+        or value.get("notification_recipients")
+    )
+    return value, has_private_records
 
 
 def save_access(value: dict[str, Any]) -> None:
