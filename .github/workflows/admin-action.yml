@@ -61,14 +61,27 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- state.json source_health.json; then
+          files=(state.json source_health.json)
+          if git diff --quiet -- "${files[@]}"; then
             echo "No state changes to commit."
-          else
-            git add state.json source_health.json
-            git commit -m "Apply BB V.G. admin action [skip ci]"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            exit 0
           fi
+
+          git add "${files[@]}"
+          git commit -m "Apply BB V.G. admin action [skip ci]"
+
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Admin action push attempt ${attempt} failed; rebasing before retry."
+            if ! git pull --rebase origin main; then
+              git rebase --abort || true
+              echo "Unable to preserve the administrative state change."
+              exit 1
+            fi
+          done
+          exit 1
 
       - name: Restart continuous BB V.G. monitor
         if: ${{ always() }}
