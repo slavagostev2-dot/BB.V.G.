@@ -67,7 +67,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- source_registry.json; then
+          tracked=false
+          if git ls-files --error-unmatch source_registry.json >/dev/null 2>&1; then
+            tracked=true
+          fi
+          if [[ "$tracked" == "true" ]] && git diff --quiet -- source_registry.json; then
             echo "Source registry did not change."
             exit 0
           fi
