@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "private_state_deployment.json"
       - ".github/workflows/cloudflare-pages.yml"
   workflow_dispatch:
 
@@ -75,8 +76,26 @@ jobs:
               except Exception as exc:
                   print(f"Could not resolve bot username: {type(exc).__name__}")
 
+          state_api_url = ""
+          try:
+              deployment = json.loads(
+                  Path("private_state_deployment.json").read_text(encoding="utf-8")
+              )
+              if deployment.get("status") == "deployed":
+                  candidate = str(deployment.get("url") or "").strip().rstrip("/")
+                  if candidate.startswith("https://"):
+                      state_api_url = candidate
+          except Exception as exc:
+              print(f"Could not read private state deployment: {type(exc).__name__}")
+
           Path("docs/runtime-config.js").write_text(
-              "window.BB_CONFIG=" + json.dumps({"botUsername": username}, ensure_ascii=False) + ";\n",
+              "window.BB_CONFIG=" + json.dumps(
+                  {
+                      "botUsername": username,
+                      "privateStateApiUrl": state_api_url,
+                  },
+                  ensure_ascii=False,
+              ) + ";\n",
               encoding="utf-8",
           )
           print("Runtime config prepared")
@@ -89,6 +108,9 @@ jobs:
         run: |
           set -euo pipefail
           node --check docs/app.js
+          node --check docs/private-state.js
+          node --check docs/bbvg-controls.js
+          node --check docs/v22-overrides.js
           node --check docs/runtime-config.js
           node --check docs/service-worker.js
           python - <<'PY'
@@ -96,8 +118,8 @@ jobs:
 
           html = Path("docs/index.html").read_text(encoding="utf-8")
           required = [
-              "app.js", "runtime-config.js", "styles.css",
-              "icon.svg", "manifest.webmanifest",
+              "app.js", "private-state.js", "bbvg-controls.js", "v22-overrides.js",
+              "runtime-config.js", "styles.css", "icon.svg", "manifest.webmanifest",
           ]
           missing = [name for name in required if name not in html]
           if missing:
@@ -110,16 +132,23 @@ jobs:
               raise SystemExit("Generated app icon is missing")
 
           app = Path("docs/app.js").read_text(encoding="utf-8")
+          private = Path("docs/private-state.js").read_text(encoding="utf-8")
+          controls = Path("docs/bbvg-controls.js").read_text(encoding="utf-8")
+          v22 = Path("docs/v22-overrides.js").read_text(encoding="utf-8")
+          combined = app + private + controls + v22 + html
           forbidden = ["pending_posts||{}", "favorites", "healthStatus", "Ближайшие колёса", "Сводка"]
           found = [value for value in forbidden if value in app]
           if found:
               raise SystemExit(f"Removed Mini App features returned: {', '.join(found)}")
           required_features = [
-              "sourceRequestForm", "source_request", "active_wheels", "data-route=\"home\"",
-              "lightTheme", "HapticFeedback", "setHeaderColor", "setBackgroundColor",
-              "setBottomBarColor", "notifications", "https://telegram.me/",
+              "sourceRequestForm", "/v1/source-requests", "/v1/session",
+              "/v1/me/participation", "/v1/me/hidden", "active_wheels",
+              "data-route=\"home\"", "lightTheme", "HapticFeedback",
+              "setHeaderColor", "setBackgroundColor", "setBottomBarColor",
+              "notifications", "https://telegram.me/", "Данные обновлены",
+              "Данные временно обновляются с задержкой",
           ]
-          absent = [value for value in required_features if value not in (app + html)]
+          absent = [value for value in required_features if value not in combined]
           if absent:
               raise SystemExit(f"Required Mini App features are missing: {', '.join(absent)}")
           if "https://t.me/" in app:
@@ -200,8 +229,6 @@ jobs:
           fi
           git add "${files[@]}"
           git commit -m "Record Mini App deployment state [skip ci]"
-          # runtime-config.js is generated only for the deployed artifact. Keep
-          # the checkout clean so a concurrent state commit can be rebased.
           git stash push --include-untracked -m "cloudflare-runtime-config" -- . || true
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
