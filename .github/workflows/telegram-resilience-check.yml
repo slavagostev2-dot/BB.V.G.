@@ -51,5 +51,10 @@ jobs:
               "NameResolutionError: Failed to resolve telegram.me"
           )
           assert telegram_post_links_v2.MINIMUM_FRESH_UNKNOWN_MINUTES == 360
-          print("telegram.me transport and wrapper-button integration passed")
+
+          messages = runtime.monitor.fetch_public_channel("jestercast")
+          post = next((message for message in messages if message.message_id == 1516), None)
+          assert post is not None, "Live @jestercast post 1516 is missing from public preview"
+          assert "https://betboom.ru/freestream/cct1" in runtime.monitor.extract_links(post.text)
+          print("telegram.me segment parser found @jestercast/1516 cct1")
           PY

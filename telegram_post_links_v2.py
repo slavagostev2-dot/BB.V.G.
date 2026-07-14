@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import re
 from datetime import datetime
 from typing import Any
 
@@ -8,47 +9,54 @@ from bs4 import BeautifulSoup
 
 
 MINIMUM_FRESH_UNKNOWN_MINUTES = 360
+POST_MARKER_RE = re.compile(r'data-post="([^"/]+)/(\d+)"', re.IGNORECASE)
+
+
+def _post_segments(page: str):
+    """Yield one raw HTML segment per Telegram post.
+
+    Some Telegram URL buttons are rendered after the message wrapper rather
+    than inside it. The only stable boundary in the public preview is the next
+    ``data-post`` marker, so every post owns the HTML up to that marker.
+    """
+
+    matches = list(POST_MARKER_RE.finditer(page or ""))
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(page)
+        yield match.group(1), int(match.group(2)), page[match.start():end]
 
 
 def parse_public_channel_html(monitor_module: Any, username: str, page: str):
-    """Parse Telegram posts including buttons stored beside the text block.
+    """Parse post text and URL buttons from the complete per-post segment."""
 
-    Telegram places some inline URL buttons in ``tgme_widget_message_wrap`` as
-    siblings of ``div.tgme_widget_message[data-post]``. Reading anchors only
-    from the inner message div misses those wheel links.
-    """
-
-    soup = BeautifulSoup(page or "", "html.parser")
     result = []
-    for node in soup.select("div.tgme_widget_message[data-post]"):
-        data_post = str(node.get("data-post") or "")
-        if "/" not in data_post:
-            continue
-        source, message_id_text = data_post.rsplit("/", 1)
-        try:
-            message_id = int(message_id_text)
-        except ValueError:
-            continue
-
+    for source, message_id, segment in _post_segments(page or ""):
+        fragment = BeautifulSoup(segment, "html.parser")
         parts: list[str] = []
-        text_node = node.select_one("div.tgme_widget_message_text")
+
+        text_node = fragment.select_one("div.tgme_widget_message_text")
         if text_node is not None:
             parts.append(text_node.get_text("\n", strip=True))
 
-        wrapper = node.find_parent("div", class_="tgme_widget_message_wrap")
-        anchor_scope = wrapper if wrapper is not None else node
-        for anchor in anchor_scope.select("a[href]"):
+        for anchor in fragment.select("a[href]"):
             href = html.unescape(str(anchor.get("href") or "")).strip()
             if href:
                 parts.append(href)
 
-        time_node = node.select_one("time[datetime]")
+        # Keep a regex fallback because the segment starts at the data-post
+        # attribute and therefore intentionally omits the opening message tag.
+        for raw_href in re.findall(r'href=["\']([^"\']+)["\']', segment, re.IGNORECASE):
+            href = html.unescape(raw_href).strip()
+            if href:
+                parts.append(href)
+
+        time_node = fragment.select_one("time[datetime]")
+        date_text = str(time_node.get("datetime") or "") if time_node else ""
+        if not date_text:
+            match = re.search(r'<time[^>]+datetime=["\']([^"\']+)', segment, re.IGNORECASE)
+            date_text = match.group(1) if match else ""
         try:
-            date = (
-                datetime.fromisoformat(str(time_node.get("datetime")))
-                if time_node
-                else monitor_module.now_utc()
-            )
+            date = datetime.fromisoformat(date_text) if date_text else monitor_module.now_utc()
         except ValueError:
             date = monitor_module.now_utc()
         if date.tzinfo is None:
@@ -102,18 +110,25 @@ def self_test() -> None:
         <div class="tgme_widget_message_text">Новое колесо</div>
         <time datetime="2026-07-14T10:58:17+00:00"></time>
       </div>
-      <a class="tgme_widget_message_inline_button" href="https://betboom.ru/freestream/cct1">Участвовать</a>
+    </div>
+    <div class="tgme_widget_message_inline_buttons">
+      <a href="https://betboom.ru/freestream/cct1">Участвовать</a>
+    </div>
+    <div class="tgme_widget_message" data-post="jestercast/1517">
+      <div class="tgme_widget_message_text">Следующий пост</div>
+      <time datetime="2026-07-14T11:00:00+00:00"></time>
     </div>
     """
     messages = parse_public_channel_html(monitor, "jestercast", page)
-    assert len(messages) == 1
+    assert len(messages) == 2
     assert messages[0].message_id == 1516
     assert monitor.extract_links(messages[0].text) == [
         "https://betboom.ru/freestream/cct1"
     ]
+    assert monitor.extract_links(messages[1].text) == []
     install(monitor)
     assert monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
-    print("telegram_post_links_v2 wrapper-button parser self-test passed")
+    print("telegram_post_links_v2 segment parser self-test passed")
 
 
 if __name__ == "__main__":
