@@ -39,8 +39,8 @@ jobs:
           python -m py_compile \
             source_registry.py admin_action.py admin_action_v2.py rating_policy.py \
             bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
-            bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
-            system_checks_v2.py source_tier_maintenance_v2.py
+            admin_panel_runtime_v26.py bot_private_state.py bot_notification_state.py \
+            migrate_bot_private_state.py system_checks_v2.py source_tier_maintenance_v2.py
           python source_registry.py --self-test
           python source_registry.py
           python - <<'PY'
@@ -54,12 +54,13 @@ jobs:
           print("Registry summary:", summary)
           PY
 
-      - name: Validate bot user state and first-button registration
+      - name: Validate bot users and administrator buttons
         run: |
           set -euo pipefail
           python bot_private_state.py
           python migrate_bot_private_state.py --check
           python admin_panel_runtime_v25.py --self-test
+          python admin_panel_runtime_v26.py --self-test
 
       - name: Validate additive administrator rating
         run: |
@@ -98,12 +99,14 @@ jobs:
           print("Bot-only monitor runtime installed")
           PY
 
-      - name: Validate frozen application boundary
+      - name: Validate current production boundary
         run: |
           set -euo pipefail
-          grep -q 'admin_panel_runtime_v25.py' .github/workflows/admin-bot.yml
+          grep -q 'admin_panel_runtime_v26.py' .github/workflows/admin-bot.yml
+          ! grep -q 'run: python admin_panel_runtime_v25.py' .github/workflows/admin-bot.yml
           ! grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
           grep -q 'archived and disabled' .github/workflows/cloudflare-pages.yml
           grep -q 'archived and disabled' .github/workflows/state-api.yml
           grep -q 'Mini App — архивировано' MINI_APP_ARCHIVED.md
           grep -q 'if page == "app"' admin_panel_runtime_v25.py
+          grep -q '_apply_admin_action_direct' admin_panel_runtime_v26.py
