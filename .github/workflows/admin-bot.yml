@@ -7,34 +7,14 @@ on:
     paths:
       - "admin_bot.py"
       - "admin_action.py"
+      - "admin_action_v2.py"
       - "admin_runtime.py"
       - "admin_panel_v2.py"
-      - "admin_panel_runtime_v2.py"
-      - "admin_panel_runtime_v3.py"
-      - "admin_panel_runtime_v4.py"
-      - "admin_panel_runtime_v5.py"
-      - "admin_panel_runtime_v6.py"
-      - "admin_panel_runtime_v7.py"
-      - "admin_panel_runtime_v8.py"
-      - "admin_panel_runtime_v9.py"
-      - "admin_panel_runtime_v10.py"
-      - "admin_panel_runtime_v11.py"
-      - "admin_panel_runtime_v12.py"
-      - "admin_panel_runtime_v13.py"
-      - "admin_panel_runtime_v14.py"
-      - "admin_panel_runtime_v15.py"
-      - "admin_panel_runtime_v16.py"
-      - "admin_panel_runtime_v17.py"
-      - "admin_panel_runtime_v18.py"
-      - "admin_panel_runtime_v19.py"
-      - "admin_panel_runtime_v20.py"
-      - "admin_panel_runtime_v21.py"
-      - "admin_panel_runtime_v22.py"
-      - "admin_panel_runtime_v23.py"
-      - "admin_panel_runtime_v24.py"
-      - "private_state.py"
-      - "private_state_deployment.json"
-      - "sitecustomize.py"
+      - "admin_panel_runtime_v*.py"
+      - "bot_private_state.py"
+      - "bot_private_state.enc.json"
+      - "bot_notification_state.py"
+      - "migrate_bot_private_state.py"
       - "candidate_moderation.json"
       - "intelligence_state.json"
       - "requirements.txt"
@@ -72,66 +52,57 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Check private state deployment
-        id: private_state
-        shell: bash
-        run: |
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-          import json
-          from pathlib import Path
-          try:
-              value = json.loads(Path('private_state_deployment.json').read_text(encoding='utf-8'))
-          except Exception:
-              value = {}
-          ready = value.get('status') == 'deployed' and str(value.get('url') or '').startswith('https://')
-          print(f"ready={'true' if ready else 'false'}")
-          print(f"url={str(value.get('url') or '').rstrip('/')}")
-          PY
-
-      - name: Check BB V.G. control center
+      - name: Validate bot-only control center
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         run: |
-          python -m py_compile admin_bot.py admin_action.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py admin_panel_runtime_v8.py admin_panel_runtime_v9.py admin_panel_runtime_v10.py admin_panel_runtime_v11.py admin_panel_runtime_v12.py admin_panel_runtime_v13.py admin_panel_runtime_v14.py admin_panel_runtime_v15.py admin_panel_runtime_v16.py admin_panel_runtime_v17.py admin_panel_runtime_v18.py admin_panel_runtime_v19.py admin_panel_runtime_v20.py admin_panel_runtime_v21.py admin_panel_runtime_v22.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py private_state.py sitecustomize.py
-          python admin_action.py --self-test
-          python admin_panel_runtime_v3.py --self-test
-          python admin_panel_runtime_v4.py --self-test
-          python admin_panel_runtime_v5.py --self-test
-          python admin_panel_runtime_v6.py --self-test
-          python admin_panel_runtime_v7.py --self-test
-          python admin_panel_runtime_v8.py --self-test
-          python admin_panel_runtime_v9.py --self-test
-          python admin_panel_runtime_v10.py --self-test
-          python admin_panel_runtime_v11.py --self-test
-          python admin_panel_runtime_v12.py --self-test
-          python admin_panel_runtime_v13.py --self-test
-          python admin_panel_runtime_v15.py --self-test
-          python admin_panel_runtime_v16.py --self-test
-          python admin_panel_runtime_v17.py --self-test
-          python admin_panel_runtime_v18.py --self-test
-          python admin_panel_runtime_v19.py --self-test
-          python admin_panel_runtime_v20.py --self-test
-          python admin_panel_runtime_v21.py --self-test
+          set -euo pipefail
+          python -m py_compile \
+            admin_bot.py admin_action.py admin_action_v2.py admin_runtime.py \
+            admin_panel_v2.py admin_panel_runtime_v22.py admin_panel_runtime_v24.py \
+            admin_panel_runtime_v25.py bot_private_state.py bot_notification_state.py \
+            migrate_bot_private_state.py rating_policy.py
+          python bot_private_state.py
+          python migrate_bot_private_state.py --check
+          python admin_action_v2.py --self-test
           python admin_panel_runtime_v22.py --self-test
-          python admin_panel_runtime_v23.py --self-test
           python admin_panel_runtime_v24.py --self-test
-          python -m json.tool private_state_deployment.json >/dev/null
+          python admin_panel_runtime_v25.py --self-test
           python -m json.tool candidate_moderation.json >/dev/null
-          python -m json.tool miniapp_deployment.json >/dev/null
 
-      - name: Verify private state API
-        if: steps.private_state.outputs.ready == 'true'
+      - name: Restore and seal Telegram bot users
         env:
-          PRIVATE_STATE_URL: ${{ steps.private_state.outputs.url }}
-        run: curl -fsS --retry 5 --retry-delay 3 "$PRIVATE_STATE_URL/health"
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python migrate_bot_private_state.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- bot_private_state.enc.json; then
+            echo "Encrypted Telegram bot state is already current."
+            exit 0
+          fi
+          git add bot_private_state.enc.json
+          git commit -m "Update encrypted Telegram bot state [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            if ! git pull --rebase origin main; then
+              git rebase --abort || true
+              exit 1
+            fi
+          done
+          exit 1
 
       - name: Record panel status
         if: always()
         continue-on-error: true
-        env:
-          PRIVATE_STATE_READY: ${{ steps.private_state.outputs.ready }}
         shell: bash
         run: |
           set -uo pipefail
@@ -139,21 +110,21 @@ jobs:
           import json
           import os
           from datetime import datetime, timezone
-          ready = os.environ.get('PRIVATE_STATE_READY') == 'true'
           value = {
-              'status': 'running_private' if ready else 'running_fallback',
-              'brand': 'BB V.G.',
-              'started_at': datetime.now(timezone.utc).isoformat(),
-              'run_id': os.environ.get('GITHUB_RUN_ID', ''),
-              'run_attempt': os.environ.get('GITHUB_RUN_ATTEMPT', ''),
-              'event': os.environ.get('GITHUB_EVENT_NAME', ''),
-              'version': 24,
+              "status": "running",
+              "brand": "BB V.G.",
+              "started_at": datetime.now(timezone.utc).isoformat(),
+              "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+              "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+              "event": os.environ.get("GITHUB_EVENT_NAME", ""),
+              "version": 25,
+              "storage": "encrypted_bot_state",
+              "miniapp": "archived",
           }
-          with open('admin_panel_status.json', 'w', encoding='utf-8') as stream:
+          with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
-              stream.write('\n')
+              stream.write("\n")
           PY
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add admin_panel_status.json
@@ -183,7 +154,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v24.py
+        run: python admin_panel_runtime_v25.py
 
       - name: Start next control-center shift
         if: ${{ always() }}
