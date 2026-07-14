@@ -29,13 +29,15 @@ on:
       - "admin_panel_runtime_v19.py"
       - "admin_panel_runtime_v20.py"
       - "admin_panel_runtime_v21.py"
+      - "admin_panel_runtime_v22.py"
+      - "private_state.py"
+      - "private_state_deployment.json"
       - "candidate_moderation.json"
       - "intelligence_state.json"
       - "requirements.txt"
       - ".github/workflows/admin-bot.yml"
   workflow_dispatch:
   schedule:
-    # Daily fallback. Normal continuity is maintained by the handoff step.
     - cron: "37 3 * * *"
 
 permissions:
@@ -67,13 +69,30 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Check private state deployment
+        id: private_state
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+
+          try:
+              value = json.loads(Path("private_state_deployment.json").read_text(encoding="utf-8"))
+          except Exception:
+              value = {}
+          ready = value.get("status") == "deployed" and str(value.get("url") or "").startswith("https://")
+          print(f"ready={'true' if ready else 'false'}")
+          print(f"url={str(value.get('url') or '').rstrip('/')}")
+          PY
+
       - name: Check BB V.G. control center
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         run: |
-          python -m py_compile admin_bot.py admin_action.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py admin_panel_runtime_v8.py admin_panel_runtime_v9.py admin_panel_runtime_v10.py admin_panel_runtime_v11.py admin_panel_runtime_v12.py admin_panel_runtime_v13.py admin_panel_runtime_v14.py admin_panel_runtime_v15.py admin_panel_runtime_v16.py admin_panel_runtime_v17.py admin_panel_runtime_v18.py admin_panel_runtime_v19.py admin_panel_runtime_v20.py admin_panel_runtime_v21.py
+          python -m py_compile admin_bot.py admin_action.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py admin_panel_runtime_v8.py admin_panel_runtime_v9.py admin_panel_runtime_v10.py admin_panel_runtime_v11.py admin_panel_runtime_v12.py admin_panel_runtime_v13.py admin_panel_runtime_v14.py admin_panel_runtime_v15.py admin_panel_runtime_v16.py admin_panel_runtime_v17.py admin_panel_runtime_v18.py admin_panel_runtime_v19.py admin_panel_runtime_v20.py admin_panel_runtime_v21.py admin_panel_runtime_v22.py private_state.py
           python admin_action.py --self-test
           python admin_panel_runtime_v3.py --self-test
           python admin_panel_runtime_v4.py --self-test
@@ -93,13 +112,22 @@ jobs:
           python admin_panel_runtime_v19.py --self-test
           python admin_panel_runtime_v20.py --self-test
           python admin_panel_runtime_v21.py --self-test
-          python -m json.tool bot_access.json >/dev/null
+          python admin_panel_runtime_v22.py --self-test
+          python -m json.tool private_state_deployment.json >/dev/null
           python -m json.tool candidate_moderation.json >/dev/null
           python -m json.tool miniapp_deployment.json >/dev/null
-          python -m json.tool source_requests.json >/dev/null
+
+      - name: Verify private state API
+        if: steps.private_state.outputs.ready == 'true'
+        env:
+          PRIVATE_STATE_URL: ${{ steps.private_state.outputs.url }}
+        run: curl -fsS --retry 5 --retry-delay 3 "$PRIVATE_STATE_URL/health"
 
       - name: Record panel status
+        if: always()
         continue-on-error: true
+        env:
+          PRIVATE_STATE_READY: ${{ steps.private_state.outputs.ready }}
         shell: bash
         run: |
           set -uo pipefail
@@ -108,14 +136,15 @@ jobs:
           import os
           from datetime import datetime, timezone
 
+          ready = os.environ.get("PRIVATE_STATE_READY") == "true"
           value = {
-              "status": "running",
+              "status": "running" if ready else "waiting_for_private_state",
               "brand": "BB V.G.",
               "started_at": datetime.now(timezone.utc).isoformat(),
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 21,
+              "version": 22,
           }
           with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
@@ -140,6 +169,7 @@ jobs:
           exit 1
 
       - name: Run BB V.G. control center
+        if: steps.private_state.outputs.ready == 'true'
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
@@ -153,10 +183,10 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v21.py
+        run: python admin_panel_runtime_v22.py
 
       - name: Start next control-center shift
-        if: ${{ always() }}
+        if: ${{ always() && steps.private_state.outputs.ready == 'true' }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
