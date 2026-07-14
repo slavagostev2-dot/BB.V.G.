@@ -35,7 +35,7 @@ jobs:
       - name: Validate Python and source registry
         run: |
           set -euo pipefail
-          python -m py_compile source_registry.py admin_action.py admin_panel_runtime_v22.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py sitecustomize.py
+          python -m py_compile source_registry.py admin_action.py admin_action_v2.py rating_policy.py bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py sitecustomize.py
           python source_registry.py --self-test
           python source_registry.py
           python - <<'PY'
@@ -53,6 +53,9 @@ jobs:
       - name: Validate legacy administrator action self-test
         run: python admin_action.py --self-test
 
+      - name: Validate additive administrator action runtime
+        run: python admin_action_v2.py --self-test
+
       - name: Validate control center self-tests
         env:
           BOT_TOKEN: "test-token"
@@ -67,37 +70,43 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import monitor_data
+          import admin_action_v2
           stats = {"version": 1, "sources": {}, "daily": {}}
-          changed = monitor_data.record_admin_wheel_decision(
+          changed = admin_action_v2._additive_recorder(
               stats,
               wheel_key="wheel-a",
               sources=["sourceA"],
               decision="confirmed",
-              actor="admin",
           )
           assert changed is True, stats
           assert stats["sources"]["sourceA"]["quality_score"] == 40, stats
-          changed = monitor_data.record_admin_wheel_decision(
+          changed = admin_action_v2._additive_recorder(
               stats,
               wheel_key="wheel-a",
               sources=["sourceA"],
               decision="inactive",
-              actor="admin",
           )
           assert changed is False, stats
           assert stats["sources"]["sourceA"]["quality_score"] == 40, stats
-          changed = monitor_data.record_admin_wheel_decision(
+          changed = admin_action_v2._additive_recorder(
               stats,
               wheel_key="wheel-b",
               sources=["sourceB"],
               decision="inactive",
-              actor="admin",
           )
           assert changed is True, stats
           assert stats["sources"]["sourceB"]["quality_score"] == 0, stats
           assert all(int(row.get("quality_score", 0) or 0) >= 0 for row in stats["sources"].values()), stats
           print("Additive administrator rating validation passed", stats)
+          PY
+
+      - name: Validate monitor rating installation
+        run: |
+          python - <<'PY'
+          import bbvg_monitor_main as runtime
+          assert runtime.monitor.data_store.load_stats.__module__ == 'bbvg_monitor_main'
+          assert runtime.monitor.data_store.record_admin_wheel_decision.__module__ == 'bbvg_monitor_main'
+          print('Monitor additive rating runtime installed')
           PY
 
       - name: Validate Mini App and current menu
