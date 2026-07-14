@@ -41,7 +41,7 @@ jobs:
           python -m py_compile \
             source_registry.py admin_action.py admin_action_v2.py admin_action_v3.py rating_policy.py \
             bbvg_monitor_main.py recurring_wheel_events.py wheel_metadata_quality.py \
-            wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py \
+            wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_navigation.py \
             admin_panel_runtime_v22.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
             admin_panel_runtime_v31.py admin_panel_runtime_v32.py bot_private_state.py bot_notification_state.py \
             migrate_bot_private_state.py daily_report.py source_intelligence_alerts.py \
@@ -53,6 +53,7 @@ jobs:
           python wheel_publications_v2.py
           python wheel_lifecycle_v2.py
           python personal_reminder_filter.py
+          python notification_navigation.py
           python source_intelligence_alerts.py
           python -c "import daily_report; daily_report.self_test()"
           python admin_panel_runtime_v31.py --self-test
@@ -116,8 +117,10 @@ jobs:
           assert runtime.monitor._bbvg_publication_merge_v2_installed is True
           assert runtime.monitor._bbvg_wheel_lifecycle_v2_installed is True
           assert runtime.monitor._bbvg_personal_reminder_filter_installed is True
+          assert runtime.monitor._bbvg_notification_navigation_installed is True
+          assert runtime.monitor.BOT_FEEDBACK_ENABLED is False
           assert notification_router.load_config is bot_notification_state.load_config
-          print("Bot-only monitor runtime with lifecycle and multi-source protection installed")
+          print("Bot-only monitor runtime with lifecycle, navigation and multi-source protection installed")
           PY
 
       - name: Validate current production boundary
