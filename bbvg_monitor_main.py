@@ -3,11 +3,11 @@ from __future__ import annotations
 from datetime import timedelta
 
 import bbvg_monitor_runtime as runtime
-import telegram_transport as monitor_resilience
+import telegram_transport
 
 
 monitor = runtime.monitor
-monitor_resilience.install(monitor)
+telegram_transport.install(monitor)
 _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels
@@ -50,11 +50,11 @@ def branded_send_message(text: str, url=None, reply_markup=None):
     value = str(text or "")
     if (
         "⚠️ <b>Монитор не смог проверить ни один Telegram-источник</b>" in value
-        and monitor_resilience.outage_active()
+        and telegram_transport.outage_active()
     ):
         value = (
             "⚠️ <b>Временная сетевая ошибка GitHub Actions</b>\n\n"
-            f"GitHub Runner не смог подключиться к <code>{monitor_resilience.PRIMARY_DOMAIN}</code>.\n"
+            f"GitHub Runner не смог подключиться к <code>{telegram_transport.PRIMARY_DOMAIN}</code>.\n"
             "Источники не признаны недоступными и не отправлены в карантин.\n"
             "BB V.G. автоматически повторит проверку."
         )
