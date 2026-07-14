@@ -119,9 +119,11 @@ def main() -> None:
         "admin_panel_runtime_v21.py",
         (
             "def notify_owner_about_new_user",
+            "def handle_update",
             "Новый пользователь BB V.G.",
             "self.load_access(force=True)",
             "Открыть список пользователей",
+            "my_chat_member",
         ),
     )
     require_text("nightly_discovery.py", ("import monitor", "def main()"))
