@@ -170,12 +170,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add private_state_deployment.json
-          git commit -m "Record private state API deployment [skip ci]" || exit 0
-          git push origin HEAD:main
+          if git commit -m "Record private state API deployment [skip ci]"; then
+            git push origin HEAD:main
+          fi
 
-      - name: Restart consumers
+      - name: Start controlled migration
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run cloudflare-pages.yml --ref main
-          gh workflow run admin-bot.yml --ref main
+        run: gh workflow run migrate-private-state.yml --ref main
