@@ -88,12 +88,12 @@
     const rows=visibleSources();
     const overview=sourceOverview();
     $('#page-sources').innerHTML=`
-      <div class="stats-grid"><article class="metric"><strong>${overview.total}</strong><span>Всего источников</span></article><article class="metric"><strong>${overview.checked}</strong><span>Проверено сейчас</span></article><article class="metric"><strong>${overview.reachable}</strong><span>Доступно</span></article><article class="metric"><strong>${overview.unavailable}</strong><span>Недоступно</span></article></div>
       <form id="sourceRequestForm" class="source-form">
         <div class="source-form-head"><span class="source-form-icon">${iconSvg.link}</span><h2>Предложить источник</h2></div>
         <p>Отправьте username канала или чата для проверки модератором.</p>
         <div class="form-row"><input id="sourceRequestInput" class="input" type="text" autocomplete="off" maxlength="33" placeholder="telegram.me/имя"><button class="form-button" type="submit">Отправить</button></div>
       </form>
+      <div class="source-count-note"><span aria-hidden="true"></span>Источников в базе проверок: <strong>${num(overview.total)}</strong></div>
       <div class="search-row"><input id="sourceSearch" class="search" type="search" autocomplete="off" placeholder="Поиск источника" value="${esc(app.query)}"><button class="square-button" data-action="source-filter" aria-label="Фильтр">${filterIcon}</button></div>
       <article class="card">${rows.slice(0,100).map(sourceRow).join('')||'<div class="empty">Источники не найдены.</div>'}</article>
       <article class="card" style="margin-top:10px"><p class="muted" style="margin:0">После отправки заявки администратор получит запрос на модерацию. О результате бот пришлёт уведомление.</p></article>`;
