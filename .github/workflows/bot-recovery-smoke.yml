@@ -1,0 +1,55 @@
+name: Bot recovery smoke test
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BOT_TOKEN: "test-bot-token"
+      BOT_CHAT_ID: "1"
+      ADMIN_USER_ID: "1"
+      TELEGRAM_WEB_DOMAIN: telegram.me
+      EXPECTED_SOURCE_COUNT: "66"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run recovery smoke test
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            admin_panel_runtime_v25.py bot_private_state.py bot_notification_state.py \
+            migrate_bot_private_state.py admin_action_v2.py rating_policy.py \
+            bbvg_monitor_main.py system_checks_v2.py source_tier_maintenance_v2.py
+          python bot_private_state.py
+          python migrate_bot_private_state.py --check
+          python admin_panel_runtime_v25.py --self-test
+          python admin_action_v2.py --self-test
+          python system_checks_v2.py --self-test
+          python source_tier_maintenance_v2.py --self-test
+          python - <<'PY'
+          import admin_panel_runtime_v25
+          import bbvg_monitor_main
+          import bot_notification_state
+          import notification_router
+
+          assert admin_panel_runtime_v25.TelegramPanelRuntimeV25.__mro__[1].__name__ == "TelegramPanelRuntimeV22"
+          assert notification_router.load_config is bot_notification_state.load_config
+          assert bbvg_monitor_main.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
+          print("Bot recovery smoke test passed")
+          PY
