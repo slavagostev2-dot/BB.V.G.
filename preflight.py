@@ -78,6 +78,23 @@ def main() -> None:
             "recover_deadline_manual_first",
             "process_active_without_unknown_time_spam",
             "telegram_transport",
+            "wheel_metadata_quality.install",
+        ),
+    )
+    require_text(
+        "wheel_metadata_quality.py",
+        (
+            "preserved_timed_publication",
+            "remember_active_preserving_quality",
+            "remember_pending_preserving_quality",
+        ),
+    )
+    require_text(
+        "recurring_wheel_events.py",
+        (
+            "_future_text_deadline",
+            "canonical_rank",
+            "has_future_deadline",
         ),
     )
     require_text(
@@ -126,15 +143,30 @@ def main() -> None:
             "my_chat_member",
         ),
     )
+    require_text(
+        "admin_panel_runtime_v31.py",
+        (
+            "📨 Отправить сводку",
+            "summary:send:monthly",
+            "📭 Давно без колёс",
+            "def show_period_report",
+        ),
+    )
     require_text("nightly_discovery.py", ("import monitor", "def main()"))
     require_text("nightly_discovery_entry.py", ("telegram_transport.install", "fetch_page_on_primary_domain"))
     require_text("source_intelligence_entry.py", ("telegram_transport.install", "source_intelligence.main"))
-    require_text("daily_report.py", ("Ежедневный отчёт", "BB V.G.", "def main()"))
+    require_text(
+        "daily_report.py",
+        ("Ежедневная", "Еженедельная", "Ежемесячная", "Публикаций с колёсами", "def main()"),
+    )
     require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
     require_text("self_test.py", ("import monitor", "def main()"))
     require_text("public_sources.txt", ("narodCast", "kolesaBB", "betboomteamcs2"))
     require_text("source_catalog.txt", ("Ночной мониторинг", "7 дней"))
-    require_text(".github/workflows/daily-report.yml", ("BB V.G. daily report", "daily_report.py"))
+    require_text(
+        ".github/workflows/daily-report.yml",
+        ("BB V.G. summaries", "period:", "daily_report.py"),
+    )
 
     active_domain_files = (
         "monitor.py",
@@ -171,7 +203,7 @@ def main() -> None:
     require_text(
         "docs/bbvg-controls.js",
         (
-            "data-action=\"notifications\"",
+            'data-action="notifications"',
             "app.days===1?'':",
             "Активные колёса",
             "Всего участий",
