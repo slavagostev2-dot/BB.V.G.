@@ -1,0 +1,104 @@
+name: Validate current BB V.G. changes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/validate-current.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bb-vg-current-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        id: dependencies
+        continue-on-error: true
+        run: python -m pip install -r requirements.txt
+      - name: Compile modules
+        id: compile
+        continue-on-error: true
+        run: |
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py monitor_health.py incident_manager.py system_checks.py notification_router.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py
+      - name: Run preflight
+        id: preflight
+        continue-on-error: true
+        env:
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+        run: python preflight.py
+      - name: Run self tests
+        id: tests
+        continue-on-error: true
+        env:
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+        run: |
+          python telegram_transport.py
+          python incident_manager.py
+          python system_checks.py --self-test
+          python notification_router.py
+          python monitor_health.py --self-test
+          python - <<'PY'
+          import bbvg_monitor_main as runtime
+          import monitor
+          import monitor_data
+          from pathlib import Path
+          sources = monitor.read_list(Path("public_sources.txt"))
+          assert len(sources) == 66
+          assert len(monitor_data.operational_sources(sources, "fast")) == 66
+          assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
+          assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
+          print("Current integration validation passed")
+          PY
+      - name: Record validation result
+        if: always()
+        env:
+          DEPENDENCIES: ${{ steps.dependencies.outcome }}
+          COMPILE: ${{ steps.compile.outcome }}
+          PREFLIGHT: ${{ steps.preflight.outcome }}
+          TESTS: ${{ steps.tests.outcome }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          outcomes = {
+              "dependencies": os.environ.get("DEPENDENCIES", "unknown"),
+              "compile": os.environ.get("COMPILE", "unknown"),
+              "preflight": os.environ.get("PREFLIGHT", "unknown"),
+              "tests": os.environ.get("TESTS", "unknown"),
+          }
+          value = {
+              "checked_at": datetime.now(timezone.utc).isoformat(),
+              "commit": os.environ.get("GITHUB_SHA", ""),
+              "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+              "outcomes": outcomes,
+              "status": "success" if all(v == "success" for v in outcomes.values()) else "failure",
+          }
+          with open("current_validation_state.json", "w", encoding="utf-8") as stream:
+              json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
+              stream.write("\n")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add current_validation_state.json
+          git commit -m "Record current BB V.G. validation [skip ci]" || exit 0
+          git pull --rebase origin main
+          git push origin HEAD:main
