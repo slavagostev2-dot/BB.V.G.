@@ -12,6 +12,10 @@ STATUS_PATH = ROOT / "monitor_status.json"
 STATE_PATH = ROOT / "state.json"
 STATS_PATH = ROOT / "source_stats.json"
 UTC = timezone.utc
+RESTART_FAILURE_THRESHOLD = max(1, int(os.getenv("MONITOR_RESTART_FAILURES", "2")))
+RESTART_NO_PROGRESS_THRESHOLD = max(
+    1, int(os.getenv("MONITOR_RESTART_NO_PROGRESS", "2"))
+)
 
 
 def now_utc() -> datetime:
@@ -48,7 +52,11 @@ def save_json(path: Path, value: dict[str, Any]) -> None:
 def runtime_snapshot() -> dict[str, int]:
     state = load_json(STATE_PATH)
     stats = load_json(STATS_PATH)
-    summary = state.get("last_run_summary") if isinstance(state.get("last_run_summary"), dict) else {}
+    summary = (
+        state.get("last_run_summary")
+        if isinstance(state.get("last_run_summary"), dict)
+        else {}
+    )
     sources = stats.get("sources") if isinstance(stats.get("sources"), dict) else {}
     checks_total = sum(
         int(entry.get("checks", 0) or 0)
@@ -66,6 +74,13 @@ def runtime_snapshot() -> dict[str, int]:
     }
 
 
+def should_restart(consecutive_failures: int, consecutive_no_progress: int) -> bool:
+    return (
+        consecutive_failures >= RESTART_FAILURE_THRESHOLD
+        or consecutive_no_progress >= RESTART_NO_PROGRESS_THRESHOLD
+    )
+
+
 def start_run(run_id: str) -> dict[str, Any]:
     current = load_json(STATUS_PATH)
     timestamp = now_utc().isoformat()
@@ -77,6 +92,7 @@ def start_run(run_id: str) -> dict[str, Any]:
             "run_id": str(run_id or ""),
             "run_started_at": timestamp,
             "last_process_heartbeat_at": timestamp,
+            "restart_recommended": False,
         }
     )
     save_json(STATUS_PATH, current)
@@ -101,15 +117,24 @@ def record_iteration(
     made_progress = checks_delta > 0 and snapshot["checked_sources"] > 0
     healthy = process_ok and made_progress
 
-    consecutive_failures = 0 if process_ok else int(previous.get("consecutive_failures", 0) or 0) + 1
+    consecutive_failures = (
+        0
+        if process_ok
+        else int(previous.get("consecutive_failures", 0) or 0) + 1
+    )
     consecutive_no_progress = (
         0
         if made_progress
         else int(previous.get("consecutive_no_progress", 0) or 0) + 1
     )
+    restart_needed = should_restart(consecutive_failures, consecutive_no_progress)
 
     if not process_ok:
-        status = "iteration_timeout" if exit_code in {124, 137, 143} else "iteration_error"
+        status = (
+            "iteration_timeout"
+            if exit_code in {124, 137, 143}
+            else "iteration_error"
+        )
         reason = f"monitor process exit code {exit_code}"
     elif not made_progress:
         status = "no_progress"
@@ -132,6 +157,7 @@ def record_iteration(
         "stats_counter_reset": bool(counter_reset),
         "consecutive_failures": consecutive_failures,
         "consecutive_no_progress": consecutive_no_progress,
+        "restart_recommended": restart_needed,
         **snapshot,
     }
 
@@ -206,6 +232,9 @@ def write_github_output(values: dict[str, object]) -> None:
 def self_test() -> None:
     assert parse_datetime("2026-07-14T00:00:00Z") is not None
     assert parse_datetime("bad") is None
+    assert not should_restart(0, 0)
+    assert should_restart(RESTART_FAILURE_THRESHOLD, 0)
+    assert should_restart(0, RESTART_NO_PROGRESS_THRESHOLD)
     print("monitor_health self-test passed")
 
 
@@ -260,6 +289,9 @@ def main() -> int:
                 "status": status.get("status", "unknown"),
                 "run_id": status.get("run_id", ""),
                 "checks_total": status.get("checks_total", 0),
+                "restart_recommended": str(
+                    bool(status.get("restart_recommended", False))
+                ).lower(),
             }
         )
         print(reason)
