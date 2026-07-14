@@ -23,7 +23,7 @@
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-14T09:19:39.182284+00:00",
+  "checked_at": "2026-07-14T09:31:20.787139+00:00",
   "discovery": {
     "active_size": 67,
     "candidate_count": 145,
@@ -80,9 +80,9 @@
     "status": "degraded"
   },
   "incident_delivery": {
-    "digest_sent": true,
-    "messages_attempted": 1,
-    "opened": 1,
+    "digest_sent": false,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 9,
@@ -118,17 +118,17 @@
     "brand": "BB V.G.",
     "checked_sources": 67,
     "checks_delta": 67,
-    "checks_total": 14381,
+    "checks_total": 14582,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 4,
+    "iteration": 7,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-14T09:12:35.880450+00:00",
+    "last_iteration_at": "2026-07-14T09:27:37.032191+00:00",
     "last_iteration_duration_seconds": 4,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-14T09:12:35.880450+00:00",
-    "last_successful_checks_total": 14381,
-    "last_successful_iteration_at": "2026-07-14T09:12:35.880450+00:00",
+    "last_process_heartbeat_at": "2026-07-14T09:27:37.032191+00:00",
+    "last_successful_checks_total": 14582,
+    "last_successful_iteration_at": "2026-07-14T09:27:37.032191+00:00",
     "pending_wheels": 0,
     "reachable_sources": 67,
     "restart_recommended": false,
@@ -139,7 +139,7 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 7,
+  "monitor_age_minutes": 3,
   "notification_routing": {
     "admin_kinds": {
       "admin_requests": [
