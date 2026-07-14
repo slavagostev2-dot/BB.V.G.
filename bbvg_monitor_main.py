@@ -6,11 +6,14 @@ from typing import Any
 import bbvg_monitor_runtime as runtime
 import bot_notification_state
 import notification_router
+import personal_reminder_filter
 import rating_policy
 import recurring_wheel_events
 import telegram_post_links_v2
 import telegram_transport
+import wheel_lifecycle_v2
 import wheel_metadata_quality
+import wheel_publications_v2
 
 
 monitor = runtime.monitor
@@ -19,6 +22,7 @@ recurring_wheel_events.install(monitor, runtime.base_runtime)
 telegram_transport.install(monitor)
 telegram_post_links_v2.install(monitor)
 wheel_metadata_quality.install(monitor, runtime)
+wheel_publications_v2.install(monitor, runtime)
 _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels
@@ -155,8 +159,10 @@ monitor.data_store.record_admin_wheel_decision = record_admin_wheel_decision_add
 monitor.wheel_reply_markup = wheel_markup_with_direct_key
 monitor.process_active_wheels = process_active_without_unknown_time_spam
 monitor.send_message = branded_send_message
+wheel_lifecycle_v2.install(monitor)
+personal_reminder_filter.install(monitor, notification_router)
 
-# Production refresh: metadata-quality protection enabled for every monitor shift.
+# Production refresh: final reminder, strict deadline cleanup and multi-source credit.
 
 
 if __name__ == "__main__":
