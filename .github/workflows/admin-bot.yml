@@ -31,6 +31,7 @@ on:
       - "admin_panel_runtime_v21.py"
       - "admin_panel_runtime_v22.py"
       - "admin_panel_runtime_v23.py"
+      - "admin_panel_runtime_v24.py"
       - "private_state.py"
       - "private_state_deployment.json"
       - "sitecustomize.py"
@@ -93,7 +94,7 @@ jobs:
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         run: |
-          python -m py_compile admin_bot.py admin_action.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py admin_panel_runtime_v8.py admin_panel_runtime_v9.py admin_panel_runtime_v10.py admin_panel_runtime_v11.py admin_panel_runtime_v12.py admin_panel_runtime_v13.py admin_panel_runtime_v14.py admin_panel_runtime_v15.py admin_panel_runtime_v16.py admin_panel_runtime_v17.py admin_panel_runtime_v18.py admin_panel_runtime_v19.py admin_panel_runtime_v20.py admin_panel_runtime_v21.py admin_panel_runtime_v22.py admin_panel_runtime_v23.py private_state.py sitecustomize.py
+          python -m py_compile admin_bot.py admin_action.py admin_runtime.py admin_panel_v2.py admin_panel_runtime_v2.py admin_panel_runtime_v3.py admin_panel_runtime_v4.py admin_panel_runtime_v5.py admin_panel_runtime_v6.py admin_panel_runtime_v7.py admin_panel_runtime_v8.py admin_panel_runtime_v9.py admin_panel_runtime_v10.py admin_panel_runtime_v11.py admin_panel_runtime_v12.py admin_panel_runtime_v13.py admin_panel_runtime_v14.py admin_panel_runtime_v15.py admin_panel_runtime_v16.py admin_panel_runtime_v17.py admin_panel_runtime_v18.py admin_panel_runtime_v19.py admin_panel_runtime_v20.py admin_panel_runtime_v21.py admin_panel_runtime_v22.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py private_state.py sitecustomize.py
           python admin_action.py --self-test
           python admin_panel_runtime_v3.py --self-test
           python admin_panel_runtime_v4.py --self-test
@@ -115,6 +116,7 @@ jobs:
           python admin_panel_runtime_v21.py --self-test
           python admin_panel_runtime_v22.py --self-test
           python admin_panel_runtime_v23.py --self-test
+          python admin_panel_runtime_v24.py --self-test
           python -m json.tool private_state_deployment.json >/dev/null
           python -m json.tool candidate_moderation.json >/dev/null
           python -m json.tool miniapp_deployment.json >/dev/null
@@ -139,13 +141,13 @@ jobs:
           from datetime import datetime, timezone
           ready = os.environ.get('PRIVATE_STATE_READY') == 'true'
           value = {
-              'status': 'running' if ready else 'waiting_for_private_state',
+              'status': 'running_private' if ready else 'running_fallback',
               'brand': 'BB V.G.',
               'started_at': datetime.now(timezone.utc).isoformat(),
               'run_id': os.environ.get('GITHUB_RUN_ID', ''),
               'run_attempt': os.environ.get('GITHUB_RUN_ATTEMPT', ''),
               'event': os.environ.get('GITHUB_EVENT_NAME', ''),
-              'version': 23,
+              'version': 24,
           }
           with open('admin_panel_status.json', 'w', encoding='utf-8') as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
@@ -168,7 +170,6 @@ jobs:
           exit 1
 
       - name: Run BB V.G. control center
-        if: steps.private_state.outputs.ready == 'true'
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
@@ -182,10 +183,10 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v23.py
+        run: python admin_panel_runtime_v24.py
 
       - name: Start next control-center shift
-        if: ${{ always() && steps.private_state.outputs.ready == 'true' }}
+        if: ${{ always() }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
