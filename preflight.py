@@ -93,7 +93,7 @@ def main() -> None:
     require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
     require_text("self_test.py", ("import monitor", "def main()"))
     require_text("public_sources.txt", ("narodCast", "kolesaBB"))
-    require_text("source_catalog.txt", ("Ночное наблюдение",))
+    require_text("source_catalog.txt", ("Ночная проверка",))
     require_text(".github/workflows/daily-report.yml", ("BB V.G. daily report", "daily_report.py"))
 
     mapping = read_json("identifier_sources.json")
