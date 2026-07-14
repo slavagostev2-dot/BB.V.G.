@@ -15,6 +15,7 @@ on:
       - "admin_panel_runtime_v27.py"
       - "admin_panel_runtime_v28.py"
       - "admin_panel_runtime_v29.py"
+      - "admin_panel_runtime_v30.py"
       - "bot_private_state.py"
       - "bot_private_state.enc.json"
       - "bot_notification_state.py"
@@ -67,7 +68,8 @@ jobs:
             admin_bot.py admin_action.py admin_action_v2.py admin_runtime.py \
             admin_panel_v2.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
             admin_panel_runtime_v26.py admin_panel_runtime_v27.py admin_panel_runtime_v28.py \
-            admin_panel_runtime_v29.py bot_private_state.py bot_notification_state.py \
+            admin_panel_runtime_v29.py admin_panel_runtime_v30.py \
+            bot_private_state.py bot_notification_state.py \
             migrate_bot_private_state.py rating_policy.py
           python bot_private_state.py
           python migrate_bot_private_state.py --check
@@ -75,16 +77,18 @@ jobs:
           python admin_panel_runtime_v25.py --self-test
           python admin_panel_runtime_v28.py --self-test
           python admin_panel_runtime_v29.py --self-test
+          python admin_panel_runtime_v30.py --self-test
           python - <<'PY'
           import inspect
+          from pathlib import Path
           from admin_panel_runtime_v28 import TelegramPanelRuntimeV28
-          from admin_panel_runtime_v29 import TelegramPanelRuntimeV29
+          from admin_panel_runtime_v30 import TelegramPanelRuntimeV30
 
           def callbacks(rows):
               return [button.get("callback_data") for row in rows for button in row]
 
-          admin_main = callbacks(TelegramPanelRuntimeV29.compact_menu_rows(True))
-          user_main = callbacks(TelegramPanelRuntimeV29.compact_menu_rows(False))
+          admin_main = callbacks(TelegramPanelRuntimeV30.compact_menu_rows(True))
+          user_main = callbacks(TelegramPanelRuntimeV30.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
           assert len(user_main) == len(set(user_main))
           assert set(admin_main) == {
@@ -102,17 +106,18 @@ jobs:
               "page:status",
           }
 
-          admin_sources = callbacks(TelegramPanelRuntimeV29.source_menu_rows(True))
-          user_sources = callbacks(TelegramPanelRuntimeV29.source_menu_rows(False))
+          admin_analytics = callbacks(TelegramPanelRuntimeV30.analytics_menu_rows(True))
+          user_analytics = callbacks(TelegramPanelRuntimeV30.analytics_menu_rows(False))
+          assert "page:reports" in admin_analytics
+          assert "page:reports" not in user_analytics
+
+          admin_sources = callbacks(TelegramPanelRuntimeV30.source_menu_rows(True))
+          user_sources = callbacks(TelegramPanelRuntimeV30.source_menu_rows(False))
           assert len(admin_sources) == len(set(admin_sources))
           assert len(user_sources) == len(set(user_sources))
           assert {"page:discovery", "page:intelligence", "source:add"} <= set(admin_sources)
           assert not {"page:discovery", "page:intelligence", "source:add"} & set(user_sources)
-          assert "source:request_help" in user_sources
-
-          control = callbacks(TelegramPanelRuntimeV29.control_menu_rows())
-          assert len(control) == len(set(control))
-          assert not {"page:discovery", "page:intelligence"} & set(control)
+          assert "source:request" in user_sources
 
           handler = inspect.getsource(TelegramPanelRuntimeV28.handle_callback)
           assert "wheel:part:" in handler
@@ -122,7 +127,23 @@ jobs:
           persistence = inspect.getsource(TelegramPanelRuntimeV28._apply_admin_action_direct)
           assert "self.update_file" in persistence
           assert "git/ref/heads" not in persistence
-          print("BB V.G. v29 role-aware menu validation passed")
+
+          primary = [
+              line.split("#", 1)[0].strip().lstrip("@")
+              for line in Path("public_sources.txt").read_text(encoding="utf-8").splitlines()
+              if line.split("#", 1)[0].strip()
+          ]
+          nightly = [
+              line.split("#", 1)[0].strip().lstrip("@")
+              for line in Path("source_catalog.txt").read_text(encoding="utf-8").splitlines()
+              if line.split("#", 1)[0].strip()
+          ]
+          combined = [value.casefold() for value in primary + nightly]
+          assert len(combined) == len(set(combined))
+          assert combined.count("mariomaxtv") == 1
+          assert combined.count("adekvatik") == 1
+          assert combined.count("jestercast") == 1
+          print("BB V.G. v30 role, sources, reports and request validation passed")
           PY
           python -m json.tool candidate_moderation.json >/dev/null
 
@@ -169,7 +190,7 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 29,
+              "version": 30,
               "storage": "encrypted_bot_state",
               "miniapp": "archived",
           }
@@ -206,7 +227,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v29.py
+        run: python admin_panel_runtime_v30.py
 
       - name: Start next control-center shift
         if: ${{ success() }}
@@ -215,4 +236,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run admin-bot.yml --ref main
 
-# v29: grouped role-aware menu; administrator-only source tools are hidden from users.
+# v30: reports are administrator-only; users can submit source requests in the bot.

@@ -35,6 +35,7 @@ jobs:
           python -m py_compile \
             admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
+            admin_panel_runtime_v30.py \
             bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
             admin_action_v2.py rating_policy.py bbvg_monitor_main.py \
             system_checks_v2.py source_tier_maintenance_v2.py
@@ -44,41 +45,60 @@ jobs:
           python admin_panel_runtime_v26.py --self-test
           python admin_panel_runtime_v28.py --self-test
           python admin_panel_runtime_v29.py --self-test
+          python admin_panel_runtime_v30.py --self-test
           python admin_action_v2.py --self-test
           python system_checks_v2.py --self-test
           python source_tier_maintenance_v2.py --self-test
           python - <<'PY'
+          from pathlib import Path
           import admin_panel_runtime_v25
           import admin_panel_runtime_v26
-          import admin_panel_runtime_v28
-          import admin_panel_runtime_v29
+          import admin_panel_runtime_v30
           import bbvg_monitor_main
           import bot_notification_state
           import notification_router
 
           assert admin_panel_runtime_v25.TelegramPanelRuntimeV25.__mro__[1].__name__ == "TelegramPanelRuntimeV22"
           assert admin_panel_runtime_v26.TelegramPanelRuntimeV26.__mro__[1].__name__ == "TelegramPanelRuntimeV25"
-          assert admin_panel_runtime_v29.TelegramPanelRuntimeV29.__mro__[1].__name__ == "TelegramPanelRuntimeV28"
+          assert admin_panel_runtime_v30.TelegramPanelRuntimeV30.__mro__[1].__name__ == "TelegramPanelRuntimeV29"
           assert notification_router.load_config is bot_notification_state.load_config
           assert bbvg_monitor_main.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
 
           def callbacks(rows):
               return [button.get("callback_data") for row in rows for button in row]
 
-          admin_main = callbacks(admin_panel_runtime_v29.TelegramPanelRuntimeV29.compact_menu_rows(True))
-          user_main = callbacks(admin_panel_runtime_v29.TelegramPanelRuntimeV29.compact_menu_rows(False))
+          panel = admin_panel_runtime_v30.TelegramPanelRuntimeV30
+          admin_main = callbacks(panel.compact_menu_rows(True))
+          user_main = callbacks(panel.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
           assert len(user_main) == len(set(user_main))
           assert "page:control" in admin_main
           assert "page:settings" in user_main
           assert "page:status" in user_main
-          assert "page:discovery" not in admin_main
-          assert "page:intelligence" not in admin_main
 
-          admin_sources = callbacks(admin_panel_runtime_v29.TelegramPanelRuntimeV29.source_menu_rows(True))
-          user_sources = callbacks(admin_panel_runtime_v29.TelegramPanelRuntimeV29.source_menu_rows(False))
+          admin_analytics = callbacks(panel.analytics_menu_rows(True))
+          user_analytics = callbacks(panel.analytics_menu_rows(False))
+          assert "page:reports" in admin_analytics
+          assert "page:reports" not in user_analytics
+
+          admin_sources = callbacks(panel.source_menu_rows(True))
+          user_sources = callbacks(panel.source_menu_rows(False))
           assert {"page:discovery", "page:intelligence", "source:add"} <= set(admin_sources)
           assert not {"page:discovery", "page:intelligence", "source:add"} & set(user_sources)
-          assert "source:request_help" in user_sources
+          assert "source:request" in user_sources
+
+          primary = [
+              line.split("#", 1)[0].strip().lstrip("@")
+              for line in Path("public_sources.txt").read_text(encoding="utf-8").splitlines()
+              if line.split("#", 1)[0].strip()
+          ]
+          nightly = [
+              line.split("#", 1)[0].strip().lstrip("@")
+              for line in Path("source_catalog.txt").read_text(encoding="utf-8").splitlines()
+              if line.split("#", 1)[0].strip()
+          ]
+          combined = [value.casefold() for value in primary + nightly]
+          assert len(combined) == len(set(combined))
+          assert {"mariomaxtv", "adekvatik", "jestercast"} <= set(combined)
           print("Bot recovery smoke test passed")
           PY
