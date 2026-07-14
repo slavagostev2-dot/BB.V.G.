@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:discovery_scan_failure:763d64204869a56e": {
       "detail": "Просканировано 0 из 66; ошибок 66. Поиск должен выполняться через telegram.me.",
@@ -27,15 +27,19 @@
       "first_seen_at": "2026-07-14T09:19:40.480700+00:00",
       "key": "system_checks:miniapp_cache_version:7780a3c8ba50a5e3",
       "kind": "miniapp_cache_version",
-      "last_seen_at": "2026-07-14T10:12:34.369794+00:00",
+      "last_seen_at": "2026-07-14T11:41:41.941991+00:00",
       "metadata": {},
       "occurrences": 6,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-14T09:19:40.928877+00:00",
       "opened_sequence": 9,
+      "resolution_notification_pending": false,
+      "resolution_notified_at": "2026-07-14T11:41:42.315673+00:00",
+      "resolved_at": "2026-07-14T11:41:41.941991+00:00",
+      "resolved_sequence": 10,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Версии ресурсов Mini App не совпадают"
     },
@@ -103,17 +107,17 @@
       "title": "Основной монитор давно не обновлялся"
     }
   },
-  "last_change_at": "2026-07-14T09:19:40.480700+00:00",
-  "last_reconcile_at": "2026-07-14T10:12:34.369794+00:00",
+  "last_change_at": "2026-07-14T11:41:41.941991+00:00",
+  "last_reconcile_at": "2026-07-14T11:41:41.941991+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 0,
     "new_notification_count": 0,
-    "recovery_notification_count": 0,
+    "recovery_notification_count": 1,
     "scope": "system_checks"
   },
-  "sequence": 9,
+  "sequence": 10,
   "status": "initializing",
-  "updated_at": "2026-07-14T10:12:34.369870+00:00",
+  "updated_at": "2026-07-14T11:41:42.315708+00:00",
   "version": 1
 }

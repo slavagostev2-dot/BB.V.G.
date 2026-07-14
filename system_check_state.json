@@ -1,5 +1,5 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 0,
   "automation_state": {
     "source_tier_last_run_at": "2026-07-14T04:40:11.599460+00:00",
     "source_tier_policy": "seven_day_dynamic_primary_and_nightly",
@@ -16,33 +16,33 @@
     "automations": "ok",
     "discovery": "ok",
     "inventory": "ok",
-    "miniapp": "failed",
+    "miniapp": "ok",
     "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-14T10:12:33.203067+00:00",
+  "checked_at": "2026-07-14T11:41:41.024963+00:00",
   "discovery": {
     "active_size": 67,
-    "candidate_count": 145,
+    "candidate_count": 163,
     "catalog_size": 0,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-14T04:40:55.901580+00:00",
+    "discovery_last_run_at": "2026-07-14T11:41:23.171635+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-14T07:51:40.894071+00:00",
+    "intelligence_last_run_at": "2026-07-14T11:41:23.825028+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
       "known_sources": 67,
-      "references_found": 176,
+      "references_found": 189,
       "sources_scanned": 67,
       "strong_candidates": 0,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 122,
+      "unique_candidates": 130,
       "verified_candidates": 60,
       "workers": 12
     }
@@ -60,32 +60,24 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "app=5.10.0, assets=['5.11.0', '5.11.0'].",
-      "kind": "miniapp_cache_version",
-      "severity": "critical",
-      "subject": "",
-      "title": "Версии ресурсов Mini App не совпадают"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
+    "active_incidents": 0,
     "checked_sources": 67,
     "configured_sources": 67,
     "domain": "telegram.me",
     "reachable_sources": 67,
     "single_source": "system_check_state.json",
-    "status": "degraded"
+    "status": "ok"
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "messages_attempted": 0,
+    "digest_sent": true,
+    "messages_attempted": 1,
     "opened": 0,
-    "resolved": 0
+    "resolved": 1
   },
-  "incident_sequence": 9,
+  "incident_sequence": 10,
   "inventory": {
     "configured": 67,
     "domain": "telegram.me",
@@ -96,71 +88,76 @@
     "total": 67
   },
   "miniapp": {
-    "asset_versions": [
-      "5.11.0",
-      "5.11.0"
-    ],
-    "deployment_status": "deployed",
-    "deployment_url": "https://slavagostev2-betboom-monitor.pages.dev/",
-    "features": {
-      "admin_ratings": true,
-      "haptics": true,
-      "light_theme": true,
-      "participation_history": true,
-      "responsive_charts": true,
-      "single_splash_art": true,
-      "unified_notifications": true,
-      "unified_sources": true
-    },
-    "version": "5.10.0"
+    "checked": false,
+    "reason": "Mini App is frozen and excluded from the production bot runtime",
+    "status": "archived"
   },
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 67,
     "checks_delta": 67,
-    "checks_total": 15051,
+    "checks_total": 16123,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 4,
+    "iteration": 16,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-14T10:08:21.575385+00:00",
+    "last_iteration_at": "2026-07-14T11:27:47.044013+00:00",
     "last_iteration_duration_seconds": 5,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-14T10:08:21.575385+00:00",
-    "last_successful_checks_total": 15051,
-    "last_successful_iteration_at": "2026-07-14T10:08:21.575385+00:00",
+    "last_process_heartbeat_at": "2026-07-14T11:27:47.044013+00:00",
+    "last_successful_checks_total": 16123,
+    "last_successful_iteration_at": "2026-07-14T11:27:47.044013+00:00",
     "pending_wheels": 0,
     "reachable_sources": 67,
     "restart_recommended": false,
-    "run_id": "29323332662",
-    "run_started_at": "2026-07-14T09:53:14.175584+00:00",
+    "run_id": "29324487927",
+    "run_started_at": "2026-07-14T10:12:30.499885+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 4,
+  "monitor_age_minutes": 13,
   "notification_routing": {
     "admin_kinds": {
-      "admin_requests": [],
-      "admin_sources": [],
-      "admin_system": []
+      "admin_requests": [
+        "7178093128"
+      ],
+      "admin_sources": [
+        "7178093128"
+      ],
+      "admin_system": [
+        "7178093128"
+      ]
     },
-    "admin_recipients": [],
+    "admin_recipients": [
+      "7178093128"
+    ],
     "duplicate_window_seconds": 86400,
     "error_category": "admin",
     "error_kind": "admin_system",
     "user_kinds": {
-      "daily_reports": [],
-      "weekly_reports": [],
-      "wheels": []
+      "daily_reports": [
+        "7178093128"
+      ],
+      "weekly_reports": [
+        "7178093128"
+      ],
+      "wheels": [
+        "7178093128",
+        "801600922"
+      ]
     },
-    "user_recipients": []
+    "user_recipients": [
+      "7178093128",
+      "801600922"
+    ]
   },
   "primary_telegram_domain": "telegram.me",
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
+    "policy": "additive_only_v1",
     "rated_sources": 0,
     "score_mismatches": []
   },
@@ -182,7 +179,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
