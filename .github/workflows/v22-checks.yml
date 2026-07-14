@@ -128,7 +128,7 @@ jobs:
           ! grep -q 'run: python admin_panel_runtime_v31.py' .github/workflows/admin-bot.yml
           ! grep -q 'run: python admin_panel_runtime_v30.py' .github/workflows/admin-bot.yml
           ! grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
-          grep -q 'summary:send:monthly' admin_panel_runtime_v32.py
+          grep -Fq 'assert SUMMARY_PERIODS["monthly"][0] == 30' admin_panel_runtime_v32.py
           grep -q 'wheel:finished:' admin_panel_runtime_v32.py
           grep -q 'page:status" not in user_main' admin_panel_runtime_v32.py
           grep -q 'wheel_lifecycle_v2.py' .github/workflows/monitor.yml
