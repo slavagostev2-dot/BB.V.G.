@@ -115,6 +115,15 @@ def main() -> None:
             "hide_wheel_for_current_user",
         ),
     )
+    require_text(
+        "admin_panel_runtime_v21.py",
+        (
+            "def notify_owner_about_new_user",
+            "Новый пользователь BB V.G.",
+            "self.load_access(force=True)",
+            "Открыть список пользователей",
+        ),
+    )
     require_text("nightly_discovery.py", ("import monitor", "def main()"))
     require_text("nightly_discovery_entry.py", ("telegram_transport.install", "fetch_page_on_primary_domain"))
     require_text("source_intelligence_entry.py", ("telegram_transport.install", "source_intelligence.main"))
