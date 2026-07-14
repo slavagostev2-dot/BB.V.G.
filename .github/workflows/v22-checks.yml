@@ -1,0 +1,101 @@
+name: BB V.G. v22 checks
+run-name: BB V.G. v22 checks — ${{ github.event_name }}
+
+on:
+  push:
+    branches:
+      - "fix/points-1-5-v22"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  points-1-5:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout proposed changes
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate Python and source registry
+        run: |
+          set -euo pipefail
+          python -m py_compile source_registry.py admin_action.py admin_panel_runtime_v22.py
+          python source_registry.py --self-test
+          python source_registry.py
+          python - <<'PY'
+          import json
+          value = json.load(open("source_registry.json", encoding="utf-8"))
+          summary = value.get("summary", {})
+          assert int(summary.get("total", 0)) == len(value.get("sources", [])), summary
+          assert int(summary.get("total", 0)) >= 66, summary
+          assert int(summary.get("checked", 0)) == int(summary.get("available", 0)) + int(summary.get("unavailable", 0)), summary
+          assert int(summary.get("total", 0)) == int(summary.get("checked", 0)) + int(summary.get("pending", 0)), summary
+          assert len({str(row.get("username", "")).casefold() for row in value.get("sources", [])}) == int(summary.get("total", 0)), summary
+          print("Registry summary:", summary)
+          PY
+
+      - name: Validate administrator rating decisions
+        run: |
+          set -euo pipefail
+          python admin_action.py --self-test
+          python admin_panel_runtime_v22.py --self-test
+          python - <<'PY'
+          import monitor_data
+          stats = {"version": 1, "sources": {}, "daily": {}}
+          changed = monitor_data.record_admin_wheel_decision(
+              stats,
+              wheel_key="wheel-a",
+              sources=["sourceA"],
+              decision="confirmed",
+              actor="admin",
+          )
+          assert changed is True
+          assert stats["sources"]["sourceA"]["quality_score"] == 40
+          changed = monitor_data.record_admin_wheel_decision(
+              stats,
+              wheel_key="wheel-a",
+              sources=["sourceA"],
+              decision="confirmed",
+              actor="admin",
+          )
+          assert changed is False
+          assert stats["sources"]["sourceA"]["quality_score"] == 40
+          changed = monitor_data.record_admin_wheel_decision(
+              stats,
+              wheel_key="wheel-a",
+              sources=["sourceA"],
+              decision="inactive",
+              actor="admin",
+          )
+          assert changed is True
+          assert stats["sources"]["sourceA"]["quality_score"] == -45
+          print("Administrator rating decision validation passed")
+          PY
+
+      - name: Validate Mini App scripts
+        run: |
+          set -euo pipefail
+          node --check docs/app.js
+          node --check docs/bbvg-controls.js
+          node --check docs/v22-overrides.js
+          grep -q 'v22-overrides.js?v=5.11.0' docs/index.html
+          grep -q 'admin_panel_runtime_v22.py' .github/workflows/admin-bot.yml

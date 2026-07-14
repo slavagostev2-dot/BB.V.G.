@@ -1,0 +1,89 @@
+name: BB V.G. unified source registry
+run-name: BB V.G. source registry — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "source_registry.py"
+      - "public_sources.txt"
+      - "source_catalog.txt"
+      - "source_health.json"
+      - "source_stats.json"
+      - "discovery_state.json"
+      - ".github/workflows/source-registry.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bb-vg-source-registry
+  cancel-in-progress: true
+
+jobs:
+  registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build and validate unified registry
+        run: |
+          set -euo pipefail
+          python -m py_compile source_registry.py
+          python source_registry.py --self-test
+          python source_registry.py
+          python - <<'PY'
+          import json
+          value = json.load(open("source_registry.json", encoding="utf-8"))
+          summary = value.get("summary", {})
+          total = int(summary.get("total", 0))
+          checked = int(summary.get("checked", 0))
+          available = int(summary.get("available", 0))
+          unavailable = int(summary.get("unavailable", 0))
+          pending = int(summary.get("pending", 0))
+          assert total >= 66, summary
+          assert checked == available + unavailable, summary
+          assert total == checked + pending, summary
+          assert total == len(value.get("sources", [])), summary
+          print("Unified source registry validation passed:", summary)
+          PY
+
+      - name: Save registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- source_registry.json; then
+            echo "Source registry did not change."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source_registry.json
+          git commit -m "Update BB V.G. unified source registry [skip ci]"
+
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Registry push attempt ${attempt} failed; rebasing before retry."
+            if ! git pull --rebase origin main; then
+              git rebase --abort || true
+              exit 1
+            fi
+          done
+          exit 1
