@@ -105,7 +105,7 @@ def install(monitor_module: Any) -> None:
                 continue
             try:
                 monitor_module.send_message(
-                    "🚨 <b>Последний шанс войти в колесо BetBoom</b>\n\n"
+                    "🚨 <b>Напоминание о колесе BetBoom: последний шанс</b>\n\n"
                     f"Идентификатор: <code>{html.escape(str(entry.get('identifier') or normalized))}</code>\n"
                     f"Источники: {_source_text(state, normalized, entry)}\n"
                     f"⏳ Осталось: <b>{html.escape(monitor_module.human_remaining(deadline))}</b>\n\n"
@@ -174,6 +174,9 @@ def self_test() -> None:
     entry["final_reminder_sent_at"] = "2026-07-14T12:56:00+00:00"
     assert not final_reminder_due(FakeMonitor, entry)
     assert ACTIVE_REMOVE_GRACE_MINUTES == 0
+    assert "Напоминание о колесе BetBoom" in (
+        "Напоминание о колесе BetBoom: последний шанс"
+    )
     print("wheel lifecycle v2 self-test passed")
 
 
