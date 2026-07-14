@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION='5.8.0';
+const VERSION='5.9.0';
 const BRAND='BB V.G.';
 const REPO='slavagostev2-dot/betboom-wheel-monitor';
 const ORIGINS=[
@@ -64,7 +64,7 @@ function haptic(type='light'){
 }
 
 const THEME_COLORS={
-  dark:{header:'#08080c',background:'#08080c',bottom:'#0c0b11'},
+  dark:{header:'#17141e',background:'#141219',bottom:'#18151f'},
   light:{header:'#f8f5fb',background:'#f4f1f8',bottom:'#faf8fc'}
 };
 function applyTheme(){
@@ -389,14 +389,10 @@ function renderSources(){
 }
 
 function renderProfile(){
-  const user=currentUser();
-  const name=user?[user.first_name,user.last_name].filter(Boolean).join(' '):'Пользователь';
-  const photo=safeUrl(user?.photo_url)||'icon.svg';
   const mine=activeWheels().filter(isJoined);
   $('#page-profile').innerHTML=`
     <h1 class="page-title">Профиль</h1>
     <p class="page-subtitle">Личные отметки и настройки</p>
-    <article class="card profile-head"><img src="${esc(photo)}" alt=""><div class="profile-copy"><strong>${esc(name||'Пользователь')}</strong><span>${user?.username?`@${esc(user.username)}`:'Telegram Mini App'}</span></div></article>
     <section class="section"><div class="section-head"><h2 class="section-title">Мои отметки</h2><span class="count-pill">${mine.length}</span></div><div>${mine.map(wheelCard).join('')||'<div class="empty">Вы пока не отметили участие в действующих колёсах.</div>'}</div></section>
     <section class="section"><div class="section-head"><h2 class="section-title">Настройки</h2></div><article class="card">
       <div class="setting"><div class="setting-copy"><strong>Автообновление</strong><small>Обновлять данные раз в минуту</small></div><button class="switch ${app.settings.autoRefresh?'on':''}" type="button" data-setting="autoRefresh" aria-label="Автообновление"></button></div>
