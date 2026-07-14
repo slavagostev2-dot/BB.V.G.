@@ -1,0 +1,185 @@
+name: BB V.G. live 66-source monitor
+run-name: BB V.G. live monitor — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/monitor-66-live.yml"
+      - "bbvg_monitor_main.py"
+      - "telegram_transport.py"
+      - "public_sources.txt"
+      - "partners_catalog.json"
+      - "preflight.py"
+  workflow_dispatch:
+  schedule:
+    - cron: "31 */6 * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bb-vg-monitor-continuous
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate 66-source runtime
+        env:
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+        run: |
+          python preflight.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py monitor_health.py notification_router.py monitor_data.py
+          python telegram_transport.py
+          python notification_router.py
+          python monitor_health.py --self-test
+          python - <<'PY'
+          import bbvg_monitor_main as runtime
+          import monitor
+          import monitor_data
+          from pathlib import Path
+          sources = monitor.read_list(Path("public_sources.txt"))
+          assert len(sources) == 66
+          assert len(monitor_data.operational_sources(sources, "fast")) == 66
+          assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
+          assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
+          print("Live 66-source runtime validation passed")
+          PY
+
+      - name: Run continuous 66-source monitor
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+          DISPLAY_TIMEZONE: Asia/Barnaul
+          REQUEST_TIMEOUT_SECONDS: "15"
+          MAX_WORKERS: "16"
+          TRANSPORT_BATCH_ATTEMPTS: "3"
+          MONITOR_RESTART_FAILURES: "2"
+          MONITOR_RESTART_NO_PROGRESS: "2"
+          UNKNOWN_DEDUP_HOURS: "24"
+          DEADLINE_GRACE_MINUTES: "30"
+          HEARTBEAT_HOURS: "6"
+          HEALTH_ALERT_COOLDOWN_HOURS: "24"
+          STATUS_REPORT_HOURS: "12"
+          MAX_NEW_POST_AGE_MINUTES: "360"
+          NEW_SOURCE_CATCHUP_MINUTES: "1440"
+          FRESH_UNKNOWN_POST_MINUTES: "20"
+          QUARANTINE_FAILURE_THRESHOLD: "3"
+          QUARANTINE_EMPTY_THRESHOLD: "4"
+          QUARANTINE_RECHECK_HOURS: "6"
+          UNAVAILABLE_REPORT_DAYS: "2"
+          SOURCE_INACTIVITY_DAYS: "7"
+          SOURCE_INACTIVITY_REPORT_DAYS: "7"
+          BOT_FEEDBACK_ENABLED: "false"
+          MANUAL_RUN: "false"
+          AUTO_RUN: "true"
+          CONTINUOUS: "true"
+        shell: bash
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          runtime_files=(state.json source_health.json source_stats.json unknown_timer_samples.json monitor_status.json)
+
+          push_runtime() {
+            if git diff --quiet -- "${runtime_files[@]}"; then
+              return 0
+            fi
+            git add "${runtime_files[@]}"
+            git commit -m "Update BB V.G. 66-source runtime [skip ci]" || true
+            for attempt in 1 2 3; do
+              if git push origin HEAD:main; then
+                return 0
+              fi
+              echo "Runtime push attempt ${attempt} failed; rebasing."
+              if ! git pull --rebase origin main; then
+                git rebase --abort || true
+                return 1
+              fi
+            done
+            return 1
+          }
+
+          python monitor_health.py start --run-id "${GITHUB_RUN_ID:-}"
+          shift_end=$(( $(date +%s) + 19800 ))
+          last_commit_at=0
+          iteration=0
+
+          while true; do
+            iteration=$((iteration + 1))
+            started_at=$(date +%s)
+            echo "=== BB V.G. 66-source check $iteration at $(date -u +%FT%TZ) ==="
+            timeout --signal=TERM --kill-after=30s 600s python bbvg_monitor_main.py 2>&1 | tee monitor-run.log
+            iteration_exit=${PIPESTATUS[0]}
+            duration=$(( $(date +%s) - started_at ))
+            python monitor_health.py record \
+              --run-id "${GITHUB_RUN_ID:-}" \
+              --iteration "$iteration" \
+              --exit-code "$iteration_exit" \
+              --duration-seconds "$duration"
+
+            restart_required=$(python - <<'PY'
+          import json
+          try:
+              value = json.load(open("monitor_status.json", encoding="utf-8"))
+          except Exception:
+              value = {}
+          print("true" if value.get("restart_recommended") else "false")
+          PY
+            )
+            now_ts=$(date +%s)
+            if (( last_commit_at == 0 || now_ts - last_commit_at >= 900 || now_ts >= shift_end )) || [[ "$restart_required" == "true" ]]; then
+              push_runtime || true
+              last_commit_at=$now_ts
+            fi
+            if [[ "$restart_required" == "true" ]] || (( now_ts >= shift_end )); then
+              break
+            fi
+
+            interval_seconds=$(python - <<'PY'
+          import json
+          try:
+              data = json.load(open('bot_access.json', encoding='utf-8'))
+              value = int(data.get('settings', {}).get('monitor_interval_minutes', 5))
+          except Exception:
+              value = 5
+          print((value if value in {1, 3, 5, 10, 15, 30} else 5) * 60)
+          PY
+            )
+            sleep_for=$(( interval_seconds - duration ))
+            (( sleep_for > 0 )) && sleep "$sleep_for"
+          done
+
+          push_runtime || true
+
+      - name: Queue next live shift
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          queued=$(gh run list --workflow monitor-66-live.yml --status queued --limit 20 --json databaseId --jq 'length')
+          if (( queued == 0 )); then
+            gh workflow run monitor-66-live.yml --ref main
+          fi
