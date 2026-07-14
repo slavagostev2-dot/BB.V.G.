@@ -1,0 +1,29 @@
+:root[data-theme="light"]{color-scheme:light;--bg:#f4f1f8;--panel:#ffffff;--panel2:#f8f5fb;--panel3:#eee7f5;--line:#ddd5e5;--line2:#c5b2d8;--text:#211b28;--muted:#756b7d;--purple:#7134b8;--purple2:#8d4bd2;--purple3:#eadcf5;--good:#318c4c;--danger:#c44757;--shadow:0 16px 42px rgba(67,48,82,.14)}
+:root[data-theme="light"] body{background:linear-gradient(180deg,#faf8fc,#f1edf5)}
+:root[data-theme="light"] .app-header{background:rgba(248,245,251,.96);border-bottom-color:rgba(64,42,78,.08)}
+:root[data-theme="light"] .icon-button{color:#514858}
+:root[data-theme="light"] .overview{border-color:#ccb8dc;background:linear-gradient(145deg,#ffffff,#f1ebf6 75%)}
+:root[data-theme="light"] .overview .metric{background:rgba(255,255,255,.76)}
+:root[data-theme="light"] .metric{background:linear-gradient(145deg,#ffffff,#f5f0f8)}
+:root[data-theme="light"] .card{background:linear-gradient(145deg,#ffffff,#f7f3fa);box-shadow:0 10px 24px rgba(67,48,82,.09)}
+:root[data-theme="light"] .wheel-avatar,:root[data-theme="light"] .source-mark{background:radial-gradient(circle,#f2e7fa,#ffffff);border-color:#c8afd9;color:#7638bb}
+:root[data-theme="light"] .badge{background:#eadcf4;color:#6c2fa8}
+:root[data-theme="light"] .badge.mine{background:#e0f1e5;color:#287341}
+:root[data-theme="light"] .button{background:#f7f3f9}
+:root[data-theme="light"] .button.success{background:#e6f3e9;color:#267441;border-color:#b9d8c2}
+:root[data-theme="light"] .chip{background:#faf8fb;color:#6f6675}
+:root[data-theme="light"] .chip.active{background:#eadcf4;color:#6d31a9}
+:root[data-theme="light"] .filter-button,:root[data-theme="light"] .square-button{background:#faf8fb;color:#655c6b}
+:root[data-theme="light"] .source-form{border-color:#ccb8dc;background:linear-gradient(145deg,#ffffff,#f4eef8)}
+:root[data-theme="light"] .input,:root[data-theme="light"] .search{background:#ffffff;color:var(--text)}
+:root[data-theme="light"] .count-pill{background:#e9e2ed;color:#655d6b}
+:root[data-theme="light"] .bottom-nav{background:rgba(250,248,252,.98)}
+:root[data-theme="light"] .nav-item{color:#817888}
+:root[data-theme="light"] .toast{background:#ffffff;color:#27202e;box-shadow:0 12px 30px rgba(67,48,82,.16)}
+:root[data-theme="light"] .dialog{border-color:#d7cce0;background:#ffffff;box-shadow:0 28px 80px rgba(48,34,58,.28)}
+:root[data-theme="light"] .dialog::backdrop{background:rgba(42,32,48,.46)}
+:root[data-theme="light"] .dialog-close{background:#eee8f2;color:#362d3d}
+:root[data-theme="light"] .dialog-option{background:#faf7fc}
+:root[data-theme="light"] .dialog-option.active{background:#eadcf4;color:#6c2fa8}
+:root[data-theme="light"] .splash{background-color:#f4f1f8}
+:root[data-theme="light"] .splash-progress{background:#d8cfde}
