@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 import bbvg_monitor_runtime as runtime
-import monitor_resilience
+import telegram_transport as monitor_resilience
 
 
 monitor = runtime.monitor
@@ -12,6 +12,11 @@ _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels
 _original_send_message = monitor.send_message
+
+
+# Error notifications are produced by system_checks.py and deduplicated in
+# incident_state.json. The five-minute worker must not repeat the same warning.
+monitor.all_failed_alert_due = lambda state: False
 
 
 def recover_deadline_manual_first(state: dict, key: str, entry: dict):
@@ -49,7 +54,7 @@ def branded_send_message(text: str, url=None, reply_markup=None):
     ):
         value = (
             "⚠️ <b>Временная сетевая ошибка GitHub Actions</b>\n\n"
-            "GitHub Runner не смог подключиться к <code>t.me</code>.\n"
+            f"GitHub Runner не смог подключиться к <code>{monitor_resilience.PRIMARY_DOMAIN}</code>.\n"
             "Источники не признаны недоступными и не отправлены в карантин.\n"
             "BB V.G. автоматически повторит проверку."
         )
