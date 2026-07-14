@@ -88,7 +88,8 @@ class TelegramPanelRuntimeV25(TelegramPanelRuntimeV24):
             self._bot_bundle = bundle
             return bundle
 
-    def _save_bot_bundle(self, message: str) -> None:
+    def _save_bot_bundle(self, message: str) -> bool:
+        """Save locally first; a transient GitHub error must not block a user button."""
         with self._bot_state_lock:
             bundle = self._load_bot_bundle()
             text = bot_private_state.save_file(bundle)
@@ -100,10 +101,11 @@ class TelegramPanelRuntimeV25(TelegramPanelRuntimeV24):
                 )
             except Exception as exc:
                 print(
-                    "ERROR persist bot private state: "
+                    "WARNING deferred bot private state persistence: "
                     f"{type(exc).__name__}: {exc}"
                 )
-                raise
+                return False
+            return True
 
     def load_access(self, force: bool = False) -> dict[str, Any]:
         with self.access_lock:
@@ -209,6 +211,8 @@ class TelegramPanelRuntimeV25(TelegramPanelRuntimeV24):
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
 
     def handle_callback(self, query: dict[str, Any]) -> None:
+        # A user can first meet the bot through a wheel's inline button. Register
+        # that Telegram user before the inherited permission and participation logic.
         message = query.get("message") if isinstance(query, dict) else None
         message = message if isinstance(message, dict) else {}
         chat = message.get("chat") if isinstance(message.get("chat"), dict) else {}
@@ -246,6 +250,24 @@ def self_test() -> None:
     source = inspect.getsource(TelegramPanelRuntimeV25.handle_callback)
     assert "register_user" in source
     assert "private_chat" in source
+
+    panel = TelegramPanelRuntimeV25()
+    panel._bot_bundle = bot_private_state.default_bundle(
+        panel._bootstrap_access(), default_source_requests()
+    )
+    panel._save_bot_bundle = lambda message: True  # type: ignore[method-assign]
+    panel.send = lambda *args, **kwargs: {"ok": True}  # type: ignore[method-assign]
+    panel.answer = lambda *args, **kwargs: None  # type: ignore[method-assign]
+    panel.handle_callback(
+        {
+            "id": "callback-test",
+            "from": {"id": 2, "username": "button_user", "first_name": "Button"},
+            "message": {"message_id": 1, "chat": {"id": 2, "type": "private"}},
+            "data": "nav:home",
+        }
+    )
+    assert "2" in panel.access.get("users", {})
+    assert panel.role_for("2") == "user"
     print("admin_panel_runtime_v25 bot-only recovery self-test passed")
 
 
