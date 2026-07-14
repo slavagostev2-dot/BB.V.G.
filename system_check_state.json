@@ -1,5 +1,5 @@
 {
-  "active_incidents": 0,
+  "active_incidents": 1,
   "automation_state": {
     "source_tier_last_run_at": "2026-07-14T04:40:11.599460+00:00",
     "source_tier_policy": "seven_day_dynamic_primary_and_nightly",
@@ -17,13 +17,13 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "ok",
+    "monitor": "failed",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-14T14:57:55.810322+00:00",
+  "checked_at": "2026-07-14T14:58:12.466423+00:00",
   "discovery": {
     "active_size": 70,
     "candidate_count": 163,
@@ -60,24 +60,32 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 0,
-  "findings": [],
+  "finding_count": 1,
+  "findings": [
+    {
+      "detail": "Последняя итерация была 20 минут назад.",
+      "kind": "monitor_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор давно не обновлялся"
+    }
+  ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 0,
+    "active_incidents": 1,
     "checked_sources": 70,
     "configured_sources": 70,
     "domain": "telegram.me",
     "reachable_sources": 70,
     "single_source": "system_check_state.json",
-    "status": "ok"
+    "status": "degraded"
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "messages_attempted": 0,
-    "opened": 0,
+    "digest_sent": true,
+    "messages_attempted": 1,
+    "opened": 1,
     "resolved": 0
   },
-  "incident_sequence": 14,
+  "incident_sequence": 15,
   "inventory": {
     "configured": 70,
     "domain": "telegram.me",
@@ -117,7 +125,7 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 19,
+  "monitor_age_minutes": 20,
   "notification_routing": {
     "admin_kinds": {
       "admin_requests": [
@@ -183,7 +191,7 @@
       "tls": 0
     }
   },
-  "status": "ok",
+  "status": "degraded",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
