@@ -122,6 +122,53 @@
     }
   }
 
+  async function migrateLocal(remote){
+    const localJoined=new Set([...app.joined].map(value=>String(value).toLowerCase()));
+    const localHistory=new Set([...app.participationHistory].map(value=>String(value).toLowerCase()));
+    const localHiddenValues=await store.get('hiddenWheels',[]);
+    const localHidden=new Set(
+      Array.isArray(localHiddenValues)
+        ?localHiddenValues.map(value=>String(value).toLowerCase()).filter(Boolean)
+        :[]
+    );
+    const remoteJoined=new Set(Array.isArray(remote.joined)?remote.joined.map(value=>String(value).toLowerCase()):[]);
+    const remoteHistory=new Set(
+      Array.isArray(remote.participationHistory)
+        ?remote.participationHistory.map(value=>String(value).toLowerCase())
+        :[]
+    );
+    const remoteHidden=new Set(
+      Array.isArray(remote.hiddenWheels)
+        ?remote.hiddenWheels.map(value=>String(value).toLowerCase())
+        :[]
+    );
+    const jobs=[];
+    localJoined.forEach(key=>{
+      if(!remoteJoined.has(key)){
+        remoteJoined.add(key);
+        remoteHistory.add(key);
+        jobs.push(state.request('/v1/me/participation',{method:'PUT',body:{wheel_key:key,joined:true}}));
+      }
+    });
+    localHistory.forEach(key=>{
+      if(!remoteHistory.has(key)){
+        remoteHistory.add(key);
+        jobs.push((async()=>{
+          await state.request('/v1/me/participation',{method:'PUT',body:{wheel_key:key,joined:true}});
+          await state.request('/v1/me/participation',{method:'PUT',body:{wheel_key:key,joined:false}});
+        })());
+      }
+    });
+    localHidden.forEach(key=>{
+      if(!remoteHidden.has(key)){
+        remoteHidden.add(key);
+        jobs.push(state.request('/v1/me/hidden',{method:'PUT',body:{wheel_key:key,hidden:true}}));
+      }
+    });
+    await Promise.allSettled(jobs);
+    return {joined:remoteJoined,history:remoteHistory,hidden:remoteHidden};
+  }
+
   async function hydrate(){
     if(!apiUrl||!initData)return;
     try{
@@ -129,22 +176,17 @@
       await waitForInitialLoad();
       const payload=await sessionPromise;
       const remote=payload?.state||{};
-      app.joined=new Set(Array.isArray(remote.joined)?remote.joined.map(value=>String(value).toLowerCase()):[]);
-      app.participationHistory=new Set(
-        Array.isArray(remote.participationHistory)
-          ?remote.participationHistory.map(value=>String(value).toLowerCase())
-          :[]
-      );
+      const merged=await migrateLocal(remote);
+      app.joined=merged.joined;
+      app.participationHistory=merged.history;
       app.joined.forEach(value=>app.participationHistory.add(value));
-      state.hiddenWheels=new Set(
-        Array.isArray(remote.hiddenWheels)
-          ?remote.hiddenWheels.map(value=>String(value).toLowerCase())
-          :[]
-      );
-      if(remote.settings&&typeof remote.settings==='object'){
+      state.hiddenWheels=merged.hidden;
+      if(remote.settings&&typeof remote.settings==='object'&&Object.keys(remote.settings).length){
         app.settings={...app.settings,...remote.settings};
         baseStoreSet('settings',app.settings);
         applyTheme();
+      }else{
+        await state.saveSettings(app.settings);
       }
       state.ready=true;
       state.emit();
