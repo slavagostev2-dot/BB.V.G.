@@ -4,14 +4,18 @@ import html
 from typing import Any
 
 
-def wheel_candidate_rows(state: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+def wheel_candidate_rows(
+    state: dict[str, Any],
+    known_sources: set[str] | None = None,
+) -> list[tuple[str, dict[str, Any]]]:
+    known = {str(value).casefold() for value in (known_sources or set())}
     rows: list[tuple[str, dict[str, Any]]] = []
     candidates = state.get("candidates") if isinstance(state.get("candidates"), dict) else {}
     for key, raw in candidates.items():
         if not isinstance(raw, dict):
             continue
         source = str(raw.get("source") or key).strip().lstrip("@")
-        if not source or raw.get("admin_alerted_at"):
+        if not source or source.casefold() in known or raw.get("admin_alerted_at"):
             continue
         if not raw.get("public"):
             continue
@@ -73,8 +77,9 @@ def candidate_message(source: str, entry: dict[str, Any]) -> tuple[str, dict[str
 
 
 def notify_new_candidates(module: Any, state: dict[str, Any]) -> int:
+    _, known = module.known_sources()
     sent = 0
-    for source, entry in wheel_candidate_rows(state):
+    for source, entry in wheel_candidate_rows(state, known):
         text, markup = candidate_message(source, entry)
         response = module.monitor.send_message(text, reply_markup=markup)
         result = response.get("result") if isinstance(response, dict) else None
@@ -114,6 +119,12 @@ def self_test() -> None:
                     }
                 ],
             },
+            "configured": {
+                "source": "Configured",
+                "public": True,
+                "wheel_links_found": 3,
+                "score": 90,
+            },
             "empty": {"source": "Empty", "public": True, "wheel_links_found": 0},
             "sent": {
                 "source": "Sent",
@@ -123,7 +134,7 @@ def self_test() -> None:
             },
         }
     }
-    rows = wheel_candidate_rows(state)
+    rows = wheel_candidate_rows(state, {"configured"})
     assert [source for source, _ in rows] == ["NewSource"]
     text, markup = candidate_message(*rows[0])
     assert "Разведка нашла новый источник" in text
