@@ -11,6 +11,8 @@ on:
       - "bbvg_monitor_main.py"
       - "telegram_transport.py"
       - "telegram_post_links_v2.py"
+      - "recurring_wheel_events.py"
+      - "wheel_metadata_quality.py"
       - "monitor_health.py"
       - "incident_manager.py"
       - "notification_router.py"
@@ -82,10 +84,12 @@ jobs:
           TELEGRAM_WEB_DOMAIN: telegram.me
           EXPECTED_SOURCE_COUNT: "66"
         run: |
-          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py monitor_health.py incident_manager.py system_checks.py notification_router.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py daily_report.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_metadata_quality.py monitor_health.py incident_manager.py system_checks.py notification_router.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py daily_report.py
           python notification_router.py
           python telegram_transport.py
           python telegram_post_links_v2.py
+          python recurring_wheel_events.py
+          python wheel_metadata_quality.py
           python monitor_health.py --self-test
           python incident_manager.py
           python system_checks.py --self-test
@@ -95,10 +99,12 @@ jobs:
           import monitor_data
           from pathlib import Path
 
-          assert runtime.monitor.remember_pending.__module__ == "bbvg_monitor_runtime"
+          assert runtime.monitor.remember_pending.__module__ == "wheel_metadata_quality"
           assert runtime.monitor.wheel_reply_markup.__module__ == "bbvg_monitor_main"
           assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
           assert runtime.monitor.fetch_public_channel.__module__ == "telegram_post_links_v2"
+          assert runtime.monitor._bbvg_recurring_wheel_events_installed is True
+          assert runtime.monitor._bbvg_wheel_metadata_quality_installed is True
           assert runtime.monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
           assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
           state = {"inactive_wheels": {}, "pending_posts": {}, "active_wheels": {}}
@@ -108,7 +114,7 @@ jobs:
           assert len({value.casefold() for value in primary + nightly}) >= 66
           assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
           assert primary
-          print("BB V.G. monitor runtime validation passed")
+          print("BB V.G. monitor metadata-quality validation passed")
           PY
           python -m json.tool identifier_sources.json >/dev/null
           python -m json.tool partners_catalog.json >/dev/null
@@ -272,4 +278,4 @@ jobs:
           fi
           gh workflow run monitor.yml --ref main -f continuous=true -f replace=false
 
-# v31: activate the Telegram per-post segment parser in production.
+# v32: preserve official timed wheel metadata across untimed reposts.

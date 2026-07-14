@@ -5,13 +5,19 @@ import json
 import os
 import sys
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from typing import Any
 
 import monitor
 import monitor_data as data_store
 
 
 BRAND_NAME = "BB V.G."
+PERIODS = {
+    "daily": (1, "Ежедневная"),
+    "weekly": (7, "Еженедельная"),
+    "monthly": (30, "Ежемесячная"),
+}
 
 
 def counter(value: dict, name: str) -> int:
@@ -74,6 +80,139 @@ def combined_health(fast_health: dict, discovery: dict) -> dict:
     return result
 
 
+def truthy_env(name: str) -> bool:
+    return str(os.getenv(name, "")).strip().casefold() in {"1", "true", "yes", "on"}
+
+
+def report_dates(period: str, *, current: date, manual: bool) -> tuple[list[str], date, date]:
+    days, _ = PERIODS.get(period, PERIODS["daily"])
+    end = current if manual else current - timedelta(days=1)
+    start = end - timedelta(days=days - 1)
+    values = [(start + timedelta(days=offset)).isoformat() for offset in range(days)]
+    return values, start, end
+
+
+def aggregate_period(stats: dict, allowed_dates: list[str]) -> dict[str, Any]:
+    allowed = set(allowed_dates)
+    totals: dict[str, int] = {}
+    source_counts: dict[str, int] = {}
+    day_counts: dict[str, int] = {}
+
+    for day, entry in stats.get("daily", {}).items():
+        if day not in allowed or not isinstance(entry, dict):
+            continue
+        day_totals = entry.get("totals") if isinstance(entry.get("totals"), dict) else {}
+        for key, value in day_totals.items():
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                totals[key] = totals.get(key, 0) + int(value)
+        day_counts[day] = int(day_totals.get("wheel_posts", 0) or 0)
+        source_rows = entry.get("sources") if isinstance(entry.get("sources"), dict) else {}
+        for source, source_entry in source_rows.items():
+            if not isinstance(source_entry, dict):
+                continue
+            count = int(source_entry.get("wheel_posts", 0) or 0)
+            if count > 0:
+                source_counts[str(source)] = source_counts.get(str(source), 0) + count
+
+    top_sources = sorted(
+        source_counts.items(),
+        key=lambda item: (-item[1], item[0].casefold()),
+    )
+    best_day = max(day_counts.items(), key=lambda item: item[1], default=("", 0))
+    return {
+        "totals": totals,
+        "source_counts": source_counts,
+        "top_sources": top_sources,
+        "best_day": best_day,
+    }
+
+
+def report_text(
+    *,
+    period: str,
+    start: date,
+    end: date,
+    summary: dict[str, Any],
+    state: dict,
+    health: dict,
+) -> str:
+    days, label = PERIODS[period]
+    totals = summary["totals"]
+    wheel_posts = int(totals.get("wheel_posts", 0) or 0)
+    notifications = int(totals.get("preliminary_sent", 0) or 0) + int(
+        totals.get("activation_sent", 0) or 0
+    )
+    top_sources = summary["top_sources"]
+
+    active_rows = [
+        (str(key), entry)
+        for key, entry in state.get("active_wheels", {}).items()
+        if isinstance(entry, dict)
+    ]
+    active_keys = {
+        str(entry.get("identifier") or key).casefold()
+        for key, entry in active_rows
+    } | {key.casefold() for key, _ in active_rows}
+    participating = {
+        str(key).casefold()
+        for key, entry in state.get("participating_wheels", {}).items()
+        if isinstance(entry, dict)
+    }
+    with_time = sum(
+        1 for _, entry in active_rows if monitor.parse_datetime(entry.get("deadline")) is not None
+    )
+
+    lines = [f"📊 <b>{label} сводка {BRAND_NAME}</b>"]
+    if start == end:
+        lines.append(f"Период: <b>{start:%d.%m.%Y}</b>")
+    else:
+        lines.append(f"Период: <b>{start:%d.%m.%Y}–{end:%d.%m.%Y}</b>")
+    lines.append("")
+
+    if wheel_posts > 0:
+        lines.append(f"🎡 Публикаций с колёсами: <b>{wheel_posts}</b>")
+        lines.append(f"📡 Источников с находками: <b>{len(summary['source_counts'])}</b>")
+        if notifications > 0:
+            lines.append(f"🔔 Отправлено уведомлений: <b>{notifications}</b>")
+        if days > 1:
+            lines.append(f"📈 Среднее за день: <b>{wheel_posts / days:.1f}</b>")
+            best_day, best_count = summary["best_day"]
+            if best_day and best_count > 0:
+                lines.append(
+                    f"⭐ Самый активный день: <b>{datetime.fromisoformat(best_day):%d.%m.%Y}</b> — {best_count}"
+                )
+        if top_sources:
+            lines.extend(["", "<b>Лучшие источники периода</b>"])
+            for index, (source, count) in enumerate(top_sources[:5], 1):
+                lines.append(f"{index}. @{html.escape(source)} — {count}")
+    else:
+        lines.append("За выбранный период новые публикации с колёсами не обнаружены.")
+
+    lines.extend(["", "<b>Сейчас</b>"])
+    lines.append(f"🔥 Активных колёс: <b>{len(active_rows)}</b>")
+    if active_rows:
+        lines.append(f"⏱ Время определено: <b>{with_time} из {len(active_rows)}</b>")
+        lines.append(
+            f"✅ Участие отмечено: <b>{len(active_keys & participating)} из {len(active_rows)}</b>"
+        )
+
+    health_rows = [
+        entry for entry in health.get("sources", {}).values() if isinstance(entry, dict)
+    ]
+    quarantined = sum(1 for entry in health_rows if entry.get("status") == "quarantined")
+    problems = sum(
+        1 for entry in health_rows if entry.get("status") not in {"ok", "quarantined"}
+    )
+    if quarantined or problems:
+        lines.extend(["", "<b>Требуют внимания</b>"])
+        if problems:
+            lines.append(f"• Источников с временными проблемами: {problems}")
+        if quarantined:
+            lines.append(f"• Источников в карантине: {quarantined}")
+
+    return "\n".join(lines)[:4000]
+
+
 def main() -> int:
     try:
         monitor.validate_environment()
@@ -81,89 +220,83 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 2
 
+    period = str(os.getenv("REPORT_PERIOD", "daily")).strip().casefold()
+    if period not in PERIODS:
+        print(f"Unknown REPORT_PERIOD: {period}", file=sys.stderr)
+        return 2
+
     fast_stats = data_store.load_stats()
     fast_health = data_store.load_health()
-    fast_samples = data_store.load_unknown_samples()
     discovery = load_discovery()
     stats = combined_stats(fast_stats, discovery)
     health = combined_health(fast_health, discovery)
+    state = monitor.load_state()
 
     local_now = datetime.now(monitor.DISPLAY_TZ)
-    report_day = (local_now.date() - timedelta(days=1)).isoformat()
-
-    fast = data_store.operational_sources(
-        monitor.read_list(monitor.SOURCES_PATH), "fast"
+    allowed_dates, start, end = report_dates(
+        period,
+        current=local_now.date(),
+        manual=truthy_env("MANUAL_RUN"),
     )
-    nightly = data_store.operational_sources(
-        monitor.read_list(monitor.ROOT / "source_catalog.txt"), "nightly"
-    )
-    daily = stats.get("daily", {}).get(report_day, {})
-    totals = daily.get("totals", {}) if isinstance(daily, dict) else {}
-
-    health_entries = [
-        entry
-        for entry in health.get("sources", {}).values()
-        if isinstance(entry, dict)
-    ]
-    healthy_count = sum(1 for entry in health_entries if entry.get("status") == "ok")
-    quarantined = [
-        username
-        for username, entry in health.get("sources", {}).items()
-        if isinstance(entry, dict) and entry.get("status") == "quarantined"
-    ]
-    problem_count = sum(
-        1
-        for entry in health_entries
-        if entry.get("status") not in {"ok", "quarantined"}
-    )
-    unavailable = data_store.unavailable_sources(health)
-    unknown_count = len(fast_samples.get("samples", [])) + len(
-        discovery.get("unknown_timer_samples", [])
-    )
-
-    top_lines: list[str] = []
-    for source, _, entry in data_store.top_sources(stats, 5):
-        top_lines.append(
-            f"• @{html.escape(source)} — постов {counter(entry, 'wheel_posts')}, "
-            f"активаций {counter(entry, 'activation_sent')}"
-        )
-    if not top_lines:
-        top_lines.append("• статистика ещё накапливается")
-
-    unavailable_lines: list[str] = []
-    for source, entry, days in unavailable[:8]:
-        reason = str(entry.get("last_error") or entry.get("status") or "недоступен")
-        unavailable_lines.append(
-            f"• @{html.escape(source)} — {days} дн., {html.escape(reason[:80])}"
-        )
-    if not unavailable_lines:
-        unavailable_lines.append("• длительно недоступных каналов нет")
-
-    text = (
-        f"📊 <b>Ежедневный отчёт {BRAND_NAME} — {report_day}</b>\n\n"
-        f"<b>Источники</b>\n"
-        f"Быстрая проверка: {len(fast)}\n"
-        f"Ночная проверка: {len(nightly)}\n"
-        f"Доступны по последней проверке: {healthy_count}\n"
-        f"С временными проблемами: {problem_count}\n"
-        f"В карантине: {len(quarantined)}\n\n"
-        f"<b>За отчётный день</b>\n"
-        f"Проверок: {counter(totals, 'checks')}\n"
-        f"Новых постов с колёсами: {counter(totals, 'wheel_posts')}\n"
-        f"Отправлено уведомлений: {counter(totals, 'preliminary_sent')}\n"
-        f"Колёс с найденным временем: {counter(totals, 'activation_sent')}\n"
-        f"Повторов подавлено: {counter(totals, 'duplicates_suppressed')}\n"
-        f"Ошибок источников: {counter(totals, 'errors')}\n"
-        f"Неизвестных форматов времени в базе: {unknown_count}\n\n"
-        f"<b>Где чаще появляются колёса</b>\n"
-        + "\n".join(top_lines)
-        + "\n\n<b>Недоступны несколько дней</b>\n"
-        + "\n".join(unavailable_lines)
+    summary = aggregate_period(stats, allowed_dates)
+    text = report_text(
+        period=period,
+        start=start,
+        end=end,
+        summary=summary,
+        state=state,
+        health=health,
     )
 
     monitor.send_message(text)
-    print(f"{BRAND_NAME} daily report sent for {report_day}.")
+    print(f"{BRAND_NAME} {period} summary sent for {start.isoformat()}..{end.isoformat()}.")
     return 0
+
+
+def self_test() -> None:
+    dates, start, end = report_dates(
+        "weekly",
+        current=date(2026, 7, 14),
+        manual=True,
+    )
+    assert len(dates) == 7
+    assert start == date(2026, 7, 8)
+    assert end == date(2026, 7, 14)
+
+    stats = {
+        "daily": {
+            "2026-07-13": {
+                "totals": {"wheel_posts": 2, "preliminary_sent": 1},
+                "sources": {"official": {"wheel_posts": 2}},
+            },
+            "2026-07-14": {
+                "totals": {"wheel_posts": 1, "activation_sent": 1},
+                "sources": {"collector": {"wheel_posts": 1}},
+            },
+        }
+    }
+    summary = aggregate_period(stats, dates)
+    assert summary["totals"]["wheel_posts"] == 3
+    assert summary["top_sources"][0] == ("official", 2)
+    text = report_text(
+        period="weekly",
+        start=start,
+        end=end,
+        summary=summary,
+        state={
+            "active_wheels": {
+                "one": {"deadline": "2026-07-15T10:00:00+00:00"},
+                "two": {},
+            },
+            "participating_wheels": {"one": {"marked_at": "now"}},
+        },
+        health={"sources": {"ok": {"status": "ok"}}},
+    )
+    assert "Повторов подавлено" not in text
+    assert "Ошибок источников: 0" not in text
+    assert "Публикаций с колёсами: <b>3</b>" in text
+    assert "Время определено: <b>1 из 2</b>" in text
+    print("daily_report period summary self-test passed")
 
 
 if __name__ == "__main__":

@@ -38,11 +38,16 @@ jobs:
           set -euo pipefail
           python -m py_compile \
             source_registry.py admin_action.py admin_action_v2.py rating_policy.py \
-            bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
-            admin_panel_runtime_v26.py bot_private_state.py bot_notification_state.py \
-            migrate_bot_private_state.py system_checks_v2.py source_tier_maintenance_v2.py
+            bbvg_monitor_main.py recurring_wheel_events.py wheel_metadata_quality.py \
+            admin_panel_runtime_v22.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
+            admin_panel_runtime_v31.py bot_private_state.py bot_notification_state.py \
+            migrate_bot_private_state.py daily_report.py system_checks_v2.py source_tier_maintenance_v2.py
           python source_registry.py --self-test
           python source_registry.py
+          python recurring_wheel_events.py
+          python wheel_metadata_quality.py
+          python -c "import daily_report; daily_report.self_test()"
+          python admin_panel_runtime_v31.py --self-test
           python - <<'PY'
           import json
           value = json.load(open("source_registry.json", encoding="utf-8"))
@@ -61,6 +66,7 @@ jobs:
           python migrate_bot_private_state.py --check
           python admin_panel_runtime_v25.py --self-test
           python admin_panel_runtime_v26.py --self-test
+          python admin_panel_runtime_v31.py --self-test
 
       - name: Validate additive administrator rating
         run: |
@@ -95,16 +101,20 @@ jobs:
           import notification_router
           assert runtime.monitor.data_store.load_stats.__module__ == "bbvg_monitor_main"
           assert runtime.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
+          assert runtime.monitor._bbvg_wheel_metadata_quality_installed is True
           assert notification_router.load_config is bot_notification_state.load_config
-          print("Bot-only monitor runtime installed")
+          print("Bot-only monitor runtime with metadata protection installed")
           PY
 
       - name: Validate current production boundary
         run: |
           set -euo pipefail
-          grep -q 'admin_panel_runtime_v26.py' .github/workflows/admin-bot.yml
-          ! grep -q 'run: python admin_panel_runtime_v25.py' .github/workflows/admin-bot.yml
+          grep -q 'admin_panel_runtime_v31.py' .github/workflows/admin-bot.yml
+          grep -q 'run: python admin_panel_runtime_v31.py' .github/workflows/admin-bot.yml
+          ! grep -q 'run: python admin_panel_runtime_v30.py' .github/workflows/admin-bot.yml
           ! grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
+          grep -q 'summary:send:monthly' admin_panel_runtime_v31.py
+          grep -q 'wheel_metadata_quality.py' .github/workflows/monitor.yml
           grep -q 'archived and disabled' .github/workflows/cloudflare-pages.yml
           grep -q 'archived and disabled' .github/workflows/state-api.yml
           grep -q 'Mini App — архивировано' MINI_APP_ARCHIVED.md

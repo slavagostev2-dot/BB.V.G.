@@ -10,6 +10,7 @@ import rating_policy
 import recurring_wheel_events
 import telegram_post_links_v2
 import telegram_transport
+import wheel_metadata_quality
 
 
 monitor = runtime.monitor
@@ -17,6 +18,7 @@ notification_router.load_config = bot_notification_state.load_config
 recurring_wheel_events.install(monitor, runtime.base_runtime)
 telegram_transport.install(monitor)
 telegram_post_links_v2.install(monitor)
+wheel_metadata_quality.install(monitor, runtime)
 _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels

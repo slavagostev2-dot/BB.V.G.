@@ -9,6 +9,7 @@ on:
       - "telegram_transport.py"
       - "telegram_post_links_v2.py"
       - "recurring_wheel_events.py"
+      - "wheel_metadata_quality.py"
       - "bbvg_monitor_main.py"
       - ".github/workflows/telegram-resilience-check.yml"
   workflow_dispatch:
@@ -32,21 +33,24 @@ jobs:
         env:
           TELEGRAM_WEB_DOMAIN: telegram.me
         run: |
-          python -m py_compile telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py bbvg_monitor_main.py monitor.py monitor_data.py bbvg_monitor_runtime.py
+          python -m py_compile telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_metadata_quality.py bbvg_monitor_main.py monitor.py monitor_data.py bbvg_monitor_runtime.py
           python telegram_transport.py
           python telegram_post_links_v2.py
           python recurring_wheel_events.py
+          python wheel_metadata_quality.py
           python - <<'PY'
           import bbvg_monitor_main as runtime
           import recurring_wheel_events
           import telegram_post_links_v2
           import telegram_transport
+          import wheel_metadata_quality
 
           assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
           assert runtime.monitor.fetch_public_channel.__module__ == "telegram_post_links_v2"
           assert runtime.monitor._bbvg_telegram_transport_installed is True
           assert runtime.monitor._bbvg_telegram_button_links_installed is True
           assert runtime.monitor._bbvg_recurring_wheel_events_installed is True
+          assert runtime.monitor._bbvg_wheel_metadata_quality_installed is True
           assert runtime.monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
           assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
           assert telegram_transport.public_source_url("test") == "https://telegram.me/s/test"
@@ -60,5 +64,5 @@ jobs:
           post = next((message for message in messages if message.message_id == 1516), None)
           assert post is not None, "Live @jestercast post 1516 is missing from public preview"
           assert "https://betboom.ru/freestream/cct1" in runtime.monitor.extract_links(post.text)
-          print("telegram.me recurring-event parser found @jestercast/1516 cct1")
+          print("telegram.me parser and timed-source preservation checks passed")
           PY

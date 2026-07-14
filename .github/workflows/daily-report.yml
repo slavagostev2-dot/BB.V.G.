@@ -1,8 +1,18 @@
-name: BB V.G. daily report
-run-name: BB V.G. daily report — ${{ github.event_name }}
+name: BB V.G. summaries
+run-name: BB V.G. summary — ${{ github.event_name }} / ${{ inputs.period || 'daily' }}
 
 on:
   workflow_dispatch:
+    inputs:
+      period:
+        description: "Период сводки"
+        required: true
+        type: choice
+        default: daily
+        options:
+          - daily
+          - weekly
+          - monthly
   schedule:
     # 01:12 UTC = 08:12 в Барнауле (UTC+7).
     - cron: "12 1 * * *"
@@ -11,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: bb-vg-daily-report
+  group: bb-vg-summary-${{ inputs.period || 'daily' }}
   cancel-in-progress: false
 
 jobs:
@@ -38,18 +48,19 @@ jobs:
       - name: Verify BB V.G. repository layout
         run: python preflight.py
 
-      - name: Check BB V.G. report code
+      - name: Check BB V.G. summary code
         run: |
           python -m py_compile monitor.py monitor_data.py daily_report.py daily_report_entry.py notification_router.py
+          python -c "import daily_report; daily_report.self_test()"
           python notification_router.py
           python -m json.tool partners_catalog.json >/dev/null
           python -m json.tool bot_access.json >/dev/null
 
-      - name: Send BB V.G. daily report
+      - name: Send BB V.G. summary
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           DISPLAY_TIMEZONE: Asia/Barnaul
-          UNAVAILABLE_REPORT_DAYS: "2"
+          REPORT_PERIOD: ${{ github.event_name == 'workflow_dispatch' && inputs.period || 'daily' }}
           MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' }}
         run: python daily_report_entry.py
