@@ -44,15 +44,16 @@ jobs:
 
       - name: Validate BB V.G. action code
         run: |
-          python -m py_compile admin_action.py monitor.py monitor_data.py
+          python -m py_compile admin_action.py admin_action_v2.py rating_policy.py monitor.py monitor_data.py
           python admin_action.py --self-test
+          python admin_action_v2.py --self-test
 
       - name: Apply BB V.G. action
         env:
           ADMIN_ACTION: ${{ inputs.action }}
           ADMIN_VALUE: ${{ inputs.value }}
           DISPLAY_TIMEZONE: Asia/Barnaul
-        run: python admin_action.py
+        run: python admin_action_v2.py
 
       - name: Save changed runtime state
         shell: bash

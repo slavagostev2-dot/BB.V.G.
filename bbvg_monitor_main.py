@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
 import bbvg_monitor_runtime as runtime
+import rating_policy
 import telegram_transport
 
 
@@ -12,11 +14,39 @@ _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels
 _original_send_message = monitor.send_message
+_original_load_stats = monitor.data_store.load_stats
+_original_record_admin_wheel_decision = monitor.data_store.record_admin_wheel_decision
 
 
 # Error notifications are produced by system_checks.py and deduplicated in
 # incident_state.json. The five-minute worker must not repeat the same warning.
 monitor.all_failed_alert_due = lambda state: False
+
+
+def load_stats_additive() -> dict[str, Any]:
+    data = _original_load_stats()
+    rating_policy.normalize_additive_rating(data)
+    return data
+
+
+def record_admin_wheel_decision_additive(
+    data: dict[str, Any],
+    *,
+    wheel_key: str,
+    sources: list[str],
+    decision: str,
+    actor: str = "admin",
+    at: Any = None,
+) -> bool:
+    return rating_policy.record_admin_wheel_decision(
+        data,
+        wheel_key=wheel_key,
+        sources=sources,
+        decision=decision,
+        actor=actor,
+        at=at,
+        recorder=_original_record_admin_wheel_decision,
+    )
 
 
 def recover_deadline_manual_first(state: dict, key: str, entry: dict):
@@ -111,6 +141,8 @@ def process_active_without_unknown_time_spam(state: dict, stats: dict):
 
 
 runtime.base_runtime._recover_deadline = recover_deadline_manual_first
+monitor.data_store.load_stats = load_stats_additive
+monitor.data_store.record_admin_wheel_decision = record_admin_wheel_decision_additive
 monitor.wheel_reply_markup = wheel_markup_with_direct_key
 monitor.process_active_wheels = process_active_without_unknown_time_spam
 monitor.send_message = branded_send_message

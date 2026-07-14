@@ -1,10 +1,7 @@
-name: BB V.G. v22 checks
-run-name: BB V.G. v22 checks — ${{ github.event_name }}
+name: BB V.G. current checks
+run-name: BB V.G. current checks — ${{ github.event_name }}
 
 on:
-  push:
-    branches:
-      - "fix/points-1-5-v22"
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -13,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  points-1-5:
+  current:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -38,7 +35,7 @@ jobs:
       - name: Validate Python and source registry
         run: |
           set -euo pipefail
-          python -m py_compile source_registry.py admin_action.py admin_panel_runtime_v22.py
+          python -m py_compile source_registry.py admin_action.py admin_action_v2.py rating_policy.py bbvg_monitor_main.py admin_panel_runtime_v22.py admin_panel_runtime_v23.py admin_panel_runtime_v24.py sitecustomize.py
           python source_registry.py --self-test
           python source_registry.py
           python - <<'PY'
@@ -53,49 +50,73 @@ jobs:
           print("Registry summary:", summary)
           PY
 
-      - name: Validate administrator rating decisions
+      - name: Validate legacy administrator action self-test
+        run: python admin_action.py --self-test
+
+      - name: Validate additive administrator action runtime
+        run: python admin_action_v2.py --self-test
+
+      - name: Validate control center self-tests
+        env:
+          BOT_TOKEN: "test-token"
+          BOT_CHAT_ID: "1"
+          ADMIN_USER_ID: "1"
+        run: |
+          python admin_panel_runtime_v22.py --self-test
+          python admin_panel_runtime_v23.py --self-test
+          python admin_panel_runtime_v24.py --self-test
+
+      - name: Validate additive administrator rating
         run: |
           set -euo pipefail
-          python admin_action.py --self-test
-          python admin_panel_runtime_v22.py --self-test
           python - <<'PY'
-          import monitor_data
+          import admin_action_v2
           stats = {"version": 1, "sources": {}, "daily": {}}
-          changed = monitor_data.record_admin_wheel_decision(
+          changed = admin_action_v2._additive_recorder(
               stats,
               wheel_key="wheel-a",
               sources=["sourceA"],
               decision="confirmed",
-              actor="admin",
           )
-          assert changed is True
-          assert stats["sources"]["sourceA"]["quality_score"] == 40
-          changed = monitor_data.record_admin_wheel_decision(
-              stats,
-              wheel_key="wheel-a",
-              sources=["sourceA"],
-              decision="confirmed",
-              actor="admin",
-          )
-          assert changed is False
-          assert stats["sources"]["sourceA"]["quality_score"] == 40
-          changed = monitor_data.record_admin_wheel_decision(
+          assert changed is True, stats
+          assert stats["sources"]["sourceA"]["quality_score"] == 40, stats
+          changed = admin_action_v2._additive_recorder(
               stats,
               wheel_key="wheel-a",
               sources=["sourceA"],
               decision="inactive",
-              actor="admin",
           )
-          assert changed is True
-          assert stats["sources"]["sourceA"]["quality_score"] == -45
-          print("Administrator rating decision validation passed")
+          assert changed is False, stats
+          assert stats["sources"]["sourceA"]["quality_score"] == 40, stats
+          changed = admin_action_v2._additive_recorder(
+              stats,
+              wheel_key="wheel-b",
+              sources=["sourceB"],
+              decision="inactive",
+          )
+          assert changed is True, stats
+          assert stats["sources"]["sourceB"]["quality_score"] == 0, stats
+          assert all(int(row.get("quality_score", 0) or 0) >= 0 for row in stats["sources"].values()), stats
+          print("Additive administrator rating validation passed", stats)
           PY
 
-      - name: Validate Mini App scripts
+      - name: Validate monitor rating installation
+        run: |
+          python - <<'PY'
+          import bbvg_monitor_main as runtime
+          assert runtime.monitor.data_store.load_stats.__module__ == 'bbvg_monitor_main'
+          assert runtime.monitor.data_store.record_admin_wheel_decision.__module__ == 'bbvg_monitor_main'
+          print('Monitor additive rating runtime installed')
+          PY
+
+      - name: Validate Mini App and current menu
         run: |
           set -euo pipefail
           node --check docs/app.js
+          node --check docs/private-state.js
           node --check docs/bbvg-controls.js
           node --check docs/v22-overrides.js
           grep -q 'v22-overrides.js?v=5.11.0' docs/index.html
-          grep -q 'admin_panel_runtime_v22.py' .github/workflows/admin-bot.yml
+          grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
+          grep -q 'page:intelligence' admin_panel_runtime_v24.py
+          grep -q 'page:discovery' admin_panel_runtime_v24.py
