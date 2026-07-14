@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "miniapp_deployment.json"
       - ".github/workflows/cloudflare-pages.yml"
   workflow_dispatch:
 
@@ -23,6 +22,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -43,14 +43,14 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "Cloudflare secrets are not configured yet."
+            echo "Cloudflare secrets are not configured; deployment is skipped without failing."
           fi
 
       - name: Set up Node.js
         if: steps.credentials.outputs.configured == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Build Mini App runtime config
         id: runtime
@@ -118,7 +118,7 @@ jobs:
           absent = [value for value in required_features if value not in (app + html)]
           if absent:
               raise SystemExit(f"Required Mini App features are missing: {', '.join(absent)}")
-          print("Mini App v3 validation passed")
+          print("Mini App validation passed")
           PY
 
       - name: Create Cloudflare Pages project if needed
@@ -138,35 +138,7 @@ jobs:
             --branch main \
             --commit-hash "$GITHUB_SHA"
 
-      - name: Record deployment status
-        if: steps.publish.outcome == 'success'
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          from datetime import datetime, timezone
-
-          value = {
-              "status": "deployed",
-              "provider": "cloudflare-pages",
-              "url": os.environ["CLOUDFLARE_APP_URL"],
-              "deployed_at": datetime.now(timezone.utc).isoformat(),
-              "commit": os.environ.get("GITHUB_SHA", ""),
-          }
-          with open("miniapp_deployment.json", "w", encoding="utf-8") as stream:
-              json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
-              stream.write("\n")
-          PY
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add miniapp_deployment.json
-          git commit -m "Record Cloudflare Mini App deployment [skip ci]" || true
-          git pull --rebase origin main
-          git push origin HEAD:main
-
-      - name: Record deployment diagnostics
+      - name: Record deployment state
         if: always()
         env:
           CREDENTIALS: ${{ steps.credentials.outputs.configured }}
@@ -175,33 +147,59 @@ jobs:
           PUBLISH_OUTCOME: ${{ steps.publish.outcome }}
         shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
           import json
           import os
           from datetime import datetime, timezone
 
-          value = {
-              "checked_at": datetime.now(timezone.utc).isoformat(),
+          now = datetime.now(timezone.utc).isoformat()
+          configured = os.environ.get("CREDENTIALS", "") == "true"
+          published = os.environ.get("PUBLISH_OUTCOME", "") == "success"
+          deployment = {
+              "status": "deployed" if published else ("not_configured" if not configured else "failed"),
+              "provider": "cloudflare-pages",
+              "url": os.environ["CLOUDFLARE_APP_URL"],
+              "checked_at": now,
+              "deployed_at": now if published else None,
               "commit": os.environ.get("GITHUB_SHA", ""),
+          }
+          runtime = {
+              "status": "success" if published else ("skipped" if not configured else "failure"),
+              "checked_at": now,
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
-              "credentials_configured": os.environ.get("CREDENTIALS", "") == "true",
+              "commit": os.environ.get("GITHUB_SHA", ""),
+              "credentials_configured": configured,
               "runtime_config": os.environ.get("RUNTIME_OUTCOME", "unknown"),
               "validation": os.environ.get("VALIDATE_OUTCOME", "unknown"),
               "publication": os.environ.get("PUBLISH_OUTCOME", "unknown"),
           }
-          with open("miniapp_deploy_runtime.json", "w", encoding="utf-8") as stream:
-              json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
-              stream.write("\n")
+          for path, value in (
+              ("miniapp_deployment.json", deployment),
+              ("miniapp_deploy_runtime.json", runtime),
+          ):
+              with open(path, "w", encoding="utf-8") as stream:
+                  json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
+                  stream.write("\n")
           PY
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add miniapp_deploy_runtime.json
-          git commit -m "Record Mini App deployment diagnostics [skip ci]" || true
-          git pull --rebase origin main
-          git push origin HEAD:main
-
-      - name: Explain missing credentials
-        if: steps.credentials.outputs.configured != 'true'
-        run: |
-          echo "Add repository secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID, then run this workflow manually."
+          files=(miniapp_deployment.json miniapp_deploy_runtime.json)
+          if git diff --quiet -- "${files[@]}"; then
+            echo "Deployment state did not change."
+            exit 0
+          fi
+          git add "${files[@]}"
+          git commit -m "Record Mini App deployment state [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Deployment state push attempt ${attempt} failed; rebasing before retry."
+            if ! git pull --rebase origin main; then
+              git rebase --abort || true
+              exit 1
+            fi
+          done
+          exit 1
