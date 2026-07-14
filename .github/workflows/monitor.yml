@@ -42,7 +42,7 @@ permissions:
 
 concurrency:
   group: bb-vg-monitor-continuous
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   monitor:
