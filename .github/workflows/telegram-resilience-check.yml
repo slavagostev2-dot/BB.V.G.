@@ -1,8 +1,14 @@
-name: Telegram resilience checks
+name: Telegram transport checks
 
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "telegram_transport.py"
+      - "bbvg_monitor_main.py"
+      - ".github/workflows/telegram-resilience-check.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,18 +26,23 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
-      - name: Validate resilience layer
+      - name: Validate telegram.me transport layer
+        env:
+          TELEGRAM_WEB_DOMAIN: telegram.me
         run: |
-          python -m py_compile monitor_resilience.py bbvg_monitor_main.py monitor.py monitor_data.py bbvg_monitor_runtime.py
-          python monitor_resilience.py
+          python -m py_compile telegram_transport.py bbvg_monitor_main.py monitor.py monitor_data.py bbvg_monitor_runtime.py
+          python telegram_transport.py
           python - <<'PY'
           import bbvg_monitor_main as runtime
-          import monitor_resilience
+          import telegram_transport
 
-          assert runtime.monitor.fetch_all_sources.__module__ == "monitor_resilience"
-          assert runtime.monitor._bbvg_resilience_installed is True
-          assert monitor_resilience.is_transient_transport_error(
-              "NameResolutionError: Failed to resolve t.me"
+          assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
+          assert runtime.monitor._bbvg_telegram_transport_installed is True
+          assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
+          assert telegram_transport.public_source_url("test") == "https://telegram.me/s/test"
+          assert telegram_transport.rewrite_telegram_url("https://t.me/test/1") == "https://telegram.me/test/1"
+          assert telegram_transport.is_transient_transport_error(
+              "NameResolutionError: Failed to resolve telegram.me"
           )
-          print("Telegram resilience integration passed")
+          print("telegram.me transport integration passed")
           PY
