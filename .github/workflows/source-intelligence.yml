@@ -2,6 +2,14 @@ name: Telegram source intelligence
 run-name: Source intelligence — ${{ github.event_name }}
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "source_intelligence.py"
+      - "source_intelligence_entry.py"
+      - "nightly_discovery.py"
+      - "telegram_transport.py"
+      - ".github/workflows/source-intelligence.yml"
   workflow_dispatch:
   schedule:
     - cron: "17 18 * * *"
