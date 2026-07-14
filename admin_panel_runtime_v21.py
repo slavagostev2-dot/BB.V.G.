@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 from admin_panel_runtime_v20 import TelegramPanelRuntimeV20
 
-MINIAPP_RELEASE = "5.9.0"
+MINIAPP_RELEASE = "5.10.0"
 MINIAPP_URL = "https://slavagostev2-betboom-monitor.pages.dev/"
 
 USER_NOTIFICATION_OPTIONS = (
