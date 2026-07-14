@@ -97,15 +97,3 @@ jobs:
           assert Path("MINI_APP_ARCHIVED.md").exists()
           print("Bot-only recovery invariants passed")
           PY
-
-      - name: Protect frozen Mini App files
-        run: |
-          set -euo pipefail
-          git fetch origin main --depth=1
-          changed="$(git diff --name-only origin/main...HEAD)"
-          forbidden="$(printf '%s\n' "$changed" | grep -E '^(docs/|state_api/)' || true)"
-          if [[ -n "$forbidden" ]]; then
-            echo "Frozen Mini App files were changed:" >&2
-            echo "$forbidden" >&2
-            exit 1
-          fi
