@@ -3,11 +3,13 @@ from __future__ import annotations
 import bot_notification_state
 import monitor
 import nightly_discovery
+import notification_navigation
 import notification_router
 import telegram_transport
 
 notification_router.load_config = bot_notification_state.load_config
 notification_router.install(monitor)
+notification_navigation.install(monitor)
 telegram_transport.install(monitor)
 
 _original_fetch_page = nightly_discovery.fetch_public_channel_page
