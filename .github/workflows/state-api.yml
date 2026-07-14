@@ -1,0 +1,283 @@
+name: Deploy BB V.G. private state API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "state_api/**"
+      - "private_state.py"
+      - "admin_panel_runtime_v22.py"
+      - ".github/workflows/state-api.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bbvg-private-state-api
+  cancel-in-progress: false
+
+env:
+  WORKER_NAME: bbvg-private-state
+  DATABASE_NAME: bbvg-private-state
+  APP_ORIGIN: https://slavagostev2-betboom-monitor.pages.dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 2
+
+      - name: Check required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID BOT_TOKEN; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required secret: ${name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate Worker source
+        run: node --check state_api/src/index.js
+
+      - name: Resolve or create D1 database
+        id: database
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database?per_page=100" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" > d1-list.json
+
+          database_id="$(python - <<'PY'
+          import json
+          import os
+          payload = json.load(open('d1-list.json', encoding='utf-8'))
+          target = os.environ['DATABASE_NAME']
+          for item in payload.get('result') or []:
+              if str(item.get('name') or '') == target:
+                  print(item.get('uuid') or item.get('id') or '')
+                  break
+          PY
+          )"
+
+          if [[ -z "$database_id" ]]; then
+            curl -fsS -X POST \
+              "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data "{\"name\":\"${DATABASE_NAME}\",\"jurisdiction\":\"eu\",\"primary_location_hint\":\"weur\"}" \
+              > d1-create.json
+            database_id="$(python - <<'PY'
+          import json
+          payload = json.load(open('d1-create.json', encoding='utf-8'))
+          if not payload.get('success'):
+              raise SystemExit(payload.get('errors') or 'D1 creation failed')
+          result = payload.get('result') or {}
+          print(result.get('uuid') or result.get('id') or '')
+          PY
+            )"
+          fi
+
+          test -n "$database_id"
+          echo "database_id=$database_id" >> "$GITHUB_OUTPUT"
+
+      - name: Build Wrangler configuration
+        env:
+          DATABASE_ID: ${{ steps.database.outputs.database_id }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          config = {
+              "name": os.environ["WORKER_NAME"],
+              "main": "src/index.js",
+              "compatibility_date": "2026-07-14",
+              "workers_dev": True,
+              "vars": {
+                  "APP_ORIGIN": os.environ["APP_ORIGIN"],
+                  "TMA_MAX_AGE_SECONDS": "86400",
+              },
+              "d1_databases": [{
+                  "binding": "DB",
+                  "database_name": os.environ["DATABASE_NAME"],
+                  "database_id": os.environ["DATABASE_ID"],
+              }],
+          }
+          Path("state_api/wrangler.generated.json").write_text(
+              json.dumps(config, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Initialize D1 schema
+        run: >-
+          npx --yes wrangler@4 d1 execute "$DATABASE_NAME"
+          --remote
+          --config state_api/wrangler.generated.json
+          --file state_api/schema.sql
+
+      - name: Deploy Worker
+        id: worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config state_api/wrangler.generated.json 2>&1 | tee worker-deploy.log
+          worker_url="$(python - <<'PY'
+          import re
+          text = open('worker-deploy.log', encoding='utf-8', errors='replace').read()
+          urls = re.findall(r'https://[^\s]+\.workers\.dev', text)
+          print(urls[-1].rstrip('/')) if urls else None
+          PY
+          )"
+          if [[ -z "$worker_url" ]]; then
+            echo "Could not determine workers.dev URL" >&2
+            exit 1
+          fi
+          echo "url=$worker_url" >> "$GITHUB_OUTPUT"
+
+      - name: Configure Worker bot secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$BOT_TOKEN" | npx --yes wrangler@4 secret put BOT_TOKEN \
+            --config state_api/wrangler.generated.json
+
+      - name: Verify Worker health
+        env:
+          WORKER_URL: ${{ steps.worker.outputs.url }}
+        run: curl -fsS --retry 5 --retry-delay 3 "$WORKER_URL/health"
+
+      - name: Migrate legacy private records
+        env:
+          WORKER_URL: ${{ steps.worker.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import urllib.request
+          from pathlib import Path
+
+          def read_json(path, default):
+              try:
+                  value = json.loads(Path(path).read_text(encoding='utf-8'))
+              except Exception:
+                  return default
+              return value if isinstance(value, dict) else default
+
+          def parent_json(path, default):
+              try:
+                  raw = subprocess.check_output(
+                      ['git', 'show', f'HEAD^:{path}'], stderr=subprocess.DEVNULL
+                  ).decode('utf-8')
+                  value = json.loads(raw)
+              except Exception:
+                  return default
+              return value if isinstance(value, dict) else default
+
+          access = read_json('bot_access.json', {})
+          if not access.get('users'):
+              previous = parent_json('bot_access.json', {})
+              if previous.get('users'):
+                  access = previous
+
+          requests_state = read_json('source_requests.json', {'version': 1, 'requests': {}})
+          if not requests_state.get('requests'):
+              previous = parent_json('source_requests.json', {'version': 1, 'requests': {}})
+              if previous.get('requests'):
+                  requests_state = previous
+
+          base = os.environ['WORKER_URL'].rstrip('/')
+          token = os.environ['BOT_TOKEN']
+
+          def put(path, value):
+              request = urllib.request.Request(
+                  base + path,
+                  data=json.dumps(value, ensure_ascii=False).encode('utf-8'),
+                  headers={
+                      'Authorization': f'Bearer {token}',
+                      'Content-Type': 'application/json',
+                  },
+                  method='PUT',
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  payload = json.load(response)
+              if payload.get('ok') is False:
+                  raise RuntimeError(payload)
+
+          if access.get('users'):
+              put('/v1/admin/access', access)
+              print(f"Migrated {len(access.get('users') or {})} users")
+          else:
+              print('No legacy users found; access migration skipped')
+          if requests_state.get('requests'):
+              put('/v1/admin/source-requests', requests_state)
+              print(f"Migrated {len(requests_state.get('requests') or {})} source requests")
+          PY
+
+      - name: Record private state deployment
+        env:
+          WORKER_URL: ${{ steps.worker.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          value = {
+              "checked_at": datetime.now(timezone.utc).isoformat(),
+              "database": os.environ["DATABASE_NAME"],
+              "status": "deployed",
+              "url": os.environ["WORKER_URL"].rstrip('/'),
+          }
+          Path("private_state_deployment.json").write_text(
+              json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add private_state_deployment.json
+          git commit -m "Record private state API deployment [skip ci]" || exit 0
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+          done
+          exit 1
+
+      - name: Redeploy Mini App with API URL
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run cloudflare-pages.yml --ref main
