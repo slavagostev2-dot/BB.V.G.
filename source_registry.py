@@ -140,6 +140,15 @@ def build_registry(root: Path = ROOT, generated_at: datetime | None = None) -> d
 def write_registry(root: Path = ROOT) -> dict[str, Any]:
     value = build_registry(root)
     path = root / "source_registry.json"
+    existing = load_json(path, {})
+    if (
+        existing.get("version") == value["version"]
+        and existing.get("summary") == value["summary"]
+        and existing.get("sources") == value["sources"]
+    ):
+        previous_generated_at = str(existing.get("generated_at") or "").strip()
+        if previous_generated_at:
+            value["generated_at"] = previous_generated_at
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(
         json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -181,6 +190,12 @@ def self_test() -> None:
             "pending": 1,
         }
         assert value["sources"][0]["quality_score"] == 40
+        value["generated_at"] = "2026-07-14T00:00:00+00:00"
+        (root / "source_registry.json").write_text(
+            json.dumps(value, ensure_ascii=False), encoding="utf-8"
+        )
+        stable = write_registry(root)
+        assert stable["generated_at"] == "2026-07-14T00:00:00+00:00"
     print("source_registry unified inventory self-test passed")
 
 
