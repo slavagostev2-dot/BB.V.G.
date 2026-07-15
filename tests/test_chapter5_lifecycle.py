@@ -160,7 +160,7 @@ class Chapter5LifecycleTests(unittest.TestCase):
         for source in ("official", "collector"):
             self.assertEqual(stats["sources"][source]["quality_score"], 80)
 
-    def test_finished_button_never_awards_points_by_itself(self) -> None:
+    def test_finished_button_awards_points_once(self) -> None:
         state = event_state(
             message_id=20,
             message_date=datetime(2026, 7, 15, 10, 0, tzinfo=UTC),
@@ -174,8 +174,24 @@ class Chapter5LifecycleTests(unittest.TestCase):
             "wheel-a|admin",
         )
         self.assertTrue(result["state_changed"])
-        self.assertFalse(result["stats_changed"])
-        self.assertNotIn("admin_wheel_decisions", stats)
+        self.assertTrue(result["stats_changed"])
+        self.assertIn("рейтинг источников начислен", result["detail"])
+        self.assertEqual(len(stats["admin_wheel_decisions"]), 1)
+        for source in ("official", "collector"):
+            self.assertEqual(stats["sources"][source]["quality_score"], 40)
+
+        repeated = admin_action_v3.apply_action_v3(
+            state,
+            {"sources": {}},
+            stats,
+            "confirm_finished_global",
+            "wheel-a|admin",
+        )
+        self.assertFalse(repeated["state_changed"])
+        self.assertFalse(repeated["stats_changed"])
+        self.assertEqual(len(stats["admin_wheel_decisions"]), 1)
+        for source in ("official", "collector"):
+            self.assertEqual(stats["sources"][source]["quality_score"], 40)
 
     def test_inactive_reverses_only_the_current_event_confirmation(self) -> None:
         stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
