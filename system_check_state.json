@@ -1,9 +1,9 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-07-15T12:18:55.326730+00:00",
-    "started_at": "2026-07-15T11:12:28.130228+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-15T12:22:05.987940+00:00",
+    "started_at": "2026-07-15T12:22:02.975508+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 37
@@ -32,26 +32,26 @@
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-15T12:21:47.567644+00:00",
+  "checked_at": "2026-07-15T12:22:19.997048+00:00",
   "discovery": {
     "active_size": 72,
-    "candidate_count": 177,
+    "candidate_count": 181,
     "catalog_size": 0,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-15T09:38:46.191684+00:00",
+    "discovery_last_run_at": "2026-07-15T12:21:47.903612+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-15T09:38:55.277739+00:00",
+    "intelligence_last_run_at": "2026-07-15T12:21:54.956759+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
       "known_sources": 72,
-      "references_found": 217,
+      "references_found": 224,
       "sources_scanned": 72,
       "strong_candidates": 0,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 122,
+      "unique_candidates": 128,
       "verified_candidates": 60,
       "workers": 12
     }
@@ -73,7 +73,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-15T12:18:55.326730+00:00",
+    "bot_panel_heartbeat": "2026-07-15T12:22:05.987940+00:00",
     "checked_sources": 72,
     "configured_sources": 72,
     "domain": "telegram.me",
@@ -127,7 +127,7 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 5,
+  "monitor_age_minutes": 6,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
