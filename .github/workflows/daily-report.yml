@@ -50,7 +50,7 @@ jobs:
 
       - name: Check BB V.G. summary code
         run: |
-          python -m py_compile monitor.py monitor_data.py daily_report.py daily_report_entry.py notification_router.py
+          python -m py_compile monitor.py monitor_data.py daily_report.py daily_report_entry.py notification_router.py bot_private_state.py bot_notification_state.py privacy_retention.py
           python -c "import daily_report; daily_report.self_test()"
           python notification_router.py
           python -m json.tool partners_catalog.json >/dev/null
@@ -59,6 +59,7 @@ jobs:
       - name: Send BB V.G. summary
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           DISPLAY_TIMEZONE: Asia/Barnaul
           REPORT_PERIOD: ${{ github.event_name == 'workflow_dispatch' && inputs.period || 'daily' }}

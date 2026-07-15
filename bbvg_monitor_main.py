@@ -6,6 +6,7 @@ from typing import Any
 import bbvg_monitor_runtime as runtime
 import bot_notification_state
 import notification_navigation
+import notification_preferences_v2
 import notification_router
 import personal_reminder_filter
 import rating_policy
@@ -19,6 +20,7 @@ import wheel_publications_v2
 
 monitor = runtime.monitor
 notification_router.load_config = bot_notification_state.load_config
+notification_preferences_v2.install(notification_router)
 recurring_wheel_events.install(monitor, runtime.base_runtime)
 telegram_transport.install(monitor)
 telegram_post_links_v2.install(monitor)

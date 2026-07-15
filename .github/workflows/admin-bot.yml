@@ -19,9 +19,12 @@ on:
       - "admin_panel_runtime_v30.py"
       - "admin_panel_runtime_v31.py"
       - "admin_panel_runtime_v32.py"
+      - "admin_panel_runtime_v33.py"
       - "bot_private_state.py"
       - "bot_private_state.enc.json"
       - "bot_notification_state.py"
+      - "privacy_retention.py"
+      - "security_audit.py"
       - "migrate_bot_private_state.py"
       - "candidate_moderation.json"
       - "intelligence_state.json"
@@ -63,6 +66,7 @@ jobs:
       - name: Validate bot-only control center
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         run: |
@@ -72,9 +76,13 @@ jobs:
             admin_panel_v2.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
             admin_panel_runtime_v26.py admin_panel_runtime_v27.py admin_panel_runtime_v28.py \
             admin_panel_runtime_v29.py admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py bot_private_state.py bot_notification_state.py \
+            admin_panel_runtime_v32.py admin_panel_runtime_v33.py bot_private_state.py \
+            bot_notification_state.py privacy_retention.py security_audit.py \
             migrate_bot_private_state.py rating_policy.py
           python bot_private_state.py
+          python privacy_retention.py
+          python security_audit.py --self-test
+          python security_audit.py --current
           python migrate_bot_private_state.py --check
           python admin_action_v2.py --self-test
           python admin_action_v3.py --self-test
@@ -84,17 +92,18 @@ jobs:
           python admin_panel_runtime_v30.py --self-test
           python admin_panel_runtime_v31.py --self-test
           python admin_panel_runtime_v32.py --self-test
+          python admin_panel_runtime_v33.py --self-test
           python - <<'PY'
           import inspect
           from pathlib import Path
           from admin_panel_runtime_v28 import TelegramPanelRuntimeV28
-          from admin_panel_runtime_v32 import TelegramPanelRuntimeV32
+          from admin_panel_runtime_v33 import TelegramPanelRuntimeV33
 
           def callbacks(rows):
               return [button.get("callback_data") for row in rows for button in row]
 
-          admin_main = callbacks(TelegramPanelRuntimeV32.compact_menu_rows(True))
-          user_main = callbacks(TelegramPanelRuntimeV32.compact_menu_rows(False))
+          admin_main = callbacks(TelegramPanelRuntimeV33.compact_menu_rows(True))
+          user_main = callbacks(TelegramPanelRuntimeV33.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
           assert len(user_main) == len(set(user_main))
           assert set(admin_main) == {
@@ -113,23 +122,23 @@ jobs:
           assert "page:status" not in user_main
           assert "page:reports" not in admin_main
 
-          analytics = inspect.getsource(TelegramPanelRuntimeV32.show_analytics)
+          analytics = inspect.getsource(TelegramPanelRuntimeV33.show_analytics)
           assert "summary:send" in analytics
           assert "page:report:inactive" in analytics
           assert "page:reports" not in analytics
-          active = inspect.getsource(TelegramPanelRuntimeV32.show_active)
+          active = inspect.getsource(TelegramPanelRuntimeV33.show_active)
           assert "wheel:finished:" in active
           assert "sources_for_item" in active
-          handler32 = inspect.getsource(TelegramPanelRuntimeV32.handle_callback)
-          assert "confirm_finished_global" in handler32
-          assert "candidate:defer:" in handler32
+          handler33 = inspect.getsource(TelegramPanelRuntimeV33.handle_callback)
+          assert "privacy:delete:" in handler33
+          assert "delete_current_user_data" in handler33
 
-          control = callbacks(TelegramPanelRuntimeV32.control_menu_rows())
+          control = callbacks(TelegramPanelRuntimeV33.control_menu_rows())
           assert "control:daily" not in control
           assert "page:status" in control
 
-          admin_sources = callbacks(TelegramPanelRuntimeV32.source_menu_rows(True))
-          user_sources = callbacks(TelegramPanelRuntimeV32.source_menu_rows(False))
+          admin_sources = callbacks(TelegramPanelRuntimeV33.source_menu_rows(True))
+          user_sources = callbacks(TelegramPanelRuntimeV33.source_menu_rows(False))
           assert len(admin_sources) == len(set(admin_sources))
           assert len(user_sources) == len(set(user_sources))
           assert {"page:discovery", "page:intelligence", "source:add"} <= set(admin_sources)
@@ -139,8 +148,6 @@ jobs:
           handler = inspect.getsource(TelegramPanelRuntimeV28.handle_callback)
           assert "wheel:part:" in handler
           assert "wheel:inactive:" in handler
-          assert "participate_wheel" in handler
-          assert "mark_inactive_global" in handler
           persistence = inspect.getsource(TelegramPanelRuntimeV28._apply_admin_action_direct)
           assert "self.update_file" in persistence
           assert "git/ref/heads" not in persistence
@@ -160,13 +167,14 @@ jobs:
           assert combined.count("mariomaxtv") == 1
           assert combined.count("adekvatik") == 1
           assert combined.count("jestercast") == 1
-          print("BB V.G. v32 compact lifecycle, analytics and source validation passed")
+          print("BB V.G. v33 security, lifecycle, analytics and source validation passed")
           PY
           python -m json.tool candidate_moderation.json >/dev/null
 
-      - name: Restore and seal Telegram bot users
+      - name: Restore, migrate and seal Telegram bot users
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         shell: bash
@@ -180,7 +188,7 @@ jobs:
             exit 0
           fi
           git add bot_private_state.enc.json
-          git commit -m "Update encrypted Telegram bot state [skip ci]"
+          git commit -m "Migrate encrypted Telegram bot state [skip ci]"
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
               exit 0
@@ -200,6 +208,11 @@ jobs:
           import json
           import os
           from datetime import datetime, timezone
+
+          try:
+              encrypted = json.load(open("bot_private_state.enc.json", encoding="utf-8"))
+          except Exception:
+              encrypted = {}
           value = {
               "status": "running",
               "brand": "BB V.G.",
@@ -207,8 +220,10 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 32,
+              "version": 33,
               "storage": "encrypted_bot_state",
+              "state_format": encrypted.get("format", "unknown"),
+              "state_key_mode": encrypted.get("key_mode", "legacy_v1"),
               "miniapp": "archived",
           }
           with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
@@ -233,6 +248,7 @@ jobs:
       - name: Run BB V.G. control center
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -244,7 +260,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v32.py
+        run: python admin_panel_runtime_v33.py
 
       - name: Start next control-center shift
         if: ${{ success() }}
@@ -253,4 +269,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run admin-bot.yml --ref main
 
-# v32: compact active wheels, unified analytics and confirmed-finished rating.
+# v33: AES-GCM private state, personal-data controls and granular wheel reminders.

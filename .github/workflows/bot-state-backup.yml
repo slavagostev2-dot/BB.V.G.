@@ -1,0 +1,78 @@
+name: Backup encrypted bot state
+run-name: Backup encrypted bot state — ${{ github.event_name }}
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "42 2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bb-vg-bot-state-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Verify encrypted state before backup
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
+          BOT_STATE_PREVIOUS_KEY: ${{ secrets.BOT_STATE_PREVIOUS_KEY }}
+          BOT_STATE_LEGACY_KEY: ${{ secrets.BOT_STATE_LEGACY_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import bot_private_state
+
+          text = bot_private_state.STATE_PATH.read_text(encoding="utf-8")
+          value = bot_private_state.unseal(text)
+          access = value.get("access") if isinstance(value.get("access"), dict) else {}
+          users = access.get("users") if isinstance(access.get("users"), dict) else {}
+          assert access.get("owner_id"), "Encrypted state has no owner"
+          assert users, "Encrypted state has no users"
+          metadata = {
+              "format": bot_private_state.state_format(text),
+              "key_mode": bot_private_state.state_key_mode(text),
+              "verified": True,
+              "user_count": len(users),
+          }
+          with open("bot_state_backup_metadata.json", "w", encoding="utf-8") as stream:
+              json.dump(metadata, stream, ensure_ascii=False, indent=2, sort_keys=True)
+              stream.write("\n")
+          print(
+              "Verified encrypted state backup: "
+              f"format={metadata['format']}, key_mode={metadata['key_mode']}, users={len(users)}"
+          )
+          PY
+
+      - name: Upload verified encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbvg-encrypted-state-${{ github.run_id }}
+          path: |
+            bot_private_state.enc.json
+            bot_state_backup_metadata.json
+          if-no-files-found: error
+          retention-days: 30

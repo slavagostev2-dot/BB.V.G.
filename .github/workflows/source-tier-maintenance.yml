@@ -30,17 +30,22 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
       - name: Check maintenance script
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
         run: |
-          python -m py_compile source_tier_maintenance.py source_tier_maintenance_v2.py bot_private_state.py bot_notification_state.py
+          python -m py_compile source_tier_maintenance.py source_tier_maintenance_v2.py bot_private_state.py bot_notification_state.py privacy_retention.py
           python source_tier_maintenance_v2.py --self-test
 
       - name: Move seven-day inactive sources to nightly monitoring
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           SOURCE_AUTO_DEMOTION_DAYS: "7"
           SOURCE_AUTO_DEMOTION_MIN_COVERAGE_DAYS: "6"

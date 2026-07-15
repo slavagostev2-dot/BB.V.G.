@@ -7,6 +7,10 @@ on:
       - "nightly_discovery.py"
       - "nightly_discovery_entry.py"
       - "telegram_transport.py"
+      - "bot_private_state.py"
+      - "bot_private_state.enc.json"
+      - "bot_notification_state.py"
+      - "privacy_retention.py"
       - "public_sources.txt"
       - "source_catalog.txt"
       - ".github/workflows/nightly-discovery.yml"
@@ -49,7 +53,7 @@ jobs:
         env:
           TELEGRAM_WEB_DOMAIN: telegram.me
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py telegram_transport.py daily_report.py notification_router.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py telegram_transport.py daily_report.py notification_router.py bot_private_state.py bot_notification_state.py privacy_retention.py
           python telegram_transport.py
           python notification_router.py
           python -m json.tool bot_access.json >/dev/null
@@ -58,6 +62,7 @@ jobs:
       - name: Scan candidate source catalog
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           TELEGRAM_WEB_DOMAIN: telegram.me
           EXPECTED_SOURCE_COUNT: "66"

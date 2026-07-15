@@ -1,0 +1,106 @@
+name: Rotate encrypted bot state key
+run-name: Rotate encrypted bot state key
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bb-vg-bot-state-key-rotation
+  cancel-in-progress: false
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
+      BOT_STATE_PREVIOUS_KEY: ${{ secrets.BOT_STATE_PREVIOUS_KEY }}
+      BOT_STATE_LEGACY_KEY: ${{ secrets.BOT_STATE_LEGACY_KEY }}
+      BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+      ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate rotation secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${BOT_STATE_KEY:-}" ]] || {
+            echo "BOT_STATE_KEY is required for the new encryption key."
+            exit 1
+          }
+          [[ -n "${BOT_STATE_PREVIOUS_KEY:-}" || -n "${BOT_STATE_LEGACY_KEY:-}" || -n "${BOT_TOKEN:-}" ]] || {
+            echo "A previous/legacy key is required to decrypt the current state."
+            exit 1
+          }
+
+      - name: Preserve pre-rotation ciphertext
+        run: cp bot_private_state.enc.json bot_private_state.before-rotation.enc.json
+
+      - name: Rotate and verify encrypted state
+        run: |
+          set -euo pipefail
+          python migrate_bot_private_state.py --force --require-v2
+          python - <<'PY'
+          import bot_private_state
+          text = bot_private_state.STATE_PATH.read_text(encoding="utf-8")
+          value = bot_private_state.unseal(text)
+          access = value.get("access") if isinstance(value.get("access"), dict) else {}
+          assert access.get("owner_id") and access.get("users")
+          assert bot_private_state.state_format(text) == bot_private_state.FORMAT_V2
+          assert bot_private_state.state_key_mode(text) == "dedicated"
+          print(f"Rotated state verified: users={len(access['users'])}")
+          PY
+
+      - name: Upload pre-rotation encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbvg-pre-key-rotation-${{ github.run_id }}
+          path: bot_private_state.before-rotation.enc.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit rotated ciphertext
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bot_private_state.enc.json
+          git commit -m "Rotate encrypted bot state key [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || {
+              git rebase --abort || true
+              exit 1
+            }
+          done
+          exit 1
+
+      - name: Restart bot and monitor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run admin-bot.yml --ref main
+          gh workflow run monitor.yml --ref main -f continuous=true -f replace=true

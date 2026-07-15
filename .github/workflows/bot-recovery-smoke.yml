@@ -14,8 +14,10 @@ jobs:
     timeout-minutes: 15
     env:
       BOT_TOKEN: "test-bot-token"
+      BOT_STATE_KEY: "test-state-key"
       BOT_CHAT_ID: "1"
       ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
       TELEGRAM_WEB_DOMAIN: telegram.me
       EXPECTED_SOURCE_COUNT: "66"
       FINAL_REMINDER_BEFORE_MINUTES: "5"
@@ -38,13 +40,19 @@ jobs:
             admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-            bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
+            admin_panel_runtime_v33.py bot_private_state.py bot_notification_state.py \
+            privacy_retention.py security_audit.py test_bot_state_fixture.py \
+            migrate_bot_private_state.py notification_preferences_v2.py \
             admin_action_v2.py admin_action_v3.py rating_policy.py bbvg_monitor_main.py \
             recurring_wheel_events.py wheel_metadata_quality.py wheel_publications_v2.py \
             wheel_lifecycle_v2.py personal_reminder_filter.py daily_report.py \
             source_intelligence_alerts.py system_checks_v2.py source_tier_maintenance_v2.py
           python bot_private_state.py
+          python privacy_retention.py
+          python security_audit.py --current
           python migrate_bot_private_state.py --check
+          python notification_preferences_v2.py
+          python test_bot_state_fixture.py
           python admin_panel_runtime_v25.py --self-test
           python admin_panel_runtime_v26.py --self-test
           python admin_panel_runtime_v28.py --self-test
@@ -52,6 +60,7 @@ jobs:
           python admin_panel_runtime_v30.py --self-test
           python admin_panel_runtime_v31.py --self-test
           python admin_panel_runtime_v32.py --self-test
+          python admin_panel_runtime_v33.py --self-test
           python recurring_wheel_events.py
           python wheel_metadata_quality.py
           python wheel_publications_v2.py
@@ -70,6 +79,7 @@ jobs:
           import admin_panel_runtime_v30
           import admin_panel_runtime_v31
           import admin_panel_runtime_v32
+          import admin_panel_runtime_v33
           import bbvg_monitor_main
           import bot_notification_state
           import notification_router
@@ -79,7 +89,9 @@ jobs:
           assert admin_panel_runtime_v30.TelegramPanelRuntimeV30.__mro__[1].__name__ == "TelegramPanelRuntimeV29"
           assert admin_panel_runtime_v31.TelegramPanelRuntimeV31.__mro__[1].__name__ == "TelegramPanelRuntimeV30"
           assert admin_panel_runtime_v32.TelegramPanelRuntimeV32.__mro__[1].__name__ == "TelegramPanelRuntimeV31"
+          assert admin_panel_runtime_v33.TelegramPanelRuntimeV33.__mro__[1].__name__ == "TelegramPanelRuntimeV32"
           assert notification_router.load_config is bot_notification_state.load_config
+          assert notification_router._bbvg_notification_preferences_v2_installed is True
           assert bbvg_monitor_main.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
           assert bbvg_monitor_main.monitor._bbvg_wheel_metadata_quality_installed is True
           assert bbvg_monitor_main.monitor._bbvg_publication_merge_v2_installed is True
@@ -89,7 +101,7 @@ jobs:
           def callbacks(rows):
               return [button.get("callback_data") for row in rows for button in row]
 
-          panel = admin_panel_runtime_v32.TelegramPanelRuntimeV32
+          panel = admin_panel_runtime_v33.TelegramPanelRuntimeV33
           admin_main = callbacks(panel.compact_menu_rows(True))
           user_main = callbacks(panel.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
@@ -98,13 +110,15 @@ jobs:
           assert "page:settings" in user_main
           assert "page:status" not in user_main
           assert "page:reports" not in admin_main
-
           assert "control:daily" not in callbacks(panel.control_menu_rows())
           assert callbacks(panel.summary_send_rows()) == [
               "summary:send:daily",
               "summary:send:weekly",
               "summary:send:monthly",
           ]
+          assert {key for key, _, _ in admin_panel_runtime_v33.WHEEL_NOTIFICATION_OPTIONS} == {
+              "wheels", "wheel_final_reminders", "wheel_draw_alerts"
+          }
 
           admin_sources = callbacks(panel.source_menu_rows(True))
           user_sources = callbacks(panel.source_menu_rows(False))
@@ -125,5 +139,5 @@ jobs:
           combined = [value.casefold() for value in primary + nightly]
           assert len(combined) == len(set(combined))
           assert {"mariomaxtv", "adekvatik", "jestercast"} <= set(combined)
-          print("Bot recovery v32 lifecycle smoke test passed")
+          print("Bot recovery v33 security and reminder smoke test passed")
           PY

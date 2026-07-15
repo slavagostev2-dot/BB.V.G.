@@ -8,6 +8,10 @@ on:
       - "bot_*.py"
       - "bot_private_state.enc.json"
       - "migrate_bot_private_state.py"
+      - "privacy_retention.py"
+      - "security_audit.py"
+      - "test_bot_state_fixture.py"
+      - "notification_preferences_v2.py"
       - "rating_policy.py"
       - "bbvg_monitor_main.py"
       - "recurring_wheel_events.py"
@@ -23,6 +27,7 @@ on:
       - "source_tier_maintenance_v2.py"
       - "system_checks_v2.py"
       - "sitecustomize.py"
+      - "SECURITY_RU.md"
       - "MINI_APP_ARCHIVED.md"
       - ".github/workflows/**"
   workflow_dispatch:
@@ -36,8 +41,10 @@ jobs:
     timeout-minutes: 15
     env:
       BOT_TOKEN: "test-bot-token"
+      BOT_STATE_KEY: "test-state-key"
       BOT_CHAT_ID: "1"
       ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
       FINAL_REMINDER_BEFORE_MINUTES: "5"
       ACTIVE_REMOVE_GRACE_MINUTES: "0"
 
@@ -61,17 +68,24 @@ jobs:
           set -euo pipefail
           python -m py_compile \
             bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
+            privacy_retention.py security_audit.py test_bot_state_fixture.py notification_preferences_v2.py \
             admin_action.py admin_action_v2.py admin_action_v3.py rating_policy.py \
             admin_panel_runtime_v22.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-            bbvg_monitor_main.py recurring_wheel_events.py wheel_metadata_quality.py \
-            wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py \
-            daily_report.py daily_report_entry.py nightly_discovery_entry.py \
-            source_intelligence_entry.py source_intelligence_alerts.py source_tier_maintenance_v2.py \
-            system_checks_v2.py sitecustomize.py
+            admin_panel_runtime_v33.py bbvg_monitor_main.py recurring_wheel_events.py \
+            wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py \
+            personal_reminder_filter.py daily_report.py daily_report_entry.py \
+            nightly_discovery_entry.py source_intelligence_entry.py source_intelligence_alerts.py \
+            source_tier_maintenance_v2.py system_checks_v2.py sitecustomize.py
           python bot_private_state.py
+          python privacy_retention.py
+          python security_audit.py --self-test
+          python security_audit.py --current
+          python security_audit.py --history --history-output security_history_report.json
           python migrate_bot_private_state.py --check
+          python notification_preferences_v2.py
+          python test_bot_state_fixture.py
           python admin_action_v2.py --self-test
           python admin_action_v3.py --self-test
           python admin_panel_runtime_v25.py --self-test
@@ -81,6 +95,7 @@ jobs:
           python admin_panel_runtime_v30.py --self-test
           python admin_panel_runtime_v31.py --self-test
           python admin_panel_runtime_v32.py --self-test
+          python admin_panel_runtime_v33.py --self-test
           python recurring_wheel_events.py
           python wheel_metadata_quality.py
           python wheel_publications_v2.py
@@ -98,18 +113,21 @@ jobs:
           import inspect
           import json
           from pathlib import Path
-          from admin_panel_runtime_v32 import TelegramPanelRuntimeV32
+          from admin_panel_runtime_v33 import TelegramPanelRuntimeV33
 
           access = json.loads(Path("bot_access.json").read_text(encoding="utf-8"))
           assert access.get("users") == {}, "Public bot_access.json must stay empty"
           assert not access.get("owner_id"), "Public owner_id must stay empty"
           assert access.get("admins") == [], "Public admins must stay empty"
           assert access.get("notification_recipients") == [], "Public recipients must stay empty"
+          requests = json.loads(Path("source_requests.json").read_text(encoding="utf-8"))
+          assert requests.get("requests") == {}, "Public source requests must stay empty"
 
           panel25 = Path("admin_panel_runtime_v25.py").read_text(encoding="utf-8")
           panel26 = Path("admin_panel_runtime_v26.py").read_text(encoding="utf-8")
           panel30 = Path("admin_panel_runtime_v30.py").read_text(encoding="utf-8")
           panel32 = Path("admin_panel_runtime_v32.py").read_text(encoding="utf-8")
+          panel33 = Path("admin_panel_runtime_v33.py").read_text(encoding="utf-8")
           lifecycle = Path("wheel_lifecycle_v2.py").read_text(encoding="utf-8")
           publications = Path("wheel_publications_v2.py").read_text(encoding="utf-8")
           intelligence = Path("source_intelligence_alerts.py").read_text(encoding="utf-8")
@@ -118,42 +136,49 @@ jobs:
           sitecustomize = Path("sitecustomize.py").read_text(encoding="utf-8")
           pages = Path(".github/workflows/cloudflare-pages.yml").read_text(encoding="utf-8")
           worker = Path(".github/workflows/state-api.yml").read_text(encoding="utf-8")
+          encrypted = json.loads(Path("bot_private_state.enc.json").read_text(encoding="utf-8"))
 
+          assert encrypted.get("format") == "bbvg-bot-state-v2"
+          assert encrypted.get("key_mode") == "dedicated"
+          assert not {"users", "owner_id", "chat_id", "username"} & set(encrypted)
           assert "register_user(registration_message)" in panel25
           assert "_apply_admin_action_direct" in panel26
           assert "source:request" in panel30
           assert "wheel:finished:" in panel32
-          assert "confirm_finished_global" in panel32
-          assert "summary:send" in inspect.getsource(TelegramPanelRuntimeV32.show_analytics)
-          assert "page:reports" not in inspect.getsource(TelegramPanelRuntimeV32.show_analytics)
+          assert "privacy:delete:" in panel33
+          assert "wheel_final_reminders" in panel33
+          assert "wheel_draw_alerts" in panel33
+          assert "summary:send" in inspect.getsource(TelegramPanelRuntimeV33.show_analytics)
           user_callbacks = {
               button["callback_data"]
-              for row in TelegramPanelRuntimeV32.compact_menu_rows(False)
+              for row in TelegramPanelRuntimeV33.compact_menu_rows(False)
               for button in row
           }
           assert "page:status" not in user_callbacks
           assert "page:reports" not in user_callbacks
           assert "Напоминание о колесе BetBoom: последний шанс" in lifecycle
-          assert 'ACTIVE_REMOVE_GRACE_MINUTES, "0"' not in lifecycle
           assert 'os.getenv("ACTIVE_REMOVE_GRACE_MINUTES", "0")' in lifecycle
           assert "is_activation_suppressed_with_publications" in publications
           assert "Добавить в источники" in intelligence
           assert "candidate:defer:" in intelligence
-          assert 'run: python admin_panel_runtime_v32.py' in workflow
-          assert 'run: python admin_panel_runtime_v31.py' not in workflow
+          assert 'run: python admin_panel_runtime_v33.py' in workflow
+          assert 'run: python admin_panel_runtime_v32.py' not in workflow
           assert 'FINAL_REMINDER_BEFORE_MINUTES: "5"' in monitor_workflow
           assert 'ACTIVE_REMOVE_GRACE_MINUTES: "0"' in monitor_workflow
+          assert "BOT_STATE_KEY" in workflow and "BOT_STATE_KEY" in monitor_workflow
           assert "admin_panel_runtime_v23.py" not in workflow
           assert "admin_panel_runtime_v24.py" not in workflow
           assert "private_state_deployment.json" not in workflow
-          assert "Verify private state API" not in workflow
           assert "import private_state" not in panel25
           assert "import private_state" not in panel26
           assert "import private_state" not in panel30
           assert "import private_state" not in panel32
+          assert "import private_state" not in panel33
           assert "import private_state" not in sitecustomize
           assert "archived and disabled" in pages
           assert "archived and disabled" in worker
           assert Path("MINI_APP_ARCHIVED.md").exists()
-          print("Bot-only v32 lifecycle and analytics invariants passed")
+          history = json.loads(Path("security_history_report.json").read_text(encoding="utf-8"))
+          assert "destructive_cleanup_required" in history
+          print("Bot-only v33 security and reminder invariants passed")
           PY

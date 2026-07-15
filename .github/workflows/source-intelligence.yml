@@ -10,6 +10,10 @@ on:
       - "source_intelligence_alerts.py"
       - "nightly_discovery.py"
       - "telegram_transport.py"
+      - "bot_private_state.py"
+      - "bot_private_state.enc.json"
+      - "bot_notification_state.py"
+      - "privacy_retention.py"
       - ".github/workflows/source-intelligence.yml"
   workflow_dispatch:
   schedule:
@@ -45,7 +49,7 @@ jobs:
 
       - name: Check intelligence module
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py telegram_transport.py notification_router.py bot_notification_state.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py telegram_transport.py notification_router.py bot_notification_state.py bot_private_state.py privacy_retention.py
           python telegram_transport.py
           python source_intelligence_alerts.py
           python self_test.py
@@ -53,6 +57,7 @@ jobs:
       - name: Scan Telegram source network
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           TELEGRAM_WEB_DOMAIN: telegram.me
           DISPLAY_TIMEZONE: Asia/Barnaul

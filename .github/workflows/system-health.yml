@@ -13,11 +13,13 @@ on:
       - "bot_notification_state.py"
       - "bot_private_state.py"
       - "bot_private_state.enc.json"
+      - "privacy_retention.py"
       - "monitor_data.py"
       - "source_intelligence.py"
       - "nightly_discovery.py"
       - "source_transport_state.json"
       - "admin_panel_runtime_v25.py"
+      - "admin_panel_runtime_v33.py"
       - "public_sources.txt"
       - "source_catalog.txt"
       - "partners_catalog.json"
@@ -67,11 +69,12 @@ jobs:
       - name: Validate bot-only health modules
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           TELEGRAM_WEB_DOMAIN: telegram.me
           EXPECTED_SOURCE_COUNT: "66"
         run: |
-          python -m py_compile system_checks.py system_checks_v2.py incident_manager.py telegram_transport.py notification_router.py bot_notification_state.py bot_private_state.py monitor.py monitor_data.py
+          python -m py_compile system_checks.py system_checks_v2.py incident_manager.py telegram_transport.py notification_router.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor.py monitor_data.py
           python telegram_transport.py
           python incident_manager.py
           python system_checks_v2.py --self-test
@@ -79,6 +82,7 @@ jobs:
       - name: Run centralized bot checks
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           TELEGRAM_WEB_DOMAIN: telegram.me
           EXPECTED_SOURCE_COUNT: "66"
