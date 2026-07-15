@@ -254,7 +254,8 @@ def self_test() -> None:
         }
     )
     panel._bot_bundle = bot_private_state.default_bundle(access, default_source_requests())
-    panel.load_access(force=True)
+    panel._load_bot_bundle = lambda force=False: panel._bot_bundle  # type: ignore[method-assign]
+    panel.load_access()
     panel.current_user_id = "2"
     panel.current_chat_id = "2"
     panel.current_role = "user"
