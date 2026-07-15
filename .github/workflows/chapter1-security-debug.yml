@@ -16,6 +16,7 @@ jobs:
       BOT_STATE_KEY: "test-state-key"
       BOT_CHAT_ID: "1"
       ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
       FINAL_REMINDER_BEFORE_MINUTES: "5"
       ACTIVE_REMOVE_GRACE_MINUTES: "0"
 
@@ -31,7 +32,7 @@ jobs:
       - name: Compile modules
         run: |
           python -m py_compile \
-            bot_private_state.py privacy_retention.py security_audit.py \
+            bot_private_state.py privacy_retention.py security_audit.py test_bot_state_fixture.py \
             migrate_bot_private_state.py notification_preferences_v2.py \
             admin_panel_runtime_v25.py admin_panel_runtime_v26.py admin_panel_runtime_v28.py \
             admin_panel_runtime_v29.py admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
@@ -45,6 +46,8 @@ jobs:
           python security_audit.py --history --history-output security_history_report.json
           python migrate_bot_private_state.py --check
           python notification_preferences_v2.py
+      - name: Install isolated CI state
+        run: python test_bot_state_fixture.py
       - name: Panel v25 test
         run: python admin_panel_runtime_v25.py --self-test
       - name: Panel v26 test
