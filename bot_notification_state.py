@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 import bot_private_state
@@ -67,10 +69,14 @@ def admin_recipients() -> list[str]:
 def self_test() -> None:
     original = bot_private_state.STATE_PATH
     try:
-        access, exists = load_config()
-        assert isinstance(access, dict)
-        assert isinstance(exists, bool)
-        assert notification_router._bbvg_notification_integrity_v2_installed is True
+        with TemporaryDirectory() as temporary:
+            # A unit test must never try to decrypt the real production bundle
+            # with a synthetic CI key.
+            bot_private_state.STATE_PATH = Path(temporary) / "missing-state.enc.json"
+            access, exists = load_config()
+            assert isinstance(access, dict)
+            assert isinstance(exists, bool)
+            assert notification_router._bbvg_notification_integrity_v2_installed is True
     finally:
         bot_private_state.STATE_PATH = original
     print("BB V.G. bot notification state self-test passed")
