@@ -51,7 +51,7 @@ jobs:
             admin_panel_runtime_v25.py admin_panel_runtime_v26.py admin_panel_runtime_v28.py \
             admin_panel_runtime_v29.py admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
             admin_panel_runtime_v32.py admin_panel_runtime_v33.py admin_panel_runtime_v34.py \
-            admin_panel_runtime_v35.py admin_panel_runtime_v36.py
+            admin_panel_runtime_v35.py admin_panel_runtime_v36.py admin_panel_runtime_v37.py
           python source_registry.py --self-test
           python source_registry.py
           python bot_private_state.py
@@ -89,32 +89,34 @@ jobs:
           python admin_panel_runtime_v33.py --self-test
           python admin_panel_runtime_v35.py --self-test
           python admin_panel_runtime_v36.py --self-test
+          python admin_panel_runtime_v37.py --self-test
           python - <<'PY'
           import inspect
           import json
           import notification_router
           from pathlib import Path
-          from admin_panel_runtime_v36 import TelegramPanelRuntimeV36
+          from admin_panel_runtime_v34 import TelegramPanelRuntimeV34
+          from admin_panel_runtime_v37 import TelegramPanelRuntimeV37
 
           def callbacks(rows):
               return [button.get("callback_data") for row in rows for button in row]
 
-          admin_main = callbacks(TelegramPanelRuntimeV36.compact_menu_rows(True))
-          user_main = callbacks(TelegramPanelRuntimeV36.compact_menu_rows(False))
+          admin_main = callbacks(TelegramPanelRuntimeV37.compact_menu_rows(True))
+          user_main = callbacks(TelegramPanelRuntimeV37.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
           assert len(user_main) == len(set(user_main))
           assert "page:control" in admin_main
           assert "page:status" not in user_main
-          assert "usernotify:" in inspect.getsource(TelegramPanelRuntimeV36.handle_callback)
-          assert "usernotifyall:" in inspect.getsource(TelegramPanelRuntimeV36.handle_callback)
-          assert "_load_remote_bundle" in inspect.getsource(TelegramPanelRuntimeV36._save_bot_bundle)
-          assert "_merge_access" in inspect.getsource(TelegramPanelRuntimeV36._save_bot_bundle)
-          assert "access_signature" in inspect.getsource(TelegramPanelRuntimeV36.normalize_access)
-          assert "USER_ACTION_ERROR" in inspect.getsource(TelegramPanelRuntimeV36.safe_text_for_role)
+          assert "usernotify:" in inspect.getsource(TelegramPanelRuntimeV34.handle_callback)
+          assert "usernotifyall:" in inspect.getsource(TelegramPanelRuntimeV34.handle_callback)
+          assert "_load_remote_bundle" in inspect.getsource(TelegramPanelRuntimeV37._save_bot_bundle)
+          assert "_merge_access" in inspect.getsource(TelegramPanelRuntimeV37._save_bot_bundle)
+          assert "access_signature" in inspect.getsource(TelegramPanelRuntimeV37.normalize_access)
+          assert "USER_ACTION_ERROR" in inspect.getsource(TelegramPanelRuntimeV37.safe_text_for_role)
           assert notification_router._bbvg_notification_integrity_v2_installed is True
           ranking = [
               button["text"]
-              for row in TelegramPanelRuntimeV36.source_menu_rows(False)
+              for row in TelegramPanelRuntimeV37.source_menu_rows(False)
               for button in row
               if button.get("callback_data") == "page:ranking"
           ]
@@ -122,16 +124,17 @@ jobs:
           ledger = json.loads(Path("notification_delivery_state.json").read_text(encoding="utf-8"))
           assert ledger.get("format") == "bbvg-notification-delivery-v2"
           workflow = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
-          assert "run: python admin_panel_runtime_v36.py" in workflow
-          assert '"version": 36' in workflow
-          print("v36 chapter 2 roles, notifications and source rating validated")
+          assert "run: python admin_panel_runtime_v37.py" in workflow
+          assert '"version": 37' in workflow
+          assert "summary:send" not in inspect.getsource(TelegramPanelRuntimeV37.show_analytics)
+          print("v37 interface, roles and notification policy validated")
           PY
 
       - name: Validate production boundaries
         run: |
           set -euo pipefail
-          grep -q 'admin_panel_runtime_v36.py' .github/workflows/admin-bot.yml
-          grep -q 'run: python admin_panel_runtime_v36.py' .github/workflows/admin-bot.yml
+          grep -q 'admin_panel_runtime_v37.py' .github/workflows/admin-bot.yml
+          grep -q 'run: python admin_panel_runtime_v37.py' .github/workflows/admin-bot.yml
           ! grep -q 'run: python admin_panel_runtime_v35.py' .github/workflows/admin-bot.yml
           grep -q 'persistent_hmac_delivery_ledger' .github/workflows/admin-bot.yml
           grep -q 'notification_delivery_state.json' .github/workflows/monitor.yml

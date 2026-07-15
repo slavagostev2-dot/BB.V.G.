@@ -146,7 +146,7 @@ def preference_enabled(
         chat_id = str(record.get("chat_id") or user_id)
         return chat_id in legacy if legacy else bool(settings.get("wheel_notifications", True))
     if kind in {"daily_reports", "weekly_reports"}:
-        return admin and bool(settings.get(kind, True))
+        return False
     return admin
 
 
@@ -168,9 +168,9 @@ def recipients(config: dict[str, Any], config_exists: bool, category: str) -> li
     elif kind in USER_NOTIFICATION_KINDS:
         settings = config.get("settings") if isinstance(config.get("settings"), dict) else {}
         globally_enabled = (
-            user_notifications_enabled(config)
-            if kind == "wheels"
-            else bool(settings.get(kind, True))
+            False
+            if kind in {"daily_reports", "weekly_reports"}
+            else user_notifications_enabled(config)
         )
         if not globally_enabled:
             return []
@@ -397,6 +397,8 @@ def self_test() -> None:
     assert classify("⚠️ BB V.G. не смог проверить источник") == "admin"
     assert classify("⚠️ Ошибка в списке «Активные колёса»") == "admin"
     assert notification_kind("📊 Ежедневный отчёт BB V.G.") == "daily_reports"
+    assert recipients(config, True, "daily_reports") == []
+    assert recipients(config, True, "weekly_reports") == []
     assert notification_kind("📨 Запрос пользователя на добавление источника") == "admin_requests"
     key = delivery_key("1", "admin_system", "failure", None)
     assert not duplicate_delivery(key)

@@ -94,6 +94,24 @@ def wheel_markup_with_direct_key(state, message, link, **kwargs):
                 button["callback_data"] = f"bb:x:{key}"
             elif callback.startswith("bb:t:"):
                 button["callback_data"] = f"bb:t:{key}"
+    callbacks = {
+        str(button.get("callback_data") or "")
+        for row in markup.get("inline_keyboard", [])
+        for button in row
+        if isinstance(button, dict)
+    }
+    admin_actions: list[dict[str, str]] = []
+    if f"bb:t:{key}" not in callbacks:
+        admin_actions.append(
+            {"text": "⏱ Указать время", "callback_data": f"bb:t:{key}"}
+        )
+    if f"bb:x:{key}" not in callbacks:
+        admin_actions.append(
+            {"text": "🚫 Неактивное", "callback_data": f"bb:x:{key}"}
+        )
+    if admin_actions:
+        rows = markup.setdefault("inline_keyboard", [])
+        rows.insert(max(1, len(rows) - 1), admin_actions)
     return markup
 
 

@@ -274,8 +274,9 @@ def self_test() -> None:
             },
         }
     )
+    access["access_signature"] = panel._signature(access)
     panel._bot_bundle = bot_private_state.default_bundle(access, default_source_requests())
-    panel.load_access(force=True)
+    panel.load_access()
     saves: list[str] = []
     actions: list[tuple[str, str]] = []
     panel._save_bot_bundle = lambda message: saves.append(message) or True  # type: ignore[method-assign]

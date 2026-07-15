@@ -27,9 +27,7 @@ def build_fixture() -> dict:
                 "notification_preferences": {
                     "wheels": True,
                     "wheel_final_reminders": True,
-                    "wheel_draw_alerts": True,
-                    "daily_reports": True,
-                    "weekly_reports": True,
+                    "wheel_draw_alerts": False,
                     "admin_system": True,
                     "admin_sources": True,
                     "admin_requests": True,
@@ -49,9 +47,7 @@ def build_fixture() -> dict:
                 "notification_preferences": {
                     "wheels": True,
                     "wheel_final_reminders": True,
-                    "wheel_draw_alerts": True,
-                    "daily_reports": False,
-                    "weekly_reports": False,
+                    "wheel_draw_alerts": False,
                     "admin_system": False,
                     "admin_sources": False,
                     "admin_requests": False,
@@ -66,8 +62,9 @@ def build_fixture() -> dict:
             "public_panel": True,
             "notifications": True,
             "wheel_notifications": True,
-            "daily_reports": True,
-            "weekly_reports": True,
+            "daily_reports": False,
+            "weekly_reports": False,
+            "notification_policy_version": 1,
             "monitor_interval_minutes": 5,
         },
     }

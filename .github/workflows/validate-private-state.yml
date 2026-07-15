@@ -73,7 +73,8 @@ jobs:
             admin_panel_runtime_v26.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
             admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
-            admin_panel_runtime_v36.py bbvg_monitor_main.py recurring_wheel_events.py \
+            admin_panel_runtime_v36.py admin_panel_runtime_v37.py \
+            bbvg_monitor_main.py recurring_wheel_events.py \
             wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py \
             personal_reminder_filter.py daily_report.py source_intelligence_alerts.py \
             source_tier_maintenance_v2.py system_checks_v2.py sitecustomize.py
@@ -90,6 +91,7 @@ jobs:
           python admin_panel_runtime_v33.py --self-test
           python admin_panel_runtime_v35.py --self-test
           python admin_panel_runtime_v36.py --self-test
+          python admin_panel_runtime_v37.py --self-test
 
       - name: Validate privacy, role and delivery invariants
         run: |
@@ -98,7 +100,7 @@ jobs:
           import inspect
           import json
           from pathlib import Path
-          from admin_panel_runtime_v36 import TelegramPanelRuntimeV36
+          from admin_panel_runtime_v37 import TelegramPanelRuntimeV37
 
           access = json.loads(Path("bot_access.json").read_text(encoding="utf-8"))
           assert access.get("users") == {}
@@ -125,6 +127,7 @@ jobs:
           panel34 = Path("admin_panel_runtime_v34.py").read_text(encoding="utf-8")
           panel35 = Path("admin_panel_runtime_v35.py").read_text(encoding="utf-8")
           panel36 = Path("admin_panel_runtime_v36.py").read_text(encoding="utf-8")
+          panel37 = Path("admin_panel_runtime_v37.py").read_text(encoding="utf-8")
           workflow = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
           monitor_workflow = Path(".github/workflows/monitor.yml").read_text(encoding="utf-8")
           assert "_load_remote_bundle" in panel34
@@ -134,21 +137,23 @@ jobs:
           assert "result.pop" in panel35
           assert "USER_ACTION_ERROR" in panel36
           assert "Рейтинг источников" in panel36
-          assert "run: python admin_panel_runtime_v36.py" in workflow
+          assert "run: python admin_panel_runtime_v37.py" in workflow
           assert "Role fingerprint preserved during migration" in workflow
           assert "notification_delivery_state.json" in monitor_workflow
           assert "run: python admin_panel_runtime_v35.py" not in workflow
 
           user_callbacks = {
               button["callback_data"]
-              for row in TelegramPanelRuntimeV36.compact_menu_rows(False)
+              for row in TelegramPanelRuntimeV37.compact_menu_rows(False)
               for button in row
           }
           assert "page:status" not in user_callbacks
           assert "page:reports" not in user_callbacks
           assert "Управлять уведомлениями" in inspect.getsource(
-              TelegramPanelRuntimeV36.show_user_detail
+              TelegramPanelRuntimeV37.show_user_detail
           )
+          assert "summary:send" not in panel37.split("def show_analytics", 1)[1].split("def show_stats", 1)[0]
+          assert "wheel_draw_alerts" in panel37
 
           pages = Path(".github/workflows/cloudflare-pages.yml").read_text(encoding="utf-8")
           worker = Path(".github/workflows/state-api.yml").read_text(encoding="utf-8")
@@ -159,5 +164,5 @@ jobs:
 
           history = json.loads(Path("security_history_report.json").read_text(encoding="utf-8"))
           assert "destructive_cleanup_required" in history
-          print("Bot-only v36 chapter 2 privacy and notification invariants passed")
+          print("Bot-only v37 privacy, interface and notification invariants passed")
           PY

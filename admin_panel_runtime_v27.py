@@ -53,6 +53,7 @@ def self_test() -> None:
             },
         }
     )
+    access["access_signature"] = panel._signature(access)
     panel._bot_bundle = bot_private_state.default_bundle(
         access,
         default_source_requests(),

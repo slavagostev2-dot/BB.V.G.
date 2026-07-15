@@ -1083,7 +1083,7 @@ def active_wheels_text(state: dict) -> str:
         identifier = html.escape(identifier_raw)
         source = html.escape(str(entry.get("source") or "неизвестно"))
         deadline = parse_datetime(entry.get("deadline"))
-        timing = human_remaining(deadline) if deadline else "время не найдено"
+        timing = human_remaining(deadline) if deadline else "🔴 Время прокрутки неизвестно"
         participation = "✅ участвую" if is_participating(state, identifier_raw) else "❌ не отмечено"
         lines.append(
             f"{index}. <code>{identifier}</code> — {html.escape(timing)} — {participation}\n"
@@ -1653,6 +1653,11 @@ def notify_new_link(
     identifier_raw = wheel_identifier(link)
     identifier = html.escape(identifier_raw)
     published = message.date.astimezone(DISPLAY_TZ)
+    timing = (
+        f"⏳ До прокрутки: <b>{html.escape(human_remaining(deadline))}</b>"
+        if deadline
+        else "🔴 <b>Время прокрутки неизвестно</b>"
+    )
 
     send_message(
         "🎡 <b>Новое колесо BetBoom</b>\n\n"
@@ -1660,8 +1665,7 @@ def notify_new_link(
         f"@{html.escape(message.source)}</a>\n"
         f"Идентификатор: <code>{identifier}</code>\n"
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
-        f"⏳ До прокрутки: <b>{html.escape(human_remaining(deadline))}</b>\n"
-        f"Определение времени: {html.escape(method)}",
+        f"{timing}",
         reply_markup=(
             wheel_reply_markup(
                 state, message, link, active=False, status="preliminary",
@@ -1688,14 +1692,18 @@ def notify_activation(
     identifier_raw = wheel_identifier(link)
     identifier = html.escape(identifier_raw)
     published = message.date.astimezone(DISPLAY_TZ)
+    timing = (
+        f"⏳ До прокрутки: <b>{html.escape(human_remaining(deadline))}</b>"
+        if deadline
+        else "🔴 <b>Время прокрутки неизвестно</b>"
+    )
     send_message(
         "✅ <b>Колесо BetBoom стало активно</b>\n\n"
         f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
         f"@{html.escape(message.source)}</a>\n"
         f"Идентификатор: <code>{identifier}</code>\n"
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
-        f"⏳ До прокрутки: <b>{html.escape(human_remaining(deadline))}</b>\n"
-        f"Подтверждение: {html.escape(method)}",
+        f"{timing}",
         reply_markup=(
             wheel_reply_markup(
                 state, message, link, active=True, status="active",

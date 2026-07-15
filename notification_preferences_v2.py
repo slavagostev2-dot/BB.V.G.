@@ -38,6 +38,8 @@ def install(router_module: Any) -> None:
             raw = record.get("notification_preferences")
             if isinstance(raw, dict) and kind in raw:
                 return bool(raw[kind])
+            if kind == WHEEL_DRAW_ALERTS:
+                return False
             return original_preference(config, user_id, record, "wheels")
         return original_preference(config, user_id, record, kind)
 
@@ -70,7 +72,7 @@ def self_test() -> None:
             "2": {"chat_id": "20", "notifications_enabled": True},
         },
     }
-    assert notification_router.recipients(config, True, WHEEL_DRAW_ALERTS) == ["20"]
+    assert notification_router.recipients(config, True, WHEEL_DRAW_ALERTS) == []
     assert notification_router.recipients(config, True, WHEEL_FINAL_REMINDERS) == ["10", "20"]
     print("notification preferences v2 self-test passed")
 

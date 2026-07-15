@@ -1364,6 +1364,19 @@ class TelegramPanelV2(RuntimeAdminBot):
                     print(f"WARNING polling error: {type(exc).__name__}: {exc}")
                     time.sleep(2)
         finally:
+            if self.offset is not None:
+                try:
+                    self.telegram_api(
+                        "getUpdates",
+                        {
+                            "offset": self.offset,
+                            "timeout": 0,
+                            "limit": 1,
+                            "allowed_updates": ["message", "callback_query", "my_chat_member"],
+                        },
+                    )
+                except Exception as exc:
+                    print(f"WARNING final update acknowledgement: {type(exc).__name__}: {exc}")
             self.stop_refresh.set()
             self.refresh_requested.set()
         print("Telegram panel v2 shift completed normally.")

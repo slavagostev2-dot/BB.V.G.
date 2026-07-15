@@ -13,9 +13,6 @@ on:
           - daily
           - weekly
           - monthly
-  schedule:
-    # 01:12 UTC = 08:12 в Барнауле (UTC+7).
-    - cron: "12 1 * * *"
 
 permissions:
   contents: read
