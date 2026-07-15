@@ -49,12 +49,19 @@ jobs:
         run: python preflight.py
 
       - name: Check BB V.G. summary code
+        env:
+          BOT_TOKEN: "test-bot-token"
+          BOT_STATE_KEY: "test-state-key"
+          BOT_CHAT_ID: "1"
         run: |
-          python -m py_compile monitor.py monitor_data.py daily_report.py daily_report_entry.py notification_router.py bot_private_state.py bot_notification_state.py privacy_retention.py
+          python -m py_compile monitor.py monitor_data.py daily_report.py daily_report_entry.py notification_router.py notification_integrity_v2.py bot_private_state.py bot_notification_state.py privacy_retention.py
           python -c "import daily_report; daily_report.self_test()"
           python notification_router.py
+          python notification_integrity_v2.py --self-test
+          python bot_notification_state.py
           python -m json.tool partners_catalog.json >/dev/null
           python -m json.tool bot_access.json >/dev/null
+          python -m json.tool notification_delivery_state.json >/dev/null
 
       - name: Send BB V.G. summary
         env:
