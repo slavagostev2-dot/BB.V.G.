@@ -1,0 +1,29 @@
+name: v34 diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      BOT_TOKEN: test-bot-token
+      BOT_STATE_KEY: test-state-key
+      BOT_CHAT_ID: "1"
+      ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - name: Compile v34
+        run: python -m py_compile admin_panel_runtime_v34.py
+      - name: Run v34 self-test
+        run: python admin_panel_runtime_v34.py --self-test
