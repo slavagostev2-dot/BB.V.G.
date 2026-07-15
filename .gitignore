@@ -10,12 +10,26 @@ __pycache__/
 venv/
 env/
 
+# Secrets and authentication material
+.env
+.env.*
+!.env.example
+*.session
+*.pem
+*.p12
+*.pfx
+*.key
+id_rsa
+id_ed25519
+
 # Runtime logs and temporary files
 *.log
 *.tmp
 *.bak
 *.old
 *~
+security_history_report.json
+bot_private_state*.bak
 
 # Editors and operating systems
 .vscode/
