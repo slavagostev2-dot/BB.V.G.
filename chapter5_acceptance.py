@@ -25,9 +25,9 @@ def main() -> int:
     assert required <= transitions
     assert wheel_lifecycle_v2.FINAL_REMINDER_BEFORE_MINUTES == 5
     assert "rating_event_key" in inspect.getsource(admin_action_v3._original_apply_action)
-    assert "record_admin_wheel_decision" not in inspect.getsource(
-        admin_action_v3.confirm_finished_global
-    )
+    finished_source = inspect.getsource(admin_action_v3.confirm_finished_global)
+    assert "record_admin_wheel_decision" in finished_source
+    assert 'decision="confirmed"' in finished_source
     assert (ROOT / "tests/test_chapter5_lifecycle.py").exists()
     assert "Mini App, Worker и D1 остаются архивированными" in (
         ROOT / "CHAPTER_5_RU.md"
