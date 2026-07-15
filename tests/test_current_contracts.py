@@ -11,6 +11,7 @@ import admin_action_v3
 import admin_panel_runtime_v14
 import admin_panel_runtime_v34
 import admin_panel_runtime_v37
+import admin_panel_runtime_v38
 import bot_private_state
 import incident_manager
 import monitor_health
@@ -30,12 +31,13 @@ class CurrentProductionContractTests(unittest.TestCase):
         admin_action_v2.self_test()
         admin_action_v3.self_test()
 
-    def test_runtime_chain_contracts_used_by_v37(self) -> None:
+    def test_runtime_chain_contracts_used_by_v38(self) -> None:
         # v14 and v34 remain in the active inheritance chain until the later
         # cleanup chapter, so their assertions must not be silently skipped.
         admin_panel_runtime_v14.self_test()
         admin_panel_runtime_v34.self_test()
         admin_panel_runtime_v37.self_test()
+        admin_panel_runtime_v38.self_test()
 
     def test_encrypted_state_and_retention(self) -> None:
         bot_private_state.self_test()

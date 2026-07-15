@@ -41,7 +41,8 @@ jobs:
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
             admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
-            admin_panel_runtime_v36.py admin_panel_runtime_v37.py \
+            admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
+            telegram_ui.py chapter4_acceptance.py \
             bot_private_state.py bot_notification_state.py \
             notification_integrity_v2.py privacy_retention.py security_audit.py \
             chapter2_unified_logic.py \
@@ -70,6 +71,8 @@ jobs:
           python admin_panel_runtime_v35.py --self-test
           python admin_panel_runtime_v36.py --self-test
           python admin_panel_runtime_v37.py --self-test
+          python admin_panel_runtime_v38.py --self-test
+          python chapter4_acceptance.py
           python recurring_wheel_events.py
           python wheel_metadata_quality.py
           python wheel_publications_v2.py
@@ -94,6 +97,7 @@ jobs:
           import admin_panel_runtime_v35
           import admin_panel_runtime_v36
           import admin_panel_runtime_v37
+          import admin_panel_runtime_v38
           import bbvg_monitor_main
           import bot_notification_state
           import notification_router
@@ -108,6 +112,7 @@ jobs:
           assert admin_panel_runtime_v35.TelegramPanelRuntimeV35.__mro__[1].__name__ == "TelegramPanelRuntimeV34"
           assert admin_panel_runtime_v36.TelegramPanelRuntimeV36.__mro__[1].__name__ == "TelegramPanelRuntimeV35"
           assert admin_panel_runtime_v37.TelegramPanelRuntimeV37.__mro__[1].__name__ == "TelegramPanelRuntimeV36"
+          assert admin_panel_runtime_v38.TelegramPanelRuntimeV38.__mro__[1].__name__ == "TelegramPanelRuntimeV37"
           assert notification_router.load_config is bot_notification_state.load_config
           assert notification_router._bbvg_notification_preferences_v2_installed is True
           assert notification_router._bbvg_notification_integrity_v2_installed is True
@@ -120,14 +125,14 @@ jobs:
           def callbacks(rows):
               return [button.get("callback_data") for row in rows for button in row]
 
-          panel = admin_panel_runtime_v37.TelegramPanelRuntimeV37
+          panel = admin_panel_runtime_v38.TelegramPanelRuntimeV38
           admin_main = callbacks(panel.compact_menu_rows(True))
           user_main = callbacks(panel.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
           assert len(user_main) == len(set(user_main))
           assert "page:control" in admin_main
           assert "page:settings" in user_main
-          assert "page:status" not in user_main
+          assert "page:status" in user_main
           assert "page:reports" not in admin_main
           assert "control:daily" not in callbacks(panel.control_menu_rows())
           assert "summary:send" not in __import__("inspect").getsource(panel.show_analytics)
@@ -166,5 +171,5 @@ jobs:
           combined = [value.casefold() for value in primary + nightly]
           assert len(combined) == len(set(combined))
           assert {"mariomaxtv", "adekvatik", "jestercast"} <= set(combined)
-          print("Bot recovery v37 notification and interface smoke test passed")
+          print("Bot recovery v38 notification and interface smoke test passed")
           PY

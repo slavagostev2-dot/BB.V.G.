@@ -9,7 +9,7 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import notification_router
-from admin_panel_runtime_v37 import TelegramPanelRuntimeV37
+from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
 
 
 def callbacks(rows: list[list[dict[str, Any]]]) -> set[str]:
@@ -22,8 +22,8 @@ def callbacks(rows: list[list[dict[str, Any]]]) -> set[str]:
 
 
 class ButtonMatrixTests(unittest.TestCase):
-    def panel(self, *, admin: bool) -> tuple[TelegramPanelRuntimeV37, list[Any]]:
-        panel = TelegramPanelRuntimeV37()
+    def panel(self, *, admin: bool) -> tuple[TelegramPanelRuntimeV38, list[Any]]:
+        panel = TelegramPanelRuntimeV38()
         calls: list[Any] = []
         panel.current_user_id = "1" if admin else "3"
         panel.current_chat_id = panel.current_user_id
@@ -54,14 +54,14 @@ class ButtonMatrixTests(unittest.TestCase):
         }
 
     def test_main_menu_access_matrix_has_no_duplicate_actions(self) -> None:
-        user = callbacks(TelegramPanelRuntimeV37.compact_menu_rows(False))
-        admin = callbacks(TelegramPanelRuntimeV37.compact_menu_rows(True))
+        user = callbacks(TelegramPanelRuntimeV38.compact_menu_rows(False))
+        admin = callbacks(TelegramPanelRuntimeV38.compact_menu_rows(True))
         self.assertNotIn("page:control", user)
-        self.assertNotIn("page:status", user)
+        self.assertIn("page:status", user)
         self.assertIn("page:control", admin)
-        self.assertTrue(user <= admin | {"page:settings"})
-        self.assertEqual(len(user), sum(len(row) for row in TelegramPanelRuntimeV37.compact_menu_rows(False)))
-        self.assertEqual(len(admin), sum(len(row) for row in TelegramPanelRuntimeV37.compact_menu_rows(True)))
+        self.assertNotIn("page:status", admin)
+        self.assertEqual(len(user), sum(len(row) for row in TelegramPanelRuntimeV38.compact_menu_rows(False)))
+        self.assertEqual(len(admin), sum(len(row) for row in TelegramPanelRuntimeV38.compact_menu_rows(True)))
 
     def test_notification_button_role_matrix(self) -> None:
         source = {
@@ -106,7 +106,7 @@ class ButtonMatrixTests(unittest.TestCase):
 
     def test_active_list_renders_role_specific_controls(self) -> None:
         for admin in (False, True):
-            panel = TelegramPanelRuntimeV37()
+            panel = TelegramPanelRuntimeV38()
             captured: list[dict[str, Any]] = []
             panel._collect_current_wheels = lambda: [  # type: ignore[method-assign]
                 {

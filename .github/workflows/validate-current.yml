@@ -64,6 +64,7 @@ jobs:
           python chapter1_stability.py
           python chapter2_unified_logic.py
           python chapter3_acceptance.py
+          python chapter4_acceptance.py
 
       - name: Run pytest and enforce critical-core coverage
         run: |

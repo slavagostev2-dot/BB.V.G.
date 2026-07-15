@@ -8,7 +8,7 @@ from typing import Any
 import admin_action_queue
 import bbvg_monitor_main
 import notification_integrity_v2
-from admin_panel_runtime_v37 import TelegramPanelRuntimeV37
+from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
 
 
 ROOT = Path(__file__).resolve().parent
@@ -52,7 +52,7 @@ def self_test() -> None:
     assert "check_admin_panel_runtime(details, findings)" in system_checks
     assert '"bot_panel"' in system_checks
 
-    panel_dispatch = inspect.getsource(TelegramPanelRuntimeV37.dispatch_admin_action)
+    panel_dispatch = inspect.getsource(TelegramPanelRuntimeV38.dispatch_admin_action)
     assert "enqueue_remote" in panel_dispatch
     assert "_apply_admin_action_direct" not in panel_dispatch
     remote_enqueue = inspect.getsource(admin_action_queue.enqueue_remote)

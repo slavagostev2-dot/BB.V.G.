@@ -597,7 +597,19 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
 
 
 def self_test() -> None:
-    panel = TelegramPanelRuntimeV34()
+    class _SelfTestPanel(TelegramPanelRuntimeV34):
+        @classmethod
+        def _signature(cls, value: dict[str, Any]) -> str:
+            # The legacy v34 signature predates encrypted state and normally
+            # uses BOT_TOKEN.  A self-test must stay deterministic without a
+            # production secret while still exercising the signed merge path.
+            return "v34-isolated-self-test-signature"
+
+        @staticmethod
+        def _trusted_owner() -> str:
+            return "1"
+
+    panel = _SelfTestPanel()
     base = panel.normalize_access(
         {
             "owner_id": "1",

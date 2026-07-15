@@ -35,6 +35,8 @@ CURRENT_ADMIN_NOTIFICATION_OPTIONS = tuple(
 class TelegramPanelRuntimeV37(TelegramPanelRuntimeV36):
     """Clear wheel controls, opt-in draw alerts and concise live status."""
 
+    RUNTIME_VERSION = 37
+
     def __init__(self) -> None:
         super().__init__()
         self._welcome_on_start = False
@@ -61,7 +63,7 @@ class TelegramPanelRuntimeV37(TelegramPanelRuntimeV36):
                         "status": "running",
                         "brand": "BB V.G.",
                         "last_heartbeat_at": now_text,
-                        "version": 37,
+                        "version": self.RUNTIME_VERSION,
                         "heartbeat_version": 1,
                         "runtime_owner": "telegram_control_center",
                         "update_consumer": "single_getUpdates_owner",
