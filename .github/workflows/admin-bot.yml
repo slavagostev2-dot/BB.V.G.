@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Validate v34 control center
+      - name: Validate v35 control center
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -67,8 +67,8 @@ jobs:
             admin_panel_v2.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-            admin_panel_runtime_v33.py admin_panel_runtime_v34.py bot_private_state.py \
-            bot_notification_state.py privacy_retention.py security_audit.py \
+            admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
+            bot_private_state.py bot_notification_state.py privacy_retention.py security_audit.py \
             migrate_bot_private_state.py rating_policy.py
           python bot_private_state.py
           python privacy_retention.py
@@ -78,20 +78,23 @@ jobs:
           python admin_action_v3.py --self-test
           python admin_panel_runtime_v32.py --self-test
           python admin_panel_runtime_v33.py --self-test
-          python admin_panel_runtime_v34.py --self-test
+          python admin_panel_runtime_v35.py --self-test
           python - <<'PY'
           import inspect
-          from admin_panel_runtime_v34 import TelegramPanelRuntimeV34
+          from admin_panel_runtime_v35 import TelegramPanelRuntimeV35
 
-          handler = inspect.getsource(TelegramPanelRuntimeV34.handle_callback)
-          persistence = inspect.getsource(TelegramPanelRuntimeV34._save_bot_bundle)
-          detail = inspect.getsource(TelegramPanelRuntimeV34.show_user_detail)
+          handler = inspect.getsource(TelegramPanelRuntimeV35.handle_callback)
+          persistence = inspect.getsource(TelegramPanelRuntimeV35._save_bot_bundle)
+          detail = inspect.getsource(TelegramPanelRuntimeV35.show_user_detail)
+          normalization = inspect.getsource(TelegramPanelRuntimeV35.normalize_access)
           assert "usernotify:" in handler
           assert "usernotifyall:" in handler
           assert "_load_remote_bundle" in persistence
           assert "_merge_access" in persistence
           assert "Управлять уведомлениями" in detail
-          print("BB V.G. v34 role persistence and owner notification controls validated")
+          assert "access_signature" in normalization
+          assert "result.pop" in normalization
+          print("BB V.G. v35 persistent roles and owner notification controls validated")
           PY
 
       - name: Preserve role fingerprint and migrate state
@@ -170,11 +173,11 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 34,
+              "version": 35,
               "storage": "encrypted_bot_state",
               "state_format": encrypted.get("format", "unknown"),
               "state_key_mode": encrypted.get("key_mode", "unknown"),
-              "role_persistence": "three_way_remote_merge",
+              "role_persistence": "aes_gcm_three_way_remote_merge",
               "miniapp": "archived",
           }
           with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
@@ -208,7 +211,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v34.py
+        run: python admin_panel_runtime_v35.py
 
       - name: Start next control-center shift
         if: ${{ success() }}
@@ -217,4 +220,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run admin-bot.yml --ref main
 
-# v34: conflict-safe role persistence and owner-managed per-user notifications.
+# v35: AES-GCM roles without obsolete BOT_TOKEN signatures and owner-managed per-user notifications.
