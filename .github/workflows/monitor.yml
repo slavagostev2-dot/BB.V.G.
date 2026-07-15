@@ -14,6 +14,8 @@ on:
       - "recurring_wheel_events.py"
       - "wheel_metadata_quality.py"
       - "wheel_publications_v2.py"
+      - "rating_policy.py"
+      - "chapter2_unified_logic.py"
       - "wheel_lifecycle_v2.py"
       - "personal_reminder_filter.py"
       - "notification_preferences_v2.py"
@@ -104,11 +106,12 @@ jobs:
           FINAL_REMINDER_BEFORE_MINUTES: "5"
           ACTIVE_REMOVE_GRACE_MINUTES: "0"
         run: |
-          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py admin_action_queue.py chapter1_stability.py monitor_health.py incident_manager.py system_checks.py notification_router.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py daily_report.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py rating_policy.py chapter2_unified_logic.py admin_action_queue.py chapter1_stability.py monitor_health.py incident_manager.py system_checks.py notification_router.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py daily_report.py
           python notification_router.py
           python notification_preferences_v2.py
           python notification_navigation.py
           python notification_integrity_v2.py --self-test
+          python chapter2_unified_logic.py
           python admin_action_queue.py
           python telegram_transport.py
           python telegram_post_links_v2.py

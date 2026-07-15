@@ -13,8 +13,9 @@ from admin_panel_runtime_v35 import TelegramPanelRuntimeV35
 TECHNICAL_ERROR_RE = re.compile(
     r"(?:Не удалось выполнить команду:\s*<code>[^<]+</code>|"
     r"Диагностика не выполнена:\s*(?:<code>)?[^<.\n]+(?:</code>)?|"
+    r"(?:ошибка|не удалось)[^\n]{0,180}<code>[^<]{1,120}</code>|"
     r"Traceback \(most recent call last\))",
-    re.IGNORECASE,
+    re.IGNORECASE | re.DOTALL,
 )
 USER_ACTION_ERROR = (
     "⚠️ <b>Не удалось выполнить действие.</b>\n\n"
@@ -68,7 +69,7 @@ class TelegramPanelRuntimeV36(TelegramPanelRuntimeV35):
             "",
             "Рейтинг формируется только по решениям администратора.",
             "Подтверждённое колесо даёт источнику +40 очков; "
-            "отметка «Неактивное» очки не уменьшает.",
+            "отметка «Неактивное» отменяет подтверждение этого колеса и его очки.",
             "",
         ]
         medals = ["🥇", "🥈", "🥉"]
@@ -95,6 +96,18 @@ def self_test() -> None:
     ) == USER_ACTION_ERROR
     assert "ValueError" in panel.safe_text_for_role(
         "⚠️ Не удалось выполнить команду: <code>ValueError</code>.", "admin"
+    )
+    assert panel.safe_text_for_role(
+        "⚠️ Не удалось поставить отметку участия: <code>RuntimeError</code>.",
+        "user",
+    ) == USER_ACTION_ERROR
+    assert panel.safe_text_for_role(
+        "⚠️ <b>Не удалось завершить колесо.</b>\n\n"
+        "Ошибка: <code>TimeoutError</code>.",
+        "guest",
+    ) == USER_ACTION_ERROR
+    assert "TimeoutError" in panel.safe_text_for_role(
+        "⚠️ Ошибка: <code>TimeoutError</code>.", "owner"
     )
 
     user_rows = panel.source_menu_rows(False)

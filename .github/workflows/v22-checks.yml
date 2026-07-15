@@ -42,6 +42,7 @@ jobs:
           set -euo pipefail
           python -m py_compile \
             source_registry.py admin_action.py admin_action_v2.py admin_action_v3.py rating_policy.py \
+            chapter2_unified_logic.py \
             bbvg_monitor_main.py recurring_wheel_events.py wheel_metadata_quality.py \
             wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py \
             notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py \
@@ -56,6 +57,7 @@ jobs:
           python source_registry.py
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
+          python chapter2_unified_logic.py
           python bot_notification_state.py
           python privacy_retention.py
           python security_audit.py --self-test

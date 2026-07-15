@@ -14,6 +14,7 @@ on:
       - "security_audit.py"
       - "test_bot_state_fixture.py"
       - "rating_policy.py"
+      - "chapter2_unified_logic.py"
       - "bbvg_monitor_main.py"
       - "recurring_wheel_events.py"
       - "wheel_metadata_quality.py"
@@ -69,7 +70,7 @@ jobs:
             bot_private_state.py bot_notification_state.py notification_integrity_v2.py \
             migrate_bot_private_state.py privacy_retention.py security_audit.py \
             test_bot_state_fixture.py notification_preferences_v2.py admin_action.py \
-            admin_action_v2.py admin_action_v3.py rating_policy.py admin_panel_runtime_v25.py \
+            admin_action_v2.py admin_action_v3.py rating_policy.py chapter2_unified_logic.py admin_panel_runtime_v25.py \
             admin_panel_runtime_v26.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
             admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
@@ -80,6 +81,7 @@ jobs:
             source_tier_maintenance_v2.py system_checks_v2.py sitecustomize.py
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
+          python chapter2_unified_logic.py
           python bot_notification_state.py
           python privacy_retention.py
           python security_audit.py --self-test

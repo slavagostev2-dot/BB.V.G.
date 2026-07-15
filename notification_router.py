@@ -245,6 +245,26 @@ def wheel_key_from_message(text: str, url: str | None, reply_markup: dict | None
     return ""
 
 
+def notification_event_identity(
+    kind: str,
+    text: str,
+    url: str | None,
+    reply_markup: dict | None,
+) -> str:
+    """Return one stable delivery identity for one current wheel event.
+
+    Telegram publications of the same wheel can contain different source names,
+    countdown text or formatting.  Those differences are useful for statistics,
+    but must not create a second user notification.  The notification kind keeps
+    draw-time and final-reminder preferences independent from the initial alert.
+    """
+
+    wheel_key = wheel_key_from_message(text, url, reply_markup)
+    if wheel_key and (kind == "wheels" or kind.startswith("wheel_")):
+        return f"wheel:{kind}:{wheel_key}"
+    return ""
+
+
 def hidden_for_chat(config: dict[str, Any], chat_id: str, wheel_key: str) -> bool:
     if not wheel_key:
         return False
@@ -319,6 +339,7 @@ def install(monitor_module: Any) -> None:
             }
 
         key = wheel_key_from_message(text, url, reply_markup)
+        event_identity = notification_event_identity(kind, text, url, reply_markup)
         result: dict[str, Any] = {"ok": True, "result": {"sent": 0}}
         errors: list[str] = []
         sent = 0
@@ -328,7 +349,12 @@ def install(monitor_module: Any) -> None:
             if category == "user" and hidden_for_chat(config, chat_id, key):
                 skipped += 1
                 continue
-            dedup_key = delivery_key(chat_id, kind, text, url)
+            dedup_key = delivery_key(
+                chat_id,
+                kind,
+                event_identity or text,
+                None if event_identity else url,
+            )
             if duplicate_delivery(dedup_key):
                 skipped += 1
                 continue
@@ -404,6 +430,25 @@ def self_test() -> None:
     assert not duplicate_delivery(key)
     remember_delivery(key)
     assert duplicate_delivery(key)
+    first_event = notification_event_identity(
+        "wheels",
+        "🎡 Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>\n📡 @first",
+        "https://betboom.ru/freestream/wheel-a",
+        None,
+    )
+    second_event = notification_event_identity(
+        "wheels",
+        "🎡 Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>\n📡 @second",
+        "https://betboom.ru/freestream/wheel-a?from=second",
+        None,
+    )
+    assert first_event == second_event == "wheel:wheels:wheel-a"
+    assert notification_event_identity(
+        "wheel_final_reminders",
+        "Напоминание о колесе BetBoom\nИдентификатор: <code>wheel-a</code>",
+        None,
+        None,
+    ) != first_event
     user_markup = markup_for_chat(
         {"inline_keyboard": [[{"text": "Время", "callback_data": "bb:t:test"}, {"text": "Неактивное", "callback_data": "bb:x:test"}]]},
         admin=False,

@@ -51,8 +51,19 @@ def self_test() -> None:
         sources=["sourceA"],
         decision="inactive",
     )
+    assert changed is True
+    assert stats["admin_wheel_decisions"]["wheel-a"]["decision"] == "inactive"
+    assert stats["sources"]["sourceA"]["quality_score"] == 0
+    assert stats["sources"]["sourceA"]["admin_rejected_wheels"] == 1
+    assert "admin_confirmed_wheels" not in stats["sources"]["sourceA"]
+
+    changed = _additive_recorder(
+        stats,
+        wheel_key="wheel-a",
+        sources=["sourceA"],
+        decision="inactive",
+    )
     assert changed is False
-    assert stats["sources"]["sourceA"]["quality_score"] == 40
 
     changed = _additive_recorder(
         stats,

@@ -39,14 +39,12 @@ def record_admin_wheel_decision(
     at: Any,
     recorder: Callable[..., bool],
 ) -> bool:
-    """Apply a verdict without allowing an inactive action to reduce score."""
-    normalized = str(wheel_key or "").strip().casefold()
-    previous = data.get("admin_wheel_decisions", {}).get(normalized)
-    previous_decision = (
-        str(previous.get("decision") or "") if isinstance(previous, dict) else ""
-    )
-    if decision == "inactive" and previous_decision == "confirmed":
-        return normalize_additive_rating(data)
+    """Apply the latest administrator verdict with a non-negative rating.
+
+    ``inactive`` must reverse an earlier confirmation for the same wheel.  The
+    source loses the points from that confirmation and receives an inactive
+    counter, but its total score is never allowed to become negative.
+    """
     changed = recorder(
         data,
         wheel_key=wheel_key,

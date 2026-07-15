@@ -44,6 +44,7 @@ jobs:
             admin_panel_runtime_v36.py admin_panel_runtime_v37.py \
             bot_private_state.py bot_notification_state.py \
             notification_integrity_v2.py privacy_retention.py security_audit.py \
+            chapter2_unified_logic.py \
             test_bot_state_fixture.py migrate_bot_private_state.py notification_preferences_v2.py \
             admin_action_v2.py admin_action_v3.py rating_policy.py bbvg_monitor_main.py \
             recurring_wheel_events.py wheel_metadata_quality.py wheel_publications_v2.py \
@@ -51,6 +52,7 @@ jobs:
             source_intelligence_alerts.py system_checks_v2.py source_tier_maintenance_v2.py
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
+          python chapter2_unified_logic.py
           python bot_notification_state.py
           python privacy_retention.py
           python security_audit.py --current

@@ -11,6 +11,9 @@ on:
       - "telegram_transport.py"
       - "notification_router.py"
       - "notification_integrity_v2.py"
+      - "chapter2_unified_logic.py"
+      - "rating_policy.py"
+      - "wheel_publications_v2.py"
       - "notification_delivery_state.json"
       - "admin_action_queue.py"
       - "admin_panel_status.json"
@@ -82,8 +85,9 @@ jobs:
           TELEGRAM_WEB_DOMAIN: telegram.me
           EXPECTED_SOURCE_COUNT: "66"
         run: |
-          python -m py_compile system_checks.py system_checks_v2.py incident_manager.py telegram_transport.py notification_router.py notification_integrity_v2.py admin_action_queue.py chapter1_stability.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor.py monitor_data.py admin_panel_runtime_v36.py admin_panel_runtime_v37.py
+          python -m py_compile system_checks.py system_checks_v2.py incident_manager.py telegram_transport.py notification_router.py notification_integrity_v2.py wheel_publications_v2.py rating_policy.py chapter2_unified_logic.py admin_action_queue.py chapter1_stability.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor.py monitor_data.py admin_panel_runtime_v36.py admin_panel_runtime_v37.py
           python notification_integrity_v2.py --self-test
+          python chapter2_unified_logic.py
           python bot_notification_state.py
           python telegram_transport.py
           python incident_manager.py

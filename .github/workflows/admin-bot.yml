@@ -16,7 +16,11 @@ on:
       - "bot_private_state.enc.json"
       - "bot_notification_state.py"
       - "notification_integrity_v2.py"
+      - "notification_router.py"
       - "notification_delivery_state.json"
+      - "wheel_publications_v2.py"
+      - "rating_policy.py"
+      - "chapter2_unified_logic.py"
       - "privacy_retention.py"
       - "security_audit.py"
       - "migrate_bot_private_state.py"
@@ -75,10 +79,12 @@ jobs:
             admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
             admin_panel_runtime_v36.py admin_panel_runtime_v37.py \
             bot_private_state.py bot_notification_state.py \
-            notification_integrity_v2.py privacy_retention.py security_audit.py \
-            migrate_bot_private_state.py rating_policy.py
+            notification_integrity_v2.py notification_router.py wheel_publications_v2.py \
+            rating_policy.py chapter2_unified_logic.py privacy_retention.py security_audit.py \
+            migrate_bot_private_state.py
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
+          python chapter2_unified_logic.py
           python bot_notification_state.py
           python privacy_retention.py
           python security_audit.py --current

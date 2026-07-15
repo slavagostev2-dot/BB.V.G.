@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Callable
+
+
+UTC = timezone.utc
 
 
 def _clean_source(value: Any) -> str:
@@ -97,6 +101,65 @@ def publication_sources(state: dict[str, Any], key: str, fallback: Any = None) -
     return unique
 
 
+def _parse_datetime(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+def closed_event_blocks_publications(
+    state: dict[str, Any],
+    key: str,
+    incoming: Any,
+) -> bool:
+    """Return whether publications belong to an already closed wheel event."""
+
+    normalized = str(key or "").casefold()
+    if normalized in state.get("active_wheels", {}):
+        return False
+    inactive = state.get("inactive_wheels", {}).get(normalized)
+    if isinstance(inactive, dict):
+        return True
+    completed = state.get("recently_completed_wheels", {}).get(normalized)
+    if not isinstance(completed, dict):
+        return False
+    closed_at = _parse_datetime(
+        completed.get("removed_at") or completed.get("confirmed_finished_at")
+    )
+    if closed_at is None:
+        return True
+    rows = incoming if isinstance(incoming, list) else []
+    newest = max(
+        (
+            value
+            for row in rows
+            if isinstance(row, dict)
+            for value in [_parse_datetime(row.get("message_date"))]
+            if value is not None
+        ),
+        default=None,
+    )
+    return newest is None or newest <= closed_at
+
+
+def prune_closed_publications(state: dict[str, Any]) -> int:
+    publications = state.get("wheel_publications")
+    if not isinstance(publications, dict):
+        return 0
+    removed = 0
+    for raw_key in list(publications):
+        key = str(raw_key).casefold()
+        rows = publications.get(raw_key)
+        if closed_event_blocks_publications(state, key, rows):
+            publications.pop(raw_key, None)
+            removed += 1
+    return removed
+
+
 def install(monitor_module: Any, runtime_module: Any) -> None:
     """Persist every Telegram publication for one current wheel event.
 
@@ -114,12 +177,23 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
     original: Callable = base_runtime._persist_publications
     original_suppressed: Callable = monitor_module.is_suppressed
     original_activation_suppressed: Callable = monitor_module.is_activation_suppressed
+    original_load_state: Callable = monitor_module.load_state
+
+    def load_state_without_closed_publications() -> dict[str, Any]:
+        state = original_load_state()
+        prune_closed_publications(state)
+        return state
 
     def persist_merged(state: dict, key: str, fallback: dict | None = None) -> None:
         normalized = str(key or "").casefold()
         collection = state.setdefault("wheel_publications", {})
         previous = collection.get(normalized, [])
         reset_event = normalized not in state.setdefault("active_wheels", {})
+
+        incoming_rows = base_runtime._WHEEL_PUBLICATIONS.get(normalized, [])
+        if closed_event_blocks_publications(state, normalized, incoming_rows):
+            collection.pop(normalized, None)
+            return
 
         original(state, normalized, fallback)
         incoming = collection.get(normalized, [])
@@ -147,6 +221,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         return bool(original_activation_suppressed(state, link))
 
     base_runtime._persist_publications = persist_merged
+    monitor_module.load_state = load_state_without_closed_publications
     monitor_module.is_suppressed = is_suppressed_with_publications
     monitor_module.is_activation_suppressed = is_activation_suppressed_with_publications
     base_runtime._bbvg_publication_merge_v2_installed = True
@@ -176,6 +251,24 @@ def self_test() -> None:
     assert merge_publications(first, second, reset_event=True)[0]["source"] == "official"
     state = {"wheel_publications": {"wheel": merged}}
     assert publication_sources(state, "wheel") == ["official", "collector"]
+
+    closed_state = {
+        "active_wheels": {},
+        "inactive_wheels": {},
+        "recently_completed_wheels": {
+            "wheel": {"removed_at": "2026-07-14T12:00:00+00:00"}
+        },
+        "wheel_publications": {"wheel": list(first)},
+    }
+    assert closed_event_blocks_publications(closed_state, "wheel", first)
+    assert prune_closed_publications(closed_state) == 1
+    assert not closed_state["wheel_publications"]
+    newer = [dict(first[0], message_date="2026-07-14T13:00:00+00:00")]
+    assert not closed_event_blocks_publications(closed_state, "wheel", newer)
+    closed_state["inactive_wheels"]["wheel"] = {
+        "marked_at": "2026-07-14T12:00:00+00:00"
+    }
+    assert closed_event_blocks_publications(closed_state, "wheel", newer)
     print("wheel publication merge v2 self-test passed")
 
 

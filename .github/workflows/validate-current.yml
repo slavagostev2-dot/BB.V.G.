@@ -4,6 +4,16 @@ on:
   push:
     branches: [main]
     paths:
+      - "notification_router.py"
+      - "notification_integrity_v2.py"
+      - "notification_preferences_v2.py"
+      - "wheel_publications_v2.py"
+      - "rating_policy.py"
+      - "chapter2_unified_logic.py"
+      - "admin_action_v2.py"
+      - "admin_panel_runtime_v36.py"
+      - "admin_panel_runtime_v37.py"
+      - "CHAPTER_2_RU.md"
       - ".github/workflows/validate-current.yml"
   workflow_dispatch:
 
@@ -35,7 +45,7 @@ jobs:
         id: compile
         continue-on-error: true
         run: |
-          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py monitor_health.py incident_manager.py system_checks.py notification_router.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py monitor_health.py incident_manager.py system_checks.py notification_router.py notification_integrity_v2.py notification_preferences_v2.py wheel_publications_v2.py rating_policy.py chapter2_unified_logic.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py
       - name: Run preflight
         id: preflight
         continue-on-error: true
@@ -54,6 +64,7 @@ jobs:
           python incident_manager.py
           python system_checks.py --self-test
           python notification_router.py
+          python chapter2_unified_logic.py
           python monitor_health.py --self-test
           python - <<'PY'
           import bbvg_monitor_main as runtime

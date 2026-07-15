@@ -779,6 +779,40 @@ def self_test() -> None:
         assert not SUMMARY_KEYS & set(record_prefs)
     assert migration_panel._apply_notification_policy_once() is False
 
+    role_panel = TelegramPanelRuntimeV37()
+    role_access = {
+        "owner_id": "1",
+        "admins": [],
+        "users": {
+            "1": {"id": "1", "chat_id": "101"},
+            "2": {
+                "id": "2",
+                "chat_id": "202",
+                "notification_preferences": {
+                    "wheels": True,
+                    "wheel_draw_alerts": False,
+                },
+            },
+        },
+        "settings": {},
+    }
+    role_panel.current_user_id = "1"
+    role_panel.current_role = "owner"
+    role_panel.is_owner = lambda: True  # type: ignore[method-assign]
+    role_panel.load_access = lambda force=False: role_access  # type: ignore[method-assign]
+    role_saves: list[str] = []
+    role_panel.save_access = lambda message: role_saves.append(message)  # type: ignore[method-assign]
+    role_panel.set_admin("2", True)
+    assert role_access["admins"] == ["2"]
+    promoted = role_access["users"]["2"]["notification_preferences"]
+    assert all(promoted[key] for key, _, _ in CURRENT_ADMIN_NOTIFICATION_OPTIONS)
+    assert promoted["wheel_draw_alerts"] is False
+    assert not SUMMARY_KEYS & set(promoted)
+    role_panel.set_admin("2", False)
+    demoted = role_access["users"]["2"]["notification_preferences"]
+    assert role_access["admins"] == []
+    assert not any(demoted[key] for key, _, _ in CURRENT_ADMIN_NOTIFICATION_OPTIONS)
+
     summary_workflow = Path(".github/workflows/daily-report.yml").read_text(encoding="utf-8")
     assert "schedule:" not in summary_workflow
 
