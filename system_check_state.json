@@ -32,26 +32,26 @@
     "source_health": "failed",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-15T15:52:39.515706+00:00",
+  "checked_at": "2026-07-15T15:53:04.667217+00:00",
   "discovery": {
     "active_size": 77,
-    "candidate_count": 188,
+    "candidate_count": 203,
     "catalog_size": 2,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-15T15:33:22.206564+00:00",
+    "discovery_last_run_at": "2026-07-15T15:52:41.855099+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-15T14:58:17.651328+00:00",
+    "intelligence_last_run_at": "2026-07-15T15:52:46.124884+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
-      "known_sources": 72,
-      "references_found": 232,
-      "sources_scanned": 72,
+      "known_sources": 79,
+      "references_found": 222,
+      "sources_scanned": 79,
       "strong_candidates": 0,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 132,
+      "unique_candidates": 140,
       "verified_candidates": 60,
       "workers": 12
     }
@@ -90,9 +90,9 @@
     "status": "degraded"
   },
   "incident_delivery": {
-    "digest_sent": true,
-    "messages_attempted": 1,
-    "opened": 1,
+    "digest_sent": false,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 17,
@@ -135,7 +135,7 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 2,
+  "monitor_age_minutes": 3,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
