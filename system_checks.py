@@ -19,6 +19,7 @@ import telegram_transport
 
 ROOT = Path(__file__).resolve().parent
 STATUS_PATH = ROOT / "monitor_status.json"
+ADMIN_PANEL_STATUS_PATH = ROOT / "admin_panel_status.json"
 HEALTH_PATH = ROOT / "source_health.json"
 CHECK_STATE_PATH = ROOT / "system_check_state.json"
 SOURCE_TIER_STATE_PATH = ROOT / "source_tier_state.json"
@@ -46,6 +47,9 @@ ACTIVE_DOMAIN_FILES = (
 UTC = timezone.utc
 EXPECTED_SOURCE_COUNT = max(1, int(os.getenv("EXPECTED_SOURCE_COUNT", "66")))
 MONITOR_MAX_AGE_MINUTES = max(5, int(os.getenv("MONITOR_MAX_AGE_MINUTES", "20")))
+ADMIN_PANEL_MAX_AGE_MINUTES = max(
+    10, int(os.getenv("ADMIN_PANEL_MAX_AGE_MINUTES", "20"))
+)
 DISCOVERY_MAX_AGE_HOURS = max(6, int(os.getenv("DISCOVERY_MAX_AGE_HOURS", "48")))
 SCOPE = "system_checks"
 
@@ -299,6 +303,62 @@ def check_monitor_runtime(details: dict[str, Any], findings: list[dict[str, Any]
             "Часть Telegram-источников недоступна",
             f"Доступно {reachable} из {checked}. Проблемные: {', '.join('@' + item for item in bad[:15]) or 'см. source_health.json'}.",
         ))
+
+
+def check_admin_panel_runtime(
+    details: dict[str, Any], findings: list[dict[str, Any]]
+) -> None:
+    status = load_json(ADMIN_PANEL_STATUS_PATH, {})
+    heartbeat = parse_datetime(
+        (status.get("last_heartbeat_at") or status.get("started_at"))
+        if isinstance(status, dict)
+        else None
+    )
+    panel = {
+        "status": status.get("status") if isinstance(status, dict) else None,
+        "version": status.get("version") if isinstance(status, dict) else None,
+        "started_at": status.get("started_at") if isinstance(status, dict) else None,
+        "last_heartbeat_at": (
+            status.get("last_heartbeat_at") if isinstance(status, dict) else None
+        ),
+        "update_consumer": (
+            status.get("update_consumer") if isinstance(status, dict) else None
+        ),
+    }
+    details["admin_panel"] = panel
+    if heartbeat is None:
+        if int(status.get("heartbeat_version", 0) or 0) < 1:
+            panel["heartbeat_state"] = "pending_activation"
+            return
+        findings.append(
+            finding(
+                "admin_panel_heartbeat_missing",
+                "Нет живого сигнала панели управления",
+                "Бот не подтвердил работу обработчика кнопок и команд.",
+                severity="critical",
+            )
+        )
+        return
+    age = now_utc() - heartbeat
+    panel["age_minutes"] = max(0, int(age.total_seconds() // 60))
+    if status.get("status") != "running":
+        findings.append(
+            finding(
+                "admin_panel_not_running",
+                "Панель управления ботом остановлена",
+                f"Текущее состояние: {status.get('status') or 'неизвестно'}.",
+                severity="critical",
+            )
+        )
+    if age > timedelta(minutes=ADMIN_PANEL_MAX_AGE_MINUTES):
+        findings.append(
+            finding(
+                "admin_panel_stale",
+                "Бот давно не принимает команды пользователей",
+                f"Последний живой сигнал был {int(age.total_seconds() // 60)} минут назад.",
+                severity="critical",
+            )
+        )
 
 
 def check_source_health(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
@@ -709,6 +769,7 @@ def main() -> int:
     check_telegram_web(details, findings)
     check_bot_api(details, findings)
     check_monitor_runtime(details, findings)
+    check_admin_panel_runtime(details, findings)
     check_source_health(details, findings)
     check_discovery_runtime(details, findings)
     check_domain_compliance(details, findings)
@@ -730,12 +791,14 @@ def main() -> int:
         "configured_sources": details.get("inventory", {}).get("total", 0),
         "checked_sources": details.get("monitor", {}).get("checked_sources", 0),
         "reachable_sources": details.get("monitor", {}).get("reachable_sources", 0),
+        "bot_panel_heartbeat": details.get("admin_panel", {}).get("last_heartbeat_at"),
         "active_incidents": details["active_incidents"],
     }
     details["check_matrix"] = {
         "inventory": "ok" if not any(item["kind"] in {"source_inventory", "source_policy", "source_duplicates"} for item in findings) else "failed",
         "telegram_transport": "ok" if not any(str(item["kind"]).startswith("telegram_") or item["kind"] == "legacy_domain_redirect" for item in findings) else "failed",
         "monitor": "ok" if not any(str(item["kind"]).startswith("monitor_") or item["kind"] in {"all_sources_unreachable", "partial_source_failure"} for item in findings) else "failed",
+        "bot_panel": "ok" if not any(str(item["kind"]).startswith("admin_panel_") for item in findings) else "failed",
         "source_health": "ok" if not any(str(item["kind"]).startswith("source_") or item["kind"] == "sources_quarantined" for item in findings) else "failed",
         "discovery": "ok" if not any(str(item["kind"]).startswith("discovery_") for item in findings) else "failed",
         "miniapp": "ok" if not any(str(item["kind"]).startswith("miniapp_") for item in findings) else "failed",

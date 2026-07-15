@@ -1329,11 +1329,16 @@ class TelegramPanelV2(RuntimeAdminBot):
             self.answer(query_id, "Ошибка выполнения")
             self.send(f"⚠️ Не удалось выполнить команду: <code>{html.escape(type(exc).__name__)}</code>.")
 
+    def record_runtime_heartbeat(self, *, force: bool = False) -> None:
+        """Extension point for a durable liveness marker."""
+        del force
+
     def run(self) -> int:
         if not legacy.BOT_TOKEN or not legacy.BOT_CHAT_ID or not legacy.GITHUB_TOKEN or not legacy.GITHUB_REPOSITORY:
             raise RuntimeError("BOT_TOKEN, BOT_CHAT_ID, GITHUB_TOKEN and GITHUB_REPOSITORY are required")
         self.load_access(force=True)
         self.setup_bot()
+        self.record_runtime_heartbeat(force=True)
         refresh_thread = threading.Thread(target=self.refresh_loop, name="snapshot-refresh", daemon=True)
         refresh_thread.start()
         print(f"Telegram panel v2 started for {legacy.GITHUB_REPOSITORY}; run_seconds={legacy.RUN_SECONDS}")
@@ -1341,6 +1346,7 @@ class TelegramPanelV2(RuntimeAdminBot):
         try:
             while time.monotonic() < deadline:
                 try:
+                    self.record_runtime_heartbeat()
                     payload: dict[str, Any] = {
                         "timeout": 25,
                         "allowed_updates": ["message", "callback_query", "my_chat_member"],

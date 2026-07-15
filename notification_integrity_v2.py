@@ -34,7 +34,7 @@ def now_utc() -> datetime:
 
 
 def _secret(explicit: str | None = None) -> bytes:
-    raw = str(explicit or os.getenv("BOT_STATE_KEY") or os.getenv("BOT_TOKEN") or "").strip()
+    raw = str(explicit or os.getenv("BOT_STATE_KEY") or "").strip()
     if not raw:
         raise NotificationIntegrityError(
             "BOT_STATE_KEY is required for persistent notification deduplication"
@@ -274,9 +274,18 @@ def self_test() -> None:
 
     original_path = STATE_PATH
     original_secret = os.environ.get("BOT_STATE_KEY")
+    original_token = os.environ.get("BOT_TOKEN")
     try:
         with TemporaryDirectory() as temporary:
             globals()["STATE_PATH"] = Path(temporary) / "notification_delivery_state.json"
+            os.environ.pop("BOT_STATE_KEY", None)
+            os.environ["BOT_TOKEN"] = "must-not-be-used-as-state-key"
+            try:
+                _secret()
+            except NotificationIntegrityError:
+                pass
+            else:
+                raise AssertionError("BOT_TOKEN must never replace BOT_STATE_KEY")
             os.environ["BOT_STATE_KEY"] = "chapter-2-test-key"
             install(notification_router)
 
@@ -318,6 +327,10 @@ def self_test() -> None:
             os.environ.pop("BOT_STATE_KEY", None)
         else:
             os.environ["BOT_STATE_KEY"] = original_secret
+        if original_token is None:
+            os.environ.pop("BOT_TOKEN", None)
+        else:
+            os.environ["BOT_TOKEN"] = original_token
     print("notification integrity v2 self-test passed")
 
 

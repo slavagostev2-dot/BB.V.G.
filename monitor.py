@@ -1861,6 +1861,14 @@ def maybe_send_source_inactivity_report(
     return result
 
 
+def process_admin_actions(
+    state: dict, health: dict, stats: dict
+) -> dict[str, int | bool | str]:
+    """Runtime extension point; the production entrypoint installs the queue."""
+    del state, health, stats
+    return {"loaded": 0, "pending": 0, "applied": 0, "failed": 0, "changed": False}
+
+
 def main() -> int:
     try:
         validate_environment()
@@ -1872,6 +1880,7 @@ def main() -> int:
     health = data_store.load_health()
     stats = data_store.load_stats()
     unknown_samples = data_store.load_unknown_samples()
+    admin_action_summary = process_admin_actions(state, health, stats)
     commands_changed = ensure_bot_commands(state)
     callback_summary = process_bot_feedback(state, unknown_samples, stats)
     reminder_summary = process_active_wheels(state, stats)
@@ -1945,6 +1954,7 @@ def main() -> int:
             "baseline_items": baseline_items,
             "source_errors": len(errors),
             "callbacks": callback_summary,
+            "admin_actions": admin_action_summary,
         }
         save_state(state)
         data_store.save_health(health)
@@ -1967,7 +1977,12 @@ def main() -> int:
     unconfirmed_waiting = 0
     pending_expired_count = 0
     unknown_samples_added = 0
-    changed = bool(callback_summary.get("callbacks")) or commands_changed or bool(reminder_summary.get("changed"))
+    changed = (
+        bool(callback_summary.get("callbacks"))
+        or commands_changed
+        or bool(reminder_summary.get("changed"))
+        or bool(admin_action_summary.get("changed"))
+    )
 
     # Recheck posts that already produced at most one preliminary alert or were
     # held silently. Repeated checks are silent until the page becomes active.
@@ -2287,6 +2302,7 @@ def main() -> int:
         "callbacks": callback_summary,
         "reminders": reminder_summary,
         "source_inactivity": inactivity_summary,
+        "admin_actions": admin_action_summary,
         "active_wheels": len(state.get("active_wheels", {})),
     }
 

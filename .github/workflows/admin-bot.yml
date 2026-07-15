@@ -7,6 +7,8 @@ on:
     paths:
       - "admin_bot.py"
       - "admin_action*.py"
+      - "admin_action_queue.json"
+      - "chapter1_stability.py"
       - "admin_runtime.py"
       - "admin_panel_v2.py"
       - "admin_panel_runtime_v*.py"
@@ -66,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m py_compile \
-            admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_runtime.py \
+            admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_action_queue.py chapter1_stability.py admin_runtime.py \
             admin_panel_v2.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
@@ -83,11 +85,13 @@ jobs:
           python migrate_bot_private_state.py --check
           python admin_action_v2.py --self-test
           python admin_action_v3.py --self-test
+          python admin_action_queue.py
           python admin_panel_runtime_v32.py --self-test
           python admin_panel_runtime_v33.py --self-test
           python admin_panel_runtime_v35.py --self-test
           python admin_panel_runtime_v36.py --self-test
           python admin_panel_runtime_v37.py --self-test
+          python chapter1_stability.py
           python - <<'PY'
           import inspect
           import notification_router
@@ -194,10 +198,14 @@ jobs:
               "status": "running",
               "brand": "BB V.G.",
               "started_at": datetime.now(timezone.utc).isoformat(),
+              "last_heartbeat_at": datetime.now(timezone.utc).isoformat(),
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
               "version": 37,
+              "heartbeat_version": 1,
+              "runtime_owner": "telegram_control_center",
+              "update_consumer": "single_getUpdates_owner",
               "storage": "encrypted_bot_state",
               "state_format": encrypted.get("format", "unknown"),
               "state_key_mode": encrypted.get("key_mode", "unknown"),

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -227,6 +229,28 @@ def self_test() -> None:
     assert routing["wheel_with_error_word_kind"] == "wheels"
     assert routing_details["notification_integrity"]["status"] == "ok"
     assert not routing_findings
+
+    original_panel_path = legacy.ADMIN_PANEL_STATUS_PATH
+    try:
+        with TemporaryDirectory() as temporary:
+            legacy.ADMIN_PANEL_STATUS_PATH = Path(temporary) / "admin_panel_status.json"
+            legacy.ADMIN_PANEL_STATUS_PATH.write_text(
+                json.dumps(
+                    {
+                        "status": "running",
+                        "heartbeat_version": 1,
+                        "last_heartbeat_at": datetime(2000, 1, 1, tzinfo=timezone.utc).isoformat(),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            panel_details: dict[str, Any] = {}
+            panel_findings: list[dict[str, Any]] = []
+            legacy.check_admin_panel_runtime(panel_details, panel_findings)
+    finally:
+        legacy.ADMIN_PANEL_STATUS_PATH = original_panel_path
+    assert panel_details["admin_panel"]["age_minutes"] > legacy.ADMIN_PANEL_MAX_AGE_MINUTES
+    assert {item["kind"] for item in panel_findings} == {"admin_panel_stale"}
     print("BB V.G. bot-only system checks self-test passed")
 
 

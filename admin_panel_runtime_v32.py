@@ -264,6 +264,12 @@ class TelegramPanelRuntimeV32(TelegramPanelRuntimeV31):
                     f"Ошибка: <code>{html.escape(type(exc).__name__)}</code>."
                 )
                 return
+            if result.get("queued"):
+                self.send(
+                    "⏳ <b>Команда принята</b>\n"
+                    + html.escape(str(result.get("detail") or ""))
+                )
+                return
             self.send(f"✅ <b>Колесо завершено</b>\n{html.escape(str(result.get('detail') or ''))}")
             self.show_active()
             return

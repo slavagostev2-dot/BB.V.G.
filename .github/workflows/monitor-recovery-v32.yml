@@ -1,129 +1,14 @@
-name: BB V.G. monitor recovery v32
-run-name: BB V.G. monitor recovery — ${{ github.event_name }}
+name: BB V.G. monitor recovery v32 (archived)
+run-name: Archived legacy recovery
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/monitor-recovery-v32.yml"
   workflow_dispatch:
 
-permissions:
-  contents: write
-  actions: write
-
-concurrency:
-  group: bb-vg-monitor-recovery-v32
-  cancel-in-progress: true
+permissions: {}
 
 jobs:
-  recover:
+  archived:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
-
-      - name: Validate metadata protection
-        env:
-          TELEGRAM_WEB_DOMAIN: telegram.me
-          EXPECTED_SOURCE_COUNT: "66"
-        run: |
-          set -euo pipefail
-          python -m py_compile \
-            monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py \
-            telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py \
-            wheel_metadata_quality.py monitor_health.py monitor_data.py
-          python recurring_wheel_events.py
-          python wheel_metadata_quality.py
-          python - <<'PY'
-          import bbvg_monitor_main as runtime
-          assert runtime.monitor._bbvg_recurring_wheel_events_installed is True
-          assert runtime.monitor._bbvg_wheel_metadata_quality_installed is True
-          assert runtime.monitor.remember_pending.__module__ == "wheel_metadata_quality"
-          print("Recovery runtime validation passed")
-          PY
-
-      - name: Run one complete monitor iteration
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
-          TELEGRAM_WEB_DOMAIN: telegram.me
-          EXPECTED_SOURCE_COUNT: "66"
-          DISPLAY_TIMEZONE: Asia/Barnaul
-          REQUEST_TIMEOUT_SECONDS: "15"
-          MAX_WORKERS: "16"
-          TRANSPORT_BATCH_ATTEMPTS: "3"
-          UNKNOWN_DEDUP_HOURS: "24"
-          DEADLINE_GRACE_MINUTES: "30"
-          HEARTBEAT_HOURS: "6"
-          HEALTH_ALERT_COOLDOWN_HOURS: "24"
-          STATUS_REPORT_HOURS: "12"
-          MAX_NEW_POST_AGE_MINUTES: "360"
-          NEW_SOURCE_CATCHUP_MINUTES: "1440"
-          FRESH_UNKNOWN_POST_MINUTES: "20"
-          QUARANTINE_FAILURE_THRESHOLD: "3"
-          QUARANTINE_EMPTY_THRESHOLD: "4"
-          QUARANTINE_RECHECK_HOURS: "6"
-          UNAVAILABLE_REPORT_DAYS: "2"
-          SOURCE_INACTIVITY_DAYS: "7"
-          SOURCE_INACTIVITY_REPORT_DAYS: "7"
-          BOT_FEEDBACK_ENABLED: "false"
-          MANUAL_RUN: "false"
-          AUTO_RUN: "true"
-        shell: bash
-        run: |
-          set -uo pipefail
-          python monitor_health.py start --run-id "${GITHUB_RUN_ID:-recovery-v32}"
-          started_at=$(date +%s)
-          python bbvg_monitor_main.py
-          iteration_exit=$?
-          duration=$(( $(date +%s) - started_at ))
-          python monitor_health.py record \
-            --run-id "${GITHUB_RUN_ID:-recovery-v32}" \
-            --iteration 1 \
-            --exit-code "$iteration_exit" \
-            --duration-seconds "$duration"
-          exit "$iteration_exit"
-
-      - name: Persist recovered runtime state
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          files=(
-            state.json source_health.json source_stats.json
-            unknown_timer_samples.json monitor_status.json
-          )
-          if git diff --quiet -- "${files[@]}"; then
-            echo "No runtime changes to persist."
-            exit 0
-          fi
-          git add "${files[@]}"
-          git commit -m "Recover BB V.G. monitor v32 runtime [skip ci]"
-          for attempt in 1 2 3; do
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
-          done
-          exit 1
-
-      - name: Start continuous monitor shift
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --ref main -f continuous=true -f replace=true
+      - run: echo "Archived. Recovery is handled by monitor.yml and monitor-watchdog.yml."

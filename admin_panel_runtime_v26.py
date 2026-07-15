@@ -235,6 +235,9 @@ class TelegramPanelRuntimeV26(TelegramPanelRuntimeV25):
             return
 
         detail = str(result.get("detail") or success_text)
+        if result.get("queued"):
+            self.send(f"⏳ <b>Команда принята</b>\n{html.escape(detail)}")
+            return
         self.send(f"✅ <b>{html.escape(success_text)}</b>\n{html.escape(detail)}")
         self.show_active()
 

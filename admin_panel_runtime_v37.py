@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import admin_action_queue
 import admin_bot as legacy
 from admin_panel_runtime_v21 import ADMIN_NOTIFICATION_OPTIONS
 from admin_panel_runtime_v33 import WHEEL_NOTIFICATION_OPTIONS
@@ -35,6 +38,53 @@ class TelegramPanelRuntimeV37(TelegramPanelRuntimeV36):
     def __init__(self) -> None:
         super().__init__()
         self._welcome_on_start = False
+        self._last_panel_heartbeat = 0.0
+        self._panel_heartbeat_busy = False
+
+    def record_runtime_heartbeat(self, *, force: bool = False) -> None:
+        current_monotonic = time.monotonic()
+        if (
+            not force
+            and self._last_panel_heartbeat
+            and current_monotonic - self._last_panel_heartbeat < 300
+        ):
+            return
+        if self._panel_heartbeat_busy:
+            return
+        self._panel_heartbeat_busy = True
+        try:
+            for attempt in range(1, 4):
+                status = self.get_json_file("admin_panel_status.json", {})
+                now_text = datetime.now(UTC).isoformat()
+                status.update(
+                    {
+                        "status": "running",
+                        "brand": "BB V.G.",
+                        "last_heartbeat_at": now_text,
+                        "version": 37,
+                        "heartbeat_version": 1,
+                        "runtime_owner": "telegram_control_center",
+                        "update_consumer": "single_getUpdates_owner",
+                    }
+                )
+                status.setdefault("started_at", now_text)
+                try:
+                    self.update_file(
+                        "admin_panel_status.json",
+                        json.dumps(status, ensure_ascii=False, indent=2, sort_keys=True)
+                        + "\n",
+                        "Update BB V.G. control center heartbeat [skip ci]",
+                    )
+                except RuntimeError as exc:
+                    if attempt < 3 and any(code in str(exc) for code in (" 409 ", " 422 ")):
+                        continue
+                    raise
+                self._last_panel_heartbeat = current_monotonic
+                return
+        except Exception as exc:
+            print(f"WARNING panel heartbeat: {type(exc).__name__}: {exc}")
+        finally:
+            self._panel_heartbeat_busy = False
 
     # ---------- Notification policy ----------
     def notification_preferences(self, user_id: str | None = None) -> dict[str, bool]:
@@ -240,10 +290,18 @@ class TelegramPanelRuntimeV37(TelegramPanelRuntimeV36):
 
     # ---------- Wheel lifecycle ----------
     def dispatch_admin_action(self, action: str, value: str) -> dict[str, Any]:
-        # The direct action is committed atomically. The running monitor sees it
-        # on its next normal cycle; restarting it after every tap caused duplicate
-        # wheel delivery and cancelled checks.
-        return self._apply_admin_action_direct(action, value)
+        # The panel records intent only. The monitor is the sole writer of public
+        # runtime state, so a concurrent rebase can no longer erase a button tap.
+        command_id = admin_action_queue.enqueue_remote(action, value)
+        return {
+            "action": action,
+            "queued": True,
+            "command_id": command_id,
+            "state_changed": False,
+            "health_changed": False,
+            "stats_changed": False,
+            "detail": "Действие будет применено основной проверкой в ближайшем цикле.",
+        }
 
     def _monitor_status(self) -> dict[str, Any]:
         try:
@@ -634,10 +692,10 @@ class TelegramPanelRuntimeV37(TelegramPanelRuntimeV36):
                 self.answer(query_id, "Не удалось сохранить время")
                 return
             deadline = result["deadline"].astimezone(legacy.DISPLAY_TZ)
-            self.answer(query_id, "Время установлено")
+            self.answer(query_id, "Время принято")
             self.send(
-                f"✅ Время прокрутки установлено: <b>{deadline:%d.%m.%Y %H:%M}</b> "
-                "по Барнаулу.",
+                f"⏳ Время прокрутки принято: <b>{deadline:%d.%m.%Y %H:%M}</b> "
+                "по Барнаулу. Оно появится после ближайшей проверки.",
                 reply_markup=self.with_nav(
                     [[{"text": "🔥 К активным колёсам", "callback_data": "page:active"}]]
                 ),

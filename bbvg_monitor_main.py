@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import Any
 
 import bbvg_monitor_runtime as runtime
+import admin_action_queue
 import bot_notification_state
 import notification_navigation
 import notification_preferences_v2
@@ -42,6 +43,7 @@ monitor.all_failed_alert_due = lambda state: False
 # The continuously running Telegram panel is the only callback consumer. The
 # monitor must not race it for menu and participation button updates.
 monitor.BOT_FEEDBACK_ENABLED = False
+monitor.process_admin_actions = admin_action_queue.process_pending
 
 
 def load_stats_additive() -> dict[str, Any]:
