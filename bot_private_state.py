@@ -40,7 +40,13 @@ def dedicated_key_configured() -> bool:
     return bool(str(os.getenv("BOT_STATE_KEY") or "").strip())
 
 
+def previous_key_configured() -> bool:
+    return bool(str(os.getenv("BOT_STATE_PREVIOUS_KEY") or "").strip())
+
+
 def _v2_secret(value: str | None = None, *, mode: str | None = None) -> tuple[bytes, str]:
+    """Select the key used for a new v2 write."""
+
     if value is not None:
         raw = str(value).strip()
         if not raw:
@@ -52,12 +58,48 @@ def _v2_secret(value: str | None = None, *, mode: str | None = None) -> tuple[by
         if raw:
             return raw.encode("utf-8"), "dedicated"
         if selected_mode == "dedicated":
-            raise BotStateKeyError("BOT_STATE_KEY is required to read dedicated v2 state")
+            raise BotStateKeyError("BOT_STATE_KEY is required to write dedicated v2 state")
     if selected_mode in {"", "bot_token_compat"}:
         raw = str(os.getenv("BOT_TOKEN") or "").strip()
         if raw:
             return raw.encode("utf-8"), "bot_token_compat"
     raise BotStateKeyError("BOT_STATE_KEY is required; BOT_TOKEN compatibility is only temporary")
+
+
+def _v2_decryption_candidates(
+    value: str | None,
+    *,
+    mode: str,
+) -> list[bytes]:
+    if value is not None:
+        raw = str(value).strip()
+        if not raw:
+            raise BotStateKeyError("Explicit bot state key is empty")
+        return [raw.encode("utf-8")]
+
+    raw_values: list[str] = []
+    if mode == "dedicated":
+        raw_values.extend(
+            [
+                str(os.getenv("BOT_STATE_KEY") or "").strip(),
+                str(os.getenv("BOT_STATE_PREVIOUS_KEY") or "").strip(),
+            ]
+        )
+    elif mode == "bot_token_compat":
+        raw_values.append(str(os.getenv("BOT_TOKEN") or "").strip())
+    else:
+        raise BotStateKeyError(f"Unsupported v2 key mode: {mode or 'missing'}")
+
+    result: list[bytes] = []
+    seen: set[str] = set()
+    for raw in raw_values:
+        if raw and raw not in seen:
+            seen.add(raw)
+            result.append(raw.encode("utf-8"))
+    if not result:
+        required = "BOT_STATE_KEY or BOT_STATE_PREVIOUS_KEY" if mode == "dedicated" else "BOT_TOKEN"
+        raise BotStateKeyError(f"{required} is required to read encrypted bot state")
+    return result
 
 
 def _v1_secret(value: str | None = None) -> bytes:
@@ -138,13 +180,18 @@ def _unseal_v2(payload: dict[str, Any], secret: str | None = None) -> dict[str, 
     if len(nonce) != 12:
         raise BotStateIntegrityError("AES-GCM nonce must be 12 bytes")
     mode = str(payload.get("key_mode") or "bot_token_compat")
-    master, _ = _v2_secret(secret, mode=mode)
-    try:
-        plaintext = AESGCM(_aead_key(master)).decrypt(nonce, ciphertext, AAD)
-    except InvalidTag as exc:
+
+    plaintext: bytes | None = None
+    for master in _v2_decryption_candidates(secret, mode=mode):
+        try:
+            plaintext = AESGCM(_aead_key(master)).decrypt(nonce, ciphertext, AAD)
+            break
+        except InvalidTag:
+            continue
+    if plaintext is None:
         raise BotStateIntegrityError(
             "Bot private state authentication failed; key is wrong or data is damaged"
-        ) from exc
+        )
     try:
         value = json.loads(plaintext.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
