@@ -10,6 +10,7 @@ on:
       - "migrate_bot_private_state.py"
       - "privacy_retention.py"
       - "security_audit.py"
+      - "test_bot_state_fixture.py"
       - "notification_preferences_v2.py"
       - "rating_policy.py"
       - "bbvg_monitor_main.py"
@@ -43,6 +44,7 @@ jobs:
       BOT_STATE_KEY: "test-state-key"
       BOT_CHAT_ID: "1"
       ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
       FINAL_REMINDER_BEFORE_MINUTES: "5"
       ACTIVE_REMOVE_GRACE_MINUTES: "0"
 
@@ -66,7 +68,7 @@ jobs:
           set -euo pipefail
           python -m py_compile \
             bot_private_state.py bot_notification_state.py migrate_bot_private_state.py \
-            privacy_retention.py security_audit.py notification_preferences_v2.py \
+            privacy_retention.py security_audit.py test_bot_state_fixture.py notification_preferences_v2.py \
             admin_action.py admin_action_v2.py admin_action_v3.py rating_policy.py \
             admin_panel_runtime_v22.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
@@ -83,6 +85,7 @@ jobs:
           python security_audit.py --history --history-output security_history_report.json
           python migrate_bot_private_state.py --check
           python notification_preferences_v2.py
+          python test_bot_state_fixture.py
           python admin_action_v2.py --self-test
           python admin_action_v3.py --self-test
           python admin_panel_runtime_v25.py --self-test
@@ -135,7 +138,8 @@ jobs:
           worker = Path(".github/workflows/state-api.yml").read_text(encoding="utf-8")
           encrypted = json.loads(Path("bot_private_state.enc.json").read_text(encoding="utf-8"))
 
-          assert encrypted.get("format") in {"bbvg-bot-state-v1", "bbvg-bot-state-v2"}
+          assert encrypted.get("format") == "bbvg-bot-state-v2"
+          assert encrypted.get("key_mode") == "dedicated"
           assert not {"users", "owner_id", "chat_id", "username"} & set(encrypted)
           assert "register_user(registration_message)" in panel25
           assert "_apply_admin_action_direct" in panel26
