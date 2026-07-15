@@ -18,6 +18,8 @@ on:
       - "personal_reminder_filter.py"
       - "notification_preferences_v2.py"
       - "notification_navigation.py"
+      - "notification_integrity_v2.py"
+      - "notification_delivery_state.json"
       - "monitor_health.py"
       - "incident_manager.py"
       - "notification_router.py"
@@ -99,10 +101,11 @@ jobs:
           FINAL_REMINDER_BEFORE_MINUTES: "5"
           ACTIVE_REMOVE_GRACE_MINUTES: "0"
         run: |
-          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py monitor_health.py incident_manager.py system_checks.py notification_router.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py daily_report.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py monitor_health.py incident_manager.py system_checks.py notification_router.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py daily_report.py
           python notification_router.py
           python notification_preferences_v2.py
           python notification_navigation.py
+          python notification_integrity_v2.py --self-test
           python telegram_transport.py
           python telegram_post_links_v2.py
           python recurring_wheel_events.py
@@ -115,6 +118,7 @@ jobs:
           python incident_manager.py
           python system_checks.py --self-test
           python - <<'PY'
+          import json
           import bbvg_monitor_main as runtime
           import monitor
           import monitor_data
@@ -136,12 +140,16 @@ jobs:
           assert runtime.monitor._bbvg_wheel_lifecycle_v2_installed is True
           assert runtime.monitor._bbvg_personal_reminder_filter_installed is True
           assert notification_router._bbvg_notification_preferences_v2_installed is True
+          assert notification_router._bbvg_notification_integrity_v2_installed is True
           assert notification_router.notification_kind(
-              "Время прокрутки колеса наступило"
+            "Время прокрутки колеса наступило"
           ) == "wheel_draw_alerts"
           assert notification_router.notification_kind(
-              "Напоминание о колесе BetBoom: последний шанс"
+            "Напоминание о колесе BetBoom: последний шанс"
           ) == "wheel_final_reminders"
+          assert notification_router.notification_kind(
+            "Новое колесо BetBoom — ошибка в тексте публикации"
+          ) == "wheels"
           assert runtime.monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
           assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
           state = {"inactive_wheels": {}, "pending_posts": {}, "active_wheels": {}}
@@ -151,11 +159,15 @@ jobs:
           assert len({value.casefold() for value in primary + nightly}) >= 66
           assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
           assert primary
-          print("BB V.G. monitor lifecycle, granular reminders and multi-source validation passed")
+          ledger = json.load(open("notification_delivery_state.json", encoding="utf-8"))
+          assert ledger.get("format") == "bbvg-notification-delivery-v2"
+          assert not {"chat_id", "user_id", "text", "url", "username"} & set(ledger)
+          print("BB V.G. monitor lifecycle, persistent notifications and multi-source validation passed")
           PY
           python -m json.tool identifier_sources.json >/dev/null
           python -m json.tool partners_catalog.json >/dev/null
           python -m json.tool bot_access.json >/dev/null
+          python -m json.tool notification_delivery_state.json >/dev/null
           python self_test.py
 
       - name: Run BB V.G. monitor loop
@@ -201,6 +213,7 @@ jobs:
           runtime_files=(
             state.json source_health.json source_stats.json
             unknown_timer_samples.json monitor_status.json
+            notification_delivery_state.json
           )
 
           push_runtime() {
@@ -266,7 +279,11 @@ jobs:
             fi
 
             now_ts=$(date +%s)
-            if [[ "$CONTINUOUS" != "true" ]] || (( last_commit_at == 0 || now_ts - last_commit_at >= 900 || now_ts >= shift_end )); then
+            delivery_changed=false
+            if ! git diff --quiet -- notification_delivery_state.json; then
+              delivery_changed=true
+            fi
+            if [[ "$delivery_changed" == "true" || "$CONTINUOUS" != "true" ]] || (( last_commit_at == 0 || now_ts - last_commit_at >= 900 || now_ts >= shift_end )); then
               push_runtime || echo "Runtime push is deferred; watchdog will continue checking repository freshness."
               last_commit_at=$now_ts
             fi
@@ -276,10 +293,10 @@ jobs:
             fi
 
             interval_seconds=$(python - <<'PY'
-          import json
+          import bot_notification_state
           try:
-              data = json.load(open('bot_access.json', encoding='utf-8'))
-              value = int(data.get('settings', {}).get('monitor_interval_minutes', 5))
+              data, _ = bot_notification_state.load_config()
+              value = int(data.get("settings", {}).get("monitor_interval_minutes", 5))
           except Exception:
               value = 5
           value = value if value in {1, 3, 5, 10, 15, 30} else 5
@@ -318,4 +335,4 @@ jobs:
           fi
           gh workflow run monitor.yml --ref main -f continuous=true -f replace=false
 
-# v34: granular reminder preferences with AES-GCM private user state.
+# v36: chapter 2 persistent user-notification ledger and encrypted personal preferences.
