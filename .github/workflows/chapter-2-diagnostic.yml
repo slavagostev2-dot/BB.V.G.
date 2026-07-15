@@ -1,0 +1,57 @@
+name: Chapter 2 diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      BOT_TOKEN: "test-bot-token"
+      BOT_STATE_KEY: "test-state-key"
+      BOT_CHAT_ID: "1"
+      ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
+      TELEGRAM_WEB_DOMAIN: telegram.me
+      EXPECTED_SOURCE_COUNT: "66"
+      FINAL_REMINDER_BEFORE_MINUTES: "5"
+      ACTIVE_REMOVE_GRACE_MINUTES: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - name: Compile chapter 2 modules
+        run: python -m py_compile notification_integrity_v2.py bot_notification_state.py security_audit.py system_checks_v2.py admin_panel_runtime_v36.py bbvg_monitor_main.py
+      - name: Notification integrity self-test
+        run: python notification_integrity_v2.py --self-test
+      - name: Bot notification state self-test
+        run: python bot_notification_state.py
+      - name: Security audit self-test
+        run: python security_audit.py --self-test
+      - name: Security audit current tree
+        run: python security_audit.py --current
+      - name: Security audit history
+        run: python security_audit.py --history --history-output security_history_report.json
+      - name: System checks v2 self-test
+        run: python system_checks_v2.py --self-test
+      - name: Panel v36 self-test
+        run: python admin_panel_runtime_v36.py --self-test
+      - name: Production import invariants
+        run: |
+          python - <<'PY'
+          import bbvg_monitor_main
+          import bot_notification_state
+          import notification_router
+          assert notification_router.load_config is bot_notification_state.load_config
+          assert notification_router._bbvg_notification_integrity_v2_installed is True
+          print("chapter 2 production imports passed")
+          PY
