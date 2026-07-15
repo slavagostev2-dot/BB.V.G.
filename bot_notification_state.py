@@ -4,6 +4,13 @@ import os
 from typing import Any
 
 import bot_private_state
+import notification_integrity_v2
+import notification_router
+
+# Every production entry point imports bot_notification_state before sending.
+# Install the durable deduplication and strict role boundary in one place so
+# monitor, summaries, discovery, intelligence and system checks use one policy.
+notification_integrity_v2.install(notification_router)
 
 
 def load_config() -> tuple[dict[str, Any], bool]:
@@ -40,10 +47,11 @@ def admin_recipients() -> list[str]:
     if not exists:
         return []
     users = access.get("users") if isinstance(access.get("users"), dict) else {}
+    blocked = {str(value) for value in access.get("blocked_users", []) if str(value)}
     admin_ids = {
         str(value)
         for value in [access.get("owner_id"), *access.get("admins", [])]
-        if str(value or "")
+        if str(value or "") and str(value) not in blocked
     }
     result = {
         str((users.get(user_id) or {}).get("chat_id") or user_id)
@@ -62,6 +70,7 @@ def self_test() -> None:
         access, exists = load_config()
         assert isinstance(access, dict)
         assert isinstance(exists, bool)
+        assert notification_router._bbvg_notification_integrity_v2_installed is True
     finally:
         bot_private_state.STATE_PATH = original
     print("BB V.G. bot notification state self-test passed")
