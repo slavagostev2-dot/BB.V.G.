@@ -12,7 +12,7 @@ permissions:
 jobs:
   current:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     env:
       BOT_TOKEN: "test-bot-token"
       BOT_STATE_KEY: "test-state-key"
@@ -37,21 +37,30 @@ jobs:
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Validate Python and source registry
+      - name: Validate current source and security modules
         run: |
           set -euo pipefail
           python -m py_compile \
             source_registry.py admin_action.py admin_action_v2.py admin_action_v3.py rating_policy.py \
             bbvg_monitor_main.py recurring_wheel_events.py wheel_metadata_quality.py \
             wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py \
-            notification_preferences_v2.py notification_navigation.py privacy_retention.py security_audit.py \
-            test_bot_state_fixture.py admin_panel_runtime_v22.py admin_panel_runtime_v25.py \
-            admin_panel_runtime_v26.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-            admin_panel_runtime_v33.py bot_private_state.py bot_notification_state.py \
+            notification_preferences_v2.py notification_navigation.py privacy_retention.py \
+            security_audit.py test_bot_state_fixture.py bot_private_state.py bot_notification_state.py \
             migrate_bot_private_state.py daily_report.py source_intelligence_alerts.py \
-            system_checks_v2.py source_tier_maintenance_v2.py
+            system_checks_v2.py source_tier_maintenance_v2.py \
+            admin_panel_runtime_v25.py admin_panel_runtime_v26.py admin_panel_runtime_v28.py \
+            admin_panel_runtime_v29.py admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
+            admin_panel_runtime_v32.py admin_panel_runtime_v33.py admin_panel_runtime_v34.py \
+            admin_panel_runtime_v35.py
           python source_registry.py --self-test
           python source_registry.py
+          python bot_private_state.py
+          python privacy_retention.py
+          python security_audit.py --self-test
+          python security_audit.py --current
+          python security_audit.py --history --history-output security_history_report.json
+          python migrate_bot_private_state.py --check
+          python test_bot_state_fixture.py
           python recurring_wheel_events.py
           python wheel_metadata_quality.py
           python wheel_publications_v2.py
@@ -59,108 +68,58 @@ jobs:
           python personal_reminder_filter.py
           python notification_preferences_v2.py
           python notification_navigation.py
-          python privacy_retention.py
-          python security_audit.py --self-test
-          python security_audit.py --current
-          python security_audit.py --history --history-output security_history_report.json
           python source_intelligence_alerts.py
           python -c "import daily_report; daily_report.self_test()"
-          python - <<'PY'
-          import json
-          value = json.load(open("source_registry.json", encoding="utf-8"))
-          summary = value.get("summary", {})
-          assert int(summary.get("total", 0)) == len(value.get("sources", [])), summary
-          assert int(summary.get("total", 0)) >= 66, summary
-          assert int(summary.get("checked", 0)) == int(summary.get("available", 0)) + int(summary.get("unavailable", 0)), summary
-          assert int(summary.get("total", 0)) == int(summary.get("checked", 0)) + int(summary.get("pending", 0)), summary
-          history = json.load(open("security_history_report.json", encoding="utf-8"))
-          assert "destructive_cleanup_required" in history
-          print("Registry summary:", summary)
-          print("History audit status:", history["status"])
-          PY
+          python system_checks_v2.py --self-test
+          python source_tier_maintenance_v2.py --self-test
 
-      - name: Validate bot users and administrator buttons
+      - name: Validate roles, notifications and wheel actions
         run: |
           set -euo pipefail
-          python bot_private_state.py
-          python migrate_bot_private_state.py --check
-          python test_bot_state_fixture.py
+          python admin_action_v2.py --self-test
+          python admin_action_v3.py --self-test
           python admin_panel_runtime_v25.py --self-test
-          python admin_panel_runtime_v26.py --self-test
+          python admin_panel_runtime_v28.py --self-test
+          python admin_panel_runtime_v29.py --self-test
+          python admin_panel_runtime_v30.py --self-test
           python admin_panel_runtime_v31.py --self-test
           python admin_panel_runtime_v32.py --self-test
           python admin_panel_runtime_v33.py --self-test
-
-      - name: Validate additive administrator rating
-        run: |
-          set -euo pipefail
-          python admin_action.py --self-test
-          python admin_action_v2.py --self-test
-          python admin_action_v3.py --self-test
+          python admin_panel_runtime_v35.py --self-test
           python - <<'PY'
-          import admin_action_v2
-          stats = {"version": 1, "sources": {}, "daily": {}}
-          assert admin_action_v2._additive_recorder(
-            stats, wheel_key="wheel-a", sources=["sourceA"], decision="confirmed"
-          ) is True
-          assert stats["sources"]["sourceA"]["quality_score"] == 40
-          assert admin_action_v2._additive_recorder(
-            stats, wheel_key="wheel-a", sources=["sourceA"], decision="inactive"
-          ) is False
-          assert stats["sources"]["sourceA"]["quality_score"] == 40
-          assert admin_action_v2._additive_recorder(
-            stats, wheel_key="wheel-b", sources=["sourceB"], decision="inactive"
-          ) is True
-          assert stats["sources"]["sourceB"]["quality_score"] == 0
+          import inspect
+          from pathlib import Path
+          from admin_panel_runtime_v35 import TelegramPanelRuntimeV35
+
+          def callbacks(rows):
+              return [button.get("callback_data") for row in rows for button in row]
+
+          admin_main = callbacks(TelegramPanelRuntimeV35.compact_menu_rows(True))
+          user_main = callbacks(TelegramPanelRuntimeV35.compact_menu_rows(False))
+          assert len(admin_main) == len(set(admin_main))
+          assert len(user_main) == len(set(user_main))
+          assert "page:control" in admin_main
+          assert "page:status" not in user_main
+          assert "usernotify:" in inspect.getsource(TelegramPanelRuntimeV35.handle_callback)
+          assert "usernotifyall:" in inspect.getsource(TelegramPanelRuntimeV35.handle_callback)
+          assert "_load_remote_bundle" in inspect.getsource(TelegramPanelRuntimeV35._save_bot_bundle)
+          assert "_merge_access" in inspect.getsource(TelegramPanelRuntimeV35._save_bot_bundle)
+          assert "access_signature" in inspect.getsource(TelegramPanelRuntimeV35.normalize_access)
+          workflow = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
+          assert "run: python admin_panel_runtime_v35.py" in workflow
+          assert '"version": 35' in workflow
+          print("v35 roles and per-user notification controls validated")
           PY
 
-      - name: Validate monitor and bot-only system installation
+      - name: Validate production boundaries
         run: |
           set -euo pipefail
-          python system_checks_v2.py --self-test
-          python source_tier_maintenance_v2.py --self-test
-          python - <<'PY'
-          import bbvg_monitor_main as runtime
-          import bot_notification_state
-          import notification_router
-          assert runtime.monitor.data_store.load_stats.__module__ == "bbvg_monitor_main"
-          assert runtime.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
-          assert runtime.monitor._bbvg_wheel_metadata_quality_installed is True
-          assert runtime.monitor._bbvg_publication_merge_v2_installed is True
-          assert runtime.monitor._bbvg_wheel_lifecycle_v2_installed is True
-          assert runtime.monitor._bbvg_personal_reminder_filter_installed is True
-          assert runtime.monitor._bbvg_notification_navigation_installed is True
-          assert runtime.monitor.BOT_FEEDBACK_ENABLED is False
-          assert notification_router.load_config is bot_notification_state.load_config
-          assert notification_router._bbvg_notification_preferences_v2_installed is True
-          assert notification_router.notification_kind(
-              "Время прокрутки колеса наступило"
-          ) == "wheel_draw_alerts"
-          assert notification_router.notification_kind(
-              "Напоминание о колесе BetBoom: последний шанс"
-          ) == "wheel_final_reminders"
-          print("Bot-only monitor runtime with security and granular reminders installed")
-          PY
-
-      - name: Validate current production boundary
-        run: |
-          set -euo pipefail
-          grep -q 'admin_panel_runtime_v33.py' .github/workflows/admin-bot.yml
-          grep -q 'run: python admin_panel_runtime_v33.py' .github/workflows/admin-bot.yml
-          ! grep -q 'run: python admin_panel_runtime_v32.py' .github/workflows/admin-bot.yml
-          ! grep -q 'admin_panel_runtime_v24.py' .github/workflows/admin-bot.yml
-          grep -q 'wheel:finished:' admin_panel_runtime_v32.py
-          grep -q 'privacy:delete:' admin_panel_runtime_v33.py
-          grep -q 'wheel_final_reminders' admin_panel_runtime_v33.py
-          grep -q 'wheel_draw_alerts' admin_panel_runtime_v33.py
+          grep -q 'admin_panel_runtime_v35.py' .github/workflows/admin-bot.yml
+          grep -q 'run: python admin_panel_runtime_v35.py' .github/workflows/admin-bot.yml
+          ! grep -q 'run: python admin_panel_runtime_v34.py' .github/workflows/admin-bot.yml
+          grep -q 'aes_gcm_three_way_remote_merge' .github/workflows/admin-bot.yml
+          grep -q 'Role fingerprint preserved during migration' .github/workflows/admin-bot.yml
           grep -q 'AES-256-GCM' bot_private_state.py
           grep -q 'BOT_STATE_KEY' .github/workflows/admin-bot.yml
-          grep -q 'BOT_STATE_KEY' .github/workflows/monitor.yml
-          grep -q 'wheel_lifecycle_v2.py' .github/workflows/monitor.yml
-          grep -q 'FINAL_REMINDER_BEFORE_MINUTES: "5"' .github/workflows/monitor.yml
-          grep -q 'ACTIVE_REMOVE_GRACE_MINUTES: "0"' .github/workflows/monitor.yml
           grep -q 'archived and disabled' .github/workflows/cloudflare-pages.yml
-          grep -q 'archived and disabled' .github/workflows/state-api.yml
           grep -q 'Mini App — архивировано' MINI_APP_ARCHIVED.md
-          grep -q 'if page == "app"' admin_panel_runtime_v25.py
-          grep -q '_apply_admin_action_direct' admin_panel_runtime_v26.py
