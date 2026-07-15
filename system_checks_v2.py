@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 import bot_notification_state
+import bot_private_state
 import notification_integrity_v2
 import notification_navigation
 import notification_router
@@ -205,15 +208,25 @@ def self_test() -> None:
     assert legacy.monitor._bbvg_notification_navigation_installed is True
     assert notification_router._bbvg_notification_integrity_v2_installed is True
 
-    routing_details: dict[str, Any] = {}
-    routing_findings: list[dict[str, Any]] = []
-    check_notification_routing_private(routing_details, routing_findings)
+    original_state_path = bot_private_state.STATE_PATH
+    try:
+        with TemporaryDirectory() as temporary:
+            # The routing self-test uses the fallback owner and must not attempt
+            # to decrypt the production bundle with a synthetic CI key.
+            bot_private_state.STATE_PATH = Path(temporary) / "missing-state.enc.json"
+            routing_details: dict[str, Any] = {}
+            routing_findings: list[dict[str, Any]] = []
+            check_notification_routing_private(routing_details, routing_findings)
+    finally:
+        bot_private_state.STATE_PATH = original_state_path
+
     routing = routing_details["notification_routing"]
     assert "admin_recipients" not in routing
     assert "user_recipients" not in routing
     assert isinstance(routing["admin_recipient_count"], int)
     assert routing["wheel_with_error_word_kind"] == "wheels"
     assert routing_details["notification_integrity"]["status"] == "ok"
+    assert not routing_findings
     print("BB V.G. bot-only system checks self-test passed")
 
 
