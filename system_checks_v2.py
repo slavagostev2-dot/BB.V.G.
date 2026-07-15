@@ -4,6 +4,7 @@ import argparse
 from typing import Any
 
 import bot_notification_state
+import notification_integrity_v2
 import notification_navigation
 import notification_router
 import system_checks as legacy
@@ -20,6 +21,112 @@ def check_miniapp_archived(details: dict[str, Any], findings: list[dict[str, Any
         "checked": False,
         "reason": "Mini App is frozen and excluded from the production bot runtime",
     }
+
+
+def check_notification_routing_private(
+    details: dict[str, Any], findings: list[dict[str, Any]]
+) -> None:
+    config, exists = notification_router.load_config()
+    admin_targets = notification_router.recipients(config, exists, "admin")
+    user_targets = notification_router.recipients(config, exists, "user")
+    admin_kinds = {
+        kind: notification_router.recipients(config, exists, kind)
+        for kind in sorted(notification_router.ADMIN_NOTIFICATION_KINDS)
+    }
+    user_kinds = {
+        kind: notification_router.recipients(config, exists, kind)
+        for kind in sorted(notification_router.USER_NOTIFICATION_KINDS)
+    }
+
+    # Public diagnostics contain counts only. Telegram ID and chat ID remain in
+    # the encrypted bot state and are never copied into system_check_state.json.
+    details["notification_routing"] = {
+        "admin_recipient_count": len(admin_targets),
+        "user_recipient_count": len(user_targets),
+        "admin_kind_counts": {kind: len(targets) for kind, targets in admin_kinds.items()},
+        "user_kind_counts": {kind: len(targets) for kind, targets in user_kinds.items()},
+        "error_category": notification_router.classify("⚠️ Ошибка BB V.G."),
+        "error_kind": notification_router.notification_kind("⚠️ Ошибка BB V.G."),
+        "wheel_with_error_word_kind": notification_router.notification_kind(
+            "🎡 Новое колесо BetBoom — ошибка в тексте публикации"
+        ),
+        "duplicate_window_seconds": notification_integrity_v2.RETENTION_SECONDS,
+    }
+
+    if notification_router.classify("⚠️ Ошибка BB V.G.") != "admin":
+        findings.append(
+            legacy.finding(
+                "notification_routing",
+                "Ошибки могут попасть обычным пользователям",
+                "Тестовое сообщение об ошибке не классифицировано как административное.",
+                severity="critical",
+            )
+        )
+    if notification_router.notification_kind(
+        "🎡 Новое колесо BetBoom — ошибка в тексте публикации"
+    ) != "wheels":
+        findings.append(
+            legacy.finding(
+                "notification_routing",
+                "Сообщение о колесе ошибочно стало административным",
+                "Ключевые слова внутри публикации изменили категорию пользовательского события.",
+                severity="critical",
+            )
+        )
+
+    admin_ids = notification_router.admin_user_ids(config)
+    invalid_admin_targets = 0
+    for targets in admin_kinds.values():
+        for chat_id in targets:
+            user_id, _ = notification_router.user_for_chat(config, chat_id)
+            if user_id and user_id not in admin_ids:
+                invalid_admin_targets += 1
+    if invalid_admin_targets:
+        findings.append(
+            legacy.finding(
+                "non_admin_error_recipient",
+                "Обычный пользователь включён в получателей административных сообщений",
+                f"Неверных назначений: {invalid_admin_targets}.",
+                severity="critical",
+            )
+        )
+
+    try:
+        ledger = notification_integrity_v2.load_state()
+    except notification_integrity_v2.NotificationIntegrityError as exc:
+        details["notification_integrity"] = {
+            "status": "failed",
+            "error_type": type(exc).__name__,
+        }
+        findings.append(
+            legacy.finding(
+                "notification_routing",
+                "Повреждён журнал одноразовых уведомлений",
+                "Журнал не прошёл проверку формата или целостности.",
+                severity="critical",
+            )
+        )
+    else:
+        details["notification_integrity"] = {
+            "status": "ok",
+            "format": ledger.get("format"),
+            "algorithm": ledger.get("algorithm"),
+            "entry_count": len(ledger.get("entries", {})),
+            "retention_seconds": ledger.get("retention_seconds"),
+            "router_installed": bool(
+                getattr(notification_router, "_bbvg_notification_integrity_v2_installed", False)
+            ),
+            "contains_personal_fields": False,
+        }
+        if not getattr(notification_router, "_bbvg_notification_integrity_v2_installed", False):
+            findings.append(
+                legacy.finding(
+                    "notification_routing",
+                    "Постоянная дедупликация уведомлений не установлена",
+                    "Маршрутизатор использует неполную политику доставки.",
+                    severity="critical",
+                )
+            )
 
 
 def check_rating_consistency_additive(
@@ -69,7 +176,7 @@ def check_rating_consistency_additive(
             legacy.finding(
                 "rating_score_mismatch",
                 "Рейтинг источников не совпадает с решениями администратора",
-                f"Несовпадения: {', '.join('@' + item for item in mismatches[:15])}.",
+                f"Количество несовпадений: {len(mismatches)}.",
                 severity="critical",
             )
         )
@@ -78,13 +185,14 @@ def check_rating_consistency_additive(
             legacy.finding(
                 "inactive_wheel_leak",
                 "Неактивное колесо осталось в пользовательских списках",
-                f"Колёса: {', '.join(inactive_leaks[:15])}.",
+                f"Количество событий: {len(inactive_leaks)}.",
                 severity="critical",
             )
         )
 
 
 legacy.check_miniapp_release = check_miniapp_archived
+legacy.check_notification_routing = check_notification_routing_private
 legacy.check_rating_consistency = check_rating_consistency_additive
 
 
@@ -95,6 +203,17 @@ def self_test() -> None:
     assert details["miniapp"]["status"] == "archived"
     assert not findings
     assert legacy.monitor._bbvg_notification_navigation_installed is True
+    assert notification_router._bbvg_notification_integrity_v2_installed is True
+
+    routing_details: dict[str, Any] = {}
+    routing_findings: list[dict[str, Any]] = []
+    check_notification_routing_private(routing_details, routing_findings)
+    routing = routing_details["notification_routing"]
+    assert "admin_recipients" not in routing
+    assert "user_recipients" not in routing
+    assert isinstance(routing["admin_recipient_count"], int)
+    assert routing["wheel_with_error_word_kind"] == "wheels"
+    assert routing_details["notification_integrity"]["status"] == "ok"
     print("BB V.G. bot-only system checks self-test passed")
 
 
