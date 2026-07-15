@@ -364,8 +364,11 @@ def check_admin_panel_runtime(
 def check_source_health(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
     health = load_json(HEALTH_PATH, {})
     sources = health.get("sources") if isinstance(health, dict) and isinstance(health.get("sources"), dict) else {}
-    configured = unique_sources(PUBLIC_SOURCES_PATH) + unique_sources(NIGHTLY_SOURCES_PATH)
+    primary_sources = unique_sources(PUBLIC_SOURCES_PATH)
+    nightly_sources = unique_sources(NIGHTLY_SOURCES_PATH)
+    configured = primary_sources + nightly_sources
     configured_keys = {source.casefold(): source for source in configured}
+    required_health_keys = {source.casefold(): source for source in primary_sources}
     statuses: dict[str, int] = {}
     problem_sources: list[str] = []
     problem_details: list[dict[str, str]] = []
@@ -420,17 +423,26 @@ def check_source_health(details: dict[str, Any], findings: list[dict[str, Any]])
             transport_buckets["other"] += 1
     missing = [
         source
-        for key, source in configured_keys.items()
+        for key, source in required_health_keys.items()
         if not any(str(existing).casefold() == key for existing in sources)
+    ]
+    nightly_pending = [
+        source
+        for source in nightly_sources
+        if not any(str(existing).casefold() == source.casefold() for existing in sources)
     ]
     details["source_health_summary"] = {
         "records": len(sources),
-        "configured_records": len(configured) - len(missing),
+        "configured_records": len(configured) - len(missing) - len(nightly_pending),
+        "required_primary_records": len(primary_sources) - len(missing),
         "statuses": statuses,
         "problem_sources": problem_sources[:30],
         "problem_details": problem_details[:66],
         "transport_failure_types": transport_buckets,
         "missing_sources": missing,
+        # A newly added nightly source intentionally waits for the scheduled
+        # nightly pass.  That wait is an idle state, not a health incident.
+        "nightly_pending_first_check": nightly_pending,
     }
     if missing:
         findings.append(finding(
