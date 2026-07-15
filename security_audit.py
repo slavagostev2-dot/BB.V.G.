@@ -6,10 +6,11 @@ import re
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parent
 TOKEN_RE = re.compile(r"(?<![A-Za-z0-9_])\d{6,12}:[A-Za-z0-9_-]{30,}(?![A-Za-z0-9_])")
+HEX_DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 PRIVATE_KEY_MARKERS = (
     "-----BEGIN " + "PRIVATE KEY-----",
     "-----BEGIN RSA " + "PRIVATE KEY-----",
@@ -22,7 +23,10 @@ TEXT_SUFFIXES = {
     ".js", ".css", ".html", ".sql", ".sh",
 }
 PUBLIC_PERSONAL_STATE = ("bot_access.json", "source_requests.json")
+PUBLIC_DIAGNOSTIC_STATE = "system_check_state.json"
+DELIVERY_STATE = "notification_delivery_state.json"
 ENCRYPTED_STATE = "bot_private_state.enc.json"
+HISTORY_PERSONAL_STATE = (*PUBLIC_PERSONAL_STATE, PUBLIC_DIAGNOSTIC_STATE)
 
 
 @dataclass(frozen=True)
@@ -50,14 +54,20 @@ def tracked_files() -> list[Path]:
     return [ROOT / line for line in _git("ls-files").splitlines() if line]
 
 
-def _public_json_findings(path: Path) -> list[Finding]:
+def _load_object(path: Path, code: str) -> tuple[dict[str, Any] | None, list[Finding]]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        return [Finding("invalid_public_json", path.name, type(exc).__name__)]
+        return None, [Finding(code, path.name, type(exc).__name__)]
     if not isinstance(value, dict):
-        return [Finding("invalid_public_json", path.name, "root is not an object")]
-    findings: list[Finding] = []
+        return None, [Finding(code, path.name, "root is not an object")]
+    return value, []
+
+
+def _public_json_findings(path: Path) -> list[Finding]:
+    value, findings = _load_object(path, "invalid_public_json")
+    if value is None:
+        return findings
     if path.name == "bot_access.json":
         checks = {
             "owner_id": value.get("owner_id"),
@@ -73,13 +83,76 @@ def _public_json_findings(path: Path) -> list[Finding]:
     return findings
 
 
+def _diagnostic_contains_personal(value: dict[str, Any]) -> bool:
+    routing = value.get("notification_routing")
+    if not isinstance(routing, dict):
+        return False
+    forbidden = {"admin_recipients", "user_recipients", "admin_kinds", "user_kinds"}
+    if forbidden & set(routing):
+        return True
+    return any(isinstance(raw, list) for raw in routing.values())
+
+
+def _diagnostic_findings(path: Path) -> list[Finding]:
+    value, findings = _load_object(path, "invalid_public_diagnostic")
+    if value is None:
+        return findings
+    if _diagnostic_contains_personal(value):
+        findings.append(
+            Finding(
+                "public_personal_data",
+                path.name,
+                "notification routing contains recipient identifiers",
+            )
+        )
+    integrity = value.get("notification_integrity")
+    if isinstance(integrity, dict) and integrity.get("contains_personal_fields") is not False:
+        findings.append(
+            Finding(
+                "public_personal_data",
+                path.name,
+                "notification integrity diagnostic is not explicitly anonymized",
+            )
+        )
+    return findings
+
+
+def _delivery_state_findings(path: Path) -> list[Finding]:
+    value, findings = _load_object(path, "invalid_delivery_state")
+    if value is None:
+        return findings
+    if value.get("format") != "bbvg-notification-delivery-v2":
+        findings.append(Finding("invalid_delivery_state", path.name, "unsupported format"))
+    if value.get("algorithm") != "HMAC-SHA256":
+        findings.append(Finding("invalid_delivery_state", path.name, "unsupported algorithm"))
+    allowed = {"format", "algorithm", "retention_seconds", "entries"}
+    unexpected = sorted(set(value) - allowed)
+    if unexpected:
+        findings.append(
+            Finding("public_personal_data", path.name, f"unexpected fields: {', '.join(unexpected)}")
+        )
+    entries = value.get("entries")
+    if not isinstance(entries, dict):
+        findings.append(Finding("invalid_delivery_state", path.name, "entries is not an object"))
+        return findings
+    invalid_digests = [str(key) for key in entries if not HEX_DIGEST_RE.fullmatch(str(key))]
+    if invalid_digests:
+        findings.append(
+            Finding(
+                "public_personal_data",
+                path.name,
+                f"non-HMAC delivery keys: {len(invalid_digests)}",
+            )
+        )
+    if any(not isinstance(timestamp, str) for timestamp in entries.values()):
+        findings.append(Finding("invalid_delivery_state", path.name, "non-string timestamps"))
+    return findings
+
+
 def _encrypted_state_findings(path: Path) -> list[Finding]:
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        return [Finding("invalid_encrypted_state", path.name, type(exc).__name__)]
-    if not isinstance(value, dict):
-        return [Finding("invalid_encrypted_state", path.name, "root is not an object")]
+    value, findings = _load_object(path, "invalid_encrypted_state")
+    if value is None:
+        return findings
     if str(value.get("format") or "") not in {"bbvg-bot-state-v1", "bbvg-bot-state-v2"}:
         return [Finding("invalid_encrypted_state", path.name, "unsupported format")]
     forbidden = {
@@ -99,6 +172,10 @@ def scan_current(paths: Iterable[Path] | None = None) -> list[Finding]:
             continue
         if path.name in PUBLIC_PERSONAL_STATE:
             findings.extend(_public_json_findings(path))
+        if path.name == PUBLIC_DIAGNOSTIC_STATE:
+            findings.extend(_diagnostic_findings(path))
+        if path.name == DELIVERY_STATE:
+            findings.extend(_delivery_state_findings(path))
         if path.name == ENCRYPTED_STATE:
             findings.extend(_encrypted_state_findings(path))
             continue
@@ -120,7 +197,7 @@ def history_report() -> dict:
     """Report legacy personal-state revisions without printing their contents."""
 
     rows: list[dict[str, str]] = []
-    for path in PUBLIC_PERSONAL_STATE:
+    for path in HISTORY_PERSONAL_STATE:
         commits = [line for line in _git("log", "--all", "--format=%H", "--", path).splitlines() if line]
         seen: set[str] = set()
         for commit in commits:
@@ -151,6 +228,8 @@ def history_report() -> dict:
                 )
             elif isinstance(value, dict) and path == "source_requests.json":
                 contains_personal = bool(value.get("requests"))
+            elif isinstance(value, dict) and path == PUBLIC_DIAGNOSTIC_STATE:
+                contains_personal = _diagnostic_contains_personal(value)
             if contains_personal:
                 rows.append({"path": path, "commit": commit[:12]})
     return {
@@ -163,9 +242,9 @@ def history_report() -> dict:
 def self_test() -> None:
     token_sample = "123456789:" + "A" * 35
     assert TOKEN_RE.search(token_sample)
-    clean = ROOT / "bot_access.json"
-    findings = _public_json_findings(clean)
-    assert not findings, findings
+    assert not _public_json_findings(ROOT / "bot_access.json")
+    assert not _diagnostic_findings(ROOT / PUBLIC_DIAGNOSTIC_STATE)
+    assert not _delivery_state_findings(ROOT / DELIVERY_STATE)
     print("security audit self-test passed")
 
 
