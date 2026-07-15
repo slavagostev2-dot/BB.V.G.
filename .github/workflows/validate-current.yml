@@ -1,117 +1,77 @@
-name: Validate current BB V.G. changes
+name: Validate current BB V.G. commit
 
 on:
   push:
     branches: [main]
-    paths:
-      - "notification_router.py"
-      - "notification_integrity_v2.py"
-      - "notification_preferences_v2.py"
-      - "wheel_publications_v2.py"
-      - "rating_policy.py"
-      - "chapter2_unified_logic.py"
-      - "admin_action_v2.py"
-      - "admin_panel_runtime_v36.py"
-      - "admin_panel_runtime_v37.py"
-      - "CHAPTER_2_RU.md"
-      - ".github/workflows/validate-current.yml"
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: bb-vg-current-validation
+  group: bb-vg-current-validation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      BOT_TOKEN: test-bot-token
+      BOT_STATE_KEY: test-state-key
+      BOT_CHAT_ID: "1"
+      ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
+      TELEGRAM_WEB_DOMAIN: telegram.me
+      EXPECTED_SOURCE_COUNT: "66"
+      FINAL_REMINDER_BEFORE_MINUTES: "5"
+      ACTIVE_REMOVE_GRACE_MINUTES: "0"
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout the workflow commit
+        uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install dependencies
-        id: dependencies
-        continue-on-error: true
-        run: python -m pip install -r requirements.txt
-      - name: Compile modules
-        id: compile
-        continue-on-error: true
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Verify the exact event commit
+        run: python ci_verify_current_commit.py --expected "$GITHUB_SHA"
+
+      - name: Install production and test dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Compile every active Python module
         run: |
-          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py monitor_health.py incident_manager.py system_checks.py notification_router.py notification_integrity_v2.py notification_preferences_v2.py wheel_publications_v2.py rating_policy.py chapter2_unified_logic.py monitor_data.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py
-      - name: Run preflight
-        id: preflight
-        continue-on-error: true
-        env:
-          TELEGRAM_WEB_DOMAIN: telegram.me
-          EXPECTED_SOURCE_COUNT: "66"
+          python -m compileall -q \
+            -x '(^|/)(\.git|\.venv|state_api|docs)(/|$)' \
+            .
+
+      - name: Run repository preflight
         run: python preflight.py
-      - name: Run self tests
-        id: tests
-        continue-on-error: true
-        env:
-          TELEGRAM_WEB_DOMAIN: telegram.me
-          EXPECTED_SOURCE_COUNT: "66"
+
+      - name: Run chapter acceptance contracts
         run: |
-          python telegram_transport.py
-          python incident_manager.py
-          python system_checks.py --self-test
-          python notification_router.py
+          python chapter1_stability.py
           python chapter2_unified_logic.py
-          python monitor_health.py --self-test
-          python - <<'PY'
-          import bbvg_monitor_main as runtime
-          import monitor
-          import monitor_data
-          from pathlib import Path
-          primary = monitor_data.operational_sources(monitor.read_list(Path("public_sources.txt")), "fast")
-          nightly = monitor_data.operational_sources(monitor.read_list(Path("source_catalog.txt")), "nightly")
-          assert len({value.casefold() for value in primary + nightly}) >= 66
-          assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
-          assert primary
-          assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
-          assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
-          print("Current integration validation passed")
-          PY
-      - name: Record validation result
-        if: always()
-        env:
-          DEPENDENCIES: ${{ steps.dependencies.outcome }}
-          COMPILE: ${{ steps.compile.outcome }}
-          PREFLIGHT: ${{ steps.preflight.outcome }}
-          TESTS: ${{ steps.tests.outcome }}
+          python chapter3_acceptance.py
+
+      - name: Run pytest and enforce critical-core coverage
         run: |
-          python - <<'PY'
-          import json
-          import os
-          from datetime import datetime, timezone
-          outcomes = {
-              "dependencies": os.environ.get("DEPENDENCIES", "unknown"),
-              "compile": os.environ.get("COMPILE", "unknown"),
-              "preflight": os.environ.get("PREFLIGHT", "unknown"),
-              "tests": os.environ.get("TESTS", "unknown"),
-          }
-          value = {
-              "checked_at": datetime.now(timezone.utc).isoformat(),
-              "commit": os.environ.get("GITHUB_SHA", ""),
-              "run_id": os.environ.get("GITHUB_RUN_ID", ""),
-              "outcomes": outcomes,
-              "status": "success" if all(v == "success" for v in outcomes.values()) else "failure",
-          }
-          with open("current_validation_state.json", "w", encoding="utf-8") as stream:
-              json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
-              stream.write("\n")
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add current_validation_state.json
-          git commit -m "Record current BB V.G. validation [skip ci]" || exit 0
-          git pull --rebase origin main
-          git push origin HEAD:main
+          python -m pytest \
+            --cov=notification_router \
+            --cov=notification_integrity_v2 \
+            --cov=wheel_publications_v2 \
+            --cov=rating_policy \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-fail-under=80

@@ -23,6 +23,7 @@ MAX_ENTRIES = max(1000, int(os.getenv("NOTIFICATION_DEDUP_MAX_ENTRIES", "20000")
 
 _lock = threading.RLock()
 _volatile_entries: dict[str, datetime] = {}
+_pending_entries: set[str] = set()
 
 
 class NotificationIntegrityError(RuntimeError):
@@ -183,6 +184,7 @@ def remember_delivery(digest: str, path: Path | None = None) -> None:
         return
     current = now_utc()
     with _lock:
+        _pending_entries.discard(key)
         _volatile_entries[key] = current
         target = _state_path(path)
         try:
@@ -197,6 +199,49 @@ def remember_delivery(digest: str, path: Path | None = None) -> None:
                 "WARNING notification delivery ledger was not persisted: "
                 f"{type(exc).__name__}: {exc}"
             )
+
+
+def claim_delivery(digest: str, path: Path | None = None) -> bool:
+    """Reserve a delivery without leaving failed Telegram sends in the ledger.
+
+    BB V.G. has one production monitor after chapter 1, so an in-process claim
+    closes the only legitimate concurrent send window.  Completed deliveries
+    are still persisted with an HMAC key by :func:`remember_delivery`.
+    """
+
+    key = str(digest).casefold()
+    if not HEX_DIGEST_RE.fullmatch(key):
+        return False
+    current = now_utc()
+    with _lock:
+        if key in _pending_entries:
+            return False
+        volatile = _volatile_entries.get(key)
+        if volatile is not None and current - volatile <= timedelta(
+            seconds=RETENTION_SECONDS
+        ):
+            return False
+        state = load_state(path)
+        delivered_at = _parse_datetime(state["entries"].get(key))
+        if delivered_at is not None and current - delivered_at <= timedelta(
+            seconds=RETENTION_SECONDS
+        ):
+            return False
+        _pending_entries.add(key)
+        return True
+
+
+def release_delivery(digest: str) -> None:
+    """Allow retry after Telegram rejected or failed to send the message."""
+
+    with _lock:
+        _pending_entries.discard(str(digest).casefold())
+
+
+def complete_delivery(digest: str, path: Path | None = None) -> None:
+    """Persist a successfully sent delivery and clear its reservation."""
+
+    remember_delivery(digest, path)
 
 
 def merge_states(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
@@ -266,6 +311,9 @@ def install(router_module: Any) -> None:
     router_module.delivery_key = delivery_digest
     router_module.duplicate_delivery = duplicate_delivery
     router_module.remember_delivery = remember_delivery
+    router_module.claim_delivery = claim_delivery
+    router_module.release_delivery = release_delivery
+    router_module.complete_delivery = complete_delivery
     router_module._bbvg_notification_integrity_v2_installed = True
 
 
@@ -294,7 +342,9 @@ def self_test() -> None:
             )
             assert HEX_DIGEST_RE.fullmatch(digest)
             assert not notification_router.duplicate_delivery(digest)
-            notification_router.remember_delivery(digest)
+            assert notification_router.claim_delivery(digest)
+            assert not notification_router.claim_delivery(digest)
+            notification_router.complete_delivery(digest)
             assert notification_router.duplicate_delivery(digest)
 
             raw = STATE_PATH.read_text(encoding="utf-8")

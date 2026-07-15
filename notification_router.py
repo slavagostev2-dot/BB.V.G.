@@ -46,7 +46,8 @@ DELIVERY_DEDUP_SECONDS = max(
     300, int(os.getenv("NOTIFICATION_DEDUP_SECONDS", "86400"))
 )
 _delivered: dict[str, float] = {}
-_delivery_lock = threading.Lock()
+_delivery_lock = threading.RLock()
+_pending_deliveries: set[str] = set()
 
 
 def load_config() -> tuple[dict[str, Any], bool]:
@@ -217,7 +218,38 @@ def duplicate_delivery(key: str) -> bool:
 
 def remember_delivery(key: str) -> None:
     with _delivery_lock:
+        _pending_deliveries.discard(key)
         _delivered[key] = time.monotonic()
+
+
+def claim_delivery(key: str) -> bool:
+    """Atomically reserve one delivery inside the single monitor process.
+
+    The old ``duplicate_delivery`` followed by ``remember_delivery`` sequence
+    left a race window: two worker threads could both see a missing key and send
+    the same alert.  A claim is intentionally kept in memory until Telegram
+    confirms the send.  Persistent deduplication is installed by
+    ``notification_integrity_v2`` and retains the completed delivery.
+    """
+
+    with _delivery_lock:
+        if key in _pending_deliveries or duplicate_delivery(key):
+            return False
+        _pending_deliveries.add(key)
+        return True
+
+
+def release_delivery(key: str) -> None:
+    """Release a failed reservation so a later retry is not suppressed."""
+
+    with _delivery_lock:
+        _pending_deliveries.discard(key)
+
+
+def complete_delivery(key: str) -> None:
+    """Convert a successful reservation into a completed delivery mark."""
+
+    remember_delivery(key)
 
 
 def wheel_key_from_message(text: str, url: str | None, reply_markup: dict | None) -> str:
@@ -355,7 +387,7 @@ def install(monitor_module: Any) -> None:
                 event_identity or text,
                 None if event_identity else url,
             )
-            if duplicate_delivery(dedup_key):
+            if not claim_delivery(dedup_key):
                 skipped += 1
                 continue
             payload: dict[str, Any] = {
@@ -375,10 +407,12 @@ def install(monitor_module: Any) -> None:
                 response = monitor_module.telegram_api("sendMessage", payload)
                 result = response
                 sent += 1
-                remember_delivery(dedup_key)
             except Exception as exc:
+                release_delivery(dedup_key)
                 errors.append(f"{chat_id}:{type(exc).__name__}")
                 print(f"WARNING notification target {chat_id}: {type(exc).__name__}: {exc}")
+            else:
+                complete_delivery(dedup_key)
 
         if errors and len(errors) == len(targets) - skipped:
             raise RuntimeError("All notification targets failed: " + ", ".join(errors))

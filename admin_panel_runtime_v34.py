@@ -182,6 +182,10 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
                 if str(value) and str(value) != owner_id
             }
         )
+        # The result is produced from three already trusted snapshots.  Refresh
+        # the legacy v34 role signature before its final normalization; without
+        # this, a valid local role change was cleared as if it were tampering.
+        result["access_signature"] = self._signature(result)
         return self.normalize_access(result)
 
     def _write_remote_bundle(self, bundle: dict[str, Any], sha: str, message: str) -> str:
@@ -617,6 +621,7 @@ def self_test() -> None:
     remote = _clone(base)
     remote["admins"] = ["2"]
     remote["users"]["2"]["last_name"] = "Remote"
+    remote["access_signature"] = panel._signature(remote)
     merged = panel._merge_access(base, local, remote)
     assert merged["admins"] == ["2"], "A stale preference write erased a remote administrator role"
     assert merged["users"]["2"]["last_name"] == "Remote"
@@ -624,6 +629,7 @@ def self_test() -> None:
 
     role_local = _clone(base)
     role_local["admins"] = ["2"]
+    role_local["access_signature"] = panel._signature(role_local)
     remote_with_new_user = _clone(base)
     remote_with_new_user["users"]["3"] = {"id": "3", "chat_id": "30"}
     merged_role = panel._merge_access(base, role_local, remote_with_new_user)

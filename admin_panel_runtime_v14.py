@@ -422,7 +422,10 @@ def self_test() -> None:
     assert any(button.get("callback_data") == "page:active" for button in flat)
     assert any(button.get("callback_data") == "page:more" for button in flat)
     assert "прокрутка впереди" not in TelegramPanelRuntimeV14.show_active.__code__.co_consts
-    assert "Участие отмечено" in TelegramPanelRuntimeV14.show_active.__code__.co_consts
+    assert any(
+        isinstance(value, str) and "Участие отмечено" in value
+        for value in TelegramPanelRuntimeV14.show_active.__code__.co_consts
+    )
     assert TelegramPanelRuntimeV14.source_mode_name("nightly") == "Ночное наблюдение"
     print("admin_panel_runtime_v14 compact panel self-test passed")
 
