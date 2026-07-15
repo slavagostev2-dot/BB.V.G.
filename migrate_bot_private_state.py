@@ -95,6 +95,8 @@ def build_bundle() -> dict[str, Any]:
 
 
 def migrate(force: bool = False) -> tuple[bool, int, int, str]:
+    """Migrate immediately to AES-GCM v2, then rotate to a dedicated key when available."""
+
     raw_text = ""
     try:
         raw_text = bot_private_state.STATE_PATH.read_text(encoding="utf-8")
@@ -129,15 +131,9 @@ def migrate(force: bool = False) -> tuple[bool, int, int, str]:
         )
         should_reseal = force or retention_changed or should_upgrade or should_rotate_key
         if should_reseal:
-            if (should_upgrade or should_rotate_key) and not bot_private_state.dedicated_key_configured():
-                users = len(current_access.get("users") or {})
-                requests = len((current.get("source_requests") or {}).get("requests") or {})
-                return (
-                    False,
-                    users,
-                    requests,
-                    f"{current_format}_{current_key_mode}_waiting_for_BOT_STATE_KEY",
-                )
+            # Without BOT_STATE_KEY, save_file writes AES-GCM v2 in temporary
+            # bot_token_compat mode. This removes legacy cryptography immediately
+            # while preserving a safe later rotation to the dedicated key.
             bot_private_state.save_file(current)
             current_format = bot_private_state.FORMAT_V2
             changed = True
@@ -148,10 +144,6 @@ def migrate(force: bool = False) -> tuple[bool, int, int, str]:
         return changed, users, requests, current_format
 
     bundle = build_bundle()
-    if not bot_private_state.dedicated_key_configured():
-        raise bot_private_state.BotStateKeyError(
-            "BOT_STATE_KEY must be configured before creating a new encrypted state"
-        )
     bot_private_state.save_file(bundle)
     access = bundle.get("access") if isinstance(bundle.get("access"), dict) else {}
     requests_state = (
@@ -196,7 +188,7 @@ def main() -> int:
         f"source_requests={requests}, format={format_name}"
     )
     if args.require_v2 and format_name != bot_private_state.FORMAT_V2:
-        print("BOT_STATE_KEY is not configured; v2 migration is pending.")
+        print("Encrypted state did not migrate to AES-GCM v2.")
         return 3
     return 0
 
