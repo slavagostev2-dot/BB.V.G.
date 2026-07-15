@@ -118,13 +118,16 @@ def migrate(force: bool = False) -> tuple[bool, int, int, str]:
     populated = bool(current_access.get("owner_id") and current_access.get("users"))
 
     if populated:
-        privacy_retention.prune_bundle(current)
+        retention_changed = privacy_retention.prune_bundle(current)
         should_upgrade = current_format != bot_private_state.FORMAT_V2
         should_rotate_key = (
             bot_private_state.dedicated_key_configured()
-            and current_key_mode != "dedicated"
+            and (
+                current_key_mode != "dedicated"
+                or bot_private_state.previous_key_configured()
+            )
         )
-        should_reseal = force or should_upgrade or should_rotate_key
+        should_reseal = force or retention_changed or should_upgrade or should_rotate_key
         if should_reseal:
             if (should_upgrade or should_rotate_key) and not bot_private_state.dedicated_key_configured():
                 users = len(current_access.get("users") or {})
