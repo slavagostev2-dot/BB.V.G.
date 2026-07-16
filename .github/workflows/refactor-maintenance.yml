@@ -1,0 +1,56 @@
+name: BB V.G. one-shot production validation maintenance
+
+on:
+  push:
+    branches:
+      - refactor/consolidate-runtime-v42
+    paths:
+      - ".github/workflows/refactor-maintenance.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/consolidate-runtime-v42
+          fetch-depth: 0
+      - name: Point production validation at consolidated modules
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/admin-bot.yml')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              'admin_panel_runtime_v27.py admin_panel_runtime_v28.py':
+                  'admin_panel_runtime_v28.py',
+              'admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \\\n':
+                  '',
+              '          python admin_panel_runtime_v33.py --self-test\n':
+                  '',
+              '          python admin_panel_runtime_v35.py --self-test\n':
+                  '',
+              '          python admin_action_queue.py\n':
+                  '          python admin_action_queue.py\n          python -m bbvg.bot.storage\n          python -m bbvg.bot.users\n',
+              '          from admin_panel_runtime_v34 import TelegramPanelRuntimeV34\n':
+                  '          from bbvg.bot.users import UserSettingsMixin\n',
+              '          handler = inspect.getsource(TelegramPanelRuntimeV34.handle_callback)\n':
+                  '          handler = inspect.getsource(UserSettingsMixin.handle_callback)\n',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected one occurrence of {old!r}, found {count}')
+              text = text.replace(old, new)
+          path.write_text(text, encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/admin-bot.yml
+          git commit -m "Validate production through consolidated user and storage modules [skip ci]"
+          git pull --rebase origin refactor/consolidate-runtime-v42
+          git push origin HEAD:refactor/consolidate-runtime-v42
