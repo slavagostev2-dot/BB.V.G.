@@ -36,7 +36,6 @@ jobs:
           fetch-depth: 0
 
       - name: Apply direct runtime entrypoint patch
-        if: ${{ hashFiles('tools/refactor_patch_once.py') != '' }}
         run: |
           python tools/refactor_patch_once.py
           rm tools/refactor_patch_once.py
