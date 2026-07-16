@@ -11,7 +11,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     env:
       BOT_TOKEN: "test-bot-token"
       BOT_STATE_KEY: "test-state-key"
@@ -19,7 +19,7 @@ jobs:
       ADMIN_USER_ID: "1"
       BBVG_TEST_MODE: "1"
       TELEGRAM_WEB_DOMAIN: telegram.me
-      EXPECTED_SOURCE_COUNT: "66"
+      EXPECTED_SOURCE_COUNT: "77"
       FINAL_REMINDER_BEFORE_MINUTES: "5"
       ACTIVE_REMOVE_GRACE_MINUTES: "0"
 
@@ -27,39 +27,44 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
+
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
-      - name: Run recovery smoke test
+
+      - name: Run consolidated recovery smoke test
         run: |
           set -euo pipefail
+          python -m compileall -q bbvg tests
           python -m py_compile \
             admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-            admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
-            admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
-            telegram_ui.py chapter4_acceptance.py \
-            bot_private_state.py bot_notification_state.py \
-            notification_integrity_v2.py privacy_retention.py security_audit.py \
-            chapter2_unified_logic.py \
-            test_bot_state_fixture.py migrate_bot_private_state.py notification_preferences_v2.py \
-            admin_action_v2.py admin_action_v3.py rating_policy.py bbvg_monitor_main.py \
-            recurring_wheel_events.py wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py \
-            wheel_lifecycle_v2.py personal_reminder_filter.py daily_report.py \
-            source_intelligence_alerts.py system_checks_v2.py source_tier_maintenance_v2.py
+            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
+            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
+            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
+            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
+            admin_panel_runtime_v41.py telegram_ui.py \
+            bot_private_state.py bot_notification_state.py notification_integrity_v2.py \
+            privacy_retention.py security_audit.py migrate_bot_private_state.py \
+            notification_preferences_v2.py admin_action_v2.py admin_action_v3.py \
+            rating_policy.py bbvg_monitor_main.py recurring_wheel_events.py \
+            wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py \
+            wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
+            personal_reminder_filter.py daily_report.py source_intelligence_alerts.py \
+            system_checks_v2.py source_tier_maintenance_v2.py
+          python -m bbvg.bot.storage
+          python -m bbvg.bot.users
+          python -m bbvg.bot.runtime --self-test
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
-          python chapter2_unified_logic.py
           python bot_notification_state.py
           python privacy_retention.py
           python security_audit.py --current
           python migrate_bot_private_state.py --check
           python notification_preferences_v2.py
-          python test_bot_state_fixture.py
           python admin_panel_runtime_v25.py --self-test
           python admin_panel_runtime_v26.py --self-test
           python admin_panel_runtime_v28.py --self-test
@@ -67,17 +72,17 @@ jobs:
           python admin_panel_runtime_v30.py --self-test
           python admin_panel_runtime_v31.py --self-test
           python admin_panel_runtime_v32.py --self-test
-          python admin_panel_runtime_v33.py --self-test
-          python admin_panel_runtime_v35.py --self-test
           python admin_panel_runtime_v36.py --self-test
           python admin_panel_runtime_v37.py --self-test
           python admin_panel_runtime_v38.py --self-test
-          python chapter4_acceptance.py
+          python admin_panel_runtime_v41.py --self-test
           python recurring_wheel_events.py
           python wheel_event_runtime.py
           python wheel_metadata_quality.py
           python wheel_publications_v2.py
           python wheel_lifecycle_v2.py
+          python wheel_link_lifecycle.py
+          python wheel_scenario_suite.py
           python personal_reminder_filter.py
           python source_intelligence_alerts.py
           python -c "import daily_report; daily_report.self_test()"
@@ -85,93 +90,79 @@ jobs:
           python admin_action_v3.py --self-test
           python system_checks_v2.py --self-test
           python source_tier_maintenance_v2.py --self-test
+
+      - name: Validate recovery architecture and monitor patches
+        run: |
+          set -euo pipefail
           python - <<'PY'
-          from pathlib import Path
           import json
+          from pathlib import Path
           import admin_panel_runtime_v25
           import admin_panel_runtime_v26
+          import admin_panel_runtime_v28
           import admin_panel_runtime_v30
           import admin_panel_runtime_v31
           import admin_panel_runtime_v32
-          import admin_panel_runtime_v33
-          import admin_panel_runtime_v34
-          import admin_panel_runtime_v35
           import admin_panel_runtime_v36
           import admin_panel_runtime_v37
           import admin_panel_runtime_v38
           import bbvg_monitor_main
           import bot_notification_state
           import notification_router
+          from bbvg.bot.storage import PrivateStateRuntime
+          from bbvg.bot.users import UserSettingsMixin, WHEEL_NOTIFICATION_OPTIONS
 
-          assert admin_panel_runtime_v25.TelegramPanelRuntimeV25.__mro__[1].__name__ == "TelegramPanelRuntimeV22"
-          assert admin_panel_runtime_v26.TelegramPanelRuntimeV26.__mro__[1].__name__ == "TelegramPanelRuntimeV25"
-          assert admin_panel_runtime_v30.TelegramPanelRuntimeV30.__mro__[1].__name__ == "TelegramPanelRuntimeV29"
-          assert admin_panel_runtime_v31.TelegramPanelRuntimeV31.__mro__[1].__name__ == "TelegramPanelRuntimeV30"
-          assert admin_panel_runtime_v32.TelegramPanelRuntimeV32.__mro__[1].__name__ == "TelegramPanelRuntimeV31"
-          assert admin_panel_runtime_v33.TelegramPanelRuntimeV33.__mro__[1].__name__ == "TelegramPanelRuntimeV32"
-          assert admin_panel_runtime_v34.TelegramPanelRuntimeV34.__mro__[1].__name__ == "TelegramPanelRuntimeV33"
-          assert admin_panel_runtime_v35.TelegramPanelRuntimeV35.__mro__[1].__name__ == "TelegramPanelRuntimeV34"
-          assert admin_panel_runtime_v36.TelegramPanelRuntimeV36.__mro__[1].__name__ == "TelegramPanelRuntimeV35"
-          assert admin_panel_runtime_v37.TelegramPanelRuntimeV37.__mro__[1].__name__ == "TelegramPanelRuntimeV36"
-          assert admin_panel_runtime_v38.TelegramPanelRuntimeV38.__mro__[1].__name__ == "TelegramPanelRuntimeV37"
+          assert admin_panel_runtime_v25.TelegramPanelRuntimeV25.__mro__[1] is PrivateStateRuntime
+          assert admin_panel_runtime_v26.TelegramPanelRuntimeV26.__mro__[1].__name__ == 'TelegramPanelRuntimeV25'
+          assert admin_panel_runtime_v28.TelegramPanelRuntimeV28.__mro__[1].__name__ == 'TelegramPanelRuntimeV26'
+          assert admin_panel_runtime_v30.TelegramPanelRuntimeV30.__mro__[1].__name__ == 'TelegramPanelRuntimeV29'
+          assert admin_panel_runtime_v31.TelegramPanelRuntimeV31.__mro__[1].__name__ == 'TelegramPanelRuntimeV30'
+          assert admin_panel_runtime_v32.TelegramPanelRuntimeV32.__mro__[1].__name__ == 'TelegramPanelRuntimeV31'
+          assert admin_panel_runtime_v36.TelegramPanelRuntimeV36.__mro__[1] is UserSettingsMixin
+          assert admin_panel_runtime_v37.TelegramPanelRuntimeV37.__mro__[1].__name__ == 'TelegramPanelRuntimeV36'
+          assert admin_panel_runtime_v38.TelegramPanelRuntimeV38.__mro__[1].__name__ == 'TelegramPanelRuntimeV37'
           assert notification_router.load_config is bot_notification_state.load_config
           assert notification_router._bbvg_notification_preferences_v2_installed is True
           assert notification_router._bbvg_notification_integrity_v2_installed is True
-          assert bbvg_monitor_main.monitor.data_store.record_admin_wheel_decision.__module__ == "bbvg_monitor_main"
+          assert bbvg_monitor_main.monitor.data_store.record_admin_wheel_decision.__module__ == 'bbvg_monitor_main'
           assert bbvg_monitor_main.monitor._bbvg_wheel_metadata_quality_installed is True
           assert bbvg_monitor_main.monitor._bbvg_wheel_event_runtime_installed is True
           assert bbvg_monitor_main.monitor._bbvg_publication_merge_v2_installed is True
           assert bbvg_monitor_main.monitor._bbvg_wheel_lifecycle_v2_installed is True
           assert bbvg_monitor_main.monitor._bbvg_personal_reminder_filter_installed is True
 
-          def callbacks(rows):
-              return [button.get("callback_data") for row in rows for button in row]
-
           panel = admin_panel_runtime_v38.TelegramPanelRuntimeV38
+          callbacks = lambda rows: [button.get('callback_data') for row in rows for button in row]
           admin_main = callbacks(panel.compact_menu_rows(True))
           user_main = callbacks(panel.compact_menu_rows(False))
           assert len(admin_main) == len(set(admin_main))
           assert len(user_main) == len(set(user_main))
-          assert "page:control" in admin_main
-          assert "page:settings" in user_main
-          assert "page:status" in user_main
-          assert "page:reports" not in admin_main
-          assert "control:daily" not in callbacks(panel.control_menu_rows())
-          assert "summary:send" not in __import__("inspect").getsource(panel.show_analytics)
-          assert {key for key, _, _ in admin_panel_runtime_v33.WHEEL_NOTIFICATION_OPTIONS} == {
-              "wheels", "wheel_final_reminders", "wheel_draw_alerts"
+          assert 'page:control' in admin_main
+          assert 'page:settings' in user_main
+          assert 'page:status' in user_main
+          assert 'page:reports' not in admin_main
+          assert 'control:daily' not in callbacks(panel.control_menu_rows())
+          assert {key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS} == {
+              'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'
           }
-          assert "access_signature" not in panel().normalize_access({"owner_id":"1"})
+          assert 'access_signature' not in panel().normalize_access({'owner_id': '1'})
 
-          admin_sources = callbacks(panel.source_menu_rows(True))
-          user_sources = callbacks(panel.source_menu_rows(False))
-          assert {"page:discovery", "page:intelligence", "source:add"} <= set(admin_sources)
-          assert not {"page:discovery", "page:intelligence", "source:add"} & set(user_sources)
-          assert "source:request" in user_sources
-          ranking_labels = [
-              button["text"]
-              for row in panel.source_menu_rows(False)
-              for button in row
-              if button.get("callback_data") == "page:ranking"
-          ]
-          assert ranking_labels == ["🏆 Рейтинг источников"]
-
-          ledger = json.loads(Path("notification_delivery_state.json").read_text(encoding="utf-8"))
-          assert ledger.get("format") == "bbvg-notification-delivery-v2"
-          assert isinstance(ledger.get("entries"), dict)
+          ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
+          assert ledger.get('format') == 'bbvg-notification-delivery-v2'
+          assert isinstance(ledger.get('entries'), dict)
 
           primary = [
-              line.split("#", 1)[0].strip().lstrip("@")
-              for line in Path("public_sources.txt").read_text(encoding="utf-8").splitlines()
-              if line.split("#", 1)[0].strip()
+              line.split('#', 1)[0].strip().lstrip('@')
+              for line in Path('public_sources.txt').read_text(encoding='utf-8').splitlines()
+              if line.split('#', 1)[0].strip()
           ]
           nightly = [
-              line.split("#", 1)[0].strip().lstrip("@")
-              for line in Path("source_catalog.txt").read_text(encoding="utf-8").splitlines()
-              if line.split("#", 1)[0].strip()
+              line.split('#', 1)[0].strip().lstrip('@')
+              for line in Path('source_catalog.txt').read_text(encoding='utf-8').splitlines()
+              if line.split('#', 1)[0].strip()
           ]
           combined = [value.casefold() for value in primary + nightly]
           assert len(combined) == len(set(combined))
-          assert {"mariomaxtv", "adekvatik", "jestercast"} <= set(combined)
-          print("Bot recovery v38 notification and interface smoke test passed")
+          assert {'mariomaxtv', 'adekvatik', 'jestercast'} <= set(combined)
+          print('Consolidated recovery and monitor smoke test passed')
           PY

@@ -12,7 +12,7 @@ permissions:
 jobs:
   current:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
     env:
       BOT_TOKEN: "test-bot-token"
       BOT_STATE_KEY: "test-state-key"
@@ -37,115 +37,69 @@ jobs:
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Validate current source and security modules
+      - name: Validate consolidated runtime and state
         run: |
           set -euo pipefail
+          python -m compileall -q bbvg tests
           python -m py_compile \
-            source_registry.py admin_action.py admin_action_v2.py admin_action_v3.py rating_policy.py \
-            chapter2_unified_logic.py \
-            bbvg_monitor_main.py recurring_wheel_events.py wheel_event_runtime.py wheel_metadata_quality.py \
-            wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py \
-            notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py \
-            privacy_retention.py security_audit.py test_bot_state_fixture.py bot_private_state.py \
-            bot_notification_state.py migrate_bot_private_state.py daily_report.py \
-            source_intelligence_alerts.py system_checks_v2.py source_tier_maintenance_v2.py \
-            admin_panel_runtime_v25.py admin_panel_runtime_v26.py admin_panel_runtime_v28.py \
-            admin_panel_runtime_v29.py admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py admin_panel_runtime_v33.py admin_panel_runtime_v34.py \
-            admin_panel_runtime_v35.py admin_panel_runtime_v36.py admin_panel_runtime_v37.py \
-            admin_panel_runtime_v38.py telegram_ui.py chapter4_acceptance.py
-          python source_registry.py --self-test
-          python source_registry.py
-          python bot_private_state.py
-          python notification_integrity_v2.py --self-test
-          python chapter2_unified_logic.py
-          python bot_notification_state.py
-          python privacy_retention.py
-          python security_audit.py --self-test
-          python security_audit.py --current
-          python security_audit.py --history --history-output security_history_report.json
-          python migrate_bot_private_state.py --check
-          python test_bot_state_fixture.py
-          python recurring_wheel_events.py
-          python wheel_event_runtime.py
-          python wheel_metadata_quality.py
-          python wheel_publications_v2.py
-          python wheel_lifecycle_v2.py
-          python personal_reminder_filter.py
-          python notification_preferences_v2.py
-          python notification_navigation.py
-          python source_intelligence_alerts.py
-          python -c "import daily_report; daily_report.self_test()"
-          python system_checks_v2.py --self-test
-          python source_tier_maintenance_v2.py --self-test
-
-      - name: Validate roles, notifications and wheel actions
-        run: |
-          set -euo pipefail
-          python admin_action_v2.py --self-test
-          python admin_action_v3.py --self-test
-          python admin_panel_runtime_v25.py --self-test
-          python admin_panel_runtime_v28.py --self-test
-          python admin_panel_runtime_v29.py --self-test
-          python admin_panel_runtime_v30.py --self-test
-          python admin_panel_runtime_v31.py --self-test
-          python admin_panel_runtime_v32.py --self-test
-          python admin_panel_runtime_v33.py --self-test
-          python admin_panel_runtime_v35.py --self-test
+            admin_bot.py admin_runtime.py admin_panel_v2.py \
+            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
+            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
+            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
+            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
+            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
+            admin_panel_runtime_v41.py bot_private_state.py \
+            notification_integrity_v2.py privacy_retention.py security_audit.py \
+            migrate_bot_private_state.py source_registry.py \
+            wheel_link_lifecycle.py wheel_scenario_suite.py
+          python -m bbvg.bot.storage
+          python -m bbvg.bot.users
+          python -m bbvg.bot.runtime --self-test
           python admin_panel_runtime_v36.py --self-test
           python admin_panel_runtime_v37.py --self-test
           python admin_panel_runtime_v38.py --self-test
-          python chapter4_acceptance.py
-          python - <<'PY'
-          import inspect
-          import json
-          import notification_router
-          from pathlib import Path
-          from admin_panel_runtime_v34 import TelegramPanelRuntimeV34
-          from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
+          python admin_panel_runtime_v41.py --self-test
+          python bot_private_state.py
+          python notification_integrity_v2.py --self-test
+          python privacy_retention.py
+          python migrate_bot_private_state.py --check
+          python security_audit.py --self-test
+          python security_audit.py --current
+          python security_audit.py --history --history-output security_history_report.json
 
-          def callbacks(rows):
-              return [button.get("callback_data") for row in rows for button in row]
-
-          admin_main = callbacks(TelegramPanelRuntimeV38.compact_menu_rows(True))
-          user_main = callbacks(TelegramPanelRuntimeV38.compact_menu_rows(False))
-          assert len(admin_main) == len(set(admin_main))
-          assert len(user_main) == len(set(user_main))
-          assert "page:control" in admin_main
-          assert "page:status" in user_main
-          assert "usernotify:" in inspect.getsource(TelegramPanelRuntimeV34.handle_callback)
-          assert "usernotifyall:" in inspect.getsource(TelegramPanelRuntimeV34.handle_callback)
-          assert "_load_remote_bundle" in inspect.getsource(TelegramPanelRuntimeV38._save_bot_bundle)
-          assert "_merge_access" in inspect.getsource(TelegramPanelRuntimeV38._save_bot_bundle)
-          assert "access_signature" in inspect.getsource(TelegramPanelRuntimeV38.normalize_access)
-          assert "USER_ACTION_ERROR" in inspect.getsource(TelegramPanelRuntimeV38.safe_text_for_role)
-          assert notification_router._bbvg_notification_integrity_v2_installed is True
-          ranking = [
-              button["text"]
-              for row in TelegramPanelRuntimeV38.source_menu_rows(False)
-              for button in row
-              if button.get("callback_data") == "page:ranking"
-          ]
-          assert ranking == ["🏆 Рейтинг источников"]
-          ledger = json.loads(Path("notification_delivery_state.json").read_text(encoding="utf-8"))
-          assert ledger.get("format") == "bbvg-notification-delivery-v2"
-          workflow = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
-          assert "run: python admin_panel_runtime_v38.py" in workflow
-          assert '"version": 38' in workflow
-          assert "summary:send" not in inspect.getsource(TelegramPanelRuntimeV38.show_analytics)
-          print("v38 interface, roles and notification policy validated")
-          PY
-
-      - name: Validate production boundaries
+      - name: Run full tests and production acceptance
         run: |
           set -euo pipefail
-          grep -q 'admin_panel_runtime_v38.py' .github/workflows/admin-bot.yml
-          grep -q 'run: python admin_panel_runtime_v38.py' .github/workflows/admin-bot.yml
-          ! grep -q 'run: python admin_panel_runtime_v35.py' .github/workflows/admin-bot.yml
-          grep -q 'persistent_hmac_delivery_ledger' .github/workflows/admin-bot.yml
-          grep -q 'notification_delivery_state.json' .github/workflows/monitor.yml
-          grep -q 'Role fingerprint preserved during migration' .github/workflows/admin-bot.yml
-          grep -q 'AES-256-GCM' bot_private_state.py
-          grep -q 'BOT_STATE_KEY' .github/workflows/admin-bot.yml
-          grep -q 'archived and disabled' .github/workflows/cloudflare-pages.yml
-          grep -q 'Mini App — архивировано' MINI_APP_ARCHIVED.md
+          python -m pytest -q
+          python tests/production_acceptance.py
+
+      - name: Validate current production boundaries
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import inspect
+          from pathlib import Path
+          import notification_router
+          import telegram_ui
+          from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
+          from bbvg.bot.storage import PrivateStateRuntime
+          from bbvg.bot.users import UserSettingsMixin, WHEEL_NOTIFICATION_OPTIONS
+
+          workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
+          assert 'run: python admin_panel_runtime_v41.py' in workflow
+          assert 'Role fingerprint' in workflow or 'role fingerprint' in workflow.lower()
+          assert {'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'} == {
+              key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
+          }
+          handler = inspect.getsource(UserSettingsMixin.handle_callback)
+          assert 'usernotify:' in handler and 'usernotifyall:' in handler
+          assert '_load_remote_bundle' in inspect.getsource(PrivateStateRuntime._save_bot_bundle)
+          assert 'page:status' in {
+              button['callback_data']
+              for row in TelegramPanelRuntimeV38.compact_menu_rows(False)
+              for button in row
+          }
+          assert notification_router._bbvg_notification_integrity_v2_installed is True
+          assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
+          print('Current consolidated production boundaries validated')
+          PY

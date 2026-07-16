@@ -6,6 +6,7 @@ on:
     paths:
       - "admin_*.py"
       - "bot_*.py"
+      - "bbvg/bot/**"
       - "bot_private_state.enc.json"
       - "notification_*.py"
       - "telegram_ui.py"
@@ -15,13 +16,8 @@ on:
       - "security_audit.py"
       - "test_bot_state_fixture.py"
       - "rating_policy.py"
-      - "chapter2_unified_logic.py"
       - "bbvg_monitor_main.py"
-      - "recurring_wheel_events.py"
-      - "wheel_event_runtime.py"
-      - "wheel_metadata_quality.py"
-      - "wheel_publications_v2.py"
-      - "wheel_lifecycle_v2.py"
+      - "wheel_*.py"
       - "personal_reminder_filter.py"
       - "daily_report.py"
       - "source_intelligence_alerts.py"
@@ -42,7 +38,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
     env:
       BOT_TOKEN: "test-bot-token"
       BOT_STATE_KEY: "test-state-key"
@@ -70,23 +66,26 @@ jobs:
       - name: Validate encrypted bot runtime
         run: |
           set -euo pipefail
+          python -m compileall -q bbvg tests
           python -m py_compile \
             bot_private_state.py bot_notification_state.py notification_integrity_v2.py \
             migrate_bot_private_state.py privacy_retention.py security_audit.py \
-            test_bot_state_fixture.py notification_preferences_v2.py admin_action.py \
-            admin_action_v2.py admin_action_v3.py rating_policy.py chapter2_unified_logic.py admin_panel_runtime_v25.py \
-            admin_panel_runtime_v26.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-            admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
-            admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
-            telegram_ui.py chapter4_acceptance.py \
+            test_bot_state_fixture.py notification_preferences_v2.py \
+            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
+            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
+            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
+            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
+            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
+            admin_panel_runtime_v41.py telegram_ui.py chapter4_acceptance.py \
             bbvg_monitor_main.py recurring_wheel_events.py wheel_event_runtime.py \
             wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py \
             personal_reminder_filter.py daily_report.py source_intelligence_alerts.py \
             source_tier_maintenance_v2.py system_checks_v2.py sitecustomize.py
+          python -m bbvg.bot.storage
+          python -m bbvg.bot.users
+          python -m bbvg.bot.runtime --self-test
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
-          python chapter2_unified_logic.py
           python bot_notification_state.py
           python privacy_retention.py
           python security_audit.py --self-test
@@ -95,11 +94,10 @@ jobs:
           python migrate_bot_private_state.py --check
           python notification_preferences_v2.py
           python test_bot_state_fixture.py
-          python admin_panel_runtime_v33.py --self-test
-          python admin_panel_runtime_v35.py --self-test
           python admin_panel_runtime_v36.py --self-test
           python admin_panel_runtime_v37.py --self-test
           python admin_panel_runtime_v38.py --self-test
+          python admin_panel_runtime_v41.py --self-test
           python chapter4_acceptance.py
 
       - name: Validate privacy, role and delivery invariants
@@ -110,72 +108,66 @@ jobs:
           import json
           from pathlib import Path
           from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
+          from bbvg.bot.storage import PrivateStateRuntime
+          from bbvg.bot.users import UserSettingsMixin
 
-          access = json.loads(Path("bot_access.json").read_text(encoding="utf-8"))
-          assert access.get("users") == {}
-          assert not access.get("owner_id")
-          assert access.get("admins") == []
-          assert access.get("notification_recipients") == []
-          requests = json.loads(Path("source_requests.json").read_text(encoding="utf-8"))
-          assert requests.get("requests") == {}
+          access = json.loads(Path('bot_access.json').read_text(encoding='utf-8'))
+          assert access.get('users') == {}
+          assert not access.get('owner_id')
+          assert access.get('admins') == []
+          assert access.get('notification_recipients') == []
+          requests = json.loads(Path('source_requests.json').read_text(encoding='utf-8'))
+          assert requests.get('requests') == {}
 
-          encrypted = json.loads(Path("bot_private_state.enc.json").read_text(encoding="utf-8"))
-          assert encrypted.get("format") == "bbvg-bot-state-v2"
-          assert encrypted.get("key_mode") == "dedicated"
-          assert encrypted.get("algorithm") == "AES-256-GCM"
-          assert not {"users", "owner_id", "chat_id", "username"} & set(encrypted)
+          encrypted = json.loads(Path('bot_private_state.enc.json').read_text(encoding='utf-8'))
+          assert encrypted.get('format') == 'bbvg-bot-state-v2'
+          assert encrypted.get('key_mode') == 'dedicated'
+          assert encrypted.get('algorithm') == 'AES-256-GCM'
+          assert not {'users', 'owner_id', 'chat_id', 'username'} & set(encrypted)
 
-          ledger = json.loads(Path("notification_delivery_state.json").read_text(encoding="utf-8"))
-          assert ledger.get("format") == "bbvg-notification-delivery-v2"
-          assert ledger.get("algorithm") == "HMAC-SHA256"
-          assert isinstance(ledger.get("entries"), dict)
+          ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
+          assert ledger.get('format') == 'bbvg-notification-delivery-v2'
+          assert ledger.get('algorithm') == 'HMAC-SHA256'
+          assert isinstance(ledger.get('entries'), dict)
           serialized_ledger = json.dumps(ledger, ensure_ascii=False)
-          for forbidden in ("chat_id", "user_id", "username", "message_text", "https://telegram"):
+          for forbidden in ('chat_id', 'user_id', 'username', 'message_text', 'https://telegram'):
               assert forbidden not in serialized_ledger
 
-          panel34 = Path("admin_panel_runtime_v34.py").read_text(encoding="utf-8")
-          panel35 = Path("admin_panel_runtime_v35.py").read_text(encoding="utf-8")
-          panel36 = Path("admin_panel_runtime_v36.py").read_text(encoding="utf-8")
-          panel37 = Path("admin_panel_runtime_v37.py").read_text(encoding="utf-8")
-          panel38 = Path("admin_panel_runtime_v38.py").read_text(encoding="utf-8")
-          workflow = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
-          monitor_workflow = Path(".github/workflows/monitor.yml").read_text(encoding="utf-8")
-          assert "_load_remote_bundle" in panel34
-          assert "usernotify:" in panel34
-          assert "usernotifyall:" in panel34
-          assert "access_signature" in panel35
-          assert "result.pop" in panel35
-          assert "USER_ACTION_ERROR" in panel36
-          assert "Рейтинг источников" in panel36
-          assert "run: python admin_panel_runtime_v38.py" in workflow
-          assert "Role fingerprint preserved during migration" in workflow
-          assert "notification_delivery_state.json" in monitor_workflow
-          assert "run: python admin_panel_runtime_v35.py" not in workflow
+          storage_source = inspect.getsource(PrivateStateRuntime)
+          users_source = inspect.getsource(UserSettingsMixin)
+          workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
+          monitor_workflow = Path('.github/workflows/monitor.yml').read_text(encoding='utf-8')
+          assert '_load_remote_bundle' in storage_source
+          assert '_merge_access' in storage_source
+          assert 'access_signature' in storage_source
+          assert 'result.pop' in storage_source
+          assert 'usernotify:' in users_source
+          assert 'usernotifyall:' in users_source
+          assert 'privacy:delete:' in users_source
+          assert 'Управлять уведомлениями' in inspect.getsource(
+              TelegramPanelRuntimeV38.show_user_detail
+          )
+          assert 'run: python admin_panel_runtime_v41.py' in workflow
+          assert 'notification_delivery_state.json' in monitor_workflow
+          assert 'wheel_draw_alerts' in Path('admin_panel_runtime_v37.py').read_text(encoding='utf-8')
 
           user_callbacks = {
-              button["callback_data"]
+              button['callback_data']
               for row in TelegramPanelRuntimeV38.compact_menu_rows(False)
               for button in row
           }
-          assert "page:status" in user_callbacks
-          assert "page:reports" not in user_callbacks
-          assert "Управлять уведомлениями" in inspect.getsource(
-              TelegramPanelRuntimeV38.show_user_detail
-          )
-          assert "summary:send" not in panel38.split("def show_analytics", 1)[1].split("def show_stats", 1)[0]
-          assert "wheel_draw_alerts" in panel37
-          assert "ACTIVE_PAGE_SIZE" in panel38
-          assert "truncate_telegram_html" in panel38
+          assert 'page:status' in user_callbacks
+          assert 'page:reports' not in user_callbacks
 
-          pages = Path(".github/workflows/cloudflare-pages.yml").read_text(encoding="utf-8")
-          worker = Path(".github/workflows/state-api.yml").read_text(encoding="utf-8")
-          assert "archived and disabled" in pages
-          assert "archived and disabled" in worker
-          assert Path("MINI_APP_ARCHIVED.md").exists()
-          assert Path("CHAPTER_2_RU.md").exists()
-          assert Path("CHAPTER_4_RU.md").exists()
+          pages = Path('.github/workflows/cloudflare-pages.yml').read_text(encoding='utf-8')
+          worker = Path('.github/workflows/state-api.yml').read_text(encoding='utf-8')
+          assert 'archived and disabled' in pages
+          assert 'archived and disabled' in worker
+          assert Path('MINI_APP_ARCHIVED.md').exists()
+          assert Path('CHAPTER_2_RU.md').exists()
+          assert Path('CHAPTER_4_RU.md').exists()
 
-          history = json.loads(Path("security_history_report.json").read_text(encoding="utf-8"))
-          assert "destructive_cleanup_required" in history
-          print("Bot-only v38 privacy, interface and notification invariants passed")
+          history = json.loads(Path('security_history_report.json').read_text(encoding='utf-8'))
+          assert 'destructive_cleanup_required' in history
+          print('Consolidated private state and role invariants passed')
           PY

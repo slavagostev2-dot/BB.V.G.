@@ -12,6 +12,7 @@ on:
       - "admin_runtime.py"
       - "admin_panel_v2.py"
       - "admin_panel_runtime_v*.py"
+      - "bbvg/bot/**"
       - "telegram_ui.py"
       - "bot_private_state.py"
       - "bot_private_state.enc.json"
@@ -79,13 +80,13 @@ jobs:
           BBVG_TEST_MODE: "1"
         run: |
           set -euo pipefail
+          python -m compileall -q bbvg
           python -m py_compile \
             admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_action_queue.py chapter1_stability.py admin_runtime.py \
             admin_panel_v2.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
+            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-            admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
-            admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py admin_panel_runtime_v39.py admin_panel_runtime_v40.py admin_panel_runtime_v41.py \
+            admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py admin_panel_runtime_v41.py \
             telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
             bot_private_state.py bot_notification_state.py \
             notification_integrity_v2.py notification_router.py wheel_publications_v2.py \
@@ -101,16 +102,15 @@ jobs:
           python admin_action_v2.py --self-test
           python admin_action_v3.py --self-test
           python admin_action_queue.py
+          python -m bbvg.bot.storage
+          python -m bbvg.bot.users
           python wheel_link_lifecycle.py
           python wheel_scenario_suite.py
           python admin_panel_runtime_v32.py --self-test
-          python admin_panel_runtime_v33.py --self-test
-          python admin_panel_runtime_v35.py --self-test
           python admin_panel_runtime_v36.py --self-test
           python admin_panel_runtime_v37.py --self-test
           python admin_panel_runtime_v38.py --self-test
-          python admin_panel_runtime_v39.py --self-test
-          python admin_panel_runtime_v40.py --self-test
+          python -m bbvg.bot.runtime --self-test
           python admin_panel_runtime_v41.py --self-test
           python chapter4_acceptance.py
           python chapter5_acceptance.py
@@ -119,20 +119,20 @@ jobs:
           import inspect
           import notification_router
           import telegram_ui
-          from admin_panel_runtime_v34 import TelegramPanelRuntimeV34
           from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
-          from admin_panel_runtime_v39 import TelegramPanelRuntimeV39
-          from admin_panel_runtime_v40 import TelegramPanelRuntimeV40
           from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
+          from bbvg.bot.runtime import TelegramPanelRuntime
+          from bbvg.bot.storage import PrivateStateRuntime
+          from bbvg.bot.users import UserSettingsMixin
 
-          handler = inspect.getsource(TelegramPanelRuntimeV34.handle_callback)
-          persistence = inspect.getsource(TelegramPanelRuntimeV38._save_bot_bundle)
+          handler = inspect.getsource(UserSettingsMixin.handle_callback)
+          persistence = inspect.getsource(PrivateStateRuntime._save_bot_bundle)
           detail = inspect.getsource(TelegramPanelRuntimeV38.show_user_detail)
-          normalization = inspect.getsource(TelegramPanelRuntimeV38.normalize_access)
+          normalization = inspect.getsource(PrivateStateRuntime.normalize_access)
           safe_send = inspect.getsource(TelegramPanelRuntimeV38.safe_text_for_role)
-          summary_handler = inspect.getsource(TelegramPanelRuntimeV39.handle_callback)
-          colorizer = inspect.getsource(TelegramPanelRuntimeV40._color_active_payload)
-          home = inspect.getsource(TelegramPanelRuntimeV41.show_menu)
+          summary_handler = inspect.getsource(TelegramPanelRuntime.handle_callback)
+          colorizer = inspect.getsource(TelegramPanelRuntime._color_active_payload)
+          home = inspect.getsource(TelegramPanelRuntime.show_menu)
           assert TelegramPanelRuntimeV41.RUNTIME_VERSION == 41
           assert "usernotify:" in handler
           assert "usernotifyall:" in handler
@@ -296,4 +296,4 @@ jobs:
           sleep 20
           gh workflow run admin-bot.yml --ref main
 
-# v41: timer-aware duplicate lifecycle, callback-safe colors, clear home and idempotent finished rating.
+# v41: consolidated runtime, timer-aware duplicate lifecycle and idempotent source rating.
