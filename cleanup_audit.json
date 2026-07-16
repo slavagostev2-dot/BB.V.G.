@@ -64,7 +64,7 @@
   ],
   "current_runtime": "admin_panel_runtime_v41",
   "runtime_chain_count": 23,
-  "runtime_file_count": 24,
+  "runtime_file_count": 23,
   "runtime_files": [
     {
       "classes": [
@@ -122,13 +122,12 @@
       "line_count": 44,
       "module": "admin_panel_runtime_v17",
       "path": "admin_panel_runtime_v17.py",
-      "reference_count": 9,
+      "reference_count": 8,
       "references": [
         "admin_panel_runtime_v17.py",
         "admin_panel_runtime_v19.py",
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py",
-        "admin_panel_runtime_v27.py",
         "admin_panel_runtime_v30.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "system_checks.py",
@@ -318,7 +317,7 @@
       "line_count": 271,
       "module": "admin_panel_runtime_v25",
       "path": "admin_panel_runtime_v25.py",
-      "reference_count": 10,
+      "reference_count": 9,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
@@ -327,7 +326,6 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py",
-        "admin_panel_runtime_v27.py",
         "docs/PROJECT_CHANGELOG_RU.md",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
@@ -421,48 +419,15 @@
       "line_count": 321,
       "module": "admin_panel_runtime_v26",
       "path": "admin_panel_runtime_v26.py",
-      "reference_count": 9,
+      "reference_count": 8,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v26.py",
-        "admin_panel_runtime_v27.py",
         "admin_panel_runtime_v28.py",
         "docs/PROJECT_CHANGELOG_RU.md",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
-      ],
-      "top_level_functions": [
-        "main",
-        "self_test"
-      ]
-    },
-    {
-      "classes": [
-        {
-          "bases": [
-            "TelegramPanelRuntimeV26"
-          ],
-          "class_attributes": [],
-          "method_count": 0,
-          "methods": [],
-          "name": "TelegramPanelRuntimeV27"
-        }
-      ],
-      "direct_imports": [
-        "admin_panel_runtime_v17",
-        "admin_panel_runtime_v25",
-        "admin_panel_runtime_v26",
-        "bot_private_state"
-      ],
-      "in_current_import_chain": false,
-      "line_count": 106,
-      "module": "admin_panel_runtime_v27",
-      "path": "admin_panel_runtime_v27.py",
-      "reference_count": 2,
-      "references": [
-        "admin_panel_runtime_v27.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -2978,7 +2943,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 6146,
+  "runtime_total_lines": 6040,
   "runtime_unique_method_count": 100,
   "unreferenced_python_candidates": []
 }
