@@ -72,7 +72,7 @@
   ],
   "current_runtime": "admin_panel_runtime_v41",
   "runtime_chain_count": 32,
-  "runtime_file_count": 36,
+  "runtime_file_count": 35,
   "runtime_files": [
     {
       "classes": [
@@ -272,94 +272,13 @@
       "line_count": 442,
       "module": "admin_panel_runtime_v14",
       "path": "admin_panel_runtime_v14.py",
-      "reference_count": 6,
+      "reference_count": 5,
       "references": [
         "admin_panel_runtime_v14.py",
-        "admin_panel_runtime_v15.py",
         "bbvg/bot/interface.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "tests/test_current_contracts.py",
         "tests/test_nightly_idle_policy.py"
-      ],
-      "top_level_functions": [
-        "main",
-        "self_test"
-      ]
-    },
-    {
-      "classes": [
-        {
-          "bases": [
-            "TelegramPanelRuntimeV14"
-          ],
-          "class_attributes": [],
-          "method_count": 6,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 26,
-              "line_count": 10,
-              "name": "show_more",
-              "start_line": 17
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 44,
-              "line_count": 17,
-              "name": "pending_rows",
-              "start_line": 28
-            },
-            {
-              "async": false,
-              "decorators": [
-                "staticmethod"
-              ],
-              "end_line": 55,
-              "line_count": 9,
-              "name": "pending_reason",
-              "start_line": 47
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 88,
-              "line_count": 32,
-              "name": "show_pending",
-              "start_line": 57
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 125,
-              "line_count": 36,
-              "name": "show_stats",
-              "start_line": 90
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 134,
-              "line_count": 8,
-              "name": "render_page",
-              "start_line": 127
-            }
-          ],
-          "name": "TelegramPanelRuntimeV15"
-        }
-      ],
-      "direct_imports": [
-        "admin_panel_runtime_v14"
-      ],
-      "in_current_import_chain": false,
-      "line_count": 160,
-      "module": "admin_panel_runtime_v15",
-      "path": "admin_panel_runtime_v15.py",
-      "reference_count": 2,
-      "references": [
-        "admin_panel_runtime_v15.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
         "main",
@@ -4313,12 +4232,6 @@
       "admin_panel_runtime_v20",
       "admin_panel_runtime_v37"
     ],
-    "pending_reason": [
-      "admin_panel_runtime_v15"
-    ],
-    "pending_rows": [
-      "admin_panel_runtime_v15"
-    ],
     "period_overview": [
       "admin_panel_runtime_v31",
       "admin_panel_runtime_v38"
@@ -4344,7 +4257,6 @@
     ],
     "render_page": [
       "admin_panel_runtime_v14",
-      "admin_panel_runtime_v15",
       "admin_panel_runtime_v20",
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v22",
@@ -4501,8 +4413,7 @@
       "admin_panel_runtime_v9"
     ],
     "show_more": [
-      "admin_panel_runtime_v14",
-      "admin_panel_runtime_v15"
+      "admin_panel_runtime_v14"
     ],
     "show_notifications": [
       "admin_panel_runtime_v21",
@@ -4510,9 +4421,6 @@
       "admin_panel_runtime_v33",
       "admin_panel_runtime_v34",
       "admin_panel_runtime_v37"
-    ],
-    "show_pending": [
-      "admin_panel_runtime_v15"
     ],
     "show_period_report": [
       "admin_panel_runtime_v31",
@@ -4565,7 +4473,6 @@
       "admin_panel_runtime_v8"
     ],
     "show_stats": [
-      "admin_panel_runtime_v15",
       "admin_panel_runtime_v20",
       "admin_panel_runtime_v22",
       "admin_panel_runtime_v29",
@@ -4617,7 +4524,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 9875,
-  "runtime_unique_method_count": 148,
+  "runtime_total_lines": 9715,
+  "runtime_unique_method_count": 145,
   "unreferenced_python_candidates": []
 }
