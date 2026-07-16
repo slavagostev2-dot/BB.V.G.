@@ -13,6 +13,7 @@ from urllib.parse import quote
 import requests
 
 import admin_action_v3
+import personal_wheel_voting
 
 
 ROOT = Path(__file__).resolve().parent
@@ -25,6 +26,7 @@ REQUEST_TIMEOUT = max(5, int(os.getenv("REQUEST_TIMEOUT_SECONDS", "15")))
 ALLOWED_ACTIONS = {
     "participate_token",
     "participate_wheel",
+    "record_personal_vote",
     "mark_inactive_global",
     "confirm_finished_global",
     "set_deadline",
@@ -81,6 +83,18 @@ def _safe_value(action: str, value: str) -> str:
     if action in {"mark_inactive_global", "confirm_finished_global"}:
         wheel, _, _actor = clean.partition("|")
         clean = f"{wheel.strip()}|admin"
+    elif action == "record_personal_vote":
+        try:
+            payload = json.loads(clean)
+        except json.JSONDecodeError as exc:
+            raise ValueError("Некорректный JSON личного голоса") from exc
+        normalized = personal_wheel_voting.normalize_vote_payload(payload)
+        clean = json.dumps(
+            normalized,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
     return clean
 
 
@@ -290,18 +304,44 @@ def self_test() -> None:
     assert "123456789" not in serialized
     assert queue["commands"][command_id]["value"] == "wheel-a|admin"
 
+    actor = personal_wheel_voting.actor_vote_token("123456789", secret="test-secret")
+    vote_payload = {
+        "wheel_key": "wheel-a",
+        "event_key": "wheel-a#action:10",
+        "actor": actor,
+        "role": "user",
+        "weight": 1,
+        "sources": ["first", "second"],
+    }
+    vote_queue, vote_id = append_command(
+        default_queue(),
+        "record_personal_vote",
+        json.dumps(vote_payload),
+        command_id="personal-vote-command",
+    )
+    vote_serialized = json.dumps(vote_queue, ensure_ascii=False)
+    assert "123456789" not in vote_serialized
+    assert actor in vote_serialized
+
     state = {
-        "active_wheels": {"wheel-a": {"identifier": "wheel-a", "source": "test"}},
+        "active_wheels": {"wheel-a": {"identifier": "wheel-a", "source": "first"}},
+        "wheel_publications": {
+            "wheel-a": [
+                {"source": "first"},
+                {"source": "second"},
+            ]
+        },
         "participating_wheels": {},
     }
     health: dict[str, Any] = {"sources": {}}
     stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
-    first = process_pending(state, health, stats, queue=queue)
-    second = process_pending(state, health, stats, queue=queue)
+    first = process_pending(state, health, stats, queue=vote_queue)
+    second = process_pending(state, health, stats, queue=vote_queue)
     assert first["applied"] == 1
     assert second["applied"] == 0
-    assert command_id in state["applied_admin_actions"]
-    assert "wheel-a" not in state["active_wheels"]
+    assert vote_id in state["applied_admin_actions"]
+    assert stats["sources"]["first"]["quality_score"] == 1
+    assert stats["sources"]["second"]["quality_score"] == 1
     print("admin action queue self-test passed")
 
 

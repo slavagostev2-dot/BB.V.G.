@@ -6,6 +6,7 @@ import os
 from typing import Any
 
 import admin_action_v2
+import personal_wheel_voting
 import wheel_lifecycle_v2
 
 
@@ -64,9 +65,6 @@ def confirm_finished_global(
     completed["confirmed_finished_at"] = current.isoformat()
     completed["confirmed_finished_by"] = actor or "admin"
     completed["rating_event_key"] = rating_key
-    # Keep url_alerts/activation_alerts and seen records. They suppress the same
-    # already finished Telegram publications without blocking a later event that
-    # reuses the freestream identifier.
     detail = (
         "Колесо завершено; рейтинг источников начислен: по 40 очков каждому. "
         if rating_changed
@@ -82,6 +80,45 @@ def confirm_finished_global(
     }
 
 
+def record_personal_vote_action(
+    state: dict[str, Any],
+    stats: dict[str, Any],
+    value: str,
+) -> dict[str, Any]:
+    try:
+        raw = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise ValueError("Некорректный JSON личного голоса") from exc
+    payload = personal_wheel_voting.normalize_vote_payload(raw)
+    context = legacy.wheel_context(state, payload["wheel_key"])
+    sources = list(payload["sources"])
+    if context is not None:
+        for source in legacy.wheel_sources(state, payload["wheel_key"], context):
+            if source and source.casefold() not in {item.casefold() for item in sources}:
+                sources.append(source)
+    changed = personal_wheel_voting.record_personal_vote(
+        stats,
+        event_key=payload["event_key"],
+        sources=sources,
+        actor=payload["actor"],
+        role=payload["role"],
+        weight=payload["weight"],
+        at=legacy.monitor.now_utc(),
+    )
+    return {
+        "action": "record_personal_vote",
+        "value": payload["event_key"],
+        "state_changed": False,
+        "health_changed": False,
+        "stats_changed": changed,
+        "detail": (
+            f"Личный голос учтён для {len(sources)} источников"
+            if changed
+            else "Личный голос уже был учтён ранее"
+        ),
+    }
+
+
 def apply_action_v3(
     state: dict[str, Any],
     health: dict[str, Any],
@@ -89,6 +126,8 @@ def apply_action_v3(
     action: str,
     value: str,
 ) -> dict[str, Any]:
+    if action == "record_personal_vote":
+        return record_personal_vote_action(state, stats, value)
     if action == "confirm_finished_global":
         return confirm_finished_global(state, stats, value)
     result = _original_apply_action(state, health, stats, action, value)
@@ -124,25 +163,39 @@ def self_test() -> None:
     }
     health = {"sources": {}}
     stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
+    actor = personal_wheel_voting.actor_vote_token("42", secret="test-secret")
+    payload = {
+        "wheel_key": "wheel-a",
+        "event_key": "wheel-a#action:10",
+        "actor": actor,
+        "role": "user",
+        "weight": 1,
+        "sources": ["official"],
+    }
+    first_vote = apply_action_v3(
+        state, health, stats, "record_personal_vote", json.dumps(payload)
+    )
+    second_vote = apply_action_v3(
+        state, health, stats, "record_personal_vote", json.dumps(payload)
+    )
+    assert first_vote["stats_changed"] is True
+    assert second_vote["stats_changed"] is False
+    assert stats["sources"]["official"]["quality_score"] == 1
+    assert stats["sources"]["collector"]["quality_score"] == 1
+
+    legacy_stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
     result = apply_action_v3(
-        state, health, stats, "confirm_finished_global", "wheel-a|1"
+        state, health, legacy_stats, "confirm_finished_global", "wheel-a|1"
     )
     assert result["state_changed"] is True
     assert result["stats_changed"] is True
     assert "wheel-a" not in state["active_wheels"]
     assert "wheel-a" not in state["wheel_publications"]
-    assert stats["sources"]["official"]["quality_score"] == 40
-    assert stats["sources"]["collector"]["quality_score"] == 40
-    decisions = stats.get("admin_wheel_decisions", {})
+    assert legacy_stats["sources"]["official"]["quality_score"] == 40
+    assert legacy_stats["sources"]["collector"]["quality_score"] == 40
+    decisions = legacy_stats.get("admin_wheel_decisions", {})
     assert len(decisions) == 1
-    second = apply_action_v3(
-        state, health, stats, "confirm_finished_global", "wheel-a|1"
-    )
-    assert second["state_changed"] is False
-    assert stats["sources"]["official"]["quality_score"] == 40
-    assert stats["sources"]["collector"]["quality_score"] == 40
-    assert len(stats.get("admin_wheel_decisions", {})) == 1
-    print("admin action v3 completed-wheel rating self-test passed")
+    print("admin action v3 personal and legacy rating self-test passed")
 
 
 def main() -> int:

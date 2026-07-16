@@ -10,6 +10,7 @@ from typing import Any
 import telegram_ui
 from admin_panel_runtime_v31 import SUMMARY_PERIODS
 from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
+from personal_wheel_voting import PersonalWheelVotingMixin
 
 RAINBOW_DOTS = ("🔵", "🟢", "🟡", "🟣", "🟠", "🔴")
 _DOT_GROUP = "(?:" + "|".join(re.escape(value) for value in RAINBOW_DOTS) + ")"
@@ -22,7 +23,7 @@ _BUTTON_COLOR_RE = re.compile(
 _BUTTON_INDEX_RE = re.compile(r"(?<!\d)(\d+)\s*·")
 
 
-class TelegramPanelRuntime(TelegramPanelRuntimeV38):
+class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
     """Current Telegram control center without version-layer inheritance."""
 
     RUNTIME_VERSION = 41
@@ -134,8 +135,10 @@ def _configured_panel(
     captured: list[tuple[str, dict[str, Any]]],
 ) -> None:
     panel.current_user_id = "1"
+    panel.current_chat_id = "1"
     panel.current_role = "admin"
     panel.is_admin = lambda: True  # type: ignore[method-assign]
+    panel.is_owner = lambda: True  # type: ignore[method-assign]
     panel.snapshot = lambda force=False: SimpleNamespace(  # type: ignore[method-assign]
         state={"active_wheels": {}},
         stats={"sources": {}, "daily": {}},
@@ -146,12 +149,15 @@ def _configured_panel(
     )
     panel._monitor_status = lambda: {}  # type: ignore[method-assign]
     panel._joined_wheel_keys = lambda snap: set()  # type: ignore[method-assign]
-    panel._sources_for_item = lambda snap, key, item: ["source"]  # type: ignore[method-assign]
+    panel._personal_participating_wheels = lambda: set()  # type: ignore[method-assign]
+    panel._sources_for_item = lambda snap, key, item: ["source", "second"]  # type: ignore[method-assign]
     panel._collect_current_wheels = lambda: [  # type: ignore[method-assign]
         {
             "_key": "wheel-a",
             "identifier": "wheel-a",
             "source": "source",
+            "sources": ["source", "second"],
+            "action_id": 101,
             "url": "https://betboom.ru/freestream/wheel-a",
         }
     ]
@@ -159,33 +165,31 @@ def _configured_panel(
 
 
 def self_test() -> None:
-    from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
-
     assert TelegramPanelRuntime.RUNTIME_VERSION == 41
     assert issubclass(TelegramPanelRuntime, TelegramPanelRuntimeV38)
+    assert issubclass(TelegramPanelRuntime, PersonalWheelVotingMixin)
     assert SUMMARY_PERIODS["daily"][0] == 1
     assert SUMMARY_PERIODS["weekly"][0] == 7
     assert SUMMARY_PERIODS["monthly"][0] == 30
 
-    legacy_capture: list[tuple[str, dict[str, Any]]] = []
     current_capture: list[tuple[str, dict[str, Any]]] = []
-    legacy = TelegramPanelRuntimeV41()
     current = TelegramPanelRuntime()
-    _configured_panel(legacy, legacy_capture)
     _configured_panel(current, current_capture)
-    legacy.show_active()
     current.show_active()
-    assert current_capture[-1] == legacy_capture[-1]
+    active_text, active_kwargs = current_capture[-1]
+    assert "@source, @second" in active_text
+    assert "Участие не отмечено" in active_text
+    active_markup = str(active_kwargs["reply_markup"])
+    assert "wheel:part:wheel-a" in active_markup
+    assert "wheel:time:wheel-a" in active_markup
+    assert "wheel:finished:" not in active_markup
+    assert "wheel:inactive:" not in active_markup
 
     rainbow_text = "<b>1. <code>wheel-a</code> 🔵</b>\n🔴 Время прокрутки неизвестно"
     rainbow_markup = {
         "inline_keyboard": [
             [{"text": "🔵 🎡 1 · Открыть колесо", "url": "https://example.com"}],
             [{"text": "🔵 ✅ 1 · Участвую", "callback_data": "join:wheel-a"}],
-            [
-                {"text": "🔵 🏁 1 · Завершено", "callback_data": "finish:wheel-a"},
-                {"text": "🔵 🚫 1 · Неактивное", "callback_data": "inactive:wheel-a"},
-            ],
         ]
     }
     cleaned_text, cleaned_markup = current._simplify_active_payload(
@@ -201,12 +205,7 @@ def self_test() -> None:
         for button in row
         if isinstance(button, dict)
     ]
-    assert labels == [
-        "🎡 1 · Открыть колесо",
-        "✅ 1 · Участвую",
-        "🏁 1 · Завершено",
-        "🚫 1 · Неактивное",
-    ]
+    assert labels == ["🎡 1 · Открыть колесо", "✅ 1 · Участвую"]
     callbacks = [
         str(button.get("callback_data") or "")
         for row in cleaned_markup.get("inline_keyboard", [])

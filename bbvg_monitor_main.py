@@ -9,6 +9,7 @@ import notification_navigation
 import notification_preferences_v2
 import notification_router
 import personal_reminder_filter
+import personal_wheel_voting
 import rating_policy
 import recurring_wheel_events
 import restart_duplicate_guard
@@ -24,6 +25,7 @@ import wheel_publications_v2
 monitor = runtime.monitor
 notification_router.load_config = bot_notification_state.load_config
 notification_preferences_v2.install(notification_router)
+personal_wheel_voting.install_notification_router(notification_router)
 recurring_wheel_events.install(monitor, runtime.base_runtime)
 telegram_transport.install(monitor)
 telegram_post_links_v2.install(monitor)
@@ -58,7 +60,8 @@ monitor.process_admin_actions = admin_action_queue.process_pending
 
 def load_stats_additive() -> dict[str, Any]:
     data = _original_load_stats()
-    rating_policy.normalize_additive_rating(data)
+    if data.get("source_rating_policy") != personal_wheel_voting.PERSONAL_RATING_POLICY:
+        rating_policy.normalize_additive_rating(data)
     return data
 
 
@@ -110,31 +113,38 @@ def recover_deadline_manual_first(state: dict, key: str, entry: dict):
 def wheel_markup_with_direct_key(state, message, link, **kwargs):
     markup = _original_markup(state, message, link, **kwargs)
     key = monitor.wheel_key(link)
+    cleaned_rows: list[list[dict[str, Any]]] = []
     for row in markup.get("inline_keyboard", []):
+        if not isinstance(row, list):
+            continue
+        cleaned: list[dict[str, Any]] = []
         for button in row:
+            if not isinstance(button, dict):
+                continue
             callback = str(button.get("callback_data") or "")
-            if callback.startswith("bb:x:"):
-                button["callback_data"] = f"bb:x:{key}"
-            elif callback.startswith("bb:t:"):
-                button["callback_data"] = f"bb:t:{key}"
+            if callback.startswith(("bb:x:", "wheel:inactive:", "wheel:finished:")):
+                continue
+            item = dict(button)
+            if callback.startswith("bb:t:"):
+                item["callback_data"] = f"bb:t:{key}"
+            if callback.startswith(("bb:p:", "wheel:part:")):
+                item["text"] = "✅ Участвую"
+            cleaned.append(item)
+        if cleaned:
+            cleaned_rows.append(cleaned)
+    markup["inline_keyboard"] = cleaned_rows
     callbacks = {
         str(button.get("callback_data") or "")
         for row in markup.get("inline_keyboard", [])
         for button in row
         if isinstance(button, dict)
     }
-    admin_actions: list[dict[str, str]] = []
     if f"bb:t:{key}" not in callbacks:
-        admin_actions.append(
-            {"text": "⏱ Указать время", "callback_data": f"bb:t:{key}"}
-        )
-    if f"bb:x:{key}" not in callbacks:
-        admin_actions.append(
-            {"text": "🚫 Неактивное", "callback_data": f"bb:x:{key}"}
-        )
-    if admin_actions:
         rows = markup.setdefault("inline_keyboard", [])
-        rows.insert(max(1, len(rows) - 1), admin_actions)
+        rows.insert(
+            max(1, len(rows) - 1),
+            [{"text": "⏱ Указать время", "callback_data": f"bb:t:{key}"}],
+        )
     return markup
 
 
@@ -212,7 +222,8 @@ notification_navigation.install(monitor)
 wheel_lifecycle_v2.install(monitor)
 personal_reminder_filter.install(monitor, notification_router)
 
-# Production refresh: final reminder, strict deadline cleanup and multi-source credit.
+# Production refresh: personal event-scoped voting, strict API cleanup and
+# multi-source credit.
 
 
 if __name__ == "__main__":
