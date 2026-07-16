@@ -1350,43 +1350,28 @@
             "TelegramPanelRuntimeV34"
           ],
           "class_attributes": [],
-          "method_count": 2,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 20,
-              "line_count": 8,
-              "name": "set_user_notification",
-              "start_line": 13
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 24,
-              "line_count": 3,
-              "name": "set_all_user_notifications",
-              "start_line": 22
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV35"
         }
       ],
       "direct_imports": [
         "admin_panel_runtime_v34",
-        "bbvg.bot.storage"
+        "bbvg.bot.storage",
+        "bbvg.bot.users"
       ],
       "in_current_import_chain": false,
-      "line_count": 93,
+      "line_count": 34,
       "module": "admin_panel_runtime_v35",
       "path": "admin_panel_runtime_v35.py",
-      "reference_count": 6,
+      "reference_count": 7,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
+        "admin_panel_runtime_v35.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -2961,9 +2946,6 @@
     "set_admin": [
       "admin_panel_runtime_v37"
     ],
-    "set_all_user_notifications": [
-      "admin_panel_runtime_v35"
-    ],
     "set_candidate_mode": [
       "admin_panel_runtime_v5"
     ],
@@ -2972,9 +2954,6 @@
     ],
     "set_interval": [
       "admin_panel_runtime_v3"
-    ],
-    "set_user_notification": [
-      "admin_panel_runtime_v35"
     ],
     "setup_bot": [
       "admin_panel_runtime_v31",
@@ -3117,7 +3096,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 6321,
-  "runtime_unique_method_count": 102,
+  "runtime_total_lines": 6262,
+  "runtime_unique_method_count": 100,
   "unreferenced_python_candidates": []
 }
