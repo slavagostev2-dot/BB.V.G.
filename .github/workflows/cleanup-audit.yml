@@ -1,4 +1,4 @@
-name: BB V.G. cleanup audit
+name: BB V.G. refactor audit and validation
 
 on:
   push:
@@ -6,12 +6,12 @@ on:
       - refactor/consolidate-runtime-v42
     paths:
       - "tools/cleanup_audit.py"
-      - ".github/workflows/cleanup-audit.yml"
+      - ".github/workflows/**"
       - "bbvg/**"
       - "admin_panel_runtime_v*.py"
       - "chapter*.py"
+      - "*.py"
       - "tests/**"
-      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
@@ -29,11 +29,71 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install runtime dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+      - name: Compile repository
+        id: compile
+        run: python -m compileall -q .
+      - name: Validate consolidated bot modules
+        id: modules
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+        run: |
+          python -m bbvg.bot.foundation
+          python -m bbvg.bot.interface
+          python -m bbvg.bot.source_requests
+          python -m bbvg.bot.wheels
+          python -m bbvg.bot.users
+          python -m bbvg.bot.runtime --self-test
+          python rating_policy.py --self-test
+      - name: Run full pytest suite
+        id: pytest
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          UNKNOWN_DEDUP_HOURS: "2"
+        run: python -m pytest -q
+      - name: Run compatibility acceptance
+        id: legacy
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          UNKNOWN_DEDUP_HOURS: "2"
+        run: |
+          python chapter1_stability.py
+          python chapter2_unified_logic.py
+          python chapter3_acceptance.py
+          python chapter4_acceptance.py
+          python chapter5_acceptance.py
+      - name: Run consolidated acceptance
+        id: acceptance
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          UNKNOWN_DEDUP_HOURS: "2"
+        run: python tests/production_acceptance.py --section all
       - name: Build dependency report
+        id: dependency
+        if: ${{ steps.compile.outcome == 'success' && steps.modules.outcome == 'success' && steps.pytest.outcome == 'success' && steps.legacy.outcome == 'success' && steps.acceptance.outcome == 'success' }}
         run: python tools/cleanup_audit.py
       - name: Build readable runtime inventory
+        id: inventory
+        if: ${{ steps.dependency.outcome == 'success' }}
         env:
           BOT_TOKEN: test-bot-token
           BOT_STATE_KEY: test-state-key
@@ -45,7 +105,6 @@ jobs:
           import json
           import os
           from pathlib import Path
-
           from bbvg.bot.runtime import TelegramPanelRuntime
 
           report = json.loads(Path("cleanup_audit.json").read_text(encoding="utf-8"))
@@ -64,12 +123,11 @@ jobs:
               "## Фактическая MRO текущей панели",
               "",
           ]
-
           mro = [value for value in TelegramPanelRuntime.__mro__ if value is not object]
           for index, cls in enumerate(mro, 1):
               lines.append(f"{index}. `{cls.__module__}.{cls.__name__}`")
 
-          owners: dict[str, list[str]] = {}
+          owners = {}
           for name in sorted(dir(TelegramPanelRuntime)):
               if name.startswith("__"):
                   continue
@@ -89,18 +147,11 @@ jobs:
               "",
               "## Владельцы фактически действующих методов",
               "",
-              "Метод учитывается у первого класса MRO, который его определяет. "
-              "Исторические реализации, полностью перекрытые более поздним классом, здесь не перечисляются.",
+              "Метод учитывается у первого класса MRO, который его определяет.",
               "",
           ])
-          mro_order = {
-              f"{cls.__module__}.{cls.__name__}": index
-              for index, cls in enumerate(mro)
-          }
-          for owner, methods in sorted(
-              owners.items(),
-              key=lambda item: (mro_order.get(item[0], 10_000), item[0]),
-          ):
+          order = {f"{cls.__module__}.{cls.__name__}": index for index, cls in enumerate(mro)}
+          for owner, methods in sorted(owners.items(), key=lambda item: (order.get(item[0], 10000), item[0])):
               lines.extend([
                   f"### `{owner}` — {len(methods)} методов",
                   "",
@@ -108,10 +159,7 @@ jobs:
                   "",
               ])
 
-          lines.extend([
-              "## Файлы и определённые методы",
-              "",
-          ])
+          lines.extend(["## Файлы и определённые методы", ""])
           for row in report["runtime_files"]:
               state = "в рабочей цепочке" if row["in_current_import_chain"] else "вне рабочей цепочки"
               lines.extend([
@@ -125,46 +173,71 @@ jobs:
                   continue
               for class_row in row["classes"]:
                   bases = ", ".join(f"`{value}`" for value in class_row["bases"]) or "без базового класса"
-                  lines.extend([
-                      f"Класс `{class_row['name']}`; база: {bases}.",
-                      "",
-                  ])
+                  lines.extend([f"Класс `{class_row['name']}`; база: {bases}.", ""])
                   if class_row["methods"]:
                       for method in class_row["methods"]:
                           lines.append(f"- `{method['name']}()` — {method['line_count']} строк")
                   else:
                       lines.append("- собственных методов нет")
                   lines.append("")
+
           lines.extend([
               "## Методы, определённые в нескольких слоях",
               "",
-              "Такие методы требуют особенно осторожного объединения: более поздний слой может сознательно заменять прежнее поведение.",
+              "Такие методы требуют осторожного объединения.",
               "",
           ])
-          repeated = {
-              name: modules
-              for name, modules in report["runtime_method_index"].items()
-              if len(modules) > 1
-          }
-          for name, modules in repeated.items():
-              lines.append(f"- `{name}()` — " + ", ".join(f"`{value}`" for value in modules))
+          for name, modules in report["runtime_method_index"].items():
+              if len(modules) > 1:
+                  lines.append(f"- `{name}()` — " + ", ".join(f"`{value}`" for value in modules))
           lines.append("")
-          Path("docs/RUNTIME_METHOD_INVENTORY_RU.md").write_text(
-              "\n".join(lines), encoding="utf-8"
+          Path("docs/RUNTIME_METHOD_INVENTORY_RU.md").write_text("\n".join(lines), encoding="utf-8")
+          PY
+      - name: Record result
+        if: ${{ always() }}
+        env:
+          COMPILE_OUTCOME: ${{ steps.compile.outcome }}
+          MODULES_OUTCOME: ${{ steps.modules.outcome }}
+          PYTEST_OUTCOME: ${{ steps.pytest.outcome }}
+          LEGACY_OUTCOME: ${{ steps.legacy.outcome }}
+          ACCEPTANCE_OUTCOME: ${{ steps.acceptance.outcome }}
+          DEPENDENCY_OUTCOME: ${{ steps.dependency.outcome }}
+          INVENTORY_OUTCOME: ${{ steps.inventory.outcome }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          parts = {
+              "compile": os.environ.get("COMPILE_OUTCOME", "unknown"),
+              "modules": os.environ.get("MODULES_OUTCOME", "unknown"),
+              "pytest": os.environ.get("PYTEST_OUTCOME", "unknown"),
+              "legacy": os.environ.get("LEGACY_OUTCOME", "unknown"),
+              "acceptance": os.environ.get("ACCEPTANCE_OUTCOME", "unknown"),
+              "dependency": os.environ.get("DEPENDENCY_OUTCOME", "unknown"),
+              "inventory": os.environ.get("INVENTORY_OUTCOME", "unknown"),
+          }
+          value = {
+              "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+              "source_sha": os.environ.get("GITHUB_SHA", ""),
+              "updated_at": datetime.now(timezone.utc).isoformat(),
+              "result": "success" if all(item == "success" for item in parts.values()) else "failure",
+              "parts": parts,
+              "stage": "full_refactor_validation_and_audit",
+          }
+          Path("refactor_validation_status.json").write_text(
+              json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
           )
           PY
-      - name: Commit reports
-        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin refactor/consolidate-runtime-v42
-          if ! git diff --quiet "$GITHUB_SHA" "origin/refactor/consolidate-runtime-v42" -- \
-            tools/cleanup_audit.py .github/workflows/cleanup-audit.yml bbvg \
-            'admin_panel_runtime_v*.py' 'chapter*.py' tests .github/workflows; then
-            echo "A newer relevant commit exists; skipping stale audit report."
-            exit 0
+          git add refactor_validation_status.json
+          if [ -f cleanup_audit.json ]; then
+            git add cleanup_audit.json docs/RUNTIME_METHOD_INVENTORY_RU.md
           fi
-          git add cleanup_audit.json docs/RUNTIME_METHOD_INVENTORY_RU.md
-          git commit -m "Update cleanup dependency reports [skip ci]" || exit 0
+          git commit -m "Update refactor validation and audit reports [skip ci]" || exit 0
           git pull --rebase origin refactor/consolidate-runtime-v42 || { git rebase --abort || true; exit 1; }
           git push origin HEAD:refactor/consolidate-runtime-v42
