@@ -10,68 +10,64 @@ import telegram_ui
 from admin_panel_runtime_v39 import TelegramPanelRuntimeV39
 
 
-WHEEL_COLORS = ("🔵", "🟢", "🟡", "🟣", "🟠", "🔴")
-_WHEEL_LINE_RE = re.compile(r"(?m)^<b>(\d+)\. (<code>.*?</code>)</b>$")
+RAINBOW_DOTS = ("🔵", "🟢", "🟡", "🟣", "🟠", "🔴")
+_DOT_GROUP = "(?:" + "|".join(re.escape(value) for value in RAINBOW_DOTS) + ")"
+_WHEEL_LINE_COLOR_RE = re.compile(
+    rf"(?m)^(<b>\d+\. <code>.*?</code>)\s+{_DOT_GROUP}(</b>)$"
+)
+_BUTTON_COLOR_RE = re.compile(
+    rf"^{_DOT_GROUP}\s+(?=(?:🎡|✅|🏁|🚫|⏱|🔄|🏠|\d))"
+)
 _BUTTON_INDEX_RE = re.compile(r"(?<!\d)(\d+)\s*·")
 
 
 class TelegramPanelRuntimeV40(TelegramPanelRuntimeV39):
-    """Add visual wheel linkage without changing any callback payload."""
+    """Keep numbered wheel controls clear and remove decorative rainbow dots."""
 
     RUNTIME_VERSION = 40
 
-    @staticmethod
-    def wheel_color(index: int) -> str:
-        return WHEEL_COLORS[(max(1, int(index)) - 1) % len(WHEEL_COLORS)]
-
     @classmethod
-    def _color_active_payload(
+    def _simplify_active_payload(
         cls,
         text: str,
         reply_markup: dict[str, Any] | None,
     ) -> tuple[str, dict[str, Any] | None]:
-        def line_replacement(match: re.Match[str]) -> str:
-            index = int(match.group(1))
-            return f"<b>{index}. {match.group(2)} {cls.wheel_color(index)}</b>"
-
-        colored_text = _WHEEL_LINE_RE.sub(line_replacement, str(text or ""))
+        cleaned_text = _WHEEL_LINE_COLOR_RE.sub(r"\1\2", str(text or ""))
         if not isinstance(reply_markup, dict):
-            return colored_text, reply_markup
+            return cleaned_text, reply_markup
 
-        colored_markup = copy.deepcopy(reply_markup)
-        for row in colored_markup.get("inline_keyboard", []):
+        cleaned_markup = copy.deepcopy(reply_markup)
+        for row in cleaned_markup.get("inline_keyboard", []):
             if not isinstance(row, list):
                 continue
             for button in row:
                 if not isinstance(button, dict):
                     continue
                 label = str(button.get("text") or "")
-                match = _BUTTON_INDEX_RE.search(label)
-                if match is None:
-                    continue
-                index = int(match.group(1))
-                color = cls.wheel_color(index)
-                if not label.startswith(color):
-                    button["text"] = f"{color} {label}"
-        return colored_text, colored_markup
+                cleaned = _BUTTON_COLOR_RE.sub("", label)
+                if cleaned != label:
+                    button["text"] = cleaned
+        return cleaned_text, cleaned_markup
 
     def show_active(self, page: int = 0) -> None:
         original_send = self.send
 
-        def colored_send(
+        def simplified_send(
             text: str,
             *,
             reply_markup: dict[str, Any] | None = None,
             chat_id: str | None = None,
         ) -> dict:
-            colored_text, colored_markup = self._color_active_payload(text, reply_markup)
+            cleaned_text, cleaned_markup = self._simplify_active_payload(
+                text, reply_markup
+            )
             return original_send(
-                colored_text,
-                reply_markup=colored_markup,
+                cleaned_text,
+                reply_markup=cleaned_markup,
                 chat_id=chat_id,
             )
 
-        self.send = colored_send  # type: ignore[method-assign]
+        self.send = simplified_send  # type: ignore[method-assign]
         try:
             super().show_active(page)
         finally:
@@ -106,18 +102,18 @@ def _configured_panel(panel: TelegramPanelRuntimeV39, captured: list[tuple[str, 
 
 def self_test() -> None:
     baseline_capture: list[tuple[str, dict[str, Any]]] = []
-    colored_capture: list[tuple[str, dict[str, Any]]] = []
+    simplified_capture: list[tuple[str, dict[str, Any]]] = []
     baseline = TelegramPanelRuntimeV39()
-    colored = TelegramPanelRuntimeV40()
+    simplified = TelegramPanelRuntimeV40()
     _configured_panel(baseline, baseline_capture)
-    _configured_panel(colored, colored_capture)
+    _configured_panel(simplified, simplified_capture)
 
     baseline.show_active()
-    colored.show_active()
+    simplified.show_active()
     baseline_text, baseline_kwargs = baseline_capture[-1]
-    colored_text, colored_kwargs = colored_capture[-1]
+    simplified_text, simplified_kwargs = simplified_capture[-1]
     baseline_markup = baseline_kwargs["reply_markup"]
-    colored_markup = colored_kwargs["reply_markup"]
+    simplified_markup = simplified_kwargs["reply_markup"]
 
     def callbacks(markup: dict[str, Any]) -> list[str]:
         return [
@@ -135,20 +131,48 @@ def self_test() -> None:
             if isinstance(button, dict) and button.get("url")
         ]
 
-    assert baseline_text != colored_text
-    assert "1. <code>wheel-a</code> 🔵" in colored_text
-    assert callbacks(colored_markup) == callbacks(baseline_markup)
-    assert urls(colored_markup) == urls(baseline_markup)
-    wheel_labels = [
+    assert simplified_text == baseline_text
+    assert callbacks(simplified_markup) == callbacks(baseline_markup)
+    assert urls(simplified_markup) == urls(baseline_markup)
+
+    rainbow_text = (
+        "<b>1. <code>wheel-a</code> 🔵</b>\n"
+        "🔴 Время прокрутки неизвестно"
+    )
+    rainbow_markup = {
+        "inline_keyboard": [
+            [{"text": "🔵 🎡 1 · Открыть колесо", "url": "https://example.com"}],
+            [{"text": "🔵 ✅ 1 · Участвую", "callback_data": "join:wheel-a"}],
+            [
+                {"text": "🔵 🏁 1 · Завершено", "callback_data": "finish:wheel-a"},
+                {"text": "🔵 🚫 1 · Неактивное", "callback_data": "inactive:wheel-a"},
+            ],
+        ]
+    }
+    cleaned_text, cleaned_markup = simplified._simplify_active_payload(
+        rainbow_text, rainbow_markup
+    )
+    assert "<code>wheel-a</code> 🔵" not in cleaned_text
+    assert "🔴 Время прокрутки неизвестно" in cleaned_text
+    assert cleaned_markup is not None
+    labels = [
         str(button.get("text") or "")
-        for row in colored_markup.get("inline_keyboard", [])
+        for row in cleaned_markup.get("inline_keyboard", [])
         for button in row
-        if isinstance(button, dict) and _BUTTON_INDEX_RE.search(str(button.get("text") or ""))
+        if isinstance(button, dict)
     ]
-    assert wheel_labels and all(label.startswith("🔵 ") for label in wheel_labels)
-    assert not telegram_ui.markup_issues(colored_markup)
-    assert all(len(value.encode("utf-8")) <= 64 for value in callbacks(colored_markup))
-    print("BB V.G. v40 callback-safe color interface self-test passed")
+    assert labels == [
+        "🎡 1 · Открыть колесо",
+        "✅ 1 · Участвую",
+        "🏁 1 · Завершено",
+        "🚫 1 · Неактивное",
+    ]
+    assert callbacks(cleaned_markup) == callbacks(rainbow_markup)
+    assert urls(cleaned_markup) == urls(rainbow_markup)
+    assert not telegram_ui.markup_issues(cleaned_markup)
+    assert all(len(value.encode("utf-8")) <= 64 for value in callbacks(cleaned_markup))
+    assert all(_BUTTON_INDEX_RE.search(label) for label in labels)
+    print("BB V.G. v40 numbered controls without rainbow markers self-test passed")
 
 
 def main() -> int:
