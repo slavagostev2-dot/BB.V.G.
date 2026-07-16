@@ -81,6 +81,8 @@ jobs:
               original_load = runtime_class.load_access
 
               def local_load(self, force=False):
+                  if getattr(self, 'access_loaded', False):
+                      return self.access
                   bundle = getattr(self, '_bot_bundle', None)
                   if not isinstance(bundle, dict):
                       return original_load(self, force=False)
