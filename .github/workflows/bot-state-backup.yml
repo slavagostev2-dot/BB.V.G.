@@ -10,10 +10,7 @@ on:
       - ".github/workflows/bot-state-backup.yml"
   push:
     branches:
-      - main
       - "backup/**"
-    paths:
-      - ".github/workflows/bot-state-backup.yml"
   workflow_dispatch:
   schedule:
     - cron: "42 2 * * *"
@@ -99,7 +96,6 @@ jobs:
       github.event_name == 'schedule' ||
       (github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' &&
       github.event.created &&
       startsWith(github.ref, 'refs/heads/backup/'))
