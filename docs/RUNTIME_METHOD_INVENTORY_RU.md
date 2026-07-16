@@ -1,11 +1,11 @@
 # BB V.G. — карта методов исторического runtime панели
 
 Файл генерируется автоматически из AST и фактической MRO текущего runtime.
-Исходный коммит аудита: `95cf047a192141c7af93ac535d8b6c38b0a6d70b`.
+Исходный коммит аудита: `78c8e1cad37f78ec6fbe9957331861f2f7ea57c6`.
 
 - Runtime-файлов: **28**
-- В текущей цепочке: **27**
-- Суммарно строк: **6989**
+- В текущей цепочке: **26**
+- Суммарно строк: **6990**
 - Уникальных имён методов: **105**
 
 ## Фактическая MRO текущей панели
@@ -204,7 +204,7 @@
 
 - собственных методов нет
 
-### `admin_panel_runtime_v22.py` — 43 строк, в рабочей цепочке
+### `admin_panel_runtime_v22.py` — 43 строк, вне рабочей цепочки
 
 Прямые импорты: `bbvg.bot.foundation`, `bbvg.bot.sources`
 
@@ -225,9 +225,9 @@
 - `handle_callback()` — 12 строк
 - `render_page()` — 21 строк
 
-### `admin_panel_runtime_v26.py` — 320 строк, в рабочей цепочке
+### `admin_panel_runtime_v26.py` — 321 строк, в рабочей цепочке
 
-Прямые импорты: `admin_action_v2`, `admin_bot`, `admin_panel_runtime_v17`, `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `bot_private_state`
+Прямые импорты: `admin_action_v2`, `admin_bot`, `admin_panel_runtime_v17`, `admin_panel_runtime_v25`, `bbvg.bot.sources`, `bot_private_state`
 
 Класс `TelegramPanelRuntimeV26`; база: `TelegramPanelRuntimeV25`.
 
@@ -237,7 +237,7 @@
 - `_apply_admin_action_direct()` — 103 строк
 - `dispatch_admin_action()` — 13 строк
 - `_prepare_callback_user()` — 13 строк
-- `handle_callback()` — 52 строк
+- `handle_callback()` — 53 строк
 
 ### `admin_panel_runtime_v27.py` — 106 строк, вне рабочей цепочки
 
