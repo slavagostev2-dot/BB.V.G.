@@ -81,7 +81,7 @@ docs/
 
 1. Создать отдельную ветку вида `backup/YYYY-MM-DD-description` или `backup/before-description`.
 2. Указать точный commit SHA, дату, назначение и последнее подтверждённое тестовое состояние.
-3. Не перемещать backup-ветку после начала крупного обновления.
+3. Не перемещать эту backup-ветку после начала крупного обновления.
 4. После успешного обновления создать новую актуальную backup-точку уже от подтверждённого результата либо явно оставить прежнюю, если production ещё не переключён.
 5. Обновить этот раздел и запись в `docs/PROJECT_CHANGELOG_RU.md`.
 
@@ -143,14 +143,21 @@ docs/
 - Назначение: полностью рабочая production v41 до крупного рефакторинга.
 - Использование: критический откат production.
 
-### Текущий актуальный бэкап рефакторинга — перед объединением пользовательских настроек
+### Текущий актуальный бэкап рефакторинга — после объединения пользовательских настроек
+
+- Ветка: `backup/refactor-after-user-settings-cleanup-2026-07-16`
+- Commit SHA: `e9746cf43d1a6acbaacf01f25ec65fcd7be8fbb9`
+- Последний подтверждённый run: `29489184430`
+- Состояние проверки: compile, modules, pytest, compatibility acceptance, consolidated acceptance, dependency audit и MRO inventory — успешно.
+- Включает: единые `bbvg/bot/users.py` и `bbvg/bot/storage.py`, актуальные PR/recovery workflow, удалённые v27 и v33–v35.
+- Назначение: возврат к подтверждённому состоянию после переноса пользовательских настроек, приватности и owner-managed notification UI в `UserSettingsMixin`.
+
+### Предыдущий этапный бэкап — перед объединением пользовательских настроек
 
 - Ветка: `backup/refactor-before-user-settings-cleanup-2026-07-16`
 - Commit SHA: `42f34057d23766e950f1e1712171bf051a2ffff9`
 - Последний подтверждённый run: `29484775234`
-- Состояние проверки: compile, modules, pytest, compatibility acceptance, consolidated acceptance, dependency audit и MRO inventory — успешно.
-- Включает: единый source registry и encrypted storage, удалённые v16/v22/v39/v40 и рабочую production-совместимую v41.
-- Назначение: возврат перед переносом пользовательских настроек, приватности и owner-managed notification UI из v33–v35 в `bbvg/bot/users.py`.
+- Назначение: возврат к состоянию до переноса v33–v35 и очистки связанных workflow.
 
 ### Предыдущий подтверждённый бэкап — после объединения хранения
 
