@@ -72,7 +72,7 @@
   ],
   "current_runtime": "admin_panel_runtime_v41",
   "runtime_chain_count": 29,
-  "runtime_file_count": 33,
+  "runtime_file_count": 32,
   "runtime_files": [
     {
       "classes": [
@@ -160,11 +160,10 @@
       "line_count": 44,
       "module": "admin_panel_runtime_v17",
       "path": "admin_panel_runtime_v17.py",
-      "reference_count": 13,
+      "reference_count": 12,
       "references": [
         "admin_panel_runtime_v17.py",
         "admin_panel_runtime_v19.py",
-        "admin_panel_runtime_v23.py",
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py",
         "admin_panel_runtime_v27.py",
@@ -201,10 +200,11 @@
       "line_count": 32,
       "module": "admin_panel_runtime_v19",
       "path": "admin_panel_runtime_v19.py",
-      "reference_count": 3,
+      "reference_count": 4,
       "references": [
         "admin_panel_runtime_v19.py",
         "admin_panel_runtime_v20.py",
+        "bbvg/bot/wheels.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -672,98 +672,11 @@
       "line_count": 327,
       "module": "admin_panel_runtime_v22",
       "path": "admin_panel_runtime_v22.py",
-      "reference_count": 5,
-      "references": [
-        "admin_panel_runtime_v22.py",
-        "admin_panel_runtime_v23.py",
-        "admin_panel_runtime_v25.py",
-        "admin_panel_runtime_v26.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
-      ],
-      "top_level_functions": [
-        "main",
-        "self_test"
-      ]
-    },
-    {
-      "classes": [
-        {
-          "bases": [
-            "TelegramPanelRuntimeV22"
-          ],
-          "class_attributes": [],
-          "method_count": 6,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 21,
-              "line_count": 3,
-              "name": "__init__",
-              "start_line": 19
-            },
-            {
-              "async": false,
-              "decorators": [
-                "staticmethod"
-              ],
-              "end_line": 44,
-              "line_count": 21,
-              "name": "temporary_access",
-              "start_line": 24
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 56,
-              "line_count": 11,
-              "name": "load_access",
-              "start_line": 46
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 65,
-              "line_count": 8,
-              "name": "save_access",
-              "start_line": 58
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 76,
-              "line_count": 10,
-              "name": "load_source_requests",
-              "start_line": 67
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 83,
-              "line_count": 6,
-              "name": "save_source_requests",
-              "start_line": 78
-            }
-          ],
-          "name": "TelegramPanelRuntimeV23"
-        }
-      ],
-      "direct_imports": [
-        "admin_bot",
-        "admin_panel_runtime_v17",
-        "admin_panel_runtime_v22",
-        "admin_panel_v2",
-        "private_state"
-      ],
-      "in_current_import_chain": false,
-      "line_count": 138,
-      "module": "admin_panel_runtime_v23",
-      "path": "admin_panel_runtime_v23.py",
       "reference_count": 4,
       "references": [
-        "PRIVATE_STATE_MIGRATION_RU.md",
-        "admin_panel_runtime_v23.py",
-        "docs/CODE_INVENTORY_RU.md",
+        "admin_panel_runtime_v22.py",
+        "admin_panel_runtime_v25.py",
+        "admin_panel_runtime_v26.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -3547,7 +3460,6 @@
   ],
   "runtime_method_index": {
     "__init__": [
-      "admin_panel_runtime_v23",
       "admin_panel_runtime_v25",
       "admin_panel_runtime_v34",
       "admin_panel_runtime_v37",
@@ -3774,7 +3686,6 @@
       "admin_panel_runtime_v8"
     ],
     "load_access": [
-      "admin_panel_runtime_v23",
       "admin_panel_runtime_v25"
     ],
     "load_moderation": [
@@ -3784,7 +3695,6 @@
       "admin_panel_runtime_v22"
     ],
     "load_source_requests": [
-      "admin_panel_runtime_v23",
       "admin_panel_runtime_v25"
     ],
     "mark_personal_participation": [
@@ -3871,14 +3781,12 @@
       "admin_panel_runtime_v36"
     ],
     "save_access": [
-      "admin_panel_runtime_v23",
       "admin_panel_runtime_v25"
     ],
     "save_moderation": [
       "admin_panel_runtime_v5"
     ],
     "save_source_requests": [
-      "admin_panel_runtime_v23",
       "admin_panel_runtime_v25"
     ],
     "score_label": [
@@ -4066,9 +3974,6 @@
     "summary_send_rows": [
       "admin_panel_runtime_v31"
     ],
-    "temporary_access": [
-      "admin_panel_runtime_v23"
-    ],
     "toggle_notification": [
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v30",
@@ -4081,7 +3986,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 8827,
-  "runtime_unique_method_count": 128,
+  "runtime_total_lines": 8689,
+  "runtime_unique_method_count": 127,
   "unreferenced_python_candidates": []
 }
