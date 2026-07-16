@@ -200,10 +200,9 @@
       "line_count": 32,
       "module": "admin_panel_runtime_v19",
       "path": "admin_panel_runtime_v19.py",
-      "reference_count": 4,
+      "reference_count": 3,
       "references": [
         "admin_panel_runtime_v19.py",
-        "admin_panel_runtime_v20.py",
         "bbvg/bot/wheels.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
@@ -258,135 +257,19 @@
       "classes": [
         {
           "bases": [
-            "TelegramPanelRuntimeV19"
+            "WheelInteractionRuntime"
           ],
           "class_attributes": [],
-          "method_count": 14,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 43,
-              "line_count": 23,
-              "name": "_hidden_wheels",
-              "start_line": 21
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 65,
-              "line_count": 21,
-              "name": "hide_wheel_for_current_user",
-              "start_line": 45
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 77,
-              "line_count": 11,
-              "name": "_personal_participating_wheels",
-              "start_line": 67
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 98,
-              "line_count": 20,
-              "name": "mark_personal_participation",
-              "start_line": 79
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 107,
-              "line_count": 8,
-              "name": "_joined_wheel_keys",
-              "start_line": 100
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 146,
-              "line_count": 38,
-              "name": "_collect_current_wheels",
-              "start_line": 109
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 200,
-              "line_count": 53,
-              "name": "show_active",
-              "start_line": 148
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 233,
-              "line_count": 32,
-              "name": "show_stats",
-              "start_line": 202
-            },
-            {
-              "async": false,
-              "decorators": [
-                "staticmethod"
-              ],
-              "end_line": 290,
-              "line_count": 55,
-              "name": "parse_manual_deadline",
-              "start_line": 236
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 308,
-              "line_count": 17,
-              "name": "request_manual_time",
-              "start_line": 292
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 322,
-              "line_count": 13,
-              "name": "_delete_callback_message",
-              "start_line": 310
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 357,
-              "line_count": 34,
-              "name": "handle_message",
-              "start_line": 324
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 438,
-              "line_count": 80,
-              "name": "handle_callback",
-              "start_line": 359
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 444,
-              "line_count": 5,
-              "name": "render_page",
-              "start_line": 440
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV20"
         }
       ],
       "direct_imports": [
-        "admin_bot",
-        "admin_panel_runtime_v19"
+        "bbvg.bot.wheels"
       ],
       "in_current_import_chain": true,
-      "line_count": 468,
+      "line_count": 33,
       "module": "admin_panel_runtime_v20",
       "path": "admin_panel_runtime_v20.py",
       "reference_count": 4,
@@ -3479,13 +3362,9 @@
       "admin_panel_runtime_v5"
     ],
     "_collect_current_wheels": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v32",
       "admin_panel_runtime_v4",
       "admin_panel_runtime_v7"
-    ],
-    "_delete_callback_message": [
-      "admin_panel_runtime_v20"
     ],
     "_display_user": [
       "admin_panel_runtime_v38"
@@ -3493,14 +3372,8 @@
     "_entry_key": [
       "admin_panel_runtime_v4"
     ],
-    "_hidden_wheels": [
-      "admin_panel_runtime_v20"
-    ],
     "_inspect_entry": [
       "admin_panel_runtime_v4"
-    ],
-    "_joined_wheel_keys": [
-      "admin_panel_runtime_v20"
     ],
     "_load_bot_bundle": [
       "admin_panel_runtime_v25",
@@ -3531,9 +3404,6 @@
     ],
     "_period_buttons": [
       "admin_panel_runtime_v38"
-    ],
-    "_personal_participating_wheels": [
-      "admin_panel_runtime_v20"
     ],
     "_prepare_callback_user": [
       "admin_panel_runtime_v26"
@@ -3638,7 +3508,6 @@
       "admin_panel_runtime_v6"
     ],
     "handle_callback": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v25",
       "admin_panel_runtime_v26",
@@ -3656,7 +3525,6 @@
       "admin_panel_runtime_v8"
     ],
     "handle_message": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v30",
       "admin_panel_runtime_v37",
@@ -3666,9 +3534,6 @@
     ],
     "handle_update": [
       "admin_panel_runtime_v21"
-    ],
-    "hide_wheel_for_current_user": [
-      "admin_panel_runtime_v20"
     ],
     "ignore_candidate": [
       "admin_panel_runtime_v5"
@@ -3697,9 +3562,6 @@
     "load_source_requests": [
       "admin_panel_runtime_v25"
     ],
-    "mark_personal_participation": [
-      "admin_panel_runtime_v20"
-    ],
     "miniapp_url_for_chat": [
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v22"
@@ -3723,7 +3585,6 @@
       "admin_panel_runtime_v8"
     ],
     "parse_manual_deadline": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v37"
     ],
     "period_overview": [
@@ -3750,7 +3611,6 @@
       "admin_panel_runtime_v37"
     ],
     "render_page": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v22",
       "admin_panel_runtime_v25",
@@ -3767,7 +3627,6 @@
       "admin_panel_runtime_v9"
     ],
     "request_manual_time": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v38"
     ],
@@ -3829,7 +3688,6 @@
       "admin_panel_runtime_v38"
     ],
     "show_active": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v22",
       "admin_panel_runtime_v25",
       "admin_panel_runtime_v3",
@@ -3944,7 +3802,6 @@
       "admin_panel_runtime_v8"
     ],
     "show_stats": [
-      "admin_panel_runtime_v20",
       "admin_panel_runtime_v22",
       "admin_panel_runtime_v29",
       "admin_panel_runtime_v31",
@@ -3986,7 +3843,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 8689,
-  "runtime_unique_method_count": 127,
+  "runtime_total_lines": 8254,
+  "runtime_unique_method_count": 121,
   "unreferenced_python_candidates": []
 }

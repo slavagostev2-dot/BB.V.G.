@@ -1,12 +1,12 @@
 # BB V.G. — карта методов исторического runtime панели
 
 Файл генерируется автоматически из AST и фактической MRO текущего runtime.
-Исходный коммит аудита: `e4c109f1d87ec907ea762800df00699bf47c995e`.
+Исходный коммит аудита: `7be540eed3150321b9f58fc0dded3c33bc8bd45f`.
 
 - Runtime-файлов: **32**
 - В текущей цепочке: **29**
-- Суммарно строк: **8689**
-- Уникальных имён методов: **127**
+- Суммарно строк: **8254**
+- Уникальных имён методов: **121**
 
 ## Фактическая MRO текущей панели
 
@@ -28,23 +28,24 @@
 16. `admin_panel_runtime_v22.TelegramPanelRuntimeV22`
 17. `admin_panel_runtime_v21.TelegramPanelRuntimeV21`
 18. `admin_panel_runtime_v20.TelegramPanelRuntimeV20`
-19. `admin_panel_runtime_v19.TelegramPanelRuntimeV19`
-20. `admin_panel_runtime_v17.TelegramPanelRuntimeV17`
-21. `bbvg.bot.source_requests.SourceRequestRuntime`
-22. `bbvg.bot.interface.PanelInterfaceRuntime`
-23. `admin_panel_runtime_v13.TelegramPanelRuntimeV13`
-24. `bbvg.bot.foundation.PanelFoundationMixin`
-25. `admin_panel_runtime_v9.TelegramPanelRuntimeV9`
-26. `admin_panel_runtime_v8.TelegramPanelRuntimeV8`
-27. `admin_panel_runtime_v7.TelegramPanelRuntimeV7`
-28. `admin_panel_runtime_v6.TelegramPanelRuntimeV6`
-29. `admin_panel_runtime_v5.TelegramPanelRuntimeV5`
-30. `admin_panel_runtime_v4.TelegramPanelRuntimeV4`
-31. `admin_panel_runtime_v3.TelegramPanelRuntimeV3`
-32. `admin_panel_runtime_v2.TelegramPanelRuntimeV2`
-33. `admin_panel_v2.TelegramPanelV2`
-34. `admin_runtime.RuntimeAdminBot`
-35. `admin_bot.AdminBot`
+19. `bbvg.bot.wheels.WheelInteractionRuntime`
+20. `admin_panel_runtime_v19.TelegramPanelRuntimeV19`
+21. `admin_panel_runtime_v17.TelegramPanelRuntimeV17`
+22. `bbvg.bot.source_requests.SourceRequestRuntime`
+23. `bbvg.bot.interface.PanelInterfaceRuntime`
+24. `admin_panel_runtime_v13.TelegramPanelRuntimeV13`
+25. `bbvg.bot.foundation.PanelFoundationMixin`
+26. `admin_panel_runtime_v9.TelegramPanelRuntimeV9`
+27. `admin_panel_runtime_v8.TelegramPanelRuntimeV8`
+28. `admin_panel_runtime_v7.TelegramPanelRuntimeV7`
+29. `admin_panel_runtime_v6.TelegramPanelRuntimeV6`
+30. `admin_panel_runtime_v5.TelegramPanelRuntimeV5`
+31. `admin_panel_runtime_v4.TelegramPanelRuntimeV4`
+32. `admin_panel_runtime_v3.TelegramPanelRuntimeV3`
+33. `admin_panel_runtime_v2.TelegramPanelRuntimeV2`
+34. `admin_panel_v2.TelegramPanelV2`
+35. `admin_runtime.RuntimeAdminBot`
+36. `admin_bot.AdminBot`
 
 ## Владельцы фактически действующих методов
 
@@ -114,7 +115,7 @@
 
 `handle_update()`, `notify_owner_about_new_user()`
 
-### `admin_panel_runtime_v20.TelegramPanelRuntimeV20` — 6 методов
+### `bbvg.bot.wheels.WheelInteractionRuntime` — 6 методов
 
 `_delete_callback_message()`, `_hidden_wheels()`, `_joined_wheel_keys()`, `_personal_participating_wheels()`, `hide_wheel_for_current_user()`, `mark_personal_participation()`
 
@@ -204,26 +205,13 @@
 
 - `register_user()` — 72 строк
 
-### `admin_panel_runtime_v20.py` — 468 строк, в рабочей цепочке
+### `admin_panel_runtime_v20.py` — 33 строк, в рабочей цепочке
 
-Прямые импорты: `admin_bot`, `admin_panel_runtime_v19`
+Прямые импорты: `bbvg.bot.wheels`
 
-Класс `TelegramPanelRuntimeV20`; база: `TelegramPanelRuntimeV19`.
+Класс `TelegramPanelRuntimeV20`; база: `WheelInteractionRuntime`.
 
-- `_hidden_wheels()` — 23 строк
-- `hide_wheel_for_current_user()` — 21 строк
-- `_personal_participating_wheels()` — 11 строк
-- `mark_personal_participation()` — 20 строк
-- `_joined_wheel_keys()` — 8 строк
-- `_collect_current_wheels()` — 38 строк
-- `show_active()` — 53 строк
-- `show_stats()` — 32 строк
-- `parse_manual_deadline()` — 55 строк
-- `request_manual_time()` — 17 строк
-- `_delete_callback_message()` — 13 строк
-- `handle_message()` — 34 строк
-- `handle_callback()` — 80 строк
-- `render_page()` — 5 строк
+- собственных методов нет
 
 ### `admin_panel_runtime_v21.py` — 439 строк, в рабочей цепочке
 
@@ -671,7 +659,7 @@
 
 - `__init__()` — `admin_panel_runtime_v25`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v8`
 - `_apply_admin_action_direct()` — `admin_panel_runtime_v26`, `admin_panel_runtime_v28`
-- `_collect_current_wheels()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v32`, `admin_panel_runtime_v4`, `admin_panel_runtime_v7`
+- `_collect_current_wheels()` — `admin_panel_runtime_v32`, `admin_panel_runtime_v4`, `admin_panel_runtime_v7`
 - `_load_bot_bundle()` — `admin_panel_runtime_v25`, `admin_panel_runtime_v34`
 - `_merge_access()` — `admin_panel_runtime_v34`, `admin_panel_runtime_v35`
 - `_notification_options_for_role()` — `admin_panel_runtime_v34`, `admin_panel_runtime_v37`
@@ -681,24 +669,23 @@
 - `compact_menu_rows()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `admin_panel_runtime_v26`, `admin_panel_runtime_v29`, `admin_panel_runtime_v32`, `admin_panel_runtime_v38`
 - `control_menu_rows()` — `admin_panel_runtime_v29`, `admin_panel_runtime_v31`
 - `dispatch_admin_action()` — `admin_panel_runtime_v26`, `admin_panel_runtime_v37`, `admin_panel_runtime_v8`
-- `handle_callback()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v21`, `admin_panel_runtime_v25`, `admin_panel_runtime_v26`, `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v33`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v5`, `admin_panel_runtime_v6`, `admin_panel_runtime_v8`
-- `handle_message()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v37`, `admin_panel_runtime_v6`, `admin_panel_runtime_v7`, `admin_panel_runtime_v9`
+- `handle_callback()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v25`, `admin_panel_runtime_v26`, `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v33`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v5`, `admin_panel_runtime_v6`, `admin_panel_runtime_v8`
+- `handle_message()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v37`, `admin_panel_runtime_v6`, `admin_panel_runtime_v7`, `admin_panel_runtime_v9`
 - `miniapp_url_for_chat()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v22`
 - `normalize_access()` — `admin_panel_runtime_v3`, `admin_panel_runtime_v35`
 - `notification_preferences()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v33`, `admin_panel_runtime_v37`
 - `open_page()` — `admin_panel_runtime_v38`, `admin_panel_runtime_v8`
-- `parse_manual_deadline()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v37`
 - `period_overview()` — `admin_panel_runtime_v31`, `admin_panel_runtime_v38`
 - `register_user()` — `admin_panel_runtime_v2`, `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v33`, `admin_panel_runtime_v37`
-- `render_page()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v21`, `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v5`, `admin_panel_runtime_v6`, `admin_panel_runtime_v9`
-- `request_manual_time()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
+- `render_page()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v5`, `admin_panel_runtime_v6`, `admin_panel_runtime_v9`
+- `request_manual_time()` — `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
 - `send()` — `admin_panel_runtime_v36`, `admin_panel_runtime_v38`, `admin_panel_runtime_v8`
 - `set_admin()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v37`
 - `set_all_user_notifications()` — `admin_panel_runtime_v34`, `admin_panel_runtime_v35`
 - `set_user_notification()` — `admin_panel_runtime_v34`, `admin_panel_runtime_v35`
 - `setup_bot()` — `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v36`, `admin_panel_runtime_v37`
 - `show_access()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v38`
-- `show_active()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `admin_panel_runtime_v3`, `admin_panel_runtime_v32`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v4`, `admin_panel_runtime_v9`
+- `show_active()` — `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `admin_panel_runtime_v3`, `admin_panel_runtime_v32`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v4`, `admin_panel_runtime_v9`
 - `show_analytics()` — `admin_panel_runtime_v29`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
 - `show_control()` — `admin_panel_runtime_v29`, `admin_panel_runtime_v31`
 - `show_discovery()` — `admin_panel_runtime_v3`, `admin_panel_runtime_v37`, `admin_panel_runtime_v5`
@@ -712,7 +699,7 @@
 - `show_reports()` — `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v8`
 - `show_settings()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v3`, `admin_panel_runtime_v33`, `admin_panel_runtime_v9`
 - `show_sources()` — `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v37`, `admin_panel_runtime_v8`
-- `show_stats()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v22`, `admin_panel_runtime_v29`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
+- `show_stats()` — `admin_panel_runtime_v22`, `admin_panel_runtime_v29`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
 - `show_status()` — `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
 - `show_user_detail()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v34`
 - `source_menu_rows()` — `admin_panel_runtime_v29`, `admin_panel_runtime_v30`, `admin_panel_runtime_v36`
