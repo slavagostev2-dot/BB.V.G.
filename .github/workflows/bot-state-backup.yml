@@ -3,6 +3,11 @@ run-name: Backup encrypted bot state - ${{ github.event_name }}
 
 on:
   create:
+  pull_request:
+    types:
+      - closed
+    paths:
+      - ".github/workflows/bot-state-backup.yml"
   push:
     branches:
       - main
@@ -92,6 +97,8 @@ jobs:
       startsWith(github.event.ref, 'backup/')) ||
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' &&
       github.event.created &&
@@ -153,6 +160,9 @@ jobs:
 
           def ref_path(short_name):
               return "/git/ref/heads/" + urllib.parse.quote(short_name, safe="/")
+
+          def delete_ref_path(short_name):
+              return "/git/refs/heads/" + urllib.parse.quote(short_name, safe="/")
 
           def list_backup_refs():
               refs = []
@@ -257,7 +267,7 @@ jobs:
               print(f"  DELETE {record['name']} {record['sha']} {record['committed_at']}")
 
           for record in obsolete:
-              request("DELETE", ref_path(record["name"]))
+              request("DELETE", delete_ref_path(record["name"]))
 
           remaining = list_backup_refs()
           remaining_names = sorted(
