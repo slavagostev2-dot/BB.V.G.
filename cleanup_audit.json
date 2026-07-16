@@ -63,7 +63,7 @@
     }
   ],
   "current_runtime": "admin_panel_runtime_v41",
-  "runtime_chain_count": 22,
+  "runtime_chain_count": 21,
   "runtime_file_count": 22,
   "runtime_files": [
     {
@@ -83,14 +83,13 @@
         "admin_panel_runtime_v9",
         "bbvg.bot.foundation"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 33,
       "module": "admin_panel_runtime_v13",
       "path": "admin_panel_runtime_v13.py",
-      "reference_count": 3,
+      "reference_count": 2,
       "references": [
         "admin_panel_runtime_v13.py",
-        "bbvg/bot/interface.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -2478,11 +2477,12 @@
       "line_count": 169,
       "module": "admin_panel_runtime_v9",
       "path": "admin_panel_runtime_v9.py",
-      "reference_count": 4,
+      "reference_count": 5,
       "references": [
         "admin_panel_runtime_v13.py",
         "admin_panel_runtime_v9.py",
         "bbvg/bot/foundation.py",
+        "bbvg/bot/interface.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [

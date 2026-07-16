@@ -1,10 +1,10 @@
 # BB V.G. — карта методов исторического runtime панели
 
 Файл генерируется автоматически из AST и фактической MRO текущего runtime.
-Исходный коммит аудита: `4c066a0fae1b41905c726e76df445b1e30251428`.
+Исходный коммит аудита: `cbab7c92f3b4ed45d72f42a57135a01e515ed11a`.
 
 - Runtime-файлов: **22**
-- В текущей цепочке: **22**
+- В текущей цепочке: **21**
 - Суммарно строк: **6002**
 - Уникальных имён методов: **100**
 
@@ -28,19 +28,18 @@
 16. `bbvg.bot.wheels.WheelInteractionRuntime`
 17. `bbvg.bot.source_requests.SourceRequestRuntime`
 18. `bbvg.bot.interface.PanelInterfaceRuntime`
-19. `admin_panel_runtime_v13.TelegramPanelRuntimeV13`
-20. `bbvg.bot.foundation.PanelFoundationMixin`
-21. `admin_panel_runtime_v9.TelegramPanelRuntimeV9`
-22. `admin_panel_runtime_v8.TelegramPanelRuntimeV8`
-23. `admin_panel_runtime_v7.TelegramPanelRuntimeV7`
-24. `admin_panel_runtime_v6.TelegramPanelRuntimeV6`
-25. `admin_panel_runtime_v5.TelegramPanelRuntimeV5`
-26. `admin_panel_runtime_v4.TelegramPanelRuntimeV4`
-27. `admin_panel_runtime_v3.TelegramPanelRuntimeV3`
-28. `admin_panel_runtime_v2.TelegramPanelRuntimeV2`
-29. `admin_panel_v2.TelegramPanelV2`
-30. `admin_runtime.RuntimeAdminBot`
-31. `admin_bot.AdminBot`
+19. `bbvg.bot.foundation.PanelFoundationMixin`
+20. `admin_panel_runtime_v9.TelegramPanelRuntimeV9`
+21. `admin_panel_runtime_v8.TelegramPanelRuntimeV8`
+22. `admin_panel_runtime_v7.TelegramPanelRuntimeV7`
+23. `admin_panel_runtime_v6.TelegramPanelRuntimeV6`
+24. `admin_panel_runtime_v5.TelegramPanelRuntimeV5`
+25. `admin_panel_runtime_v4.TelegramPanelRuntimeV4`
+26. `admin_panel_runtime_v3.TelegramPanelRuntimeV3`
+27. `admin_panel_runtime_v2.TelegramPanelRuntimeV2`
+28. `admin_panel_v2.TelegramPanelV2`
+29. `admin_runtime.RuntimeAdminBot`
+30. `admin_bot.AdminBot`
 
 ## Владельцы фактически действующих методов
 
@@ -148,7 +147,7 @@
 
 ## Файлы и определённые методы
 
-### `admin_panel_runtime_v13.py` — 33 строк, в рабочей цепочке
+### `admin_panel_runtime_v13.py` — 33 строк, вне рабочей цепочки
 
 Прямые импорты: `admin_panel_runtime_v9`, `bbvg.bot.foundation`
 
