@@ -5,7 +5,7 @@ on:
     branches:
       - refactor/consolidate-runtime-v42
     paths:
-      - "bbvg/bot/*.py"
+      - "bbvg/**"
       - "admin_panel_runtime_v*.py"
       - "*.py"
       - "tests/**"
@@ -37,16 +37,11 @@ jobs:
       - name: Compile consolidated code
         id: compile
         run: |
-          python -m py_compile tests/production_acceptance.py
-          python -m py_compile bbvg/bot/runtime.py
-          python -m py_compile bbvg/bot/foundation.py
-          python -m py_compile bbvg/bot/interface.py
-          python -m py_compile bbvg/bot/source_requests.py
-          python -m py_compile bbvg/bot/wheels.py
-          python -m py_compile rating_policy.py
+          python -m compileall -q bbvg
+          python -m py_compile tests/production_acceptance.py rating_policy.py
       - name: Validate consolidated panel foundation
         id: panel_foundation
-        env:
+        env: &test-env
           BOT_TOKEN: test-bot-token
           BOT_STATE_KEY: test-state-key
           BOT_CHAT_ID: "1"
@@ -55,39 +50,23 @@ jobs:
         run: python -m bbvg.bot.foundation
       - name: Validate consolidated panel interface
         id: panel_interface
-        env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: "1"
-          BBVG_TEST_MODE: "1"
-          TELEGRAM_WEB_DOMAIN: telegram.me
+        env: *test-env
         run: python -m bbvg.bot.interface
       - name: Validate consolidated source requests
         id: source_requests
-        env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: "1"
-          BBVG_TEST_MODE: "1"
-          TELEGRAM_WEB_DOMAIN: telegram.me
+        env: *test-env
         run: python -m bbvg.bot.source_requests
       - name: Validate consolidated wheel interactions
         id: wheel_interactions
-        env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: "1"
-          BBVG_TEST_MODE: "1"
-          TELEGRAM_WEB_DOMAIN: telegram.me
+        env: *test-env
         run: python -m bbvg.bot.wheels
+      - name: Validate consolidated users
+        id: users
+        env: *test-env
+        run: python -m bbvg.bot.users
       - name: Validate consolidated panel runtime
         id: panel_runtime
-        env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: "1"
-          BBVG_TEST_MODE: "1"
-          TELEGRAM_WEB_DOMAIN: telegram.me
+        env: *test-env
         run: python -m bbvg.bot.runtime --self-test
       - name: Validate rating normalization CLI
         id: rating_cli
@@ -95,21 +74,13 @@ jobs:
       - name: Run full pytest suite
         id: pytest
         env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: "1"
-          BBVG_TEST_MODE: "1"
-          TELEGRAM_WEB_DOMAIN: telegram.me
+          <<: *test-env
           UNKNOWN_DEDUP_HOURS: "2"
         run: python -m pytest -q
       - name: Run legacy acceptance files
         id: legacy
         env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: "1"
-          BBVG_TEST_MODE: "1"
-          TELEGRAM_WEB_DOMAIN: telegram.me
+          <<: *test-env
           UNKNOWN_DEDUP_HOURS: "2"
         run: |
           python chapter1_stability.py
@@ -120,11 +91,7 @@ jobs:
       - name: Run consolidated acceptance sections
         id: consolidated
         env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: "1"
-          BBVG_TEST_MODE: "1"
-          TELEGRAM_WEB_DOMAIN: telegram.me
+          <<: *test-env
           UNKNOWN_DEDUP_HOURS: "2"
         run: |
           python tests/production_acceptance.py --section stability
@@ -141,6 +108,7 @@ jobs:
           PANEL_INTERFACE_OUTCOME: ${{ steps.panel_interface.outcome }}
           SOURCE_REQUESTS_OUTCOME: ${{ steps.source_requests.outcome }}
           WHEEL_INTERACTIONS_OUTCOME: ${{ steps.wheel_interactions.outcome }}
+          USERS_OUTCOME: ${{ steps.users.outcome }}
           PANEL_RUNTIME_OUTCOME: ${{ steps.panel_runtime.outcome }}
           RATING_CLI_OUTCOME: ${{ steps.rating_cli.outcome }}
           PYTEST_OUTCOME: ${{ steps.pytest.outcome }}
@@ -158,6 +126,7 @@ jobs:
               "panel_interface": os.environ.get("PANEL_INTERFACE_OUTCOME", "unknown"),
               "source_requests": os.environ.get("SOURCE_REQUESTS_OUTCOME", "unknown"),
               "wheel_interactions": os.environ.get("WHEEL_INTERACTIONS_OUTCOME", "unknown"),
+              "users": os.environ.get("USERS_OUTCOME", "unknown"),
               "panel_runtime": os.environ.get("PANEL_RUNTIME_OUTCOME", "unknown"),
               "rating_cli": os.environ.get("RATING_CLI_OUTCOME", "unknown"),
               "pytest": os.environ.get("PYTEST_OUTCOME", "unknown"),
