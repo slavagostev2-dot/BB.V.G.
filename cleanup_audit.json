@@ -127,7 +127,7 @@
       "line_count": 44,
       "module": "admin_panel_runtime_v17",
       "path": "admin_panel_runtime_v17.py",
-      "reference_count": 10,
+      "reference_count": 9,
       "references": [
         "admin_panel_runtime_v17.py",
         "admin_panel_runtime_v19.py",
@@ -135,7 +135,6 @@
         "admin_panel_runtime_v26.py",
         "admin_panel_runtime_v27.py",
         "admin_panel_runtime_v30.py",
-        "admin_panel_runtime_v33.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "system_checks.py",
         "tests/test_nightly_idle_policy.py"
@@ -237,13 +236,11 @@
       "line_count": 35,
       "module": "admin_panel_runtime_v21",
       "path": "admin_panel_runtime_v21.py",
-      "reference_count": 8,
+      "reference_count": 6,
       "references": [
         "admin_panel_runtime_v21.py",
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v30.py",
-        "admin_panel_runtime_v33.py",
-        "admin_panel_runtime_v34.py",
         "admin_panel_runtime_v37.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "system_checks.py"
@@ -1273,89 +1270,31 @@
       "classes": [
         {
           "bases": [
+            "UserSettingsMixin",
             "TelegramPanelRuntimeV32"
           ],
           "class_attributes": [],
-          "method_count": 7,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 45,
-              "line_count": 14,
-              "name": "notification_preferences",
-              "start_line": 32
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 69,
-              "line_count": 23,
-              "name": "register_user",
-              "start_line": 47
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 98,
-              "line_count": 28,
-              "name": "show_settings",
-              "start_line": 71
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 137,
-              "line_count": 38,
-              "name": "show_notifications",
-              "start_line": 100
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 175,
-              "line_count": 37,
-              "name": "toggle_notification",
-              "start_line": 139
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 191,
-              "line_count": 15,
-              "name": "delete_current_user_data",
-              "start_line": 177
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 237,
-              "line_count": 45,
-              "name": "handle_callback",
-              "start_line": 193
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV33"
         }
       ],
       "direct_imports": [
-        "admin_panel_runtime_v17",
-        "admin_panel_runtime_v21",
         "admin_panel_runtime_v32",
-        "bot_private_state",
-        "privacy_retention"
+        "bbvg.bot.users"
       ],
       "in_current_import_chain": true,
-      "line_count": 289,
+      "line_count": 43,
       "module": "admin_panel_runtime_v33",
       "path": "admin_panel_runtime_v33.py",
-      "reference_count": 8,
+      "reference_count": 9,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
+        "admin_panel_runtime_v33.py",
         "admin_panel_runtime_v34.py",
         "admin_panel_runtime_v37.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
@@ -1372,109 +1311,34 @@
             "TelegramPanelRuntimeV33"
           ],
           "class_attributes": [],
-          "method_count": 9,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 89,
-              "line_count": 52,
-              "name": "show_notifications",
-              "start_line": 38
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 128,
-              "line_count": 38,
-              "name": "toggle_notification",
-              "start_line": 91
-            },
-            {
-              "async": false,
-              "decorators": [
-                "staticmethod"
-              ],
-              "end_line": 138,
-              "line_count": 8,
-              "name": "_notification_options_for_role",
-              "start_line": 131
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 192,
-              "line_count": 53,
-              "name": "show_user_detail",
-              "start_line": 140
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 252,
-              "line_count": 59,
-              "name": "show_user_notifications",
-              "start_line": 194
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 287,
-              "line_count": 34,
-              "name": "set_user_notification",
-              "start_line": 254
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 316,
-              "line_count": 28,
-              "name": "set_all_user_notifications",
-              "start_line": 289
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 322,
-              "line_count": 5,
-              "name": "render_page",
-              "start_line": 318
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 361,
-              "line_count": 38,
-              "name": "handle_callback",
-              "start_line": 324
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV34"
         }
       ],
       "direct_imports": [
-        "admin_panel_runtime_v21",
         "admin_panel_runtime_v33",
-        "bbvg.bot.storage"
+        "bbvg.bot.storage",
+        "bbvg.bot.users"
       ],
       "in_current_import_chain": false,
-      "line_count": 421,
+      "line_count": 39,
       "module": "admin_panel_runtime_v34",
       "path": "admin_panel_runtime_v34.py",
-      "reference_count": 9,
+      "reference_count": 10,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
+        "admin_panel_runtime_v34.py",
         "admin_panel_runtime_v35.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "tests/test_concurrency_and_ci.py",
         "tests/test_current_contracts.py"
       ],
       "top_level_functions": [
-        "_display_name",
         "main",
         "self_test"
       ]
@@ -2884,7 +2748,6 @@
       "admin_panel_runtime_v38"
     ],
     "_notification_options_for_role": [
-      "admin_panel_runtime_v34",
       "admin_panel_runtime_v37"
     ],
     "_page_family": [
@@ -2972,9 +2835,6 @@
       "admin_panel_runtime_v29",
       "admin_panel_runtime_v31"
     ],
-    "delete_current_user_data": [
-      "admin_panel_runtime_v33"
-    ],
     "dispatch_admin_action": [
       "admin_panel_runtime_v26",
       "admin_panel_runtime_v37",
@@ -2994,8 +2854,6 @@
       "admin_panel_runtime_v30",
       "admin_panel_runtime_v31",
       "admin_panel_runtime_v32",
-      "admin_panel_runtime_v33",
-      "admin_panel_runtime_v34",
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v38",
       "admin_panel_runtime_v5",
@@ -3033,7 +2891,6 @@
     "notification_preferences": [
       "admin_panel_runtime_v30",
       "admin_panel_runtime_v31",
-      "admin_panel_runtime_v33",
       "admin_panel_runtime_v37"
     ],
     "open_page": [
@@ -3062,7 +2919,6 @@
     "register_user": [
       "admin_panel_runtime_v2",
       "admin_panel_runtime_v30",
-      "admin_panel_runtime_v33",
       "admin_panel_runtime_v37"
     ],
     "render_page": [
@@ -3072,7 +2928,6 @@
       "admin_panel_runtime_v30",
       "admin_panel_runtime_v31",
       "admin_panel_runtime_v32",
-      "admin_panel_runtime_v34",
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v38",
       "admin_panel_runtime_v5",
@@ -3107,7 +2962,6 @@
       "admin_panel_runtime_v37"
     ],
     "set_all_user_notifications": [
-      "admin_panel_runtime_v34",
       "admin_panel_runtime_v35"
     ],
     "set_candidate_mode": [
@@ -3120,7 +2974,6 @@
       "admin_panel_runtime_v3"
     ],
     "set_user_notification": [
-      "admin_panel_runtime_v34",
       "admin_panel_runtime_v35"
     ],
     "setup_bot": [
@@ -3193,8 +3046,6 @@
     ],
     "show_notifications": [
       "admin_panel_runtime_v30",
-      "admin_panel_runtime_v33",
-      "admin_panel_runtime_v34",
       "admin_panel_runtime_v37"
     ],
     "show_period_report": [
@@ -3227,7 +3078,6 @@
     ],
     "show_settings": [
       "admin_panel_runtime_v3",
-      "admin_panel_runtime_v33",
       "admin_panel_runtime_v9"
     ],
     "show_source_request_help": [
@@ -3251,12 +3101,6 @@
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v38"
     ],
-    "show_user_detail": [
-      "admin_panel_runtime_v34"
-    ],
-    "show_user_notifications": [
-      "admin_panel_runtime_v34"
-    ],
     "source_menu_rows": [
       "admin_panel_runtime_v29",
       "admin_panel_runtime_v30",
@@ -3267,15 +3111,13 @@
     ],
     "toggle_notification": [
       "admin_panel_runtime_v30",
-      "admin_panel_runtime_v33",
-      "admin_panel_runtime_v34",
       "admin_panel_runtime_v37"
     ],
     "transfer_owner": [
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 6949,
-  "runtime_unique_method_count": 105,
+  "runtime_total_lines": 6321,
+  "runtime_unique_method_count": 102,
   "unreferenced_python_candidates": []
 }
