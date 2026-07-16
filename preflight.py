@@ -101,8 +101,12 @@ def main() -> None:
         ),
     )
     require_text(
-        "chapter5_acceptance.py",
-        ("Chapter 5 full wheel lifecycle acceptance passed",),
+        "tests/production_acceptance.py",
+        (
+            "def lifecycle_acceptance",
+            "Chapter 5 full wheel lifecycle acceptance passed",
+            "Completed-wheel source rating acceptance passed",
+        ),
     )
     require_text(
         "wheel_metadata_quality.py",
@@ -147,16 +151,17 @@ def main() -> None:
         ),
     )
     require_text(
-        "admin_panel_runtime_v20.py",
+        "bbvg/bot/wheels.py",
         (
             "BB V.G.",
             "Указать время",
             "Неактивное",
             "hide_wheel_for_current_user",
+            "def parse_manual_deadline",
         ),
     )
     require_text(
-        "admin_panel_runtime_v21.py",
+        "bbvg/bot/users.py",
         (
             "def notify_owner_about_new_user",
             "def handle_update",
@@ -164,6 +169,14 @@ def main() -> None:
             "self.load_access(force=True)",
             "Открыть список пользователей",
             "my_chat_member",
+        ),
+    )
+    require_text(
+        "bbvg/bot/source_requests.py",
+        (
+            "def submit_source_request",
+            "def decide_source_request",
+            "Запрос пользователя на добавление источника",
         ),
     )
     require_text(
@@ -194,8 +207,9 @@ def main() -> None:
     active_domain_files = (
         "monitor.py",
         "nightly_discovery.py",
-        "admin_panel_runtime_v17.py",
-        "admin_panel_runtime_v21.py",
+        "bbvg/bot/foundation.py",
+        "bbvg/bot/source_requests.py",
+        "bbvg/bot/users.py",
         "docs/app.js",
         "docs/bbvg-controls.js",
         "docs/views-secondary.js",
