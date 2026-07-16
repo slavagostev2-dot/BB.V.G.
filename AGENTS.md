@@ -143,13 +143,20 @@ docs/
 - Назначение: полностью рабочая production v41 до крупного рефакторинга.
 - Использование: критический откат production.
 
-### Рефакторинг перед объединением хранения
+### Текущий актуальный бэкап рефакторинга — после объединения хранения
+
+- Ветка: `backup/refactor-after-storage-2026-07-16`
+- Commit SHA: `913d761c988be754c37eec07ec0b4d054a510c4f`
+- Последний подтверждённый run: `29483620762`
+- Состояние проверки: compile, modules, pytest, compatibility acceptance, consolidated acceptance, dependency audit и MRO inventory — успешно.
+- Назначение: возврат ветки `refactor/consolidate-runtime-v42` к состоянию после переноса хранения v25/v34/v35 в `bbvg/bot/storage.py`.
+
+### Предыдущий этапный бэкап — до объединения хранения
 
 - Ветка: `backup/refactor-before-storage-2026-07-16`
 - Commit SHA: `d0ce73639521521de70351a9c62f38cc67dce638`
 - Последний подтверждённый run: `29475412096`
-- Состояние проверки: compile, modules, pytest, compatibility acceptance, consolidated acceptance и dependency audit — успешно.
-- Назначение: возврат ветки `refactor/consolidate-runtime-v42` к состоянию до переключения исторических v25/v34/v35 на единый storage-модуль.
+- Назначение: историческая точка возврата до storage-этапа; текущим считается бэкап после storage.
 
 При критическом сбое выбирайте backup по затронутому контуру: production либо текущий этап рефакторинга.
 
