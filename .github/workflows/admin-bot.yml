@@ -21,6 +21,7 @@ on:
       - "notification_delivery_state.json"
       - "wheel_publications_v2.py"
       - "wheel_event_runtime.py"
+      - "wheel_link_lifecycle.py"
       - "rating_policy.py"
       - "chapter2_unified_logic.py"
       - "privacy_retention.py"
@@ -66,7 +67,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Validate v39 control center
+      - name: Validate v40 control center
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -81,8 +82,8 @@ jobs:
             admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
             admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
             admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \
-            admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py admin_panel_runtime_v39.py \
-            telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py \
+            admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py admin_panel_runtime_v39.py admin_panel_runtime_v40.py \
+            telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py \
             bot_private_state.py bot_notification_state.py \
             notification_integrity_v2.py notification_router.py wheel_publications_v2.py \
             rating_policy.py chapter2_unified_logic.py privacy_retention.py security_audit.py \
@@ -97,6 +98,7 @@ jobs:
           python admin_action_v2.py --self-test
           python admin_action_v3.py --self-test
           python admin_action_queue.py
+          python wheel_link_lifecycle.py
           python admin_panel_runtime_v32.py --self-test
           python admin_panel_runtime_v33.py --self-test
           python admin_panel_runtime_v35.py --self-test
@@ -104,15 +106,18 @@ jobs:
           python admin_panel_runtime_v37.py --self-test
           python admin_panel_runtime_v38.py --self-test
           python admin_panel_runtime_v39.py --self-test
+          python admin_panel_runtime_v40.py --self-test
           python chapter4_acceptance.py
           python chapter5_acceptance.py
           python chapter1_stability.py
           python - <<'PY'
           import inspect
           import notification_router
+          import telegram_ui
           from admin_panel_runtime_v34 import TelegramPanelRuntimeV34
           from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
           from admin_panel_runtime_v39 import TelegramPanelRuntimeV39
+          from admin_panel_runtime_v40 import TelegramPanelRuntimeV40
 
           handler = inspect.getsource(TelegramPanelRuntimeV34.handle_callback)
           persistence = inspect.getsource(TelegramPanelRuntimeV38._save_bot_bundle)
@@ -120,7 +125,8 @@ jobs:
           normalization = inspect.getsource(TelegramPanelRuntimeV38.normalize_access)
           safe_send = inspect.getsource(TelegramPanelRuntimeV38.safe_text_for_role)
           summary_handler = inspect.getsource(TelegramPanelRuntimeV39.handle_callback)
-          assert TelegramPanelRuntimeV39.RUNTIME_VERSION == 39
+          colorizer = inspect.getsource(TelegramPanelRuntimeV40._color_active_payload)
+          assert TelegramPanelRuntimeV40.RUNTIME_VERSION == 40
           assert "usernotify:" in handler
           assert "usernotifyall:" in handler
           assert "_load_remote_bundle" in persistence
@@ -131,17 +137,19 @@ jobs:
           assert "USER_ACTION_ERROR" in safe_send
           assert "dispatch_summary" not in summary_handler
           assert "show_period_report" in summary_handler
+          assert "callback_data" not in colorizer
           assert notification_router._bbvg_notification_integrity_v2_installed is True
           ranking = [
-              button["text"]
-              for row in TelegramPanelRuntimeV39.source_menu_rows(False)
-              for button in row
-              if button.get("callback_data") == "page:ranking"
+            button["text"]
+            for row in TelegramPanelRuntimeV40.source_menu_rows(False)
+            for button in row
+            if button.get("callback_data") == "page:ranking"
           ]
           assert ranking == ["🏆 Рейтинг источников"]
           assert "summary:send" not in inspect.getsource(TelegramPanelRuntimeV38.show_analytics)
           assert "подтвержд.)" not in inspect.getsource(TelegramPanelRuntimeV38.show_ranking)
-          print("BB V.G. v39 stable control center validated")
+          assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
+          print("BB V.G. v40 callback-safe color interface validated")
           PY
 
       - name: Preserve role fingerprint and migrate state
@@ -219,7 +227,7 @@ jobs:
               "run_id": os.environ.get("GITHUB_RUN_ID", ""),
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
-              "version": 39,
+              "version": 40,
               "heartbeat_version": 1,
               "runtime_owner": "telegram_control_center",
               "update_consumer": "single_getUpdates_owner",
@@ -230,7 +238,8 @@ jobs:
               "notification_integrity": "persistent_hmac_delivery_ledger",
               "source_rating": "administrator_decisions_additive",
               "summary_delivery": "direct_in_process",
-              "deferred_update": "feature_build_not_active",
+              "wheel_colors": "callback_payload_unchanged",
+              "deferred_update": "home_and_finished_rating_pending",
               "miniapp": "archived",
           }
           with open("admin_panel_status.json", "w", encoding="utf-8") as stream:
@@ -249,7 +258,7 @@ jobs:
           done
           exit 1
 
-      - name: Run BB V.G. control center v39
+      - name: Run BB V.G. control center v40
         id: run_panel
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -265,7 +274,7 @@ jobs:
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
-        run: python admin_panel_runtime_v39.py
+        run: python admin_panel_runtime_v40.py
 
       - name: Start replacement control-center shift
         if: ${{ always() && steps.run_panel.outcome != 'skipped' && steps.run_panel.outcome != 'cancelled' }}
@@ -276,4 +285,4 @@ jobs:
           sleep 20
           gh workflow run admin-bot.yml --ref main
 
-# v39: stable v38 interface, direct summaries and automatic recovery; deferred feature update is inactive.
+# v40: stable v39 behavior plus callback-safe color-linked wheel controls.
