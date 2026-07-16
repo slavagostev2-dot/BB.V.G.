@@ -1,7 +1,8 @@
 name: Backup encrypted bot state
-run-name: Backup encrypted bot state — ${{ github.event_name }}
+run-name: Backup encrypted bot state - ${{ github.event_name }}
 
 on:
+  create:
   workflow_dispatch:
   schedule:
     - cron: "42 2 * * *"
@@ -15,6 +16,7 @@ concurrency:
 
 jobs:
   backup:
+    if: github.event_name != 'create'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -76,3 +78,188 @@ jobs:
             bot_state_backup_metadata.json
           if-no-files-found: error
           retention-days: 30
+
+  rotate-backup-branches:
+    if: >-
+      github.event_name == 'create' &&
+      github.event.ref_type == 'branch' &&
+      startsWith(github.event.ref, 'backup/')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
+      CREATED_BACKUP_REF: ${{ github.event.ref }}
+      KEEP_BACKUPS: "3"
+
+    steps:
+      - name: Verify new backup and retain only the newest three
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          token = os.environ["GH_TOKEN"]
+          repository = os.environ["REPOSITORY"]
+          created_ref = os.environ["CREATED_BACKUP_REF"]
+          keep_count = int(os.environ["KEEP_BACKUPS"])
+          api_root = f"https://api.github.com/repos/{repository}"
+
+          if keep_count != 3:
+              raise SystemExit("KEEP_BACKUPS must remain exactly 3")
+          if not created_ref.startswith("backup/") or created_ref == "backup/":
+              raise SystemExit(f"Unsafe backup ref: {created_ref!r}")
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "User-Agent": "bbvg-backup-retention",
+              "X-GitHub-Api-Version": "2022-11-28",
+          }
+
+          def request(method, path):
+              req = urllib.request.Request(api_root + path, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      body = response.read()
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read().decode("utf-8", errors="replace")
+                  raise RuntimeError(
+                      f"GitHub API {method} {path} failed: HTTP {exc.code}: {detail}"
+                  ) from exc
+              return json.loads(body) if body else None
+
+          def ref_path(short_name):
+              return "/git/ref/heads/" + urllib.parse.quote(short_name, safe="/")
+
+          def list_backup_refs():
+              refs = []
+              page = 1
+              while True:
+                  batch = request(
+                      "GET",
+                      f"/git/matching-refs/heads/backup/?per_page=100&page={page}",
+                  )
+                  refs.extend(batch)
+                  if len(batch) < 100:
+                      return refs
+                  page += 1
+
+          repository_info = request("GET", "")
+          default_branch = repository_info["default_branch"]
+          default_ref = request("GET", ref_path(default_branch))
+          default_sha = default_ref["object"]["sha"]
+          new_backup = request("GET", ref_path(created_ref))
+          new_backup_sha = new_backup["object"]["sha"]
+
+          new_compare = request("GET", f"/compare/{new_backup_sha}...{default_sha}")
+          if new_compare["status"] not in {"ahead", "identical"}:
+              raise SystemExit(
+                  f"New backup is not an ancestor of {default_branch}: "
+                  f"status={new_compare['status']}"
+              )
+          if new_compare["merge_base_commit"]["sha"] != new_backup_sha:
+              raise SystemExit("New backup ancestry verification failed")
+
+          refs = list_backup_refs()
+          if len(refs) > 50:
+              raise SystemExit(f"Refusing unexpected backup ref count: {len(refs)}")
+
+          commit_cache = {}
+          records = []
+          for ref in refs:
+              full_name = ref["ref"]
+              prefix = "refs/heads/"
+              if not full_name.startswith(prefix + "backup/"):
+                  raise SystemExit(f"Unexpected ref outside backup namespace: {full_name}")
+              short_name = full_name[len(prefix):]
+              sha = ref["object"]["sha"]
+              commit = commit_cache.get(sha)
+              if commit is None:
+                  commit = request("GET", f"/commits/{sha}")
+                  commit_cache[sha] = commit
+              records.append(
+                  {
+                      "name": short_name,
+                      "sha": sha,
+                      "committed_at": commit["commit"]["committer"]["date"],
+                      "is_created_ref": short_name == created_ref,
+                  }
+              )
+
+          if not any(record["is_created_ref"] for record in records):
+              raise SystemExit("Created backup ref is missing from repository inventory")
+
+          records.sort(
+              key=lambda record: (
+                  record["is_created_ref"],
+                  record["committed_at"],
+                  record["name"],
+              ),
+              reverse=True,
+          )
+          retained = records[:keep_count]
+          obsolete = records[keep_count:]
+
+          for record in obsolete:
+              compare = request("GET", f"/compare/{record['sha']}...{default_sha}")
+              if compare["status"] not in {"ahead", "identical"}:
+                  raise SystemExit(
+                      f"Refusing to delete {record['name']}: "
+                      f"status={compare['status']}"
+                  )
+              if compare["merge_base_commit"]["sha"] != record["sha"]:
+                  raise SystemExit(
+                      f"Refusing to delete {record['name']}: it has unique commits"
+                  )
+
+          print("Retaining verified backup refs:")
+          for record in retained:
+              print(f"  KEEP {record['name']} {record['sha']} {record['committed_at']}")
+          print("Deleting obsolete backup refs:")
+          for record in obsolete:
+              print(f"  DELETE {record['name']} {record['sha']} {record['committed_at']}")
+
+          for record in obsolete:
+              request("DELETE", ref_path(record["name"]))
+
+          remaining = list_backup_refs()
+          remaining_names = sorted(
+              ref["ref"].removeprefix("refs/heads/") for ref in remaining
+          )
+          expected_names = sorted(record["name"] for record in retained)
+          if remaining_names != expected_names:
+              raise SystemExit(
+                  "Post-rotation inventory mismatch: "
+                  f"expected={expected_names}, actual={remaining_names}"
+              )
+          if len(remaining_names) != min(len(records), keep_count):
+              raise SystemExit("Post-rotation backup count is invalid")
+          if created_ref not in remaining_names:
+              raise SystemExit("Newly created backup was not retained")
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as summary:
+                  summary.write("## Backup branch rotation\n\n")
+                  summary.write(f"Retained: {len(retained)}; deleted: {len(obsolete)}.\n\n")
+                  summary.write("### Retained\n")
+                  for record in retained:
+                      summary.write(f"- `{record['name']}` at `{record['sha']}`\n")
+                  summary.write("\n### Deleted\n")
+                  if obsolete:
+                      for record in obsolete:
+                          summary.write(f"- `{record['name']}` at `{record['sha']}`\n")
+                  else:
+                      summary.write("- None\n")
+
+          print(f"Backup rotation complete: {remaining_names}")
+          PY
