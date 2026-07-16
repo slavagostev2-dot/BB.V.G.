@@ -34,6 +34,9 @@ DISPLAY_TZ = ZoneInfo(os.getenv("DISPLAY_TIMEZONE", "Asia/Barnaul"))
 
 REQUEST_TIMEOUT = max(5, int(os.getenv("REQUEST_TIMEOUT_SECONDS", "15")))
 WHEEL_API_ATTEMPTS = max(1, min(5, int(os.getenv("WHEEL_API_ATTEMPTS", "3"))))
+WHEEL_API_FAILURE_ALERT_THRESHOLD = max(
+    2, int(os.getenv("WHEEL_API_FAILURE_ALERT_THRESHOLD", "3"))
+)
 MAX_WORKERS = max(1, min(24, int(os.getenv("MAX_WORKERS", "12"))))
 UNKNOWN_DEDUP_HOURS = max(1, int(os.getenv("UNKNOWN_DEDUP_HOURS", "24")))
 DEADLINE_GRACE_MINUTES = max(0, int(os.getenv("DEADLINE_GRACE_MINUTES", "30")))
@@ -55,8 +58,8 @@ KNOWN_REMINDER_BEFORE_MINUTES = max(
 UNKNOWN_REMINDER_INTERVAL_MINUTES = max(
     5, int(os.getenv("UNKNOWN_REMINDER_INTERVAL_MINUTES", "30"))
 )
-ACTIVE_WHEEL_UNKNOWN_HOURS = max(
-    6, int(os.getenv("ACTIVE_WHEEL_UNKNOWN_HOURS", "48"))
+UNTIMED_WHEEL_TTL_HOURS = max(
+    1, int(os.getenv("UNTIMED_WHEEL_TTL_HOURS", "2"))
 )
 SOURCE_INACTIVITY_DAYS = max(1, int(os.getenv("SOURCE_INACTIVITY_DAYS", "7")))
 SOURCE_INACTIVITY_REPORT_DAYS = max(
@@ -230,6 +233,7 @@ def load_state() -> dict:
     state.setdefault("telegram_update_offset", 0)
     state.setdefault("active_wheels", {})
     state.setdefault("participating_wheels", {})
+    state.setdefault("wheel_action_history", {})
     state.setdefault("bot_commands_version", 0)
     state.setdefault("last_source_inactivity_report_at", None)
 
@@ -678,6 +682,42 @@ def inspect_wheel_page(link: str) -> WheelInspection:
     )
 
 
+def record_wheel_api_verification(
+    state: dict | None,
+    inspection: WheelInspection,
+    *,
+    checked_at: datetime | None = None,
+) -> bool:
+    """Persist consecutive authoritative-check failures for incident routing."""
+
+    if not isinstance(state, dict):
+        return False
+    current = checked_at or now_utc()
+    health = state.setdefault("wheel_api_health", {})
+    before = dict(health)
+    health["last_checked_at"] = current.isoformat()
+    health["alert_threshold"] = WHEEL_API_FAILURE_ALERT_THRESHOLD
+    if inspection.status == "verification_failed":
+        failures = int(health.get("consecutive_failures", 0) or 0) + 1
+        health["consecutive_failures"] = failures
+        health.setdefault("failure_started_at", current.isoformat())
+        health["last_failure_at"] = current.isoformat()
+        health["last_error"] = str(inspection.method or "проверка не ответила")[:300]
+        if failures >= WHEEL_API_FAILURE_ALERT_THRESHOLD:
+            health["status"] = "degraded"
+            health.setdefault("degraded_since", current.isoformat())
+        else:
+            health["status"] = "retrying"
+    else:
+        health["status"] = "ok"
+        health["consecutive_failures"] = 0
+        health["last_success_at"] = current.isoformat()
+        health.pop("failure_started_at", None)
+        health.pop("degraded_since", None)
+        health.pop("last_error", None)
+    return before != health
+
+
 def message_age(message: Message) -> timedelta:
     return max(timedelta(0), now_utc() - message.date.astimezone(UTC))
 
@@ -702,6 +742,7 @@ def assess_new_wheel(
 ) -> WheelAssessment:
     post_deadline, post_method = infer_deadline(message.text, message.date)
     inspection = inspect_wheel_page(link)
+    record_wheel_api_verification(state, inspection)
 
     metadata = {
         "page_excerpt": inspection.page_excerpt,
@@ -808,7 +849,7 @@ def participation_expiry(deadline: datetime | None, *, current: datetime | None 
             deadline + timedelta(minutes=DEADLINE_GRACE_MINUTES),
             current + timedelta(hours=2),
         )
-    return current + timedelta(hours=ACTIVE_WHEEL_UNKNOWN_HOURS)
+    return current + timedelta(hours=UNTIMED_WHEEL_TTL_HOURS)
 
 
 def is_participating(state: dict, link_or_key: str) -> bool:
@@ -892,6 +933,10 @@ def remember_active_wheel(
         entry.pop("deadline", None)
     if action_id is not None:
         entry["action_id"] = action_id
+        state.setdefault("wheel_action_history", {})[key] = {
+            "action_id": action_id,
+            "seen_at": current.isoformat(),
+        }
     if available_at is not None:
         entry["available_at"] = available_at.isoformat()
     if verification_status:
@@ -1505,6 +1550,7 @@ def assess_pending_wheel(
 ) -> WheelAssessment:
     post_deadline, post_method = infer_deadline(message.text, message.date)
     inspection = inspect_wheel_page(link)
+    record_wheel_api_verification(state, inspection)
     metadata = {
         "page_excerpt": inspection.page_excerpt,
         "action_id": inspection.action_id,

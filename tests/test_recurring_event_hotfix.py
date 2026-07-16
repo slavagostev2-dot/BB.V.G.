@@ -195,6 +195,138 @@ class RecurringWheelHotfixTests(unittest.TestCase):
         self.assertNotIn("risen", state["manual_deadlines"])
         self.assertNotIn("risen", state["recently_completed_wheels"])
 
+    def test_same_action_id_never_repeats_even_after_link_window(self) -> None:
+        runtime = bbvg_monitor_main.monitor
+        current = datetime.now(UTC)
+        message = runtime.Message(
+            source="collector",
+            message_id=200,
+            date=current,
+            text="https://betboom.ru/freestream/reused",
+            message_url="https://telegram.me/collector/200",
+        )
+        state = {
+            "active_wheels": {},
+            "inactive_wheels": {},
+            "recently_completed_wheels": {},
+            "wheel_action_history": {
+                "reused": {
+                    "action_id": 100,
+                    "seen_at": (current - timedelta(days=1)).isoformat(),
+                }
+            },
+        }
+        original_inspector = runtime.inspect_wheel_page
+        runtime.inspect_wheel_page = lambda url: runtime.WheelInspection(
+            "active",
+            current + timedelta(hours=1),
+            "confirmed",
+            action_id=100,
+            verification_status=runtime.WHEEL_VERIFICATION_CONFIRMED,
+        )
+        try:
+            result = runtime.assess_new_wheel(
+                message, "https://betboom.ru/freestream/reused", state
+            )
+        finally:
+            runtime.inspect_wheel_page = original_inspector
+        self.assertFalse(result.should_notify)
+        self.assertEqual(result.status, "duplicate_action")
+
+    def test_new_action_id_releases_old_timer_immediately(self) -> None:
+        runtime = bbvg_monitor_main.monitor
+        current = datetime.now(UTC)
+        message = runtime.Message(
+            source="creator",
+            message_id=201,
+            date=current,
+            text="https://betboom.ru/freestream/reused",
+            message_url="https://telegram.me/creator/201",
+        )
+        state = {
+            "active_wheels": {
+                "reused": {
+                    "action_id": 100,
+                    "deadline": (current + timedelta(hours=8)).isoformat(),
+                    "first_notified_at": current.isoformat(),
+                }
+            },
+            "wheel_action_history": {
+                "reused": {"action_id": 100, "seen_at": current.isoformat()}
+            },
+            "participating_wheels": {"reused": {"marked_at": current.isoformat()}},
+            "url_alerts": {"reused": {"alerted_at": current.isoformat()}},
+            "activation_alerts": {},
+            "manual_deadlines": {},
+            "manual_overrides": {},
+            "wheel_publications": {"reused": [{"source": "old"}]},
+            "inactive_wheels": {},
+            "recently_completed_wheels": {},
+        }
+        original_inspector = runtime.inspect_wheel_page
+        runtime.inspect_wheel_page = lambda url: runtime.WheelInspection(
+            "active",
+            current + timedelta(hours=2),
+            "confirmed",
+            action_id=101,
+            verification_status=runtime.WHEEL_VERIFICATION_CONFIRMED,
+        )
+        try:
+            result = runtime.assess_new_wheel(
+                message, "https://betboom.ru/freestream/reused", state
+            )
+        finally:
+            runtime.inspect_wheel_page = original_inspector
+        self.assertTrue(result.should_notify)
+        self.assertEqual(result.action_id, 101)
+        self.assertNotIn("reused", state["active_wheels"])
+        self.assertNotIn("reused", state["participating_wheels"])
+        self.assertNotIn("reused", state["wheel_publications"])
+
+    def test_api_failure_uses_legacy_two_hour_link_window(self) -> None:
+        runtime = bbvg_monitor_main.monitor
+        current = datetime.now(UTC)
+        message = runtime.Message(
+            source="collector",
+            message_id=202,
+            date=current,
+            text="https://betboom.ru/freestream/noidentity",
+            message_url="https://telegram.me/collector/202",
+        )
+        original_inspector = runtime.inspect_wheel_page
+        runtime.inspect_wheel_page = lambda url: runtime.WheelInspection(
+            "verification_failed",
+            None,
+            "temporary failure",
+            verification_status=runtime.WHEEL_VERIFICATION_FAILED,
+        )
+        try:
+            blocked_state = {
+                "active_wheels": {
+                    "noidentity": {
+                        "first_notified_at": (current - timedelta(minutes=119)).isoformat()
+                    }
+                }
+            }
+            blocked = runtime.assess_new_wheel(
+                message, "https://betboom.ru/freestream/noidentity", blocked_state
+            )
+            released_state = {
+                "active_wheels": {
+                    "noidentity": {
+                        "first_notified_at": (current - timedelta(minutes=121)).isoformat()
+                    }
+                }
+            }
+            released = runtime.assess_new_wheel(
+                message, "https://betboom.ru/freestream/noidentity", released_state
+            )
+        finally:
+            runtime.inspect_wheel_page = original_inspector
+        self.assertEqual(blocked.status, "duplicate_link")
+        self.assertTrue(released.should_notify)
+        self.assertEqual(released.status, "verification_failed")
+
     def test_availability_notification_is_sent_once_and_wheel_remains_active(self) -> None:
         current = datetime(2026, 7, 15, 14, 17, 9, tzinfo=UTC)
         sent: list[dict] = []

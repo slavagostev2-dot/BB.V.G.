@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import unittest
+import json
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from typing import Any
 
@@ -10,10 +13,12 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import admin_action_queue
+import incident_manager
 import monitor
 import monitor_data
 import rating_policy
 import recurring_wheel_events
+import system_checks
 import wheel_publications_v2
 
 
@@ -121,6 +126,86 @@ class WheelApiVerificationTests(unittest.TestCase):
         self.assertTrue(result.should_notify)
         self.assertEqual(result.status, "verification_failed")
         self.assertEqual(result.verification_status, "failed")
+
+    def test_three_failed_checks_open_health_incident_and_success_recovers(self) -> None:
+        state: dict[str, Any] = {}
+        failed = monitor.WheelInspection(
+            "verification_failed",
+            None,
+            "BetBoom API timeout",
+            verification_status=monitor.WHEEL_VERIFICATION_FAILED,
+        )
+        success = monitor.WheelInspection(
+            "active",
+            self.current + timedelta(hours=1),
+            "ok",
+            verification_status=monitor.WHEEL_VERIFICATION_CONFIRMED,
+        )
+        for offset in range(3):
+            monitor.record_wheel_api_verification(
+                state, failed, checked_at=self.current + timedelta(minutes=offset)
+            )
+        self.assertEqual(state["wheel_api_health"]["status"], "degraded")
+        self.assertEqual(state["wheel_api_health"]["consecutive_failures"], 3)
+
+        original_runtime_path = system_checks.RUNTIME_STATE_PATH
+        original_incident_path = incident_manager.STATE_PATH
+        try:
+            with TemporaryDirectory() as temporary:
+                runtime_path = Path(temporary) / "state.json"
+                incident_path = Path(temporary) / "incident_state.json"
+                runtime_path.write_text(json.dumps(state), encoding="utf-8")
+                system_checks.RUNTIME_STATE_PATH = runtime_path
+                incident_manager.STATE_PATH = incident_path
+                details: dict[str, Any] = {}
+                findings: list[dict[str, Any]] = []
+                system_checks.check_wheel_api_health(details, findings)
+                self.assertEqual(
+                    [item["kind"] for item in findings],
+                    ["wheel_api_validation_failure"],
+                )
+                opened = incident_manager.reconcile(findings, scope="system_checks")
+                self.assertEqual(len(incident_manager.pending_open(opened)), 1)
+                key = incident_manager.pending_open(opened)[0]["key"]
+                incident_manager.mark_notified([key], "open")
+                sequence = opened["sequence"]
+                last_change = opened["last_change_at"]
+                monitor.record_wheel_api_verification(
+                    state, failed, checked_at=self.current + timedelta(minutes=3)
+                )
+                runtime_path.write_text(json.dumps(state), encoding="utf-8")
+                repeated_findings: list[dict[str, Any]] = []
+                system_checks.check_wheel_api_health({}, repeated_findings)
+                repeated = incident_manager.reconcile(
+                    repeated_findings, scope="system_checks"
+                )
+                self.assertEqual(incident_manager.pending_open(repeated), [])
+                self.assertEqual(repeated["sequence"], sequence)
+                self.assertEqual(repeated["last_change_at"], last_change)
+
+                monitor.record_wheel_api_verification(
+                    state, success, checked_at=self.current + timedelta(minutes=4)
+                )
+                runtime_path.write_text(json.dumps(state), encoding="utf-8")
+                recovered_findings: list[dict[str, Any]] = []
+                system_checks.check_wheel_api_health({}, recovered_findings)
+                self.assertEqual(recovered_findings, [])
+                recovered = incident_manager.reconcile(
+                    recovered_findings, scope="system_checks"
+                )
+                self.assertEqual(len(incident_manager.pending_resolved(recovered)), 1)
+        finally:
+            system_checks.RUNTIME_STATE_PATH = original_runtime_path
+            incident_manager.STATE_PATH = original_incident_path
+
+        self.assertEqual(state["wheel_api_health"]["status"], "ok")
+        self.assertEqual(state["wheel_api_health"]["consecutive_failures"], 0)
+
+    def test_untimed_wheel_expires_after_two_hours(self) -> None:
+        self.assertEqual(
+            monitor.participation_expiry(None, current=self.current),
+            self.current + timedelta(hours=2),
+        )
 
 
 class WheelLifecycleTests(unittest.TestCase):

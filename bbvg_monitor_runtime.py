@@ -7,7 +7,7 @@ import monitor_entry as base_runtime
 
 
 monitor = base_runtime.monitor
-MANUAL_WHEEL_TTL_DAYS = 7
+UNTIMED_WHEEL_TTL_HOURS = monitor.UNTIMED_WHEEL_TTL_HOURS
 INACTIVE_TOMBSTONE_DAYS = 30
 
 _original_load_state = monitor.load_state
@@ -59,9 +59,48 @@ def _inactive_entry(state: dict, key: str) -> dict | None:
     return value
 
 
-def _manual_expiry(current=None):
+def _record_action_id(record: Any) -> int | None:
+    if not isinstance(record, dict):
+        return None
+    try:
+        value = int(record.get("action_id"))
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
+def _inactive_blocks_result(state: dict, key: str, result: Any) -> bool:
+    inactive = _inactive_entry(state, key)
+    if inactive is None:
+        return False
+    previous_action = _record_action_id(inactive) or _record_action_id(
+        state.get("wheel_action_history", {}).get(key)
+        if isinstance(state.get("wheel_action_history"), dict)
+        else None
+    )
+    current_action = _record_action_id({"action_id": result.action_id})
+    return not (
+        previous_action is not None
+        and current_action is not None
+        and previous_action != current_action
+    )
+
+
+def _untimed_expiry(current=None, *, available_at=None):
     current = current or monitor.now_utc()
-    return current + timedelta(days=MANUAL_WHEEL_TTL_DAYS)
+    available_at = monitor.parse_datetime(available_at)
+    anchor = max(current, available_at) if available_at is not None else current
+    return anchor + timedelta(hours=UNTIMED_WHEEL_TTL_HOURS)
+
+
+def _entry_untimed_expiry(entry: dict, current=None):
+    current = current or monitor.now_utc()
+    first_seen = (
+        monitor.parse_datetime(entry.get("first_notified_at"))
+        or monitor.parse_datetime(entry.get("message_date"))
+        or current
+    )
+    return _untimed_expiry(first_seen, available_at=entry.get("available_at"))
 
 
 def _pending_to_active(state: dict, record: dict) -> bool:
@@ -100,7 +139,9 @@ def _pending_to_active(state: dict, record: dict) -> bool:
             changed = True
         elif not deadline and monitor.parse_datetime(existing.get("deadline")) is None:
             existing["needs_manual_time"] = True
-            existing["expires_at"] = _manual_expiry(current).isoformat()
+            existing["expires_at"] = _entry_untimed_expiry(
+                existing, current
+            ).isoformat()
             changed = True
         return changed
 
@@ -113,7 +154,7 @@ def _pending_to_active(state: dict, record: dict) -> bool:
     expires = (
         monitor.participation_expiry(deadline, current=current)
         if deadline
-        else _manual_expiry(current)
+        else _untimed_expiry(first_seen, available_at=record.get("available_at"))
     )
     active[key] = {
         "identifier": str(record.get("identifier") or key),
@@ -170,7 +211,12 @@ def remember_without_pending(
     initial_notified: bool = False,
 ) -> None:
     key = monitor.wheel_key(link)
-    if status in {"inactive", "duplicate_link", "duplicate_publication"}:
+    if status in {
+        "inactive",
+        "duplicate_action",
+        "duplicate_link",
+        "duplicate_publication",
+    }:
         state.setdefault("pending_posts", {}).pop(post_key, None)
         state.setdefault("seen", {})[post_key] = monitor.now_utc().isoformat()
         return
@@ -207,7 +253,7 @@ def remember_without_pending(
         stored_deadline = monitor.parse_datetime(entry.get("deadline"))
         entry["needs_manual_time"] = stored_deadline is None
         if stored_deadline is None:
-            entry["expires_at"] = _manual_expiry().isoformat()
+            entry["expires_at"] = _entry_untimed_expiry(entry).isoformat()
         else:
             entry["expires_at"] = monitor.participation_expiry(stored_deadline).isoformat()
 
@@ -218,7 +264,10 @@ def remember_without_pending(
 
 def assess_new_without_pending(message, link, state=None):
     result = _original_assess_new(message, link, state)
-    if isinstance(state, dict) and _inactive_entry(state, monitor.wheel_key(link)):
+    if (
+        isinstance(state, dict)
+        and _inactive_blocks_result(state, monitor.wheel_key(link), result)
+    ):
         return monitor.WheelAssessment(
             False,
             result.deadline,
@@ -234,7 +283,10 @@ def assess_new_without_pending(message, link, state=None):
 
 def assess_pending_without_pending(message, link, state=None):
     result = _original_assess_pending(message, link, state)
-    if isinstance(state, dict) and _inactive_entry(state, monitor.wheel_key(link)):
+    if (
+        isinstance(state, dict)
+        and _inactive_blocks_result(state, monitor.wheel_key(link), result)
+    ):
         return monitor.WheelAssessment(
             False,
             result.deadline,
@@ -322,6 +374,9 @@ def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
         if not url:
             continue
         inspection = monitor.inspect_wheel_page(url)
+        monitor.record_wheel_api_verification(
+            state, inspection, checked_at=current
+        )
         entry["last_verification_at"] = current.isoformat()
         if inspection.status == "verification_failed":
             entry["verification_retry_at"] = (
@@ -342,6 +397,10 @@ def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
         entry.pop("verification_retry_at", None)
         if inspection.action_id is not None:
             entry["action_id"] = inspection.action_id
+            state.setdefault("wheel_action_history", {})[str(key).casefold()] = {
+                "action_id": inspection.action_id,
+                "seen_at": current.isoformat(),
+            }
         if inspection.available_at is not None:
             entry["available_at"] = inspection.available_at.isoformat()
         if inspection.deadline is not None:
@@ -352,7 +411,9 @@ def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
             entry["needs_manual_time"] = False
         else:
             entry.pop("deadline", None)
-            entry["expires_at"] = _manual_expiry(current).isoformat()
+            entry["expires_at"] = _entry_untimed_expiry(
+                entry, current
+            ).isoformat()
             entry["needs_manual_time"] = True
         confirmed += 1
         changed = True
@@ -375,9 +436,9 @@ def process_active_without_page_verdict(state: dict, stats: dict):
             changed = True
             continue
         if monitor.parse_datetime(entry.get("deadline")) is None:
-            minimum_expiry = _manual_expiry(current)
+            minimum_expiry = _entry_untimed_expiry(entry, current)
             existing_expiry = monitor.parse_datetime(entry.get("expires_at"))
-            if existing_expiry is None or existing_expiry < minimum_expiry:
+            if existing_expiry != minimum_expiry:
                 entry["expires_at"] = minimum_expiry.isoformat()
                 changed = True
             entry["needs_manual_time"] = True

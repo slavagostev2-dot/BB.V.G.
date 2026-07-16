@@ -305,6 +305,45 @@ def check_monitor_runtime(details: dict[str, Any], findings: list[dict[str, Any]
         ))
 
 
+def check_wheel_api_health(
+    details: dict[str, Any], findings: list[dict[str, Any]]
+) -> None:
+    state = load_json(RUNTIME_STATE_PATH, {})
+    raw = state.get("wheel_api_health") if isinstance(state, dict) else None
+    health = raw if isinstance(raw, dict) else {}
+    failures = max(0, int(health.get("consecutive_failures", 0) or 0))
+    threshold = max(
+        2,
+        int(
+            health.get("alert_threshold")
+            or os.getenv("WHEEL_API_FAILURE_ALERT_THRESHOLD", "3")
+        ),
+    )
+    details["wheel_api_health"] = {
+        "status": str(health.get("status") or "not_checked"),
+        "consecutive_failures": failures,
+        "alert_threshold": threshold,
+        "last_checked_at": health.get("last_checked_at"),
+        "last_success_at": health.get("last_success_at"),
+        "last_failure_at": health.get("last_failure_at"),
+    }
+    if failures < threshold:
+        return
+    findings.append(
+        finding(
+            "wheel_api_validation_failure",
+            "Сбой проверки активности колёс BetBoom",
+            (
+                "Сервис проверки не дал корректный ответ после "
+                f"{threshold} последовательных циклов. Новые колёса временно показываются "
+                "с жёлтой пометкой и перепроверяются автоматически."
+            ),
+            severity="critical",
+            subject="betboom_action_info",
+        )
+    )
+
+
 def check_admin_panel_runtime(
     details: dict[str, Any], findings: list[dict[str, Any]]
 ) -> None:
@@ -781,6 +820,7 @@ def main() -> int:
     check_telegram_web(details, findings)
     check_bot_api(details, findings)
     check_monitor_runtime(details, findings)
+    check_wheel_api_health(details, findings)
     check_admin_panel_runtime(details, findings)
     check_source_health(details, findings)
     check_discovery_runtime(details, findings)
@@ -804,12 +844,14 @@ def main() -> int:
         "checked_sources": details.get("monitor", {}).get("checked_sources", 0),
         "reachable_sources": details.get("monitor", {}).get("reachable_sources", 0),
         "bot_panel_heartbeat": details.get("admin_panel", {}).get("last_heartbeat_at"),
+        "wheel_api_health": details.get("wheel_api_health", {}),
         "active_incidents": details["active_incidents"],
     }
     details["check_matrix"] = {
         "inventory": "ok" if not any(item["kind"] in {"source_inventory", "source_policy", "source_duplicates"} for item in findings) else "failed",
         "telegram_transport": "ok" if not any(str(item["kind"]).startswith("telegram_") or item["kind"] == "legacy_domain_redirect" for item in findings) else "failed",
         "monitor": "ok" if not any(str(item["kind"]).startswith("monitor_") or item["kind"] in {"all_sources_unreachable", "partial_source_failure"} for item in findings) else "failed",
+        "wheel_api": "ok" if not any(item["kind"] == "wheel_api_validation_failure" for item in findings) else "failed",
         "bot_panel": "ok" if not any(str(item["kind"]).startswith("admin_panel_") for item in findings) else "failed",
         "source_health": "ok" if not any(str(item["kind"]).startswith("source_") or item["kind"] == "sources_quarantined" for item in findings) else "failed",
         "discovery": "ok" if not any(str(item["kind"]).startswith("discovery_") for item in findings) else "failed",

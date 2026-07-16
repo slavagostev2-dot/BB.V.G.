@@ -65,7 +65,7 @@ def main() -> None:
     require_text(
         "bbvg_monitor_runtime.py",
         (
-            "MANUAL_WHEEL_TTL_DAYS",
+            "UNTIMED_WHEEL_TTL_HOURS",
             "inactive_wheels",
             "needs_manual_time",
             "remember_without_pending",

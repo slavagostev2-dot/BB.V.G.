@@ -10,7 +10,7 @@ import wheel_lifecycle_v2
 
 UTC = timezone.utc
 EVENT_REUSE_GAP = timedelta(hours=6)
-ACTIVE_WITHOUT_DRAW_TTL = timedelta(days=7)
+ACTIVE_WITHOUT_DRAW_TTL = timedelta(hours=2)
 
 _START_CUE_RE = re.compile(
     r"\b(?:"
@@ -115,21 +115,16 @@ def reset_stale_event_state(
     return removed
 
 
-def reset_changed_action_state(
-    state: dict[str, Any],
-    key: str,
-    action_id: int | None,
-) -> list[str]:
-    """Start a clean event when BetBoom assigns a new action to a reused URL."""
+def known_action_ids(state: dict[str, Any], key: str) -> set[int]:
+    """Return authoritative BetBoom identities already seen for one URL."""
 
-    if action_id is None:
-        return []
     normalized = str(key or "").casefold()
     known_ids: set[int] = set()
     for collection_name in (
         "active_wheels",
         "inactive_wheels",
         "recently_completed_wheels",
+        "wheel_action_history",
     ):
         collection = state.get(collection_name)
         record = collection.get(normalized) if isinstance(collection, dict) else None
@@ -141,6 +136,20 @@ def reset_changed_action_state(
             continue
         if known > 0:
             known_ids.add(known)
+    return known_ids
+
+
+def reset_changed_action_state(
+    state: dict[str, Any],
+    key: str,
+    action_id: int | None,
+) -> list[str]:
+    """Start a clean event when BetBoom assigns a new action to a reused URL."""
+
+    if action_id is None:
+        return []
+    normalized = str(key or "").casefold()
+    known_ids = known_action_ids(state, normalized)
     if not known_ids or action_id in known_ids:
         return []
 
@@ -436,17 +445,41 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             return None, method
         return original_deadline_parser(text, published_at)
 
-    def prepare_event(
-        message: Any,
+    def legacy_prepare_event(message: Any, link: str, state: Any) -> set[int]:
+        if not isinstance(state, dict):
+            return set()
+        key = monitor_module.wheel_key(link)
+        known = known_action_ids(state, key)
+        if not known:
+            reset_stale_event_state(state, key, message.date.astimezone(UTC))
+        return known
+
+    def apply_action_identity(
         link: str,
         state: Any,
-        action_id: int | None = None,
-    ) -> None:
-        if not isinstance(state, dict):
-            return
+        result: Any,
+        known_before: set[int],
+    ):
+        action_id = result.action_id
+        if not isinstance(state, dict) or action_id is None:
+            return result
         key = monitor_module.wheel_key(link)
-        reset_stale_event_state(state, key, message.date.astimezone(UTC))
-        reset_changed_action_state(state, key, action_id)
+        if action_id in known_before:
+            if result.status == "inactive":
+                return result
+            return monitor_module.WheelAssessment(
+                False,
+                result.deadline,
+                "эта акция BetBoom уже была обработана",
+                "duplicate_action",
+                result.page_excerpt,
+                action_id=action_id,
+                available_at=result.available_at,
+                verification_status=result.verification_status,
+            )
+        if known_before:
+            reset_changed_action_state(state, key, action_id)
+        return result
 
     def assessment_availability(message: Any, result: Any):
         text_available, text_method = _availability_for_message(
@@ -462,11 +495,13 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         return available_at, method
 
     def assess_new(message: Any, link: str, state: Any = None):
-        prepare_event(message, link, state)
+        known_before = legacy_prepare_event(message, link, state)
         result = original_assess_new(message, link, state)
+        result = apply_action_identity(link, state, result, known_before)
         if result.status == "inactive":
             return result
-        prepare_event(message, link, state, result.action_id)
+        if result.status == "duplicate_action":
+            return result
         available_at, method = assessment_availability(message, result)
         if available_at is None or available_at <= monitor_module.now_utc():
             return result
@@ -482,11 +517,13 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         )
 
     def assess_pending(message: Any, link: str, state: Any = None):
-        prepare_event(message, link, state)
+        known_before = legacy_prepare_event(message, link, state)
         result = original_assess_pending(message, link, state)
+        result = apply_action_identity(link, state, result, known_before)
         if result.status == "inactive":
             return result
-        prepare_event(message, link, state, result.action_id)
+        if result.status == "duplicate_action":
+            return result
         available_at, method = assessment_availability(message, result)
         if available_at is None or available_at <= monitor_module.now_utc():
             return result

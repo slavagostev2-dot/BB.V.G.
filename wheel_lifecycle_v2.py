@@ -234,6 +234,11 @@ def mark_inactive_event(
     state.setdefault("inactive_wheels", {})[normalized] = {
         "identifier": str(record.get("identifier") or normalized),
         "event_id": str(record.get("event_id") or wheel_event_id(normalized, record)),
+        **(
+            {"action_id": int(record["action_id"])}
+            if str(record.get("action_id") or "").isdigit()
+            else {}
+        ),
         "lifecycle_state": "inactive",
         "marked_at": current.isoformat(),
         "marked_by": str(actor or "admin"),
@@ -282,6 +287,11 @@ def _remember_completed(
         "deadline": deadline.isoformat(),
         "removed_at": current.isoformat(),
         "expires_at": (current + timedelta(days=1)).isoformat(),
+        **(
+            {"action_id": int(entry["action_id"])}
+            if str(entry.get("action_id") or "").isdigit()
+            else {}
+        ),
     }
     for old_key, raw in list(recent.items()):
         if not isinstance(raw, dict):

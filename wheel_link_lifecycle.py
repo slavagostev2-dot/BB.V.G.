@@ -255,7 +255,7 @@ def install(monitor_module: Any) -> None:
 
     def assess_new(message: Any, link: str, state: dict[str, Any] | None = None):
         result = original_assess_new(message, link, state)
-        if result.status == "inactive":
+        if result.status in {"inactive", "duplicate_action"}:
             return result
         window = prepare_link(monitor_module, state, link)
         if window.blocked:
@@ -273,7 +273,7 @@ def install(monitor_module: Any) -> None:
 
     def assess_pending(message: Any, link: str, state: dict[str, Any] | None = None):
         result = original_assess_pending(message, link, state)
-        if result.status == "inactive":
+        if result.status in {"inactive", "duplicate_action"}:
             return result
         window = prepare_link(monitor_module, state, link)
         if window.blocked:

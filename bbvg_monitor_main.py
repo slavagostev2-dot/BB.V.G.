@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import Any
 
 import bbvg_monitor_runtime as runtime
@@ -186,7 +185,7 @@ def process_active_without_unknown_time_spam(state: dict, stats: dict):
             entry["manual_time_waiting_since"] = current.isoformat()
             changed = True
         suppress_until = monitor.parse_datetime(entry.get("last_unknown_reminder_at"))
-        minimum = current + timedelta(days=runtime.MANUAL_WHEEL_TTL_DAYS)
+        minimum = runtime._entry_untimed_expiry(entry, current)
         if suppress_until is None or suppress_until < minimum:
             entry["last_unknown_reminder_at"] = minimum.isoformat()
             changed = True
