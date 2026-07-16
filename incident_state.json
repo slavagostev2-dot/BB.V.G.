@@ -48,17 +48,19 @@
       "first_seen_at": "2026-07-15T20:40:36.637366+00:00",
       "key": "system_checks:inactive_wheel_leak:d9fbb8f3a566c8a0",
       "kind": "inactive_wheel_leak",
-      "last_seen_at": "2026-07-16T13:06:08.820064+00:00",
+      "last_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "metadata": {},
       "occurrences": 13,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-16T13:06:09.681741+00:00",
       "opened_sequence": 25,
+      "resolution_notification_pending": true,
       "resolution_notified_at": "2026-07-16T02:24:40.757129+00:00",
-      "resolved_sequence": 22,
+      "resolved_at": "2026-07-16T13:21:59.596712+00:00",
+      "resolved_sequence": 27,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Неактивное колесо осталось в пользовательских списках"
     },
@@ -166,10 +168,27 @@
       "status": "resolved",
       "subject": "",
       "title": "Не для всех источников есть данные здоровья"
+    },
+    "system_checks:source_transport_smoke:581b534aecd3e81e": {
+      "detail": "status=success; domain=telegram.me; accounted=72.",
+      "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
+      "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
+      "kind": "source_transport_smoke",
+      "last_seen_at": "2026-07-16T13:21:59.596712+00:00",
+      "metadata": {},
+      "occurrences": 1,
+      "open_notification_pending": false,
+      "open_notified_at": "2026-07-16T13:22:00.499053+00:00",
+      "opened_sequence": 26,
+      "scope": "system_checks",
+      "severity": "critical",
+      "status": "active",
+      "subject": "",
+      "title": "Полная транспортная проверка 66 источников не подтверждена"
     }
   },
-  "last_change_at": "2026-07-16T13:06:08.820064+00:00",
-  "last_reconcile_at": "2026-07-16T13:06:08.820064+00:00",
+  "last_change_at": "2026-07-16T13:21:59.596712+00:00",
+  "last_reconcile_at": "2026-07-16T13:21:59.596712+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
     "active": 1,
@@ -177,8 +196,8 @@
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 25,
+  "sequence": 27,
   "status": "initializing",
-  "updated_at": "2026-07-16T13:06:09.681767+00:00",
+  "updated_at": "2026-07-16T13:22:00.499078+00:00",
   "version": 1
 }

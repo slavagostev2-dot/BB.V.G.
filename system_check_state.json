@@ -1,8 +1,8 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-07-16T13:04:32.831013+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-07-16T13:19:43.265547+00:00",
     "started_at": "2026-07-16T10:47:15.658244+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -21,18 +21,18 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "ok",
+    "automations": "failed",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
     "monitor": "ok",
     "notifications": "ok",
-    "ratings": "failed",
-    "source_health": "ok",
+    "ratings": "ok",
+    "source_health": "failed",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-16T13:06:07.988655+00:00",
+  "checked_at": "2026-07-16T13:21:58.223099+00:00",
   "discovery": {
     "active_size": 77,
     "candidate_count": 204,
@@ -60,8 +60,8 @@
     "checked_files": [
       "monitor.py",
       "nightly_discovery.py",
-      "admin_panel_runtime_v17.py",
-      "admin_panel_runtime_v21.py",
+      "bbvg/bot/source_requests.py",
+      "bbvg/bot/users.py",
       "docs/app.js",
       "docs/bbvg-controls.js",
       "docs/views-secondary.js"
@@ -72,16 +72,16 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Количество событий: 1.",
-      "kind": "inactive_wheel_leak",
+      "detail": "status=success; domain=telegram.me; accounted=72.",
+      "kind": "source_transport_smoke",
       "severity": "critical",
       "subject": "",
-      "title": "Неактивное колесо осталось в пользовательских списках"
+      "title": "Полная транспортная проверка 66 источников не подтверждена"
     }
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-16T13:04:32.831013+00:00",
+    "bot_panel_heartbeat": "2026-07-16T13:19:43.265547+00:00",
     "checked_sources": 78,
     "configured_sources": 81,
     "domain": "telegram.me",
@@ -95,12 +95,12 @@
     "opened": 1,
     "resolved": 0
   },
-  "incident_sequence": 25,
+  "incident_sequence": 27,
   "inventory": {
     "configured": 78,
     "domain": "telegram.me",
     "duplicates": 0,
-    "expected": 66,
+    "expected": 77,
     "nightly": 3,
     "operational": 78,
     "total": 81
@@ -114,17 +114,17 @@
     "brand": "BB V.G.",
     "checked_sources": 78,
     "checks_delta": 78,
-    "checks_total": 77043,
+    "checks_total": 77511,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 89,
+    "iteration": 95,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-16T12:57:21.315913+00:00",
-    "last_iteration_duration_seconds": 5,
+    "last_iteration_at": "2026-07-16T13:15:27.917586+00:00",
+    "last_iteration_duration_seconds": 6,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-16T12:57:21.315913+00:00",
-    "last_successful_checks_total": 77043,
-    "last_successful_iteration_at": "2026-07-16T12:57:21.315913+00:00",
+    "last_process_heartbeat_at": "2026-07-16T13:15:27.917586+00:00",
+    "last_successful_checks_total": 77511,
+    "last_successful_iteration_at": "2026-07-16T13:15:27.917586+00:00",
     "pending_wheels": 0,
     "reachable_sources": 78,
     "restart_recommended": false,
@@ -135,11 +135,11 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 8,
+  "monitor_age_minutes": 6,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 101,
+    "entry_count": 103,
     "format": "bbvg-notification-delivery-v2",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -166,9 +166,7 @@
   "primary_telegram_domain": "telegram.me",
   "rating_consistency": {
     "administrator_decisions": 27,
-    "inactive_wheel_leaks": [
-      "solotg"
-    ],
+    "inactive_wheel_leaks": [],
     "policy": "additive_only_v1",
     "rated_sources": 19,
     "score_mismatches": []
