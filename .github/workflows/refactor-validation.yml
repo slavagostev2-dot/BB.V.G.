@@ -5,7 +5,7 @@ on:
     branches:
       - refactor/consolidate-runtime-v42
     paths:
-      - "bbvg/bot/runtime.py"
+      - "bbvg/bot/*.py"
       - "admin_panel_runtime_v*.py"
       - "*.py"
       - "tests/production_acceptance.py"
@@ -39,7 +39,17 @@ jobs:
         run: |
           python -m py_compile tests/production_acceptance.py
           python -m py_compile bbvg/bot/runtime.py
+          python -m py_compile bbvg/bot/foundation.py
           python -m py_compile rating_policy.py
+      - name: Validate consolidated panel foundation
+        id: panel_foundation
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+        run: python -m bbvg.bot.foundation
       - name: Validate consolidated panel runtime
         id: panel_runtime
         env:
@@ -87,6 +97,7 @@ jobs:
         if: ${{ always() }}
         env:
           COMPILE_OUTCOME: ${{ steps.compile.outcome }}
+          PANEL_FOUNDATION_OUTCOME: ${{ steps.panel_foundation.outcome }}
           PANEL_RUNTIME_OUTCOME: ${{ steps.panel_runtime.outcome }}
           RATING_CLI_OUTCOME: ${{ steps.rating_cli.outcome }}
           LEGACY_OUTCOME: ${{ steps.legacy.outcome }}
@@ -99,6 +110,7 @@ jobs:
 
           parts = {
               "compile": os.environ.get("COMPILE_OUTCOME", "unknown"),
+              "panel_foundation": os.environ.get("PANEL_FOUNDATION_OUTCOME", "unknown"),
               "panel_runtime": os.environ.get("PANEL_RUNTIME_OUTCOME", "unknown"),
               "rating_cli": os.environ.get("RATING_CLI_OUTCOME", "unknown"),
               "legacy": os.environ.get("LEGACY_OUTCOME", "unknown"),
@@ -109,7 +121,7 @@ jobs:
               "updated_at": datetime.now(timezone.utc).isoformat(),
               "result": "success" if all(item == "success" for item in parts.values()) else "failure",
               "parts": parts,
-              "stage": "runtime_acceptance_and_rating_consolidation",
+              "stage": "panel_foundation_runtime_acceptance_and_rating",
           }
           with open("refactor_validation_status.json", "w", encoding="utf-8") as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
