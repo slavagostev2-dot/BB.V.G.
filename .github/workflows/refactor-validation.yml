@@ -5,6 +5,7 @@ on:
     branches:
       - refactor/consolidate-runtime-v42
     paths:
+      - "bbvg/bot/runtime.py"
       - "tests/production_acceptance.py"
       - "chapter*.py"
       - "docs/CODE_INVENTORY_RU.md"
@@ -31,9 +32,20 @@ jobs:
         run: |
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
-      - name: Compile consolidated acceptance
+      - name: Compile consolidated code
         id: compile
-        run: python -m py_compile tests/production_acceptance.py
+        run: |
+          python -m py_compile tests/production_acceptance.py
+          python -m py_compile bbvg/bot/runtime.py
+      - name: Validate consolidated panel runtime
+        id: panel_runtime
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+        run: python -m bbvg.bot.runtime --self-test
       - name: Run legacy acceptance files
         id: legacy
         env:
@@ -69,6 +81,7 @@ jobs:
         if: ${{ always() }}
         env:
           COMPILE_OUTCOME: ${{ steps.compile.outcome }}
+          PANEL_RUNTIME_OUTCOME: ${{ steps.panel_runtime.outcome }}
           LEGACY_OUTCOME: ${{ steps.legacy.outcome }}
           CONSOLIDATED_OUTCOME: ${{ steps.consolidated.outcome }}
         run: |
@@ -79,6 +92,7 @@ jobs:
 
           parts = {
               "compile": os.environ.get("COMPILE_OUTCOME", "unknown"),
+              "panel_runtime": os.environ.get("PANEL_RUNTIME_OUTCOME", "unknown"),
               "legacy": os.environ.get("LEGACY_OUTCOME", "unknown"),
               "consolidated": os.environ.get("CONSOLIDATED_OUTCOME", "unknown"),
           }
@@ -87,7 +101,7 @@ jobs:
               "updated_at": datetime.now(timezone.utc).isoformat(),
               "result": "success" if all(item == "success" for item in parts.values()) else "failure",
               "parts": parts,
-              "stage": "acceptance_consolidation",
+              "stage": "runtime_and_acceptance_consolidation",
           }
           with open("refactor_validation_status.json", "w", encoding="utf-8") as stream:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
