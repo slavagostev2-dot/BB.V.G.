@@ -71,7 +71,7 @@
     }
   ],
   "current_runtime": "admin_panel_runtime_v41",
-  "runtime_chain_count": 30,
+  "runtime_chain_count": 29,
   "runtime_file_count": 34,
   "runtime_files": [
     {
@@ -160,10 +160,11 @@
       "line_count": 44,
       "module": "admin_panel_runtime_v17",
       "path": "admin_panel_runtime_v17.py",
-      "reference_count": 13,
+      "reference_count": 14,
       "references": [
         "admin_panel_runtime_v17.py",
         "admin_panel_runtime_v18.py",
+        "admin_panel_runtime_v19.py",
         "admin_panel_runtime_v23.py",
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py",
@@ -205,14 +206,13 @@
       "direct_imports": [
         "admin_panel_runtime_v17"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 52,
       "module": "admin_panel_runtime_v18",
       "path": "admin_panel_runtime_v18.py",
-      "reference_count": 3,
+      "reference_count": 2,
       "references": [
         "admin_panel_runtime_v18.py",
-        "admin_panel_runtime_v19.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -224,44 +224,20 @@
       "classes": [
         {
           "bases": [
-            "TelegramPanelRuntimeV18"
+            "TelegramPanelRuntimeV17"
           ],
           "class_attributes": [],
-          "method_count": 3,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 23,
-              "line_count": 6,
-              "name": "miniapp_url_for_chat",
-              "start_line": 18
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 36,
-              "line_count": 12,
-              "name": "show_menu",
-              "start_line": 25
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 47,
-              "line_count": 10,
-              "name": "show_app_entry",
-              "start_line": 38
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV19"
         }
       ],
       "direct_imports": [
-        "admin_panel_runtime_v18"
+        "admin_panel_runtime_v17",
+        "bbvg.bot.foundation"
       ],
       "in_current_import_chain": true,
-      "line_count": 67,
+      "line_count": 32,
       "module": "admin_panel_runtime_v19",
       "path": "admin_panel_runtime_v19.py",
       "reference_count": 3,
@@ -3855,7 +3831,6 @@
     ],
     "miniapp_url_for_chat": [
       "admin_panel_runtime_v18",
-      "admin_panel_runtime_v19",
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v22"
     ],
@@ -4005,7 +3980,6 @@
       "admin_panel_runtime_v38"
     ],
     "show_app_entry": [
-      "admin_panel_runtime_v19",
       "admin_panel_runtime_v9"
     ],
     "show_candidate_detail": [
@@ -4041,7 +4015,6 @@
       "admin_panel_runtime_v3"
     ],
     "show_menu": [
-      "admin_panel_runtime_v19",
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v4",
       "admin_panel_runtime_v6",
@@ -4148,7 +4121,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 8914,
+  "runtime_total_lines": 8879,
   "runtime_unique_method_count": 128,
   "unreferenced_python_candidates": []
 }
