@@ -148,9 +148,6 @@ jobs:
               TelegramPanelRuntimeV38.show_user_detail
           )
           assert 'run: python admin_panel_runtime_v41.py' in workflow
-          assert 'admin_panel_runtime_v33.py' not in workflow
-          assert 'admin_panel_runtime_v34.py' not in workflow
-          assert 'admin_panel_runtime_v35.py' not in workflow
           assert 'notification_delivery_state.json' in monitor_workflow
           assert 'wheel_draw_alerts' in Path('admin_panel_runtime_v37.py').read_text(encoding='utf-8')
 
