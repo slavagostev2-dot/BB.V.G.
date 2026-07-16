@@ -12,6 +12,7 @@ import notification_router
 import personal_reminder_filter
 import rating_policy
 import recurring_wheel_events
+import restart_duplicate_guard
 import telegram_post_links_v2
 import telegram_transport
 import wheel_lifecycle_v2
@@ -29,6 +30,7 @@ telegram_post_links_v2.install(monitor)
 wheel_event_runtime.install(monitor, runtime)
 wheel_metadata_quality.install(monitor, runtime)
 wheel_publications_v2.install(monitor, runtime)
+restart_duplicate_guard.install(monitor)
 _original_recover_deadline = runtime.base_runtime._recover_deadline
 _original_markup = monitor.wheel_reply_markup
 _original_process_active = monitor.process_active_wheels
