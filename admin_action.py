@@ -157,7 +157,6 @@ def set_manual_deadline(state: dict[str, Any], key: str, deadline_text: str) -> 
             "message_text": str(context.get("message_text") or "")[:4000],
             "first_notified_at": now.isoformat(),
             "last_notification_at": now.isoformat(),
-            "participating": monitor.is_participating(state, normalized),
         }
         active[normalized] = entry
 
@@ -174,10 +173,6 @@ def set_manual_deadline(state: dict[str, Any], key: str, deadline_text: str) -> 
         "deadline": deadline.isoformat(),
         "updated_at": monitor.now_utc().isoformat(),
     }
-    participant = state.setdefault("participating_wheels", {}).get(normalized)
-    if isinstance(participant, dict):
-        participant["deadline"] = deadline.isoformat()
-        participant["expires_at"] = monitor.participation_expiry(deadline).isoformat()
     state.setdefault("completed_wheel_alerts", {}).pop(normalized, None)
     remove_matching_records(state.setdefault("pending_posts", {}), normalized)
 
@@ -220,13 +215,18 @@ def apply_action(
         if not isinstance(context, dict):
             raise ValueError("Контекст кнопки не найден или устарел")
         key = record_wheel_key(context)
-        already = monitor.is_participating(state, key)
-        if not already:
-            monitor.mark_participating(state, context)
         active_entry = state.get("active_wheels", {}).get(key)
-        if isinstance(active_entry, dict):
-            wheel_lifecycle_v2.stamp_lifecycle(key, active_entry, monitor.now_utc())
         rating_context = active_entry if isinstance(active_entry, dict) else context
+        already = wheel_lifecycle_v2.is_admin_confirmed(state, key)
+        confirmed = wheel_lifecycle_v2.mark_admin_confirmed(
+            state, key, rating_context, monitor.now_utc()
+        )
+        state.setdefault("participating_wheels", {}).pop(key, None)
+        if isinstance(active_entry, dict):
+            active_entry.pop("participating", None)
+            active_entry.pop("participating_at", None)
+            active_entry["admin_confirmed"] = True
+            wheel_lifecycle_v2.stamp_lifecycle(key, active_entry, monitor.now_utc())
         result["stats_changed"] = monitor.data_store.record_admin_wheel_decision(
             stats,
             wheel_key=wheel_lifecycle_v2.rating_event_key(key, rating_context),
@@ -234,18 +234,28 @@ def apply_action(
             decision="confirmed",
             actor="admin",
         )
-        result["state_changed"] = not already
-        result["detail"] = "Участие уже было отмечено" if already else "Участие отмечено"
+        result["state_changed"] = confirmed
+        result["detail"] = (
+            "Колесо уже подтверждено администратором"
+            if already
+            else "Колесо подтверждено; личные отметки пользователей не изменены"
+        )
     elif action == "participate_wheel":
         context = wheel_context(state, value)
         if context is None:
             raise ValueError("Колесо не найдено")
         normalized = normalized_wheel_key(value)
-        already = monitor.is_participating(state, normalized)
-        if not already:
-            monitor.mark_participating(state, context)
         active_entry = state.get("active_wheels", {}).get(normalized)
+        rating_context = active_entry if isinstance(active_entry, dict) else context
+        already = wheel_lifecycle_v2.is_admin_confirmed(state, normalized)
+        confirmed = wheel_lifecycle_v2.mark_admin_confirmed(
+            state, normalized, rating_context, monitor.now_utc()
+        )
+        state.setdefault("participating_wheels", {}).pop(normalized, None)
         if isinstance(active_entry, dict):
+            active_entry.pop("participating", None)
+            active_entry.pop("participating_at", None)
+            active_entry["admin_confirmed"] = True
             wheel_lifecycle_v2.stamp_lifecycle(
                 normalized, active_entry, monitor.now_utc()
             )
@@ -256,8 +266,12 @@ def apply_action(
             decision="confirmed",
             actor="admin",
         )
-        result["state_changed"] = not already
-        result["detail"] = "Участие уже было отмечено" if already else "Участие отмечено"
+        result["state_changed"] = confirmed
+        result["detail"] = (
+            "Колесо уже подтверждено администратором"
+            if already
+            else "Колесо подтверждено; личные отметки пользователей не изменены"
+        )
     elif action == "set_deadline":
         key, deadline_text = split_action_value(value)
         set_manual_deadline(state, key, deadline_text)
@@ -380,7 +394,8 @@ def self_test() -> None:
     }
     stats = {"version": 1, "sources": {}, "daily": {}}
     result = apply_action(state, health, stats, "participate_token", "token1")
-    assert result["state_changed"] and "wheel1" in state["participating_wheels"]
+    assert result["state_changed"] and "wheel1" in state["admin_confirmed_wheels"]
+    assert not state["participating_wheels"]
     assert stats["sources"] and next(iter(stats["sources"].values()))["quality_score"] == 40
     future = (monitor.now_utc() + timedelta(hours=2)).isoformat()
     result = apply_action(state, health, stats, "set_deadline", f"wheel1|{future}")

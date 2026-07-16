@@ -100,9 +100,47 @@ class ButtonMatrixTests(unittest.TestCase):
         panel.handle_callback(self.query("wheel:finished:wheel-a"))
         admin_calls = [row for row in calls if row[0] == "admin"]
         self.assertTrue(any(row[1] == "participate_wheel" for row in admin_calls))
+        self.assertIn(("personal", "wheel-a"), calls)
         self.assertTrue(any(row[1] == "mark_inactive_global" for row in admin_calls))
         self.assertTrue(any(row[1] == "confirm_finished_global" for row in admin_calls))
         self.assertIn(("time", "wheel-a"), calls)
+
+    def test_creator_mark_never_appears_for_another_user_or_admin(self) -> None:
+        panel = TelegramPanelRuntimeV38()
+        access = {
+            "owner_id": "1",
+            "admins": ["2"],
+            "users": {
+                "1": {"participating_wheels": {"wheel-a": {"joined_at": "now"}}},
+                "2": {"participating_wheels": {}},
+                "3": {"participating_wheels": {}},
+            },
+        }
+        panel.load_access = lambda force=False: access  # type: ignore[method-assign]
+        for user_id, role, expected in (
+            ("1", "owner", {"wheel-a"}),
+            ("2", "admin", set()),
+            ("3", "user", set()),
+        ):
+            panel.current_user_id = user_id
+            panel.current_role = role
+            self.assertEqual(
+                panel._joined_wheel_keys(SimpleNamespace(state={})), expected
+            )
+
+        source = {
+            "inline_keyboard": [
+                [{"text": "Участвую", "callback_data": "bb:p:token"}]
+            ]
+        }
+        owner_markup = notification_router.markup_for_chat(
+            source, admin=True, participating=True
+        )
+        other_markup = notification_router.markup_for_chat(
+            source, admin=True, participating=False
+        )
+        self.assertIn("Участие отмечено", str(owner_markup))
+        self.assertIn("✅ Участвую", str(other_markup))
 
     def test_active_list_renders_role_specific_controls(self) -> None:
         for admin in (False, True):

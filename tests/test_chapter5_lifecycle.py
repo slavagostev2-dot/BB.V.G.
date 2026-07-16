@@ -31,6 +31,7 @@ def event_state(*, message_id: int, message_date: datetime) -> dict[str, Any]:
     }
     return {
         "active_wheels": {"wheel-a": entry},
+        "admin_confirmed_wheels": {},
         "participating_wheels": {},
         "pending_posts": {},
         "button_contexts": {},
@@ -193,6 +194,38 @@ class Chapter5LifecycleTests(unittest.TestCase):
         for source in ("official", "collector"):
             self.assertEqual(stats["sources"][source]["quality_score"], 40)
 
+    def test_admin_confirmation_never_becomes_shared_participation(self) -> None:
+        state = event_state(
+            message_id=25,
+            message_date=datetime(2026, 7, 15, 10, 0, tzinfo=UTC),
+        )
+        result = admin_action_v3.apply_action_v3(
+            state,
+            {"sources": {}},
+            {"version": 1, "sources": {}, "daily": {}},
+            "participate_wheel",
+            "wheel-a",
+        )
+        self.assertTrue(result["state_changed"])
+        self.assertIn("wheel-a", state["admin_confirmed_wheels"])
+        self.assertNotIn("wheel-a", state["participating_wheels"])
+        self.assertFalse(
+            state["active_wheels"]["wheel-a"].get("participating", False)
+        )
+
+    def test_legacy_shared_mark_is_migrated_without_copying_it_to_users(self) -> None:
+        state = event_state(
+            message_id=26,
+            message_date=datetime(2026, 7, 15, 10, 0, tzinfo=UTC),
+        )
+        state["participating_wheels"]["wheel-a"] = {"identifier": "wheel-a"}
+        state["active_wheels"]["wheel-a"]["participating"] = True
+        changed = wheel_lifecycle_v2.migrate_legacy_global_participation(state)
+        self.assertGreater(changed, 0)
+        self.assertFalse(state["participating_wheels"])
+        self.assertIn("wheel-a", state["admin_confirmed_wheels"])
+        self.assertNotIn("participating", state["active_wheels"]["wheel-a"])
+
     def test_inactive_reverses_only_the_current_event_confirmation(self) -> None:
         stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
         health: dict[str, Any] = {"sources": {}}
@@ -226,6 +259,7 @@ class Chapter5LifecycleTests(unittest.TestCase):
         now = datetime(2026, 7, 15, 14, 0, tzinfo=UTC)
         state = event_state(message_id=40, message_date=now - timedelta(hours=2))
         state["participating_wheels"]["wheel-a"] = {"identifier": "wheel-a"}
+        state["admin_confirmed_wheels"]["wheel-a"] = {"identifier": "wheel-a"}
         state["pending_posts"]["post"] = {"wheel_key": "wheel-a"}
         state["button_contexts"]["token"] = {"wheel_key": "wheel-a"}
         state["completed_wheel_alerts"]["wheel-a"] = {"identifier": "wheel-a"}
@@ -242,9 +276,10 @@ class Chapter5LifecycleTests(unittest.TestCase):
             deadline=now,
         )
 
-        self.assertGreaterEqual(removed, 7)
+        self.assertGreaterEqual(removed, 8)
         for name in (
             "active_wheels",
+            "admin_confirmed_wheels",
             "participating_wheels",
             "pending_posts",
             "button_contexts",

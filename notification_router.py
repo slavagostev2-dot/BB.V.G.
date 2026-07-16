@@ -131,6 +131,22 @@ def is_admin_chat(config: dict[str, Any], chat_id: str) -> bool:
     return str(chat_id) in {chat_for_user(config, user_id) for user_id in admin_user_ids(config)}
 
 
+def participating_for_chat(
+    config: dict[str, Any], chat_id: str, wheel_key: str
+) -> bool:
+    if not wheel_key:
+        return False
+    _, record = user_for_chat(config, chat_id)
+    raw = record.get("participating_wheels") if isinstance(record, dict) else None
+    if isinstance(raw, list):
+        values = raw
+    elif isinstance(raw, dict):
+        values = raw.keys()
+    else:
+        return False
+    return wheel_key.casefold() in {str(value).casefold() for value in values}
+
+
 def preference_enabled(
     config: dict[str, Any], user_id: str, record: dict[str, Any], kind: str
 ) -> bool:
@@ -355,7 +371,9 @@ def hidden_for_chat(config: dict[str, Any], chat_id: str, wheel_key: str) -> boo
     return expires.astimezone(UTC) > datetime.now(UTC)
 
 
-def markup_for_chat(reply_markup: dict | None, *, admin: bool) -> dict | None:
+def markup_for_chat(
+    reply_markup: dict | None, *, admin: bool, participating: bool = False
+) -> dict | None:
     if not isinstance(reply_markup, dict):
         return reply_markup
     result = copy.deepcopy(reply_markup)
@@ -372,7 +390,12 @@ def markup_for_chat(reply_markup: dict | None, *, admin: bool) -> dict | None:
             if not admin and callback.startswith(("bb:t:", "wheel:time:")):
                 continue
             if callback.startswith(("bb:p:", "wheel:part:")):
-                value["text"] = "✅ Участвую" if admin else "✅ Я участвую"
+                if participating:
+                    value["text"] = "✅ Участие отмечено"
+                    if callback.startswith("bb:p:"):
+                        value["callback_data"] = "bb:n:" + callback.split(":", 2)[2]
+                else:
+                    value["text"] = "✅ Участвую" if admin else "✅ Я участвую"
             if callback.startswith(("bb:x:", "wheel:inactive:")) and not admin:
                 value["text"] = "Скрыть у меня"
             filtered.append(value)
@@ -428,7 +451,11 @@ def install(monitor_module: Any) -> None:
                 "parse_mode": "HTML",
                 "disable_web_page_preview": True,
             }
-            target_markup = markup_for_chat(reply_markup, admin=admin)
+            target_markup = markup_for_chat(
+                reply_markup,
+                admin=admin,
+                participating=participating_for_chat(config, chat_id, key),
+            )
             if target_markup is not None:
                 payload["reply_markup"] = target_markup
             elif url:

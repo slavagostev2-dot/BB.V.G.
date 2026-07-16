@@ -268,6 +268,7 @@ def load_state() -> dict:
     state.setdefault("manual_overrides", {})
     state.setdefault("telegram_update_offset", 0)
     state.setdefault("active_wheels", {})
+    state.setdefault("admin_confirmed_wheels", {})
     state.setdefault("participating_wheels", {})
     state.setdefault("bot_commands_version", 0)
     state.setdefault("last_source_inactivity_report_at", None)

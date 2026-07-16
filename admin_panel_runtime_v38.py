@@ -387,11 +387,8 @@ class TelegramPanelRuntimeV38(TelegramPanelRuntimeV37):
             lines.append(
                 f"⏱ С указанным временем: <b>{overview['active_with_time']} из {overview['active']}</b>"
             )
-            participation_label = (
-                "Подтверждено администратором" if self.is_admin() else "С вашей отметкой"
-            )
             lines.append(
-                f"✅ {participation_label}: <b>{overview['participating']} из {overview['active']}</b>"
+                f"✅ С вашей отметкой: <b>{overview['participating']} из {overview['active']}</b>"
             )
 
         lines.extend(
@@ -727,7 +724,45 @@ class TelegramPanelRuntimeV38(TelegramPanelRuntimeV37):
                 return
             query = dict(query)
             query["data"] = prefix + resolved
+            data = str(query["data"])
             break
+        if data.startswith(("wheel:part:", "bb:p:")):
+            self._prepare_callback_user(query)
+            query_id = str(query.get("id") or "")
+            try:
+                if data.startswith("wheel:part:"):
+                    key = data.split(":", 2)[2].casefold()
+                    admin_action = ("participate_wheel", key)
+                else:
+                    token = data.split(":", 2)[2]
+                    context = self.snapshot(force=True).state.get(
+                        "button_contexts", {}
+                    ).get(token)
+                    if not isinstance(context, dict):
+                        raise ValueError("Контекст кнопки устарел")
+                    key = str(
+                        context.get("wheel_key")
+                        or context.get("identifier")
+                        or ""
+                    ).casefold()
+                    admin_action = ("participate_token", token)
+                if not key:
+                    raise ValueError("Колесо не определено")
+                if self.is_admin():
+                    self.dispatch_admin_action(*admin_action)
+                self.mark_personal_participation(key)
+            except Exception as exc:
+                print(f"ERROR isolated participation: {type(exc).__name__}: {exc}")
+                self.answer(query_id, "Не удалось сохранить участие")
+                return
+            self.answer(
+                query_id,
+                "Ваше участие отмечено; колесо подтверждено"
+                if self.is_admin()
+                else "Ваше участие отмечено",
+            )
+            self.show_active()
+            return
         super().handle_callback(query)
 
 

@@ -377,9 +377,6 @@ def process_active_wheels_with_draw_alert(state, stats):
         identifier = str(entry.get("identifier") or key)
         source = str(entry.get("source") or "неизвестно")
         url = str(entry.get("url") or "")
-        participated = monitor.is_participating(
-            state, normalized
-        ) or monitor.is_participating(state, identifier)
         markup = (
             {"inline_keyboard": [[{"text": "🎡 Открыть колесо", "url": url}]]}
             if url
@@ -390,7 +387,7 @@ def process_active_wheels_with_draw_alert(state, stats):
                 "🎯 <b>Время прокрутки колеса наступило</b>\n\n"
                 f"Идентификатор: <code>{html.escape(identifier)}</code>\n"
                 f"Оригинальный источник: @{html.escape(source)}\n"
-                f"Ваша отметка участия: {'✅ участвую' if participated else '❌ не отмечена'}\n\n"
+                "Статус участия хранится отдельно для каждого пользователя.\n\n"
                 "Колесо уже должно быть прокручено. Откройте страницу и проверьте результат.",
                 reply_markup=markup,
             )

@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
-import personal_reminder_filter
 import wheel_publications_v2
 
 
@@ -43,6 +42,7 @@ LIFECYCLE_TRANSITIONS = (
 TERMINAL_STATES = {"finished", "inactive"}
 _CLEANUP_COLLECTIONS = (
     "active_wheels",
+    "admin_confirmed_wheels",
     "participating_wheels",
     "pending_posts",
     "button_contexts",
@@ -51,6 +51,87 @@ _CLEANUP_COLLECTIONS = (
     "manual_overrides",
     "wheel_publications",
 )
+
+
+def is_admin_confirmed(state: dict[str, Any], key: str) -> bool:
+    """Return the global administrator verdict without implying participation."""
+
+    normalized = str(key or "").casefold()
+    entry = state.get("admin_confirmed_wheels", {}).get(normalized)
+    return isinstance(entry, dict)
+
+
+def mark_admin_confirmed(
+    state: dict[str, Any],
+    key: str,
+    entry: dict[str, Any] | None,
+    current: datetime | None = None,
+) -> bool:
+    """Store the administrator verdict separately from personal user marks."""
+
+    current = current or datetime.now(UTC)
+    normalized = str(key or "").casefold()
+    if not normalized:
+        return False
+    record = entry if isinstance(entry, dict) else {}
+    event_id = wheel_event_id(normalized, record)
+    confirmations = state.setdefault("admin_confirmed_wheels", {})
+    existing = confirmations.get(normalized)
+    if isinstance(existing, dict) and str(existing.get("event_id") or "") == event_id:
+        return False
+    confirmations[normalized] = {
+        "identifier": str(record.get("identifier") or normalized),
+        "event_id": event_id,
+        "confirmed_at": current.isoformat(),
+    }
+    return True
+
+
+def migrate_legacy_global_participation(
+    state: dict[str, Any], current: datetime | None = None
+) -> int:
+    """Move old creator verdicts out of the shared participation collection."""
+
+    current = current or datetime.now(UTC)
+    legacy = state.setdefault("participating_wheels", {})
+    if not isinstance(legacy, dict):
+        state["participating_wheels"] = {}
+        legacy = {}
+    archive = state.setdefault("legacy_creator_participation_archive", {})
+    if not isinstance(archive, dict):
+        archive = {}
+        state["legacy_creator_participation_archive"] = archive
+    changed = 0
+    for raw_key, raw in list(legacy.items()):
+        normalized = str(raw_key or "").casefold()
+        active = state.get("active_wheels", {}).get(normalized)
+        source = active if isinstance(active, dict) else raw if isinstance(raw, dict) else {}
+        archive.setdefault(
+            normalized,
+            {
+                "identifier": str(source.get("identifier") or normalized),
+                "marked_at": str(
+                    source.get("participating_at")
+                    or source.get("marked_at")
+                    or current.isoformat()
+                ),
+            },
+        )
+        if mark_admin_confirmed(state, normalized, source, current):
+            changed += 1
+        legacy.pop(raw_key, None)
+        changed += 1
+    for raw in state.setdefault("active_wheels", {}).values():
+        if not isinstance(raw, dict):
+            continue
+        removed = False
+        for field in ("participating", "participating_at"):
+            if field in raw:
+                raw.pop(field, None)
+                removed = True
+        if removed:
+            changed += 1
+    return changed
 
 
 def wheel_event_id(key: str, entry: dict[str, Any] | None) -> str:
@@ -312,7 +393,7 @@ def install(monitor_module: Any) -> None:
 
     def process_active_with_final_reminder(state: dict, stats: dict):
         current = monitor_module.now_utc()
-        changed = False
+        changed = bool(migrate_legacy_global_participation(state, current))
         final_sent = 0
 
         for key, entry in list(state.setdefault("active_wheels", {}).items()):
@@ -320,14 +401,6 @@ def install(monitor_module: Any) -> None:
                 continue
             normalized = str(key).casefold()
             if stamp_lifecycle(normalized, entry, current):
-                changed = True
-            global_participating = monitor_module.is_participating(state, normalized)
-            personal_reminder_filter.set_global_participating(
-                normalized, global_participating
-            )
-            if global_participating and entry.get("lifecycle_state") != "participating":
-                entry["lifecycle_state"] = "participating"
-                entry["lifecycle_changed_at"] = current.isoformat()
                 changed = True
             if not final_reminder_due(monitor_module, entry, current):
                 continue
@@ -389,7 +462,6 @@ def install(monitor_module: Any) -> None:
                 reason="deadline_reached",
                 deadline=deadline,
             )
-            personal_reminder_filter.set_global_participating(normalized, False)
             result["removed"] = int(result.get("removed", 0) or 0) + 1
             changed = True
 

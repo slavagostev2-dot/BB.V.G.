@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import bot_private_state
 import privacy_retention
+import wheel_lifecycle_v2
 from migrate_private_state import latest_matching
 
 UTC = timezone.utc
+ROOT = Path(__file__).resolve().parent
+MONITOR_STATE_PATH = ROOT / "state.json"
 
 
 def _default_access() -> dict[str, Any]:
@@ -75,6 +80,105 @@ def _ensure_owner(access: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def migrate_creator_participation(
+    bundle: dict[str, Any], monitor_state: dict[str, Any]
+) -> int:
+    """Preserve legacy shared marks only for the creator who made them."""
+
+    access = bundle.get("access") if isinstance(bundle.get("access"), dict) else {}
+    owner_id = str(access.get("owner_id") or "")
+    users = access.get("users") if isinstance(access.get("users"), dict) else {}
+    owner = users.get(owner_id) if owner_id else None
+    shared = (
+        monitor_state.get("participating_wheels")
+        if isinstance(monitor_state.get("participating_wheels"), dict)
+        else {}
+    )
+    archived = (
+        monitor_state.get("legacy_creator_participation_archive")
+        if isinstance(monitor_state.get("legacy_creator_participation_archive"), dict)
+        else {}
+    )
+    legacy = {**archived, **shared}
+    if not isinstance(owner, dict) or not legacy:
+        return 0
+    raw_personal = owner.get("participating_wheels")
+    if isinstance(raw_personal, dict):
+        personal = dict(raw_personal)
+    elif isinstance(raw_personal, list):
+        personal = {str(value).casefold(): {} for value in raw_personal if str(value)}
+    else:
+        personal = {}
+    changed = 0
+    now = datetime.now(UTC).isoformat()
+    for key, entry in legacy.items():
+        normalized = str(key or "").casefold()
+        if not normalized or normalized in personal:
+            continue
+        marked_at = str(entry.get("marked_at") or now) if isinstance(entry, dict) else now
+        personal[normalized] = {
+            "joined_at": marked_at,
+            "migrated_from_legacy_shared_state": True,
+        }
+        changed += 1
+    if changed:
+        owner["participating_wheels"] = personal
+    return changed
+
+
+def load_monitor_state() -> dict[str, Any]:
+    try:
+        value = json.loads(MONITOR_STATE_PATH.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def save_monitor_state(value: dict[str, Any]) -> None:
+    temporary = MONITOR_STATE_PATH.with_suffix(".json.tmp")
+    temporary.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(MONITOR_STATE_PATH)
+
+
+def finalize_legacy_participation_state(
+    bundle: dict[str, Any],
+    monitor_state: dict[str, Any],
+    *,
+    persist: bool = True,
+) -> bool:
+    """Clear shared marks only after the creator's private copy is durable."""
+
+    access = bundle.get("access") if isinstance(bundle.get("access"), dict) else {}
+    owner_id = str(access.get("owner_id") or "")
+    owner = access.get("users", {}).get(owner_id) if owner_id else None
+    personal = owner.get("participating_wheels") if isinstance(owner, dict) else None
+    personal_keys = (
+        {str(key).casefold() for key in personal}
+        if isinstance(personal, (dict, list))
+        else set()
+    )
+    shared = monitor_state.get("participating_wheels")
+    archive = monitor_state.get("legacy_creator_participation_archive")
+    legacy_keys = {
+        str(key).casefold()
+        for collection in (shared, archive)
+        if isinstance(collection, dict)
+        for key in collection
+    }
+    if not legacy_keys or not legacy_keys.issubset(personal_keys):
+        return False
+    changed = bool(wheel_lifecycle_v2.migrate_legacy_global_participation(monitor_state))
+    if "legacy_creator_participation_archive" in monitor_state:
+        monitor_state.pop("legacy_creator_participation_archive", None)
+        changed = True
+    if changed and persist:
+        save_monitor_state(monitor_state)
+    return changed
+
+
 def build_bundle() -> dict[str, Any]:
     legacy_access = latest_matching(
         "bot_access.json",
@@ -120,7 +224,11 @@ def migrate(force: bool = False) -> tuple[bool, int, int, str]:
     populated = bool(current_access.get("owner_id") and current_access.get("users"))
 
     if populated:
+        monitor_state = load_monitor_state()
         retention_changed = privacy_retention.prune_bundle(current)
+        creator_marks_migrated = migrate_creator_participation(
+            current, monitor_state
+        )
         should_upgrade = current_format != bot_private_state.FORMAT_V2
         should_rotate_key = (
             bot_private_state.dedicated_key_configured()
@@ -129,7 +237,13 @@ def migrate(force: bool = False) -> tuple[bool, int, int, str]:
                 or bot_private_state.previous_key_configured()
             )
         )
-        should_reseal = force or retention_changed or should_upgrade or should_rotate_key
+        should_reseal = bool(
+            force
+            or retention_changed
+            or creator_marks_migrated
+            or should_upgrade
+            or should_rotate_key
+        )
         if should_reseal:
             # Without BOT_STATE_KEY, save_file writes AES-GCM v2 in temporary
             # bot_token_compat mode. This removes legacy cryptography immediately
@@ -139,12 +253,16 @@ def migrate(force: bool = False) -> tuple[bool, int, int, str]:
             changed = True
         else:
             changed = False
+        finalize_legacy_participation_state(current, monitor_state)
         users = len(current_access.get("users") or {})
         requests = len((current.get("source_requests") or {}).get("requests") or {})
         return changed, users, requests, current_format
 
     bundle = build_bundle()
+    monitor_state = load_monitor_state()
+    migrate_creator_participation(bundle, monitor_state)
     bot_private_state.save_file(bundle)
+    finalize_legacy_participation_state(bundle, monitor_state)
     access = bundle.get("access") if isinstance(bundle.get("access"), dict) else {}
     requests_state = (
         bundle.get("source_requests")
@@ -169,6 +287,43 @@ def self_test() -> None:
     assert decoded == sample
     assert bot_private_state.state_format(encoded) == bot_private_state.FORMAT_V2
     assert decoded["access"]["settings"]["public_panel"] is True
+    migration = bot_private_state.default_bundle(
+        {
+            "owner_id": "1",
+            "users": {"1": {"participating_wheels": {}}},
+        },
+        {"version": 1, "requests": {}},
+    )
+    moved = migrate_creator_participation(
+        migration,
+        {
+            "participating_wheels": {
+                "wheel-a": {"marked_at": "2026-07-16T10:00:00+00:00"},
+                "wheel-b": {"marked_at": "2026-07-16T10:01:00+00:00"},
+            }
+        },
+    )
+    assert moved == 2
+    assert set(migration["access"]["users"]["1"]["participating_wheels"]) == {
+        "wheel-a",
+        "wheel-b",
+    }
+    monitor_state = {
+        "active_wheels": {
+            "wheel-a": {"identifier": "wheel-a", "participating": True},
+            "wheel-b": {"identifier": "wheel-b", "participating": True},
+        },
+        "participating_wheels": {
+            "wheel-a": {"identifier": "wheel-a"},
+            "wheel-b": {"identifier": "wheel-b"},
+        },
+    }
+    assert finalize_legacy_participation_state(
+        migration, monitor_state, persist=False
+    )
+    assert not monitor_state["participating_wheels"]
+    assert "legacy_creator_participation_archive" not in monitor_state
+    assert set(monitor_state["admin_confirmed_wheels"]) == {"wheel-a", "wheel-b"}
     print("BB V.G. bot state migration v2 self-test passed")
 
 

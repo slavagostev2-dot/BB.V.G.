@@ -159,11 +159,14 @@ class Chapter4InterfaceTests(unittest.TestCase):
         key = "ключ:" + "длинный-" * 30
         item = {"_key": key, "identifier": key, "source": "mechanogun"}
         calls: list[tuple[str, str]] = []
+        personal: list[str] = []
         panel._collect_current_wheels = lambda: [item]  # type: ignore[method-assign]
         panel._prepare_callback_user = lambda query: None  # type: ignore[method-assign]
         panel.set_context = lambda chat_id, user_id: None  # type: ignore[method-assign]
         panel.answer = lambda query_id, text="": None  # type: ignore[method-assign]
         panel.refresh_snapshot = lambda: None  # type: ignore[method-assign]
+        panel.show_active = lambda: None  # type: ignore[method-assign]
+        panel.mark_personal_participation = lambda value: personal.append(value) or True  # type: ignore[method-assign]
         panel.dispatch_admin_action = lambda action, value: calls.append((action, value)) or {  # type: ignore[method-assign]
             "queued": True,
             "detail": "queued",
@@ -178,6 +181,7 @@ class Chapter4InterfaceTests(unittest.TestCase):
             }
         )
         self.assertIn(("participate_wheel", key.casefold()), calls)
+        self.assertIn(key.casefold(), personal)
 
     def test_quick_time_template_resolves_a_hashed_wheel_key(self) -> None:
         panel, _captured = self.capture_panel(role="owner")

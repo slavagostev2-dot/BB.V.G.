@@ -203,7 +203,7 @@ jobs:
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          files=(bot_private_state.enc.json notification_delivery_state.json)
+          files=(bot_private_state.enc.json notification_delivery_state.json state.json)
           if ! git diff --quiet -- "${files[@]}"; then
             git add "${files[@]}"
             git commit -m "Migrate BB V.G. private and delivery state [skip ci]"

@@ -98,13 +98,10 @@ class TelegramPanelRuntimeV20(TelegramPanelRuntimeV19):
         self.save_access(f"Save personal wheel participation for {self.current_user_id} [skip ci]")
 
     def _joined_wheel_keys(self, snap: Any) -> set[str]:
-        if not self.is_admin():
-            return self._personal_participating_wheels()
-        return {
-            str(key).casefold()
-            for key, entry in snap.state.get("participating_wheels", {}).items()
-            if isinstance(entry, dict)
-        }
+        # Personal participation is isolated for every role.  Administrator
+        # confirmation is global, but it must not make another person look as
+        # if they joined the wheel.
+        return self._personal_participating_wheels()
 
     def _collect_current_wheels(self) -> list[dict[str, Any]]:
         snap = self.snapshot()

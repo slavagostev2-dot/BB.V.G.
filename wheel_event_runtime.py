@@ -89,6 +89,7 @@ def reset_stale_event_state(
         "activation_alerts": ("alerted_at",),
         "manual_deadlines": ("updated_at",),
         "manual_overrides": ("updated_at", "created_at"),
+        "admin_confirmed_wheels": ("confirmed_at",),
         "participating_wheels": ("marked_at", "participating_at"),
     }
     for collection_name, fields in timestamp_fields.items():
