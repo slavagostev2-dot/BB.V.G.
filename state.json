@@ -8,7 +8,7 @@
       "expires_at": "2026-07-16T20:52:11+00:00",
       "first_notified_at": "2026-07-16T11:23:57.495602+00:00",
       "identifier": "cct1",
-      "last_checked_at": "2026-07-16T16:44:33.936401+00:00",
+      "last_checked_at": "2026-07-16T16:47:35.710969+00:00",
       "last_notification_at": "2026-07-16T11:23:57.495863+00:00",
       "lifecycle_changed_at": "2026-07-16T11:29:53.990097+00:00",
       "lifecycle_state": "participating",
@@ -21,7 +21,7 @@
       "page_excerpt": "",
       "page_status": "telegram_deadline",
       "participating": true,
-      "participating_at": "2026-07-16T13:52:28.722509+00:00",
+      "participating_at": "2026-07-16T16:47:35.708904+00:00",
       "source": "jestercast",
       "sources": [
         "jestercast"
@@ -37,7 +37,7 @@
       "expires_at": "2026-07-16T21:16:03.370092+00:00",
       "first_notified_at": "2026-07-16T11:48:04.224568+00:00",
       "identifier": "papa",
-      "last_checked_at": "2026-07-16T16:44:33.936401+00:00",
+      "last_checked_at": "2026-07-16T16:47:35.710969+00:00",
       "last_notification_at": "2026-07-16T11:48:04.224842+00:00",
       "lifecycle_changed_at": "2026-07-16T11:53:59.896800+00:00",
       "lifecycle_state": "participating",
@@ -66,7 +66,7 @@
       "expires_at": "2026-07-16T21:17:06.547233+00:00",
       "first_notified_at": "2026-07-16T14:22:45.529614+00:00",
       "identifier": "sysman",
-      "last_checked_at": "2026-07-16T16:44:33.936401+00:00",
+      "last_checked_at": "2026-07-16T16:47:35.710969+00:00",
       "last_notification_at": "2026-07-16T14:22:45.529852+00:00",
       "last_unknown_reminder_at": "2026-07-23T14:34:42.097615+00:00",
       "lifecycle_changed_at": "2026-07-16T14:28:37.989359+00:00",
@@ -96,7 +96,7 @@
       "expires_at": "2026-07-16T18:32:41+00:00",
       "first_notified_at": "2026-07-16T08:05:01.877690+00:00",
       "identifier": "zonertg7",
-      "last_checked_at": "2026-07-16T16:44:33.936401+00:00",
+      "last_checked_at": "2026-07-16T16:47:35.710969+00:00",
       "last_notification_at": "2026-07-16T08:05:01.877983+00:00",
       "lifecycle_changed_at": "2026-07-16T08:23:00.968486+00:00",
       "lifecycle_state": "participating",
@@ -292,6 +292,14 @@
     "676e68422d844063a3b26d085ff358bc": {
       "action": "confirm_finished_global",
       "applied_at": "2026-07-16T02:13:17.424376+00:00",
+      "health_changed": false,
+      "state_changed": true,
+      "stats_changed": false,
+      "status": "applied"
+    },
+    "67ec3b0324c344fcb0fb77ea545fbafa": {
+      "action": "participate_wheel",
+      "applied_at": "2026-07-16T16:47:35.709237+00:00",
       "health_changed": false,
       "state_changed": true,
       "stats_changed": false,
@@ -561,6 +569,7 @@
     "57287a9cd8fe4862b7d06068be830b3b": "2026-07-16T12:57:17.326165+00:00",
     "5f86a89e1d674ba49e4aeeac81a88417": "2026-07-16T08:23:00.969096+00:00",
     "676e68422d844063a3b26d085ff358bc": "2026-07-16T02:13:17.424376+00:00",
+    "67ec3b0324c344fcb0fb77ea545fbafa": "2026-07-16T16:47:35.709237+00:00",
     "6b14352e281444f7bae0ebbea9d3052c": "2026-07-16T03:10:03.407777+00:00",
     "715c31636c104db3aca1b99e4659424c": "2026-07-16T02:13:17.424510+00:00",
     "768bed488d9a457481d7bd2597fc49d0": "2026-07-16T14:34:42.097496+00:00",
@@ -934,7 +943,7 @@
     "whylollycrry",
     "zortelad"
   ],
-  "last_admin_action_applied_at": "2026-07-16T15:25:56.654073+00:00",
+  "last_admin_action_applied_at": "2026-07-16T16:47:35.709259+00:00",
   "last_automatic_status_at": "2026-07-16T06:31:45.207974+00:00",
   "last_heartbeat_at": "2026-07-16T15:05:00.124018+00:00",
   "last_run_kind": "schedule",
@@ -1007,6 +1016,13 @@
   "manual_overrides": {},
   "notification_key_version": 8,
   "participating_wheels": {
+    "cct1": {
+      "deadline": "2026-07-14T19:58:17+00:00",
+      "expires_at": "2026-07-16T18:47:35.708904+00:00",
+      "identifier": "cct1",
+      "marked_at": "2026-07-16T16:47:35.708825+00:00",
+      "url": "https://betboom.ru/freestream/cct1"
+    },
     "papa": {
       "deadline": "2026-07-16T19:46:33+00:00",
       "expires_at": "2026-07-16T20:16:33+00:00",
