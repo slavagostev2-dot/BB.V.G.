@@ -11,9 +11,9 @@ from urllib.parse import quote
 import admin_action_v2
 import admin_bot as legacy
 import bot_private_state
-from admin_panel_runtime_v17 import default_source_requests
-from admin_panel_runtime_v22 import TelegramPanelRuntimeV22
+from bbvg.bot.source_requests import default_source_requests
 from admin_panel_runtime_v25 import TelegramPanelRuntimeV25
+from bbvg.bot.sources import SourceRegistryRuntime
 
 
 class TelegramPanelRuntimeV26(TelegramPanelRuntimeV25):
@@ -216,9 +216,10 @@ class TelegramPanelRuntimeV26(TelegramPanelRuntimeV25):
             )
 
         if admin_action is None:
-            # Skip the v25 registration wrapper: context/registration was already
-            # prepared above. The inherited v20-v22 callback behavior remains intact.
-            TelegramPanelRuntimeV22.handle_callback(self, query)
+            # Context/registration was already prepared above. Continue with the
+            # consolidated source/user callback chain while skipping the historic
+            # v25 registration wrapper.
+            SourceRegistryRuntime.handle_callback(self, query)
             return
 
         action, value, success_text = admin_action

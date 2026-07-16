@@ -3,146 +3,23 @@ from __future__ import annotations
 import argparse
 import html
 import inspect
-import threading
-from datetime import datetime, timezone
 from typing import Any
 
-import admin_bot as legacy
 import bot_private_state
-from admin_panel_runtime_v17 import default_source_requests
-from admin_panel_runtime_v21 import TelegramPanelRuntimeV21
-from admin_panel_runtime_v22 import TelegramPanelRuntimeV22
-from admin_panel_v2 import default_access
+from bbvg.bot.source_requests import default_source_requests
+from bbvg.bot.users import UserManagementRuntime
+from bbvg.bot.storage import PrivateStateRuntime, self_test as storage_self_test
 
-UTC = timezone.utc
 CONFIRMED_POINTS = 40
 
 
-class TelegramPanelRuntimeV25(TelegramPanelRuntimeV22):
-    """Bot-only control center with persistent encrypted Telegram user state."""
+class TelegramPanelRuntimeV25(PrivateStateRuntime):
+    """Compatibility UI over the consolidated encrypted-state subsystem.
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._bot_state_lock = threading.RLock()
-        self._bot_bundle: dict[str, Any] | None = None
-
-    @staticmethod
-    def _bootstrap_access(value: dict[str, Any] | None = None) -> dict[str, Any]:
-        result = default_access()
-        if isinstance(value, dict):
-            result.update(value)
-        owner_id = str(
-            result.get("owner_id")
-            or legacy.ADMIN_USER_ID
-            or legacy.BOT_CHAT_ID
-            or ""
-        ).strip()
-        chat_id = str(legacy.BOT_CHAT_ID or owner_id).strip()
-        users = result.get("users")
-        result["users"] = users if isinstance(users, dict) else {}
-        if owner_id:
-            result["owner_id"] = owner_id
-            now = datetime.now(UTC).isoformat()
-            previous = result["users"].get(owner_id)
-            previous = previous if isinstance(previous, dict) else {}
-            result["users"][owner_id] = {
-                **previous,
-                "id": owner_id,
-                "chat_id": str(previous.get("chat_id") or chat_id or owner_id),
-                "username": str(previous.get("username") or ""),
-                "first_name": str(previous.get("first_name") or "Администратор"),
-                "last_name": str(previous.get("last_name") or ""),
-                "first_seen_at": str(previous.get("first_seen_at") or now),
-                "last_seen_at": str(previous.get("last_seen_at") or now),
-                "notifications_enabled": True,
-            }
-            recipients = {
-                str(item)
-                for item in result.get("notification_recipients", [])
-                if str(item)
-            }
-            recipients.add(str(result["users"][owner_id].get("chat_id") or owner_id))
-            result["notification_recipients"] = sorted(recipients)
-        settings = result.get("settings")
-        settings = settings if isinstance(settings, dict) else {}
-        settings.setdefault("public_panel", True)
-        settings.setdefault("notifications", True)
-        settings.setdefault("monitor_interval_minutes", 5)
-        result["settings"] = settings
-        return result
-
-    def _load_bot_bundle(self, force: bool = False) -> dict[str, Any]:
-        with self._bot_state_lock:
-            if self._bot_bundle is not None and not force:
-                return self._bot_bundle
-            bundle = bot_private_state.load_file(
-                access_default=self._bootstrap_access(),
-                source_requests_default=default_source_requests(),
-            )
-            bundle["access"] = self._bootstrap_access(
-                bundle.get("access") if isinstance(bundle.get("access"), dict) else {}
-            )
-            requests = bundle.get("source_requests")
-            bundle["source_requests"] = (
-                requests if isinstance(requests, dict) else default_source_requests()
-            )
-            bundle["version"] = 1
-            self._bot_bundle = bundle
-            return bundle
-
-    def _save_bot_bundle(self, message: str) -> bool:
-        """Save locally first; a transient GitHub error must not block a user button."""
-        with self._bot_state_lock:
-            bundle = self._load_bot_bundle()
-            text = bot_private_state.save_file(bundle)
-            try:
-                self.update_file(
-                    bot_private_state.STATE_PATH.name,
-                    text,
-                    message,
-                )
-            except Exception as exc:
-                print(
-                    "WARNING deferred bot private state persistence: "
-                    f"{type(exc).__name__}: {exc}"
-                )
-                return False
-            return True
-
-    def load_access(self, force: bool = False) -> dict[str, Any]:
-        with self.access_lock:
-            if self.access_loaded and not force:
-                return self.access
-            bundle = self._load_bot_bundle(force=force)
-            self.access = self.normalize_access(bundle["access"])
-            self.access_loaded = True
-            return self.access
-
-    def save_access(self, message: str = "Update Telegram bot access [skip ci]") -> None:
-        with self.access_lock:
-            normalized = self.normalize_access(self.access)
-            bundle = self._load_bot_bundle()
-            bundle["access"] = normalized
-            self.access = normalized
-            self.access_loaded = True
-            self._save_bot_bundle(message)
-
-    def load_source_requests(self) -> dict[str, Any]:
-        value = self._load_bot_bundle().get("source_requests")
-        requests = value.get("requests") if isinstance(value, dict) else None
-        return {
-            "version": 1,
-            "requests": requests if isinstance(requests, dict) else {},
-        }
-
-    def save_source_requests(self, value: dict[str, Any], message: str) -> None:
-        bundle = self._load_bot_bundle()
-        requests = value.get("requests") if isinstance(value, dict) else None
-        bundle["source_requests"] = {
-            "version": 1,
-            "requests": requests if isinstance(requests, dict) else {},
-        }
-        self._save_bot_bundle(message)
+    Storage, conflict resolution and role persistence now live in
+    ``bbvg.bot.storage``. The remaining methods preserve the historical v25
+    page and callback contract until the later interface layers are consolidated.
+    """
 
     @staticmethod
     def compact_menu_rows(admin: bool) -> list[list[dict[str, Any]]]:
@@ -277,9 +154,9 @@ class TelegramPanelRuntimeV25(TelegramPanelRuntimeV22):
                     f"<b>{index}. <code>{html.escape(identifier)}</code></b>",
                     f"⏳ {html.escape(time_text)}",
                     f"📡 @{html.escape(source)}",
-                    "✅ Активность подтверждена администратором" if admin and joined else (
-                        "✅ Участие отмечено" if joined else "❌ Участие не отмечено"
-                    ),
+                    "✅ Активность подтверждена администратором"
+                    if admin and joined
+                    else ("✅ Участие отмечено" if joined else "❌ Участие не отмечено"),
                     "",
                 ]
             )
@@ -330,7 +207,7 @@ class TelegramPanelRuntimeV25(TelegramPanelRuntimeV22):
             )
             return
         if page in {"discovery", "intelligence"}:
-            TelegramPanelRuntimeV21.render_page(self, page)
+            UserManagementRuntime.render_page(self, page)
             return
         if page in {"status", "reports", "pending"}:
             self.show_menu(clear_stack=True)
@@ -345,7 +222,7 @@ class TelegramPanelRuntimeV25(TelegramPanelRuntimeV22):
 
 
 def self_test() -> None:
-    bot_private_state.self_test()
+    storage_self_test()
     admin_callbacks = {
         button.get("callback_data")
         for row in TelegramPanelRuntimeV25.compact_menu_rows(True)
@@ -363,6 +240,7 @@ def self_test() -> None:
     panel._bot_bundle = bot_private_state.default_bundle(
         panel._bootstrap_access(), default_source_requests()
     )
+    panel._bundle_baseline = None
     panel._save_bot_bundle = lambda message: True  # type: ignore[method-assign]
     panel.send = lambda *args, **kwargs: {"ok": True}  # type: ignore[method-assign]
     panel.answer = lambda *args, **kwargs: None  # type: ignore[method-assign]
@@ -376,7 +254,7 @@ def self_test() -> None:
     )
     assert "2" in panel.access.get("users", {})
     assert panel.role_for("2") == "user"
-    print("admin_panel_runtime_v25 bot-only recovery self-test passed")
+    print("admin_panel_runtime_v25 storage compatibility self-test passed")
 
 
 def main() -> int:

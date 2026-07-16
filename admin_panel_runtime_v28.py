@@ -4,10 +4,10 @@ import argparse
 from typing import Any
 
 import admin_action_v2
-from admin_panel_runtime_v27 import TelegramPanelRuntimeV27
+from admin_panel_runtime_v26 import TelegramPanelRuntimeV26
 
 
-class TelegramPanelRuntimeV28(TelegramPanelRuntimeV27):
+class TelegramPanelRuntimeV28(TelegramPanelRuntimeV26):
     """Reliable administrator wheel actions through GitHub Contents API."""
 
     def _apply_admin_action_direct(self, action: str, value: str) -> dict[str, Any]:

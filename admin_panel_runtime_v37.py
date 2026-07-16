@@ -12,8 +12,8 @@ from typing import Any
 
 import admin_action_queue
 import admin_bot as legacy
-from admin_panel_runtime_v21 import ADMIN_NOTIFICATION_OPTIONS
-from admin_panel_runtime_v33 import WHEEL_NOTIFICATION_OPTIONS
+from bbvg.bot.users import ADMIN_NOTIFICATION_OPTIONS
+from bbvg.bot.users import WHEEL_NOTIFICATION_OPTIONS
 from admin_panel_runtime_v36 import TelegramPanelRuntimeV36
 
 

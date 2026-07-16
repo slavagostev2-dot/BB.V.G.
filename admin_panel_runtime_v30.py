@@ -5,8 +5,8 @@ import html
 from typing import Any
 
 import bot_private_state
-from admin_panel_runtime_v17 import default_source_requests
-from admin_panel_runtime_v21 import ADMIN_NOTIFICATION_OPTIONS, USER_NOTIFICATION_OPTIONS
+from bbvg.bot.source_requests import default_source_requests
+from bbvg.bot.users import ADMIN_NOTIFICATION_OPTIONS, USER_NOTIFICATION_OPTIONS
 from admin_panel_runtime_v29 import TelegramPanelRuntimeV29
 
 

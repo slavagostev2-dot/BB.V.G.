@@ -8,7 +8,8 @@ from typing import Any
 
 import bot_notification_state  # noqa: F401  # installs notification integrity policy
 from admin_bot import COMMANDS
-from admin_panel_runtime_v35 import TelegramPanelRuntimeV35
+from admin_panel_runtime_v32 import TelegramPanelRuntimeV32
+from bbvg.bot.users import UserSettingsMixin
 
 TECHNICAL_ERROR_RE = re.compile(
     r"(?:Не удалось выполнить команду:\s*<code>[^<]+</code>|"
@@ -23,8 +24,8 @@ USER_ACTION_ERROR = (
 )
 
 
-class TelegramPanelRuntimeV36(TelegramPanelRuntimeV35):
-    """Chapter 2: durable notification semantics and one source-rating name."""
+class TelegramPanelRuntimeV36(UserSettingsMixin, TelegramPanelRuntimeV32):
+    """Durable notifications, privacy and one source-rating name."""
 
     @staticmethod
     def safe_text_for_role(text: str, role: str) -> str:
@@ -55,7 +56,7 @@ class TelegramPanelRuntimeV36(TelegramPanelRuntimeV35):
 
     @staticmethod
     def source_menu_rows(admin: bool) -> list[list[dict[str, Any]]]:
-        rows = TelegramPanelRuntimeV35.source_menu_rows(admin)
+        rows = TelegramPanelRuntimeV32.source_menu_rows(admin)
         for row in rows:
             for button in row:
                 if button.get("callback_data") == "page:ranking":
@@ -118,6 +119,7 @@ def self_test() -> None:
         if button.get("callback_data") == "page:ranking"
     ]
     assert ranking_buttons and ranking_buttons[0]["text"] == "🏆 Рейтинг источников"
+    assert isinstance(panel, UserSettingsMixin)
 
     captured: list[str] = []
     panel.snapshot = lambda force=False: SimpleNamespace(  # type: ignore[method-assign]
@@ -134,7 +136,7 @@ def self_test() -> None:
     assert captured and "Рейтинг источников" in captured[0]
     assert "@sourceA" in captured[0]
     assert "@sourceB" not in captured[0]
-    print("admin panel v36 chapter 2 self-test passed")
+    print("admin panel v36 consolidated user settings self-test passed")
 
 
 def main() -> int:
