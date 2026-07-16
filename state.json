@@ -752,16 +752,16 @@
   ],
   "last_admin_action_applied_at": "2026-07-16T16:47:35.709259+00:00",
   "last_automatic_status_at": "2026-07-16T18:33:06.760465+00:00",
-  "last_heartbeat_at": "2026-07-16T15:05:00.124018+00:00",
+  "last_heartbeat_at": "2026-07-16T21:07:30.458745+00:00",
   "last_run_kind": "schedule",
   "last_run_summary": {
     "activation_sent": 0,
-    "active_wheels": 4,
+    "active_wheels": 0,
     "admin_actions": {
       "applied": 0,
       "changed": false,
       "failed": 0,
-      "loaded": 51,
+      "loaded": 53,
       "pending": 0
     },
     "callbacks": {
@@ -771,7 +771,7 @@
     },
     "checked_sources": 78,
     "duplicates_suppressed": 0,
-    "inactive_waiting": 0,
+    "inactive_waiting": 1,
     "initialized_now": 0,
     "notification_errors": 0,
     "pending_expired": 0,
@@ -781,14 +781,18 @@
     "reachable_sources": 78,
     "reminders": {
       "availability_notifications": 0,
-      "changed": true,
+      "changed": false,
       "draw_alerts": 0,
       "final_reminders": 0,
       "known_reminders": 0,
       "pending_total": 0,
       "removed": 0,
-      "tracked": 4,
-      "unknown_reminders": 0
+      "tracked": 0,
+      "unknown_reminders": 0,
+      "verification_checked": 0,
+      "verification_confirmed": 0,
+      "verification_failed": 0,
+      "verification_removed": 0
     },
     "source_errors": 0,
     "source_inactivity": {
@@ -1080,7 +1084,7 @@
     "58ff2284b470bfbd26d63736eae2468711b2e32a309d0813028bea35429e61fd": "2026-07-12T15:09:46.050564+00:00",
     "5c905b12205b8fb5d7efef9def1cdb2c9e99c6d6d2fddbabd5467ad0b4768795": "2026-07-12T19:22:25.149620+00:00",
     "5dac83ecae4b2518df3fc5e96bf15d035372a2d5736e826c77ec287519694c0e": "2026-07-12T18:21:18.200134+00:00",
-    "654b3ac09c6cfc2f5bc55db3c4d7aa7472b9901a6bcfcf1f1eb4cc18795ccc68": "2026-07-16T21:04:28.698954+00:00",
+    "654b3ac09c6cfc2f5bc55db3c4d7aa7472b9901a6bcfcf1f1eb4cc18795ccc68": "2026-07-16T21:19:30.356790+00:00",
     "657a1783effa53f74ae367254a81841824e0163188438bb1f2bb96723936d72a": "2026-07-12T19:22:25.149620+00:00",
     "6737615cc4c1572acb02ea9785ce1f2b0b199bb78414bef2ffc1a8720ad9381d": "2026-07-12T18:21:26.142261+00:00",
     "67468596cee62c05cc01a13454d23038f9f957f8f5f598ed3ed9c1f218d76f31": "2026-07-12T18:26:18.629262+00:00",
@@ -1485,8 +1489,8 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-16T21:04:28.698873+00:00",
-    "last_success_at": "2026-07-16T21:04:28.698873+00:00",
+    "last_checked_at": "2026-07-16T21:19:30.356684+00:00",
+    "last_success_at": "2026-07-16T21:19:30.356684+00:00",
     "status": "ok"
   },
   "wheel_lifecycle_history": {
