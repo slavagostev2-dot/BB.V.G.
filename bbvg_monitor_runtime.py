@@ -170,6 +170,10 @@ def remember_without_pending(
     initial_notified: bool = False,
 ) -> None:
     key = monitor.wheel_key(link)
+    if status in {"inactive", "duplicate_link", "duplicate_publication"}:
+        state.setdefault("pending_posts", {}).pop(post_key, None)
+        state.setdefault("seen", {})[post_key] = monitor.now_utc().isoformat()
+        return
     if _inactive_entry(state, key):
         state.setdefault("seen", {})[post_key] = monitor.now_utc().isoformat()
         return
@@ -181,30 +185,31 @@ def remember_without_pending(
         "message_date": canonical.date.astimezone(monitor.UTC).isoformat(),
         "message_url": canonical.message_url,
     })
-    deadline, deadline_method = monitor.infer_deadline(canonical.text, canonical.date)
-    stored_status = "scheduled" if deadline else "manual_time_required"
-    method = deadline_method if deadline else reason
-
-    _original_remember_active_wheel(
-        state,
-        canonical,
-        link,
-        deadline,
-        stored_status,
-        method,
-        str(getattr(canonical, "page_excerpt", "") or ""),
-    )
     entry = state.setdefault("active_wheels", {}).get(key)
+    if not isinstance(entry, dict):
+        deadline, deadline_method = monitor.infer_deadline(canonical.text, canonical.date)
+        stored_status = "scheduled" if deadline else "manual_time_required"
+        method = deadline_method if deadline else reason
+        _original_remember_active_wheel(
+            state,
+            canonical,
+            link,
+            deadline,
+            stored_status,
+            method,
+            str(getattr(canonical, "page_excerpt", "") or ""),
+        )
+        entry = state.setdefault("active_wheels", {}).get(key)
+
     if isinstance(entry, dict):
         entry["page_status"] = status
-        entry["needs_manual_time"] = deadline is None
         entry["last_checked_at"] = monitor.now_utc().isoformat()
-        if deadline is None:
-            entry.pop("deadline", None)
+        stored_deadline = monitor.parse_datetime(entry.get("deadline"))
+        entry["needs_manual_time"] = stored_deadline is None
+        if stored_deadline is None:
             entry["expires_at"] = _manual_expiry().isoformat()
         else:
-            entry["deadline"] = deadline.isoformat()
-            entry["expires_at"] = monitor.participation_expiry(deadline).isoformat()
+            entry["expires_at"] = monitor.participation_expiry(stored_deadline).isoformat()
 
     state.setdefault("pending_posts", {}).clear()
     if status != "send_error":
@@ -212,27 +217,35 @@ def remember_without_pending(
 
 
 def assess_new_without_pending(message, link, state=None):
+    result = _original_assess_new(message, link, state)
     if isinstance(state, dict) and _inactive_entry(state, monitor.wheel_key(link)):
         return monitor.WheelAssessment(
             False,
-            None,
+            result.deadline,
             "колесо отмечено администратором как неактивное",
             "inactive",
-            "",
+            result.page_excerpt,
+            action_id=result.action_id,
+            available_at=result.available_at,
+            verification_status=result.verification_status,
         )
-    return _original_assess_new(message, link, state)
+    return result
 
 
 def assess_pending_without_pending(message, link, state=None):
+    result = _original_assess_pending(message, link, state)
     if isinstance(state, dict) and _inactive_entry(state, monitor.wheel_key(link)):
         return monitor.WheelAssessment(
             False,
-            None,
+            result.deadline,
             "колесо отмечено администратором как неактивное",
             "inactive",
-            "",
+            result.page_excerpt,
+            action_id=result.action_id,
+            available_at=result.available_at,
+            verification_status=result.verification_status,
         )
-    return _original_assess_pending(message, link, state)
+    return result
 
 
 def wheel_reply_markup_bbvg(
@@ -289,9 +302,67 @@ def wheel_reply_markup_bbvg(
     return {"inline_keyboard": rebuilt}
 
 
+def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
+    """Retry only wheels admitted after a transient BetBoom API failure."""
+
+    current = current or monitor.now_utc()
+    active = state.setdefault("active_wheels", {})
+    changed = False
+    confirmed = 0
+    removed = 0
+    for key, entry in list(active.items()):
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("verification_status") != monitor.WHEEL_VERIFICATION_FAILED:
+            continue
+        retry_at = monitor.parse_datetime(entry.get("verification_retry_at"))
+        if retry_at is not None and retry_at > current:
+            continue
+        url = str(entry.get("url") or "")
+        if not url:
+            continue
+        inspection = monitor.inspect_wheel_page(url)
+        entry["last_verification_at"] = current.isoformat()
+        if inspection.status == "verification_failed":
+            entry["verification_retry_at"] = (
+                current + timedelta(minutes=monitor.PENDING_RECHECK_MINUTES)
+            ).isoformat()
+            changed = True
+            continue
+        if inspection.status == "inactive":
+            active.pop(key, None)
+            removed += 1
+            changed = True
+            continue
+
+        entry["verification_status"] = monitor.WHEEL_VERIFICATION_CONFIRMED
+        entry["status"] = "active"
+        entry["page_status"] = "active"
+        entry["method"] = inspection.method[:300]
+        entry.pop("verification_retry_at", None)
+        if inspection.action_id is not None:
+            entry["action_id"] = inspection.action_id
+        if inspection.available_at is not None:
+            entry["available_at"] = inspection.available_at.isoformat()
+        if inspection.deadline is not None:
+            entry["deadline"] = inspection.deadline.isoformat()
+            entry["expires_at"] = monitor.participation_expiry(
+                inspection.deadline, current=current
+            ).isoformat()
+            entry["needs_manual_time"] = False
+        else:
+            entry.pop("deadline", None)
+            entry["expires_at"] = _manual_expiry(current).isoformat()
+            entry["needs_manual_time"] = True
+        confirmed += 1
+        changed = True
+    return {"changed": changed, "confirmed": confirmed, "removed": removed}
+
+
 def process_active_without_page_verdict(state: dict, stats: dict):
     current = monitor.now_utc()
-    changed = False
+    verification = retry_unverified_wheels(state, current)
+    changed = bool(verification.get("changed"))
     state.setdefault("pending_posts", {}).clear()
 
     for key, entry in list(state.setdefault("active_wheels", {}).items()):
@@ -323,6 +394,8 @@ def process_active_without_page_verdict(state: dict, stats: dict):
     state.setdefault("pending_posts", {}).clear()
     if changed:
         result["changed"] = True
+    result["verification_confirmed"] = int(verification.get("confirmed", 0) or 0)
+    result["verification_removed"] = int(verification.get("removed", 0) or 0)
     result["pending_total"] = 0
     return result
 

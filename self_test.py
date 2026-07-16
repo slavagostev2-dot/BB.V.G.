@@ -10,17 +10,18 @@ import monitor_data as data_store
 ROOT = Path(__file__).resolve().parent
 
 
-def fake_page(text: str):
+def fake_api(payload: dict, status_code: int = 200):
     class FakeResponse:
-        status_code = 200
+        def __init__(self) -> None:
+            self.status_code = status_code
 
-        def __init__(self, value: str) -> None:
-            self.text = value
+        def json(self) -> dict:
+            return payload
 
         def raise_for_status(self) -> None:
             return None
 
-    return FakeResponse(text)
+    return FakeResponse()
 
 
 def main() -> None:
@@ -35,28 +36,48 @@ def main() -> None:
     deadline, _ = monitor.infer_deadline("Крутим через 1 час 20 минут", published)
     assert deadline == published + timedelta(hours=1, minutes=20)
 
-    deadline = monitor.countdown_deadline("До прокрутки 00:15:30", published)
-    assert deadline == published + timedelta(minutes=15, seconds=30)
-
     original_request = monitor.request_with_retries
     try:
-        monitor.request_with_retries = lambda *args, **kwargs: fake_page(
-            "<html><body>Пока ждёшь следующий запуск, заглядывай в другие акции</body></html>"
+        monitor.request_with_retries = lambda *args, **kwargs: fake_api(
+            {
+                "code": 200,
+                "status": "OK",
+                "info": {
+                    "action_id": 866,
+                    "start_dttm": "2026-07-16T14:26:28.209Z",
+                    "duration_min": 15,
+                    "is_ended": True,
+                    "is_early": False,
+                },
+            }
         )
         inspection = monitor.inspect_wheel_page(
             "https://betboom.ru/freestream/old-wheel"
         )
         assert inspection.status == "inactive"
+        assert inspection.action_id == 866
 
-        monitor.request_with_retries = lambda *args, **kwargs: fake_page(
-            '<html><body><button aria-label="Участвовать">Участвовать</button></body></html>'
+        started = monitor.now_utc() - timedelta(minutes=5)
+        monitor.request_with_retries = lambda *args, **kwargs: fake_api(
+            {
+                "code": 200,
+                "status": "OK",
+                "info": {
+                    "action_id": 692,
+                    "start_dttm": started.isoformat(),
+                    "duration_min": 600,
+                    "is_ended": False,
+                    "is_early": False,
+                },
+            }
         )
         inspection = monitor.inspect_wheel_page(
             "https://betboom.ru/freestream/live-wheel"
         )
         assert inspection.status == "active"
-        assert "кнопка" in inspection.method
-        assert "Участвовать" in inspection.page_excerpt
+        assert inspection.action_id == 692
+        assert inspection.deadline == started + timedelta(minutes=600)
+        assert inspection.verification_status == monitor.WHEEL_VERIFICATION_CONFIRMED
     finally:
         monitor.request_with_retries = original_request
 

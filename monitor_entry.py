@@ -128,6 +128,12 @@ def _notification_first(message, result):
     age = monitor.message_age(message)
     if result.should_notify:
         return result
+    if result.status in {
+        "inactive",
+        "duplicate_link",
+        "duplicate_publication",
+    }:
+        return result
     if age <= timedelta(minutes=monitor.MAX_NEW_POST_AGE_MINUTES):
         return monitor.WheelAssessment(
             True,
@@ -135,6 +141,9 @@ def _notification_first(message, result):
             f"новая уникальная публикация; {result.method}",
             "preliminary",
             result.page_excerpt,
+            action_id=result.action_id,
+            available_at=result.available_at,
+            verification_status=result.verification_status,
         )
     return result
 

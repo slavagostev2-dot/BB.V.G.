@@ -10,6 +10,7 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import admin_action_queue
+import monitor
 import monitor_data
 import rating_policy
 import recurring_wheel_events
@@ -17,6 +18,109 @@ import wheel_publications_v2
 
 
 UTC = timezone.utc
+
+
+class WheelApiVerificationTests(unittest.TestCase):
+    class Response:
+        status_code = 200
+
+        def __init__(self, payload: dict[str, Any]) -> None:
+            self.payload = payload
+
+        def json(self) -> dict[str, Any]:
+            return self.payload
+
+        def raise_for_status(self) -> None:
+            return None
+
+    def setUp(self) -> None:
+        self.original_request = monitor.request_with_retries
+        self.original_now = monitor.now_utc
+        self.current = datetime(2026, 7, 16, 15, 0, tzinfo=UTC)
+        monitor.now_utc = lambda: self.current
+
+    def tearDown(self) -> None:
+        monitor.request_with_retries = self.original_request
+        monitor.now_utc = self.original_now
+
+    def response(self, info: dict[str, Any]) -> None:
+        monitor.request_with_retries = lambda *args, **kwargs: self.Response(
+            {"code": 200, "status": "OK", "info": info}
+        )
+
+    def test_active_action_uses_api_deadline_and_identity(self) -> None:
+        self.response(
+            {
+                "action_id": 692,
+                "start_dttm": "2026-07-16T14:00:00Z",
+                "duration_min": 600,
+                "is_ended": False,
+                "is_early": False,
+            }
+        )
+        result = monitor.inspect_wheel_page(
+            "https://betboom.ru/freestream/zonertg7"
+        )
+        self.assertEqual(result.status, "active")
+        self.assertEqual(result.action_id, 692)
+        self.assertEqual(result.deadline, datetime(2026, 7, 17, 0, 0, tzinfo=UTC))
+        self.assertEqual(result.verification_status, "confirmed")
+
+    def test_expired_timer_wins_even_when_is_ended_is_false(self) -> None:
+        self.response(
+            {
+                "action_id": 866,
+                "start_dttm": "2026-07-16T14:26:28Z",
+                "duration_min": 15,
+                "is_ended": False,
+                "is_early": False,
+            }
+        )
+        result = monitor.inspect_wheel_page(
+            "https://betboom.ru/freestream/kyzko"
+        )
+        self.assertEqual(result.status, "inactive")
+        self.assertEqual(result.action_id, 866)
+
+    def test_not_found_is_a_silent_definitive_rejection(self) -> None:
+        monitor.request_with_retries = lambda *args, **kwargs: self.Response(
+            {
+                "code": 400,
+                "status": "BAD_REQUEST",
+                "error": {"message": "Акция не найдена"},
+            }
+        )
+        message = monitor.Message(
+            "source",
+            1,
+            self.current,
+            "https://betboom.ru/freestream/missing",
+            "https://telegram.me/source/1",
+        )
+        result = monitor.assess_new_wheel(
+            message, "https://betboom.ru/freestream/missing", {}
+        )
+        self.assertFalse(result.should_notify)
+        self.assertEqual(result.status, "inactive")
+
+    def test_transport_failure_is_visible_as_unverified(self) -> None:
+        def fail(*args: Any, **kwargs: Any):
+            raise monitor.requests.Timeout("simulated timeout")
+
+        monitor.request_with_retries = fail
+        message = monitor.Message(
+            "source",
+            2,
+            self.current,
+            "https://betboom.ru/freestream/unverified",
+            "https://telegram.me/source/2",
+        )
+        result = monitor.assess_new_wheel(
+            message, "https://betboom.ru/freestream/unverified", {}
+        )
+        self.assertTrue(result.should_notify)
+        self.assertEqual(result.status, "verification_failed")
+        self.assertEqual(result.verification_status, "failed")
 
 
 class WheelLifecycleTests(unittest.TestCase):
