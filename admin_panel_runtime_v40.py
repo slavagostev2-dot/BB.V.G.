@@ -49,6 +49,15 @@ class TelegramPanelRuntimeV40(TelegramPanelRuntimeV39):
                     button["text"] = cleaned
         return cleaned_text, cleaned_markup
 
+    @classmethod
+    def _color_active_payload(
+        cls,
+        text: str,
+        reply_markup: dict[str, Any] | None,
+    ) -> tuple[str, dict[str, Any] | None]:
+        """Compatibility alias: the former colorizer now removes rainbow markers."""
+        return cls._simplify_active_payload(text, reply_markup)
+
     def show_active(self, page: int = 0) -> None:
         original_send = self.send
 
@@ -149,7 +158,7 @@ def self_test() -> None:
             ],
         ]
     }
-    cleaned_text, cleaned_markup = simplified._simplify_active_payload(
+    cleaned_text, cleaned_markup = simplified._color_active_payload(
         rainbow_text, rainbow_markup
     )
     assert "<code>wheel-a</code> 🔵" not in cleaned_text
