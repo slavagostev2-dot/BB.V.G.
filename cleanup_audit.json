@@ -72,39 +72,8 @@
   ],
   "current_runtime": "admin_panel_runtime_v41",
   "runtime_chain_count": 33,
-  "runtime_file_count": 37,
+  "runtime_file_count": 36,
   "runtime_files": [
-    {
-      "classes": [
-        {
-          "bases": [
-            "PanelFoundationMixin",
-            "TelegramPanelRuntimeV9"
-          ],
-          "class_attributes": [],
-          "method_count": 0,
-          "methods": [],
-          "name": "TelegramPanelRuntimeV10"
-        }
-      ],
-      "direct_imports": [
-        "admin_panel_runtime_v9",
-        "bbvg.bot.foundation"
-      ],
-      "in_current_import_chain": false,
-      "line_count": 43,
-      "module": "admin_panel_runtime_v10",
-      "path": "admin_panel_runtime_v10.py",
-      "reference_count": 2,
-      "references": [
-        "admin_panel_runtime_v10.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
-      ],
-      "top_level_functions": [
-        "main",
-        "self_test"
-      ]
-    },
     {
       "classes": [
         {
@@ -4034,9 +4003,8 @@
       "line_count": 169,
       "module": "admin_panel_runtime_v9",
       "path": "admin_panel_runtime_v9.py",
-      "reference_count": 5,
+      "reference_count": 4,
       "references": [
-        "admin_panel_runtime_v10.py",
         "admin_panel_runtime_v13.py",
         "admin_panel_runtime_v9.py",
         "bbvg/bot/foundation.py",
@@ -4669,7 +4637,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 9976,
+  "runtime_total_lines": 9933,
   "runtime_unique_method_count": 148,
   "unreferenced_python_candidates": []
 }
