@@ -64,7 +64,7 @@
   ],
   "current_runtime": "admin_panel_runtime_v41",
   "runtime_chain_count": 23,
-  "runtime_file_count": 26,
+  "runtime_file_count": 25,
   "runtime_files": [
     {
       "classes": [
@@ -1280,41 +1280,9 @@
       "line_count": 43,
       "module": "admin_panel_runtime_v33",
       "path": "admin_panel_runtime_v33.py",
-      "reference_count": 3,
-      "references": [
-        "admin_panel_runtime_v33.py",
-        "admin_panel_runtime_v34.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
-      ],
-      "top_level_functions": [
-        "main",
-        "self_test"
-      ]
-    },
-    {
-      "classes": [
-        {
-          "bases": [
-            "TelegramPanelRuntimeV33"
-          ],
-          "class_attributes": [],
-          "method_count": 0,
-          "methods": [],
-          "name": "TelegramPanelRuntimeV34"
-        }
-      ],
-      "direct_imports": [
-        "admin_panel_runtime_v33",
-        "bbvg.bot.storage",
-        "bbvg.bot.users"
-      ],
-      "in_current_import_chain": false,
-      "line_count": 39,
-      "module": "admin_panel_runtime_v34",
-      "path": "admin_panel_runtime_v34.py",
       "reference_count": 2,
       "references": [
-        "admin_panel_runtime_v34.py",
+        "admin_panel_runtime_v33.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -3042,7 +3010,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 6228,
+  "runtime_total_lines": 6189,
   "runtime_unique_method_count": 100,
   "unreferenced_python_candidates": []
 }
