@@ -3,6 +3,12 @@ run-name: Backup encrypted bot state - ${{ github.event_name }}
 
 on:
   create:
+  push:
+    branches:
+      - main
+      - "backup/**"
+    paths:
+      - ".github/workflows/bot-state-backup.yml"
   workflow_dispatch:
   schedule:
     - cron: "42 2 * * *"
@@ -16,7 +22,7 @@ concurrency:
 
 jobs:
   backup:
-    if: github.event_name != 'create'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -81,9 +87,15 @@ jobs:
 
   rotate-backup-branches:
     if: >-
-      github.event_name == 'create' &&
+      (github.event_name == 'create' &&
       github.event.ref_type == 'branch' &&
-      startsWith(github.event.ref, 'backup/')
+      startsWith(github.event.ref, 'backup/')) ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' &&
+      github.event.created &&
+      startsWith(github.ref, 'refs/heads/backup/'))
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -91,7 +103,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       REPOSITORY: ${{ github.repository }}
-      CREATED_BACKUP_REF: ${{ github.event.ref }}
+      CREATED_BACKUP_REF: ${{ github.event_name == 'create' && github.event.ref || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/backup/') && github.ref_name || '') }}
       KEEP_BACKUPS: "3"
 
     steps:
@@ -109,13 +121,15 @@ jobs:
 
           token = os.environ["GH_TOKEN"]
           repository = os.environ["REPOSITORY"]
-          created_ref = os.environ["CREATED_BACKUP_REF"]
+          created_ref = os.environ.get("CREATED_BACKUP_REF", "").strip()
           keep_count = int(os.environ["KEEP_BACKUPS"])
           api_root = f"https://api.github.com/repos/{repository}"
 
           if keep_count != 3:
               raise SystemExit("KEEP_BACKUPS must remain exactly 3")
-          if not created_ref.startswith("backup/") or created_ref == "backup/":
+          if created_ref and (
+              not created_ref.startswith("backup/") or created_ref == "backup/"
+          ):
               raise SystemExit(f"Unsafe backup ref: {created_ref!r}")
 
           headers = {
@@ -157,17 +171,6 @@ jobs:
           default_branch = repository_info["default_branch"]
           default_ref = request("GET", ref_path(default_branch))
           default_sha = default_ref["object"]["sha"]
-          new_backup = request("GET", ref_path(created_ref))
-          new_backup_sha = new_backup["object"]["sha"]
-
-          new_compare = request("GET", f"/compare/{new_backup_sha}...{default_sha}")
-          if new_compare["status"] not in {"ahead", "identical"}:
-              raise SystemExit(
-                  f"New backup is not an ancestor of {default_branch}: "
-                  f"status={new_compare['status']}"
-              )
-          if new_compare["merge_base_commit"]["sha"] != new_backup_sha:
-              raise SystemExit("New backup ancestry verification failed")
 
           refs = list_backup_refs()
           if len(refs) > 50:
@@ -191,12 +194,37 @@ jobs:
                       "name": short_name,
                       "sha": sha,
                       "committed_at": commit["commit"]["committer"]["date"],
-                      "is_created_ref": short_name == created_ref,
+                      "is_created_ref": False,
                   }
               )
 
-          if not any(record["is_created_ref"] for record in records):
-              raise SystemExit("Created backup ref is missing from repository inventory")
+          if not records:
+              print("No backup refs exist; nothing to rotate")
+              raise SystemExit(0)
+
+          if not created_ref:
+              created_ref = max(
+                  records,
+                  key=lambda record: (record["committed_at"], record["name"]),
+              )["name"]
+              print(f"Maintenance run selected newest backup: {created_ref}")
+
+          selected = None
+          for record in records:
+              record["is_created_ref"] = record["name"] == created_ref
+              if record["is_created_ref"]:
+                  selected = record
+          if selected is None:
+              raise SystemExit("Selected backup ref is missing from repository inventory")
+
+          new_compare = request("GET", f"/compare/{selected['sha']}...{default_sha}")
+          if new_compare["status"] not in {"ahead", "identical"}:
+              raise SystemExit(
+                  f"New backup is not an ancestor of {default_branch}: "
+                  f"status={new_compare['status']}"
+              )
+          if new_compare["merge_base_commit"]["sha"] != selected["sha"]:
+              raise SystemExit("New backup ancestry verification failed")
 
           records.sort(
               key=lambda record: (
