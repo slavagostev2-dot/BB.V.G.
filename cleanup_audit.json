@@ -63,7 +63,7 @@
     }
   ],
   "current_runtime": "admin_panel_runtime_v41",
-  "runtime_chain_count": 21,
+  "runtime_chain_count": 19,
   "runtime_file_count": 21,
   "runtime_files": [
     {
@@ -72,20 +72,14 @@
         "bbvg.bot.foundation",
         "bbvg.bot.source_requests"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 39,
       "module": "admin_panel_runtime_v17",
       "path": "admin_panel_runtime_v17.py",
-      "reference_count": 8,
+      "reference_count": 2,
       "references": [
         "admin_panel_runtime_v17.py",
-        "admin_panel_runtime_v25.py",
-        "admin_panel_runtime_v26.py",
-        "admin_panel_runtime_v30.py",
-        "bbvg/bot/wheels.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md",
-        "system_checks.py",
-        "tests/test_nightly_idle_policy.py"
+        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
         "main",
@@ -139,18 +133,14 @@
       "direct_imports": [
         "bbvg.bot.users"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 34,
       "module": "admin_panel_runtime_v21",
       "path": "admin_panel_runtime_v21.py",
-      "reference_count": 6,
+      "reference_count": 2,
       "references": [
         "admin_panel_runtime_v21.py",
-        "admin_panel_runtime_v25.py",
-        "admin_panel_runtime_v30.py",
-        "admin_panel_runtime_v37.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md",
-        "system_checks.py"
+        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
         "main",
@@ -221,9 +211,9 @@
         }
       ],
       "direct_imports": [
-        "admin_panel_runtime_v17",
-        "admin_panel_runtime_v21",
+        "bbvg.bot.source_requests",
         "bbvg.bot.storage",
+        "bbvg.bot.users",
         "bot_private_state"
       ],
       "in_current_import_chain": true,
@@ -323,8 +313,8 @@
       "direct_imports": [
         "admin_action_v2",
         "admin_bot",
-        "admin_panel_runtime_v17",
         "admin_panel_runtime_v25",
+        "bbvg.bot.source_requests",
         "bbvg.bot.sources",
         "bot_private_state"
       ],
@@ -799,9 +789,9 @@
         }
       ],
       "direct_imports": [
-        "admin_panel_runtime_v17",
-        "admin_panel_runtime_v21",
         "admin_panel_runtime_v29",
+        "bbvg.bot.source_requests",
+        "bbvg.bot.users",
         "bot_private_state"
       ],
       "in_current_import_chain": true,
@@ -1482,7 +1472,6 @@
       "direct_imports": [
         "admin_action_queue",
         "admin_bot",
-        "admin_panel_runtime_v21",
         "admin_panel_runtime_v36",
         "bbvg.bot.users"
       ],

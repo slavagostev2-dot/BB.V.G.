@@ -1,10 +1,10 @@
 # BB V.G. — карта методов исторического runtime панели
 
 Файл генерируется автоматически из AST и фактической MRO текущего runtime.
-Исходный коммит аудита: `d321485576dbcf82eb0a6150362406b22e30d175`.
+Исходный коммит аудита: `3b8231ca9dc756fefe2a9ce807ea33abea1e6f3a`.
 
 - Runtime-файлов: **21**
-- В текущей цепочке: **21**
+- В текущей цепочке: **19**
 - Суммарно строк: **5969**
 - Уникальных имён методов: **100**
 
@@ -147,7 +147,7 @@
 
 ## Файлы и определённые методы
 
-### `admin_panel_runtime_v17.py` — 39 строк, в рабочей цепочке
+### `admin_panel_runtime_v17.py` — 39 строк, вне рабочей цепочки
 
 Прямые импорты: `bbvg.bot.foundation`, `bbvg.bot.source_requests`
 
@@ -161,7 +161,7 @@
 
 - `register_user()` — 72 строк
 
-### `admin_panel_runtime_v21.py` — 34 строк, в рабочей цепочке
+### `admin_panel_runtime_v21.py` — 34 строк, вне рабочей цепочки
 
 Прямые импорты: `bbvg.bot.users`
 
@@ -169,7 +169,7 @@
 
 ### `admin_panel_runtime_v25.py` — 271 строк, в рабочей цепочке
 
-Прямые импорты: `admin_panel_runtime_v17`, `admin_panel_runtime_v21`, `bbvg.bot.storage`, `bot_private_state`
+Прямые импорты: `bbvg.bot.source_requests`, `bbvg.bot.storage`, `bbvg.bot.users`, `bot_private_state`
 
 Класс `TelegramPanelRuntimeV25`; база: `PrivateStateRuntime`.
 
@@ -182,7 +182,7 @@
 
 ### `admin_panel_runtime_v26.py` — 321 строк, в рабочей цепочке
 
-Прямые импорты: `admin_action_v2`, `admin_bot`, `admin_panel_runtime_v17`, `admin_panel_runtime_v25`, `bbvg.bot.sources`, `bot_private_state`
+Прямые импорты: `admin_action_v2`, `admin_bot`, `admin_panel_runtime_v25`, `bbvg.bot.source_requests`, `bbvg.bot.sources`, `bot_private_state`
 
 Класс `TelegramPanelRuntimeV26`; база: `TelegramPanelRuntimeV25`.
 
@@ -242,7 +242,7 @@
 
 ### `admin_panel_runtime_v30.py` — 313 строк, в рабочей цепочке
 
-Прямые импорты: `admin_panel_runtime_v17`, `admin_panel_runtime_v21`, `admin_panel_runtime_v29`, `bot_private_state`
+Прямые импорты: `admin_panel_runtime_v29`, `bbvg.bot.source_requests`, `bbvg.bot.users`, `bot_private_state`
 
 Класс `TelegramPanelRuntimeV30`; база: `TelegramPanelRuntimeV29`.
 
@@ -317,7 +317,7 @@
 
 ### `admin_panel_runtime_v37.py` — 873 строк, в рабочей цепочке
 
-Прямые импорты: `admin_action_queue`, `admin_bot`, `admin_panel_runtime_v21`, `admin_panel_runtime_v36`, `bbvg.bot.users`
+Прямые импорты: `admin_action_queue`, `admin_bot`, `admin_panel_runtime_v36`, `bbvg.bot.users`
 
 Класс `TelegramPanelRuntimeV37`; база: `TelegramPanelRuntimeV36`.
 
