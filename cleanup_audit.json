@@ -68,7 +68,7 @@
     }
   ],
   "current_runtime": "admin_panel_runtime_v41",
-  "runtime_chain_count": 24,
+  "runtime_chain_count": 23,
   "runtime_file_count": 27,
   "runtime_files": [
     {
@@ -1283,21 +1283,19 @@
         "admin_panel_runtime_v32",
         "bbvg.bot.users"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 43,
       "module": "admin_panel_runtime_v33",
       "path": "admin_panel_runtime_v33.py",
-      "reference_count": 10,
+      "reference_count": 8,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
-        ".github/workflows/refactor-maintenance.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v33.py",
         "admin_panel_runtime_v34.py",
-        "admin_panel_runtime_v37.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -1724,18 +1722,17 @@
         "admin_action_queue",
         "admin_bot",
         "admin_panel_runtime_v21",
-        "admin_panel_runtime_v33",
-        "admin_panel_runtime_v36"
+        "admin_panel_runtime_v36",
+        "bbvg.bot.users"
       ],
       "in_current_import_chain": true,
       "line_count": 873,
       "module": "admin_panel_runtime_v37",
       "path": "admin_panel_runtime_v37.py",
-      "reference_count": 9,
+      "reference_count": 8,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
-        ".github/workflows/refactor-maintenance.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
