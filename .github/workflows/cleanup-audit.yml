@@ -45,15 +45,31 @@ jobs:
           BBVG_TEST_MODE: "1"
           TELEGRAM_WEB_DOMAIN: telegram.me
         run: |
-          python -m bbvg.bot.foundation
-          python -m bbvg.bot.interface
-          python -m bbvg.bot.source_requests
-          python -m bbvg.bot.wheels
-          python -m bbvg.bot.users
-          python -m bbvg.bot.sources
-          python -m bbvg.bot.storage
-          python -m bbvg.bot.runtime --self-test
-          python rating_policy.py --self-test
+          set +e
+          (
+            set -e
+            echo "[foundation]"
+            python -m bbvg.bot.foundation
+            echo "[interface]"
+            python -m bbvg.bot.interface
+            echo "[source_requests]"
+            python -m bbvg.bot.source_requests
+            echo "[wheels]"
+            python -m bbvg.bot.wheels
+            echo "[users]"
+            python -m bbvg.bot.users
+            echo "[sources]"
+            python -m bbvg.bot.sources
+            echo "[storage]"
+            python -m bbvg.bot.storage
+            echo "[runtime]"
+            python -m bbvg.bot.runtime --self-test
+            echo "[rating_policy]"
+            python rating_policy.py --self-test
+          ) 2>&1 | tee /tmp/modules.log
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
       - name: Run full pytest suite
         id: pytest
         env:
@@ -234,10 +250,15 @@ jobs:
               "parts": parts,
               "stage": "full_refactor_validation_and_audit",
           }
-          pytest_log = Path("/tmp/pytest.log")
-          if parts["pytest"] != "success" and pytest_log.is_file():
-              lines = pytest_log.read_text(encoding="utf-8", errors="replace").splitlines()
-              value["pytest_tail"] = "\n".join(lines[-100:])
+          for key, path_text in (
+              ("modules_tail", "/tmp/modules.log"),
+              ("pytest_tail", "/tmp/pytest.log"),
+          ):
+              path = Path(path_text)
+              part = "modules" if key.startswith("modules") else "pytest"
+              if parts[part] != "success" and path.is_file():
+                  lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+                  value[key] = "\n".join(lines[-100:])
           Path("refactor_validation_status.json").write_text(
               json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
               encoding="utf-8",
