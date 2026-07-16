@@ -29,10 +29,71 @@ jobs:
           python-version: "3.12"
       - name: Build dependency report
         run: python tools/cleanup_audit.py
-      - name: Commit report
+      - name: Build readable runtime inventory
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("cleanup_audit.json").read_text(encoding="utf-8"))
+          lines = [
+              "# BB V.G. — карта методов исторического runtime панели",
+              "",
+              "Файл генерируется автоматически из AST. Он описывает текущую ветку рефакторинга и не заменяет ручной анализ поведения.",
+              "",
+              f"- Runtime-файлов: **{report['runtime_file_count']}**",
+              f"- В текущей цепочке: **{report['runtime_chain_count']}**",
+              f"- Суммарно строк: **{report['runtime_total_lines']}**",
+              f"- Уникальных имён методов: **{report['runtime_unique_method_count']}**",
+              "",
+              "## Файлы и определённые методы",
+              "",
+          ]
+          for row in report["runtime_files"]:
+              state = "в рабочей цепочке" if row["in_current_import_chain"] else "вне рабочей цепочки"
+              lines.extend([
+                  f"### `{row['path']}` — {row['line_count']} строк, {state}",
+                  "",
+                  "Прямые импорты: " + (", ".join(f"`{value}`" for value in row["direct_imports"]) or "нет"),
+                  "",
+              ])
+              if not row["classes"]:
+                  lines.extend(["Классы не определены.", ""])
+                  continue
+              for class_row in row["classes"]:
+                  bases = ", ".join(f"`{value}`" for value in class_row["bases"]) or "без базового класса"
+                  lines.extend([
+                      f"Класс `{class_row['name']}`; база: {bases}.",
+                      "",
+                  ])
+                  if class_row["methods"]:
+                      for method in class_row["methods"]:
+                          lines.append(f"- `{method['name']}()` — {method['line_count']} строк")
+                  else:
+                      lines.append("- собственных методов нет")
+                  lines.append("")
+          lines.extend([
+              "## Методы, определённые в нескольких слоях",
+              "",
+              "Такие методы требуют особенно осторожного объединения: более поздний слой может сознательно заменять прежнее поведение.",
+              "",
+          ])
+          repeated = {
+              name: modules
+              for name, modules in report["runtime_method_index"].items()
+              if len(modules) > 1
+          }
+          for name, modules in repeated.items():
+              lines.append(f"- `{name}()` — " + ", ".join(f"`{value}`" for value in modules))
+          lines.append("")
+          Path("docs/RUNTIME_METHOD_INVENTORY_RU.md").write_text(
+              "\n".join(lines), encoding="utf-8"
+          )
+          PY
+      - name: Commit reports
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add cleanup_audit.json
-          git commit -m "Update cleanup dependency report [skip ci]" || exit 0
+          git add cleanup_audit.json docs/RUNTIME_METHOD_INVENTORY_RU.md
+          git commit -m "Update cleanup dependency reports [skip ci]" || exit 0
           git push origin HEAD:refactor/consolidate-runtime-v42
