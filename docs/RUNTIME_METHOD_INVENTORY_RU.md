@@ -1,11 +1,166 @@
 # BB V.G. — карта методов исторического runtime панели
 
-Файл генерируется автоматически из AST. Он описывает текущую ветку рефакторинга и не заменяет ручной анализ поведения.
+Файл генерируется автоматически из AST и фактической MRO текущего runtime.
 
 - Runtime-файлов: **34**
 - В текущей цепочке: **30**
 - Суммарно строк: **8904**
 - Уникальных имён методов: **128**
+
+## Фактическая MRO текущей панели
+
+1. `bbvg.bot.runtime.TelegramPanelRuntime`
+2. `admin_panel_runtime_v38.TelegramPanelRuntimeV38`
+3. `admin_panel_runtime_v37.TelegramPanelRuntimeV37`
+4. `admin_panel_runtime_v36.TelegramPanelRuntimeV36`
+5. `admin_panel_runtime_v35.TelegramPanelRuntimeV35`
+6. `admin_panel_runtime_v34.TelegramPanelRuntimeV34`
+7. `admin_panel_runtime_v33.TelegramPanelRuntimeV33`
+8. `admin_panel_runtime_v32.TelegramPanelRuntimeV32`
+9. `admin_panel_runtime_v31.TelegramPanelRuntimeV31`
+10. `admin_panel_runtime_v30.TelegramPanelRuntimeV30`
+11. `admin_panel_runtime_v29.TelegramPanelRuntimeV29`
+12. `admin_panel_runtime_v28.TelegramPanelRuntimeV28`
+13. `admin_panel_runtime_v27.TelegramPanelRuntimeV27`
+14. `admin_panel_runtime_v26.TelegramPanelRuntimeV26`
+15. `admin_panel_runtime_v25.TelegramPanelRuntimeV25`
+16. `admin_panel_runtime_v22.TelegramPanelRuntimeV22`
+17. `admin_panel_runtime_v21.TelegramPanelRuntimeV21`
+18. `admin_panel_runtime_v20.TelegramPanelRuntimeV20`
+19. `admin_panel_runtime_v19.TelegramPanelRuntimeV19`
+20. `admin_panel_runtime_v18.TelegramPanelRuntimeV18`
+21. `admin_panel_runtime_v17.TelegramPanelRuntimeV17`
+22. `bbvg.bot.source_requests.SourceRequestRuntime`
+23. `bbvg.bot.interface.PanelInterfaceRuntime`
+24. `admin_panel_runtime_v13.TelegramPanelRuntimeV13`
+25. `bbvg.bot.foundation.PanelFoundationMixin`
+26. `admin_panel_runtime_v9.TelegramPanelRuntimeV9`
+27. `admin_panel_runtime_v8.TelegramPanelRuntimeV8`
+28. `admin_panel_runtime_v7.TelegramPanelRuntimeV7`
+29. `admin_panel_runtime_v6.TelegramPanelRuntimeV6`
+30. `admin_panel_runtime_v5.TelegramPanelRuntimeV5`
+31. `admin_panel_runtime_v4.TelegramPanelRuntimeV4`
+32. `admin_panel_runtime_v3.TelegramPanelRuntimeV3`
+33. `admin_panel_runtime_v2.TelegramPanelRuntimeV2`
+34. `admin_panel_v2.TelegramPanelV2`
+35. `admin_runtime.RuntimeAdminBot`
+36. `admin_bot.AdminBot`
+
+## Владельцы фактически действующих методов
+
+Метод учитывается у первого класса MRO, который его определяет. Исторические реализации, полностью перекрытые более поздним классом, здесь не перечисляются.
+
+### `bbvg.bot.runtime.TelegramPanelRuntime` — 5 методов
+
+`_color_active_payload()`, `_simplify_active_payload()`, `handle_callback()`, `show_active()`, `show_menu()`
+
+### `admin_panel_runtime_v38.TelegramPanelRuntimeV38` — 25 методов
+
+`_display_user()`, `_normalize_page()`, `_page_family()`, `_period_buttons()`, `_quick_time_callback()`, `_resolve_wheel_token()`, `_set_quick_time()`, `_wheel_callback()`, `_wheel_digest()`, `_wheel_token()`, `compact_menu_rows()`, `open_page()`, `period_overview()`, `render_page()`, `request_manual_time()`, `send()`, `show_access()`, `show_analytics()`, `show_inactive_report()`, `show_period_report()`, `show_ranking()`, `show_recipients()`, `show_reports()`, `show_stats()`, `show_status()`
+
+### `admin_panel_runtime_v37.TelegramPanelRuntimeV37` — 18 методов
+
+`_apply_notification_policy_once()`, `_monitor_status()`, `_notification_options_for_role()`, `_remove_summary_preferences()`, `dispatch_admin_action()`, `handle_message()`, `notification_preferences()`, `parse_manual_deadline()`, `record_runtime_heartbeat()`, `register_user()`, `set_admin()`, `setup_bot()`, `show_discovery()`, `show_intelligence()`, `show_notifications()`, `show_sources()`, `toggle_notification()`, `transfer_owner()`
+
+### `admin_panel_runtime_v36.TelegramPanelRuntimeV36` — 2 методов
+
+`safe_text_for_role()`, `source_menu_rows()`
+
+### `admin_panel_runtime_v35.TelegramPanelRuntimeV35` — 4 методов
+
+`_merge_access()`, `normalize_access()`, `set_all_user_notifications()`, `set_user_notification()`
+
+### `admin_panel_runtime_v34.TelegramPanelRuntimeV34` — 7 методов
+
+`_load_bot_bundle()`, `_load_remote_bundle()`, `_normalize_bundle()`, `_save_bot_bundle()`, `_write_remote_bundle()`, `show_user_detail()`, `show_user_notifications()`
+
+### `admin_panel_runtime_v33.TelegramPanelRuntimeV33` — 2 методов
+
+`delete_current_user_data()`, `show_settings()`
+
+### `admin_panel_runtime_v32.TelegramPanelRuntimeV32` — 2 методов
+
+`_collect_current_wheels()`, `_sources_for_item()`
+
+### `admin_panel_runtime_v31.TelegramPanelRuntimeV31` — 7 методов
+
+`analytics_menu_rows()`, `control_menu_rows()`, `dispatch_summary()`, `period_title()`, `show_control()`, `show_send_summary_menu()`, `summary_send_rows()`
+
+### `admin_panel_runtime_v30.TelegramPanelRuntimeV30` — 2 методов
+
+`begin_source_request()`, `ranked_sources()`
+
+### `admin_panel_runtime_v29.TelegramPanelRuntimeV29` — 1 методов
+
+`show_source_request_help()`
+
+### `admin_panel_runtime_v28.TelegramPanelRuntimeV28` — 1 методов
+
+`_apply_admin_action_direct()`
+
+### `admin_panel_runtime_v26.TelegramPanelRuntimeV26` — 3 методов
+
+`_prepare_callback_user()`, `_read_json_at()`, `_serialize_json()`
+
+### `admin_panel_runtime_v25.TelegramPanelRuntimeV25` — 5 методов
+
+`_bootstrap_access()`, `load_access()`, `load_source_requests()`, `save_access()`, `save_source_requests()`
+
+### `admin_panel_runtime_v22.TelegramPanelRuntimeV22` — 3 методов
+
+`load_source_registry()`, `miniapp_url_for_chat()`, `source_registry_fallback()`
+
+### `admin_panel_runtime_v21.TelegramPanelRuntimeV21` — 2 методов
+
+`handle_update()`, `notify_owner_about_new_user()`
+
+### `admin_panel_runtime_v20.TelegramPanelRuntimeV20` — 6 методов
+
+`_delete_callback_message()`, `_hidden_wheels()`, `_joined_wheel_keys()`, `_personal_participating_wheels()`, `hide_wheel_for_current_user()`, `mark_personal_participation()`
+
+### `admin_panel_runtime_v19.TelegramPanelRuntimeV19` — 1 методов
+
+`show_app_entry()`
+
+### `bbvg.bot.source_requests.SourceRequestRuntime` — 9 методов
+
+`bot_username()`, `can_moderate_source_requests()`, `decide_source_request()`, `inspect_source()`, `moderator_chat_ids()`, `notify_moderators()`, `request_id()`, `requester_name()`, `submit_source_request()`
+
+### `bbvg.bot.interface.PanelInterfaceRuntime` — 12 методов
+
+`_hide_reply_keyboard()`, `_telegram_error_text()`, `_write_source_list()`, `bulk_intelligence_rows()`, `bulk_set_intelligence_mode()`, `pending_reason()`, `pending_rows()`, `show_intelligence_list()`, `show_more()`, `show_pending()`, `show_source_detail()`, `source_mode_name()`
+
+### `bbvg.bot.foundation.PanelFoundationMixin` — 6 методов
+
+`_callback_page()`, `intelligence_launch_text()`, `miniapp_deployment()`, `nav_rows()`, `show_candidate_list()`, `with_nav()`
+
+### `admin_panel_runtime_v6.TelegramPanelRuntimeV6` — 5 методов
+
+`filtered_intelligence_rows()`, `intelligence_label()`, `intelligence_rows()`, `intelligence_state()`, `show_intelligence_detail()`
+
+### `admin_panel_runtime_v5.TelegramPanelRuntimeV5` — 12 методов
+
+`_candidate_filter()`, `_recent_candidate_wheels()`, `candidate_rows()`, `candidate_score()`, `ignore_candidate()`, `load_moderation()`, `recommendation()`, `restore_candidate()`, `save_moderation()`, `score_label()`, `set_candidate_mode()`, `show_candidate_detail()`
+
+### `admin_panel_runtime_v4.TelegramPanelRuntimeV4` — 3 методов
+
+`_entry_key()`, `_inspect_entry()`, `_restore_telegram_deadline()`
+
+### `admin_panel_runtime_v3.TelegramPanelRuntimeV3` — 5 методов
+
+`_security_payload()`, `_signature()`, `_trusted_owner()`, `set_interval()`, `show_interval()`
+
+### `admin_panel_v2.TelegramPanelV2` — 27 методов
+
+`_direct_get_file()`, `_json_text()`, `active_rows()`, `back()`, `bool_mark()`, `can_view()`, `diagnose_input()`, `is_admin()`, `is_owner()`, `private_chat()`, `refresh_loop()`, `refresh_snapshot()`, `remaining()`, `request_add_source()`, `role_for()`, `role_name()`, `run()`, `set_context()`, `show_diagnostic()`, `show_errors_report()`, `show_source_list()`, `snapshot()`, `source_sets()`, `source_status_name()`, `stack()`, `toggle_recipient()`, `toggle_setting()`
+
+### `admin_runtime.RuntimeAdminBot` — 2 методов
+
+`set_source_mode()`, `verify_public_source()`
+
+### `admin_bot.AdminBot` — 21 методов
+
+`age_text()`, `answer()`, `append_to_list_text()`, `authorized()`, `counter()`, `dispatch()`, `fmt_dt()`, `get_file()`, `get_json_file()`, `gh_headers()`, `gh_request()`, `merged_source_stats()`, `monitor_state_text()`, `parse_dt()`, `parse_list()`, `period_totals()`, `remove_from_list_text()`, `safe_source()`, `telegram_api()`, `update_file()`, `workflow_run()`
 
 ## Файлы и определённые методы
 
