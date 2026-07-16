@@ -64,7 +64,7 @@
   ],
   "current_runtime": "admin_panel_runtime_v41",
   "runtime_chain_count": 23,
-  "runtime_file_count": 25,
+  "runtime_file_count": 24,
   "runtime_files": [
     {
       "classes": [
@@ -1243,49 +1243,17 @@
       "line_count": 330,
       "module": "admin_panel_runtime_v32",
       "path": "admin_panel_runtime_v32.py",
-      "reference_count": 7,
+      "reference_count": 6,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
-        "admin_panel_runtime_v33.py",
         "admin_panel_runtime_v36.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
         "_callbacks",
-        "main",
-        "self_test"
-      ]
-    },
-    {
-      "classes": [
-        {
-          "bases": [
-            "UserSettingsMixin",
-            "TelegramPanelRuntimeV32"
-          ],
-          "class_attributes": [],
-          "method_count": 0,
-          "methods": [],
-          "name": "TelegramPanelRuntimeV33"
-        }
-      ],
-      "direct_imports": [
-        "admin_panel_runtime_v32",
-        "bbvg.bot.users"
-      ],
-      "in_current_import_chain": false,
-      "line_count": 43,
-      "module": "admin_panel_runtime_v33",
-      "path": "admin_panel_runtime_v33.py",
-      "reference_count": 2,
-      "references": [
-        "admin_panel_runtime_v33.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
-      ],
-      "top_level_functions": [
         "main",
         "self_test"
       ]
@@ -3010,7 +2978,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 6189,
+  "runtime_total_lines": 6146,
   "runtime_unique_method_count": 100,
   "unreferenced_python_candidates": []
 }
