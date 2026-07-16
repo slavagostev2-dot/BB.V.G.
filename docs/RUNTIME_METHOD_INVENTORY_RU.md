@@ -3,13 +3,13 @@
 Файл генерируется автоматически из AST. Он описывает текущую ветку рефакторинга и не заменяет ручной анализ поведения.
 
 - Runtime-файлов: **39**
-- В текущей цепочке: **36**
-- Суммарно строк: **10342**
-- Уникальных имён методов: **153**
+- В текущей цепочке: **33**
+- Суммарно строк: **10299**
+- Уникальных имён методов: **152**
 
 ## Файлы и определённые методы
 
-### `admin_panel_runtime_v10.py` — 82 строк, в рабочей цепочке
+### `admin_panel_runtime_v10.py` — 82 строк, вне рабочей цепочки
 
 Прямые импорты: `admin_bot`, `admin_panel_runtime_v9`
 
@@ -19,7 +19,7 @@
 - `show_app_entry()` — 10 строк
 - `handle_message()` — 13 строк
 
-### `admin_panel_runtime_v11.py` — 169 строк, в рабочей цепочке
+### `admin_panel_runtime_v11.py` — 169 строк, вне рабочей цепочки
 
 Прямые импорты: `admin_panel_runtime_v10`, `admin_panel_runtime_v5`
 
@@ -30,7 +30,7 @@
 - `show_discovery()` — 50 строк
 - `show_candidate_list()` — 42 строк
 
-### `admin_panel_runtime_v12.py` — 115 строк, в рабочей цепочке
+### `admin_panel_runtime_v12.py` — 115 строк, вне рабочей цепочки
 
 Прямые импорты: `admin_panel_runtime_v11`
 
@@ -44,14 +44,13 @@
 
 - `__init__()` — 3 строк
 
-### `admin_panel_runtime_v13.py` — 76 строк, в рабочей цепочке
+### `admin_panel_runtime_v13.py` — 33 строк, в рабочей цепочке
 
-Прямые импорты: `admin_panel_runtime_v12`
+Прямые импорты: `admin_panel_runtime_v9`, `bbvg.bot.foundation`
 
-Класс `TelegramPanelRuntimeV13`; база: `TelegramPanelRuntimeV12`.
+Класс `TelegramPanelRuntimeV13`; база: `PanelFoundationMixin`, `TelegramPanelRuntimeV9`.
 
-- `intelligence_launch_text()` — 7 строк
-- `handle_callback()` — 34 строк
+- собственных методов нет
 
 ### `admin_panel_runtime_v14.py` — 442 строк, в рабочей цепочке
 
@@ -638,7 +637,7 @@
 - `compact_menu_rows()` — `admin_panel_runtime_v14`, `admin_panel_runtime_v16`, `admin_panel_runtime_v21`, `admin_panel_runtime_v22`, `admin_panel_runtime_v25`, `admin_panel_runtime_v26`, `admin_panel_runtime_v29`, `admin_panel_runtime_v32`, `admin_panel_runtime_v38`
 - `control_menu_rows()` — `admin_panel_runtime_v29`, `admin_panel_runtime_v31`
 - `dispatch_admin_action()` — `admin_panel_runtime_v26`, `admin_panel_runtime_v37`, `admin_panel_runtime_v8`
-- `handle_callback()` — `admin_panel_runtime_v13`, `admin_panel_runtime_v14`, `admin_panel_runtime_v17`, `admin_panel_runtime_v20`, `admin_panel_runtime_v21`, `admin_panel_runtime_v25`, `admin_panel_runtime_v26`, `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v33`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v5`, `admin_panel_runtime_v6`, `admin_panel_runtime_v8`
+- `handle_callback()` — `admin_panel_runtime_v14`, `admin_panel_runtime_v17`, `admin_panel_runtime_v20`, `admin_panel_runtime_v21`, `admin_panel_runtime_v25`, `admin_panel_runtime_v26`, `admin_panel_runtime_v29`, `admin_panel_runtime_v3`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v33`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`, `admin_panel_runtime_v5`, `admin_panel_runtime_v6`, `admin_panel_runtime_v8`
 - `handle_message()` — `admin_panel_runtime_v10`, `admin_panel_runtime_v14`, `admin_panel_runtime_v17`, `admin_panel_runtime_v20`, `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v37`, `admin_panel_runtime_v6`, `admin_panel_runtime_v7`, `admin_panel_runtime_v9`
 - `load_access()` — `admin_panel_runtime_v23`, `admin_panel_runtime_v25`
 - `load_source_requests()` — `admin_panel_runtime_v17`, `admin_panel_runtime_v23`, `admin_panel_runtime_v25`

@@ -71,7 +71,7 @@
     }
   ],
   "current_runtime": "admin_panel_runtime_v41",
-  "runtime_chain_count": 36,
+  "runtime_chain_count": 33,
   "runtime_file_count": 39,
   "runtime_files": [
     {
@@ -115,7 +115,7 @@
         "admin_bot",
         "admin_panel_runtime_v9"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 82,
       "module": "admin_panel_runtime_v10",
       "path": "admin_panel_runtime_v10.py",
@@ -179,7 +179,7 @@
         "admin_panel_runtime_v10",
         "admin_panel_runtime_v5"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 169,
       "module": "admin_panel_runtime_v11",
       "path": "admin_panel_runtime_v11.py",
@@ -254,14 +254,13 @@
       "direct_imports": [
         "admin_panel_runtime_v11"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 115,
       "module": "admin_panel_runtime_v12",
       "path": "admin_panel_runtime_v12.py",
-      "reference_count": 3,
+      "reference_count": 2,
       "references": [
         "admin_panel_runtime_v12.py",
-        "admin_panel_runtime_v13.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -273,38 +272,21 @@
       "classes": [
         {
           "bases": [
-            "TelegramPanelRuntimeV12"
+            "PanelFoundationMixin",
+            "TelegramPanelRuntimeV9"
           ],
           "class_attributes": [],
-          "method_count": 2,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [
-                "staticmethod"
-              ],
-              "end_line": 20,
-              "line_count": 7,
-              "name": "intelligence_launch_text",
-              "start_line": 14
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 55,
-              "line_count": 34,
-              "name": "handle_callback",
-              "start_line": 22
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV13"
         }
       ],
       "direct_imports": [
-        "admin_panel_runtime_v12"
+        "admin_panel_runtime_v9",
+        "bbvg.bot.foundation"
       ],
       "in_current_import_chain": true,
-      "line_count": 76,
+      "line_count": 33,
       "module": "admin_panel_runtime_v13",
       "path": "admin_panel_runtime_v13.py",
       "reference_count": 3,
@@ -3815,11 +3797,12 @@
       "line_count": 421,
       "module": "admin_panel_runtime_v5",
       "path": "admin_panel_runtime_v5.py",
-      "reference_count": 5,
+      "reference_count": 6,
       "references": [
         "admin_panel_runtime_v11.py",
         "admin_panel_runtime_v5.py",
         "admin_panel_runtime_v6.py",
+        "bbvg/bot/foundation.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "tests/test_nightly_idle_policy.py"
       ],
@@ -4215,10 +4198,12 @@
       "line_count": 169,
       "module": "admin_panel_runtime_v9",
       "path": "admin_panel_runtime_v9.py",
-      "reference_count": 3,
+      "reference_count": 5,
       "references": [
         "admin_panel_runtime_v10.py",
+        "admin_panel_runtime_v13.py",
         "admin_panel_runtime_v9.py",
+        "bbvg/bot/foundation.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
@@ -4440,7 +4425,6 @@
       "admin_panel_runtime_v6"
     ],
     "handle_callback": [
-      "admin_panel_runtime_v13",
       "admin_panel_runtime_v14",
       "admin_panel_runtime_v17",
       "admin_panel_runtime_v20",
@@ -4486,9 +4470,6 @@
     ],
     "intelligence_label": [
       "admin_panel_runtime_v6"
-    ],
-    "intelligence_launch_text": [
-      "admin_panel_runtime_v13"
     ],
     "intelligence_rows": [
       "admin_panel_runtime_v6"
@@ -4871,7 +4852,7 @@
       "admin_panel_runtime_v12"
     ]
   },
-  "runtime_total_lines": 10342,
-  "runtime_unique_method_count": 153,
+  "runtime_total_lines": 10299,
+  "runtime_unique_method_count": 152,
   "unreferenced_python_candidates": []
 }
