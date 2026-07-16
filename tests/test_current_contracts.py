@@ -8,7 +8,6 @@ install_optional_dependency_stubs()
 
 import admin_action_v2
 import admin_action_v3
-import admin_panel_runtime_v34
 import admin_panel_runtime_v37
 import admin_panel_runtime_v38
 import admin_panel_runtime_v41
@@ -29,6 +28,7 @@ import wheel_scenario_suite
 from bbvg.bot import interface as panel_interface
 from bbvg.bot import runtime as panel_runtime
 from bbvg.bot import sources as panel_sources
+from bbvg.bot import users as panel_users
 
 
 class CurrentProductionContractTests(unittest.TestCase):
@@ -38,7 +38,7 @@ class CurrentProductionContractTests(unittest.TestCase):
 
     def test_runtime_chain_contracts_used_by_v41(self) -> None:
         panel_interface.self_test()
-        admin_panel_runtime_v34.self_test()
+        panel_users.self_test()
         admin_panel_runtime_v37.self_test()
         admin_panel_runtime_v38.self_test()
         panel_runtime.self_test()
