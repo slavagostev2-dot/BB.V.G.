@@ -42,17 +42,19 @@ jobs:
           TELEGRAM_WEB_DOMAIN: telegram.me
         run: |
           python - <<'PY'
-          import inspect
           import json
+          import os
           from pathlib import Path
 
           from bbvg.bot.runtime import TelegramPanelRuntime
 
           report = json.loads(Path("cleanup_audit.json").read_text(encoding="utf-8"))
+          source_sha = os.environ.get("GITHUB_SHA", "unknown")
           lines = [
               "# BB V.G. — карта методов исторического runtime панели",
               "",
               "Файл генерируется автоматически из AST и фактической MRO текущего runtime.",
+              f"Исходный коммит аудита: `{source_sha}`.",
               "",
               f"- Runtime-файлов: **{report['runtime_file_count']}**",
               f"- В текущей цепочке: **{report['runtime_chain_count']}**",
@@ -155,6 +157,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin refactor/consolidate-runtime-v42
+          if ! git diff --quiet "$GITHUB_SHA" "origin/refactor/consolidate-runtime-v42" -- \
+            tools/cleanup_audit.py .github/workflows/cleanup-audit.yml bbvg \
+            'admin_panel_runtime_v*.py' 'chapter*.py' tests .github/workflows; then
+            echo "A newer relevant commit exists; skipping stale audit report."
+            exit 0
+          fi
           git add cleanup_audit.json docs/RUNTIME_METHOD_INVENTORY_RU.md
           git commit -m "Update cleanup dependency reports [skip ci]" || exit 0
           git pull --rebase origin refactor/consolidate-runtime-v42 || { git rebase --abort || true; exit 1; }
