@@ -5,13 +5,14 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from typing import Any
 
-from admin_panel_runtime_v13 import TelegramPanelRuntimeV13
+from admin_panel_runtime_v9 import TelegramPanelRuntimeV9
+from bbvg.bot.foundation import PanelFoundationMixin
 from admin_panel_runtime_v6 import INTELLIGENCE_PER_PAGE
 
 UTC = timezone.utc
 
 
-class PanelInterfaceRuntime(TelegramPanelRuntimeV13):
+class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelRuntimeV9):
     """Current compact panel interface formerly distributed across v14-v16."""
 
     def __init__(self) -> None:
