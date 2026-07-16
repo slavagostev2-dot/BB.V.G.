@@ -4,11 +4,13 @@ import html
 from typing import Any
 from urllib.parse import quote
 
+import privacy_retention
 from bbvg.bot.wheels import WheelInteractionRuntime
 
 MINIAPP_RELEASE = "5.10.0"
 MINIAPP_URL = "https://slavagostev2-betboom-monitor.pages.dev/"
 
+# Kept for compatibility with modules that still import the original v21 names.
 USER_NOTIFICATION_OPTIONS = (
     ("wheels", "🎡 Колёса", "Новые и подтверждённые колёса"),
     ("daily_reports", "📊 Ежедневная сводка", "Один итоговый отчёт за день"),
@@ -19,10 +21,37 @@ ADMIN_NOTIFICATION_OPTIONS = (
     ("admin_sources", "📡 Проблемы источников", "Недоступность и изменение страниц каналов"),
     ("admin_requests", "📨 Заявки на источники", "Новые запросы пользователей"),
 )
+WHEEL_NOTIFICATION_OPTIONS = (
+    ("wheels", "🎡 Новые колёса", "Новые и подтверждённые колёса"),
+    (
+        "wheel_final_reminders",
+        "⏳ Перед завершением",
+        "Последнее напоминание незадолго до завершения колеса",
+    ),
+    (
+        "wheel_draw_alerts",
+        "🎯 Время прокрутки",
+        "Сообщение, когда наступило указанное время прокрутки",
+    ),
+)
+SUMMARY_NOTIFICATION_OPTIONS = USER_NOTIFICATION_OPTIONS[1:]
+ALL_SUMMARY_NOTIFICATION_OPTIONS = tuple(SUMMARY_NOTIFICATION_OPTIONS)
+
+
+def _display_name(record: dict[str, Any], user_id: str) -> str:
+    full_name = " ".join(
+        value
+        for value in (
+            str(record.get("first_name") or "").strip(),
+            str(record.get("last_name") or "").strip(),
+        )
+        if value
+    )
+    return full_name or str(record.get("username") or user_id)
 
 
 class UserManagementRuntime(WheelInteractionRuntime):
-    """User registration, roles and personal notification preferences."""
+    """User registration, roles and base personal notification preferences."""
 
     def register_user(self, message: dict[str, Any]) -> str:
         sender = message.get("from") if isinstance(message, dict) else None
@@ -72,14 +101,7 @@ class UserManagementRuntime(WheelInteractionRuntime):
         owner_chat_id = str(owner.get("chat_id") or owner_id)
         if not owner_chat_id or owner_id == user_id or not record:
             return
-        full_name = " ".join(
-            value
-            for value in (
-                str(record.get("first_name") or "").strip(),
-                str(record.get("last_name") or "").strip(),
-            )
-            if value
-        ) or "Пользователь"
+        full_name = _display_name(record, user_id) or "Пользователь"
         username = str(record.get("username") or "").strip()
         username_line = f"\nUsername: @{html.escape(username)}" if username else ""
         try:
@@ -90,17 +112,14 @@ class UserManagementRuntime(WheelInteractionRuntime):
                 "Пользователь добавлен в раздел «Доступ и администраторы».",
                 chat_id=owner_chat_id,
                 reply_markup={
-                    "inline_keyboard": [
-                        [
-                            {
-                                "text": "👥 Открыть список пользователей",
-                                "callback_data": "page:access",
-                            }
-                        ]
-                    ]
+                    "inline_keyboard": [[{
+                        "text": "👥 Открыть список пользователей",
+                        "callback_data": "page:access",
+                    }]]
                 },
             )
         except Exception as exc:
+            # Registration must succeed even if this informational message fails.
             print(f"WARNING new user notification: {type(exc).__name__}: {exc}")
 
     def show_access(self) -> None:
@@ -146,9 +165,7 @@ class UserManagementRuntime(WheelInteractionRuntime):
         record = users.get(target) if isinstance(users.get(target), dict) else {}
         role = self.role_for(target)
         settings = access.get("settings") if isinstance(access.get("settings"), dict) else {}
-        legacy_recipients = {
-            str(value) for value in access.get("notification_recipients", [])
-        }
+        legacy_recipients = {str(value) for value in access.get("notification_recipients", [])}
         chat_id = str(record.get("chat_id") or target)
         legacy_wheels = record.get("notifications_enabled")
         if legacy_wheels is None:
@@ -194,24 +211,12 @@ class UserManagementRuntime(WheelInteractionRuntime):
         ]
         if self.is_admin():
             interval = int(
-                self.load_access().get("settings", {}).get(
-                    "monitor_interval_minutes",
-                    5,
-                )
+                self.load_access().get("settings", {}).get("monitor_interval_minutes", 5)
             )
             lines.extend(["", f"Интервал постоянной проверки: <b>{interval} мин.</b>"])
-            rows.append(
-                [{"text": "⏱ Интервал проверки", "callback_data": "page:interval"}]
-            )
+            rows.append([{"text": "⏱ Интервал проверки", "callback_data": "page:interval"}])
         if self.is_owner():
-            rows.append(
-                [
-                    {
-                        "text": "👥 Доступ и администраторы",
-                        "callback_data": "page:access",
-                    }
-                ]
-            )
+            rows.append([{"text": "👥 Доступ и администраторы", "callback_data": "page:access"}])
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
 
     def show_notifications(self) -> None:
@@ -230,35 +235,25 @@ class UserManagementRuntime(WheelInteractionRuntime):
             lines.append(
                 f"{self.bool_mark(prefs[key])} {html.escape(label)} — {html.escape(description)}"
             )
-            rows.append(
-                [
-                    {
-                        "text": f"{self.bool_mark(prefs[key])} {label}",
-                        "callback_data": f"notify:{key}",
-                    }
-                ]
-            )
+            rows.append([{
+                "text": f"{self.bool_mark(prefs[key])} {label}",
+                "callback_data": f"notify:{key}",
+            }])
         if admin:
             lines.extend(["", "<b>Только для администратора</b>"])
             for key, label, description in ADMIN_NOTIFICATION_OPTIONS:
                 lines.append(
                     f"{self.bool_mark(prefs[key])} {html.escape(label)} — {html.escape(description)}"
                 )
-                rows.append(
-                    [
-                        {
-                            "text": f"{self.bool_mark(prefs[key])} {label}",
-                            "callback_data": f"notify:{key}",
-                        }
-                    ]
-                )
+                rows.append([{
+                    "text": f"{self.bool_mark(prefs[key])} {label}",
+                    "callback_data": f"notify:{key}",
+                }])
         else:
-            lines.extend(
-                [
-                    "",
-                    "Системные ошибки, проблемы источников и заявки пользователей обычным пользователям не отправляются.",
-                ]
-            )
+            lines.extend([
+                "",
+                "Системные ошибки, проблемы источников и заявки пользователей обычным пользователям не отправляются.",
+            ])
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
 
     def toggle_notification(self, key: str) -> None:
@@ -283,19 +278,25 @@ class UserManagementRuntime(WheelInteractionRuntime):
                 prefs[admin_key] = False
         record["notification_preferences"] = prefs
         record["notifications_enabled"] = prefs["wheels"]
-        chat_id = str(record.get("chat_id") or self.current_user_id)
-        recipients = {
-            str(value) for value in access.get("notification_recipients", [])
-        }
-        if prefs["wheels"]:
-            recipients.add(chat_id)
-        else:
-            recipients.discard(chat_id)
-        access["notification_recipients"] = sorted(recipients)
+        self._sync_recipient(access, record, str(self.current_user_id))
         self.save_access(
             f"Update personal notification preferences for {self.current_user_id} [skip ci]"
         )
         self.dispatch("monitor.yml", {"continuous": "true"})
+
+    @staticmethod
+    def _sync_recipient(
+        access: dict[str, Any],
+        record: dict[str, Any],
+        fallback_user_id: str,
+    ) -> None:
+        chat_id = str(record.get("chat_id") or fallback_user_id)
+        recipients = {str(value) for value in access.get("notification_recipients", [])}
+        if bool(record.get("notifications_enabled", True)):
+            recipients.add(chat_id)
+        else:
+            recipients.discard(chat_id)
+        access["notification_recipients"] = sorted(recipients)
 
     def set_admin(self, user_id: str, enabled: bool) -> None:
         if not self.is_owner():
@@ -393,13 +394,415 @@ class UserManagementRuntime(WheelInteractionRuntime):
                 self.answer(str(query.get("id") or ""), "Настройка изменена")
                 self.show_notifications()
             except PermissionError:
-                self.answer(
-                    str(query.get("id") or ""),
-                    "Недоступно для вашей роли",
-                )
+                self.answer(str(query.get("id") or ""), "Недоступно для вашей роли")
             except Exception as exc:
                 print(f"ERROR notification preference: {type(exc).__name__}: {exc}")
                 self.answer(str(query.get("id") or ""), "Не удалось сохранить")
+            return
+        super().handle_callback(query)
+
+
+class UserSettingsMixin:
+    """Final v33-v35 settings, privacy and owner notification controls."""
+
+    def notification_preferences(self, user_id: str | None = None) -> dict[str, bool]:
+        prefs = super().notification_preferences(user_id)
+        target = str(user_id or self.current_user_id or "")
+        access = self.load_access()
+        users = access.get("users") if isinstance(access.get("users"), dict) else {}
+        record = users.get(target) if isinstance(users.get(target), dict) else {}
+        raw = record.get("notification_preferences") if isinstance(record, dict) else None
+        raw = raw if isinstance(raw, dict) else {}
+        wheel_default = bool(prefs.get("wheels", True))
+        prefs["wheel_final_reminders"] = bool(
+            raw.get("wheel_final_reminders", wheel_default)
+        )
+        prefs["wheel_draw_alerts"] = bool(raw.get("wheel_draw_alerts", wheel_default))
+        return prefs
+
+    def register_user(self, message: dict[str, Any]) -> str:
+        role = super().register_user(message)
+        user_id = str((message.get("from") or {}).get("id") or "")
+        if not user_id:
+            return role
+        access = self.load_access()
+        users = access.get("users") if isinstance(access.get("users"), dict) else {}
+        record = users.get(user_id) if isinstance(users.get(user_id), dict) else None
+        if not isinstance(record, dict):
+            return role
+        prefs = record.get("notification_preferences")
+        prefs = dict(prefs) if isinstance(prefs, dict) else {}
+        changed = False
+        for key in ("wheel_final_reminders", "wheel_draw_alerts"):
+            if key not in prefs:
+                prefs[key] = True
+                changed = True
+        if changed:
+            record["notification_preferences"] = prefs
+            self.save_access(
+                f"Enable wheel reminder notifications for Telegram user {user_id} [skip ci]"
+            )
+        return role
+
+    def show_settings(self) -> None:
+        rows: list[list[dict[str, Any]]] = [
+            [{"text": "🔔 Уведомления", "callback_data": "page:notifications"}],
+        ]
+        lines = [
+            "⚙️ <b>Настройки</b>",
+            "",
+            "Настройки применяются лично к вашему Telegram-аккаунту.",
+        ]
+        if self.is_admin():
+            interval = int(
+                self.load_access().get("settings", {}).get("monitor_interval_minutes", 5)
+            )
+            lines.extend(["", f"Интервал постоянной проверки: <b>{interval} мин.</b>"])
+            rows.append([{"text": "⏱ Интервал проверки", "callback_data": "page:interval"}])
+        if self.is_owner():
+            rows.append([{"text": "👥 Доступ и администраторы", "callback_data": "page:access"}])
+            lines.extend([
+                "",
+                "Удаление данных владельца возможно только после передачи владения другому пользователю.",
+            ])
+        else:
+            rows.append([{"text": "🗑 Удалить мои данные", "callback_data": "privacy:delete:ask"}])
+        self.send("\n".join(lines), reply_markup=self.with_nav(rows))
+
+    def show_notifications(self) -> None:
+        prefs = self.notification_preferences()
+        admin = self.is_admin()
+        lines = [
+            "🔔 <b>Уведомления</b>",
+            "",
+            "Каждый вид можно включать и отключать отдельно.",
+            "",
+            "<b>Колёса</b>",
+        ]
+        rows: list[list[dict[str, Any]]] = []
+        for key, label, description in WHEEL_NOTIFICATION_OPTIONS:
+            enabled = bool(prefs.get(key, False))
+            lines.append(
+                f"{self.bool_mark(enabled)} {html.escape(label)} — {html.escape(description)}"
+            )
+            rows.append([{
+                "text": f"{self.bool_mark(enabled)} {label}",
+                "callback_data": f"notify:{key}",
+            }])
+        if admin:
+            lines.extend(["", "<b>Сводки</b>"])
+            for key, label, description in ALL_SUMMARY_NOTIFICATION_OPTIONS:
+                enabled = bool(prefs.get(key, False))
+                lines.append(
+                    f"{self.bool_mark(enabled)} {html.escape(label)} — {html.escape(description)}"
+                )
+                rows.append([{
+                    "text": f"{self.bool_mark(enabled)} {label}",
+                    "callback_data": f"notify:{key}",
+                }])
+            lines.extend(["", "<b>Административные</b>"])
+            for key, label, description in ADMIN_NOTIFICATION_OPTIONS:
+                enabled = bool(prefs.get(key, False))
+                lines.append(
+                    f"{self.bool_mark(enabled)} {html.escape(label)} — {html.escape(description)}"
+                )
+                rows.append([{
+                    "text": f"{self.bool_mark(enabled)} {label}",
+                    "callback_data": f"notify:{key}",
+                }])
+        else:
+            lines.extend(["", "Сводки и служебные уведомления доступны только администраторам."])
+        self.send("\n".join(lines), reply_markup=self.with_nav(rows))
+
+    def toggle_notification(self, key: str) -> None:
+        personal_allowed = {name for name, _, _ in WHEEL_NOTIFICATION_OPTIONS}
+        admin_allowed = {
+            name
+            for name, _, _ in (*ALL_SUMMARY_NOTIFICATION_OPTIONS, *ADMIN_NOTIFICATION_OPTIONS)
+        }
+        allowed = personal_allowed | (admin_allowed if self.is_admin() else set())
+        if key not in allowed or not self.current_user_id:
+            raise PermissionError("Недоступный вид уведомлений")
+        access = self.load_access()
+        users = access.setdefault("users", {})
+        record = users.get(str(self.current_user_id))
+        if not isinstance(record, dict):
+            record = {
+                "id": str(self.current_user_id),
+                "chat_id": str(self.current_chat_id or self.current_user_id),
+            }
+            users[str(self.current_user_id)] = record
+        prefs = self.notification_preferences(str(self.current_user_id))
+        prefs[key] = not bool(prefs.get(key, False))
+        if not self.is_admin():
+            for admin_key in admin_allowed:
+                prefs[admin_key] = False
+        record["notification_preferences"] = prefs
+        record["notifications_enabled"] = bool(prefs.get("wheels", True))
+        UserManagementRuntime._sync_recipient(access, record, str(self.current_user_id))
+        self.save_access(
+            f"Update personal notification preferences for {self.current_user_id} [skip ci]"
+        )
+        self.dispatch("monitor.yml", {"continuous": "true"})
+
+    @staticmethod
+    def _notification_options_for_role(
+        role: str,
+    ) -> tuple[tuple[str, str, str], ...]:
+        options: tuple[tuple[str, str, str], ...] = tuple(WHEEL_NOTIFICATION_OPTIONS)
+        if role in {"owner", "admin"}:
+            options += tuple(ALL_SUMMARY_NOTIFICATION_OPTIONS)
+            options += tuple(ADMIN_NOTIFICATION_OPTIONS)
+        return options
+
+    def delete_current_user_data(self) -> bool:
+        if not self.current_user_id:
+            raise PermissionError("Пользователь не определён")
+        if self.is_owner():
+            raise PermissionError("Сначала передайте владение другому пользователю")
+        bundle = self._load_bot_bundle(force=True)
+        changed = privacy_retention.delete_user_data(bundle, str(self.current_user_id))
+        if changed:
+            self._save_bot_bundle(
+                f"Delete Telegram user personal data {self.current_user_id} [skip ci]"
+            )
+        with self.access_lock:
+            self.access = {}
+            self.access_loaded = False
+        return changed
+
+    def show_user_detail(self, user_id: str) -> None:
+        if not self.is_owner():
+            self.send("Недоступно.", reply_markup=self.with_nav())
+            return
+        access = self.load_access(force=True)
+        record = access.get("users", {}).get(user_id, {})
+        if not isinstance(record, dict):
+            self.send("Пользователь не найден.", reply_markup=self.with_nav())
+            return
+        role = self.role_for(user_id)
+        prefs = self.notification_preferences(user_id)
+        enabled_count = sum(
+            1
+            for key, _, _ in self._notification_options_for_role(role)
+            if prefs.get(key, False)
+        )
+        total_count = len(self._notification_options_for_role(role))
+        text = (
+            f"👤 <b>{html.escape(_display_name(record, user_id))}</b>\n\n"
+            f"Telegram ID: <code>{html.escape(user_id)}</code>\n"
+            f"Роль: {self.role_name(role)}\n"
+            f"Уведомления: <b>{enabled_count} из {total_count}</b>\n"
+            f"Последняя активность: {self.fmt_dt(record.get('last_seen_at'))}"
+        )
+        rows: list[list[dict[str, str]]] = [[{
+            "text": "🔔 Управлять уведомлениями",
+            "callback_data": f"usernotifications:{user_id}",
+        }]]
+        if role == "user":
+            rows.append([{
+                "text": "Сделать администратором",
+                "callback_data": f"access:promote:{user_id}",
+            }])
+        elif role == "admin":
+            rows.append([{
+                "text": "Убрать права администратора",
+                "callback_data": f"access:demote:{user_id}",
+            }])
+        if role != "owner":
+            rows.append([{
+                "text": "👑 Передать владение",
+                "callback_data": f"access:transferask:{user_id}",
+            }])
+        self.send(text, reply_markup=self.with_nav(rows))
+
+    def show_user_notifications(self, user_id: str) -> None:
+        if not self.is_owner():
+            raise PermissionError("Только владелец управляет уведомлениями пользователей")
+        access = self.load_access(force=True)
+        record = access.get("users", {}).get(user_id)
+        if not isinstance(record, dict):
+            raise ValueError("Пользователь не найден")
+        role = self.role_for(user_id)
+        prefs = self.notification_preferences(user_id)
+        lines = [
+            "🔔 <b>Уведомления пользователя</b>",
+            "",
+            f"Пользователь: <b>{html.escape(_display_name(record, user_id))}</b>",
+            f"Роль: {self.role_name(role)}",
+            "",
+            "Изменения применяются только к этому Telegram-аккаунту.",
+        ]
+        rows: list[list[dict[str, str]]] = []
+        wheel_keys = {key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS}
+        summary_keys = {key for key, _, _ in ALL_SUMMARY_NOTIFICATION_OPTIONS}
+        current_section = ""
+        for key, label, description in self._notification_options_for_role(role):
+            section = (
+                "Колёса"
+                if key in wheel_keys
+                else "Сводки"
+                if key in summary_keys
+                else "Административные"
+            )
+            if section != current_section:
+                current_section = section
+                lines.extend(["", f"<b>{section}</b>"])
+            enabled = bool(prefs.get(key, False))
+            lines.append(
+                f"{self.bool_mark(enabled)} {html.escape(label)} — {html.escape(description)}"
+            )
+            rows.append([{
+                "text": f"{self.bool_mark(enabled)} {label}",
+                "callback_data": f"usernotify:{user_id}:{key}",
+            }])
+        rows.extend([
+            [
+                {"text": "✅ Включить все", "callback_data": f"usernotifyall:{user_id}:on"},
+                {"text": "⛔ Отключить все", "callback_data": f"usernotifyall:{user_id}:off"},
+            ],
+            [{"text": "👤 К пользователю", "callback_data": f"page:user:{user_id}"}],
+        ])
+        self.send("\n".join(lines), reply_markup=self.with_nav(rows))
+
+    def _save_user_preferences(
+        self,
+        user_id: str,
+        prefs: dict[str, bool],
+        message: str,
+    ) -> None:
+        access = self.load_access()
+        users = access.get("users") if isinstance(access.get("users"), dict) else {}
+        record = users.get(user_id)
+        if not isinstance(record, dict):
+            raise ValueError("Пользователь не найден")
+        record["notification_preferences"] = prefs
+        record["notifications_enabled"] = bool(prefs.get("wheels", True))
+        UserManagementRuntime._sync_recipient(access, record, user_id)
+        self.save_access(message)
+        self.dispatch("monitor.yml", {"continuous": "true"})
+
+    def set_user_notification(
+        self,
+        user_id: str,
+        key: str,
+        enabled: bool | None = None,
+    ) -> None:
+        if not self.is_owner():
+            raise PermissionError("Только владелец управляет уведомлениями пользователей")
+        role = self.role_for(user_id)
+        allowed = {name for name, _, _ in self._notification_options_for_role(role)}
+        if key not in allowed:
+            raise PermissionError("Этот вид уведомлений недоступен для роли пользователя")
+        prefs = self.notification_preferences(user_id)
+        prefs[key] = (not bool(prefs.get(key, False))) if enabled is None else bool(enabled)
+        if role not in {"owner", "admin"}:
+            for admin_key, _, _ in (*ALL_SUMMARY_NOTIFICATION_OPTIONS, *ADMIN_NOTIFICATION_OPTIONS):
+                prefs[admin_key] = False
+        self._save_user_preferences(
+            user_id,
+            prefs,
+            f"Owner updated notification {key} for Telegram user {user_id} [skip ci]",
+        )
+
+    def set_all_user_notifications(self, user_id: str, enabled: bool) -> None:
+        if not self.is_owner():
+            raise PermissionError("Только владелец управляет уведомлениями пользователей")
+        role = self.role_for(user_id)
+        prefs = self.notification_preferences(user_id)
+        for key, _, _ in self._notification_options_for_role(role):
+            prefs[key] = bool(enabled)
+        if role not in {"owner", "admin"}:
+            for admin_key, _, _ in (*ALL_SUMMARY_NOTIFICATION_OPTIONS, *ADMIN_NOTIFICATION_OPTIONS):
+                prefs[admin_key] = False
+        self._save_user_preferences(
+            user_id,
+            prefs,
+            f"Owner {'enabled' if enabled else 'disabled'} all notifications "
+            f"for Telegram user {user_id} [skip ci]",
+        )
+
+    def render_page(self, page: str) -> None:
+        if page.startswith("user_notifications:"):
+            self.show_user_notifications(page.split(":", 1)[1])
+            return
+        super().render_page(page)
+
+    def handle_callback(self, query: dict[str, Any]) -> None:
+        data = str(query.get("data") or "")
+        if data.startswith("privacy:delete:"):
+            self._prepare_callback_user(query)
+            query_id = str(query.get("id") or "")
+            action = data.rsplit(":", 1)[-1]
+            if action == "ask":
+                if self.is_owner():
+                    self.answer(query_id, "Сначала передайте владение")
+                    self.show_settings()
+                    return
+                self.answer(query_id, "Нужно подтверждение")
+                self.send(
+                    "🗑 <b>Удалить мои данные?</b>\n\n"
+                    "Будут удалены профиль, настройки, личные отметки участия и ожидающие заявки. "
+                    "Обработанные заявки останутся только в обезличенном виде.\n\n"
+                    "После удаления можно снова зарегистрироваться командой /start.",
+                    reply_markup=self.with_nav([[
+                        {"text": "Удалить", "callback_data": "privacy:delete:confirm"},
+                        {"text": "Отмена", "callback_data": "privacy:delete:cancel"},
+                    ]]),
+                )
+                return
+            if action == "cancel":
+                self.answer(query_id, "Отменено")
+                self.show_settings()
+                return
+            if action == "confirm":
+                try:
+                    changed = self.delete_current_user_data()
+                except PermissionError as exc:
+                    self.answer(query_id, "Недоступно")
+                    self.send(html.escape(str(exc)), reply_markup=self.with_nav())
+                    return
+                self.answer(query_id, "Данные удалены" if changed else "Данные уже удалены")
+                self.send(
+                    "✅ <b>Ваши данные удалены.</b>\n\n"
+                    "Уведомления отключены. Для повторной регистрации отправьте /start."
+                )
+                return
+
+        if (
+            data.startswith("usernotifications:")
+            or data.startswith("usernotify:")
+            or data.startswith("usernotifyall:")
+        ):
+            self._prepare_callback_user(query)
+            query_id = str(query.get("id") or "")
+            try:
+                if not self.is_owner():
+                    raise PermissionError
+                if data.startswith("usernotifications:"):
+                    target = data.split(":", 1)[1]
+                    self.answer(query_id, "Открываю настройки")
+                    self.show_user_notifications(target)
+                    return
+                if data.startswith("usernotifyall:"):
+                    _, target, state = data.split(":", 2)
+                    self.set_all_user_notifications(target, state == "on")
+                    self.answer(query_id, "Настройки сохранены")
+                    self.show_user_notifications(target)
+                    return
+                _, target, key = data.split(":", 2)
+                self.set_user_notification(target, key)
+                self.answer(query_id, "Настройка изменена")
+                self.show_user_notifications(target)
+            except PermissionError:
+                self.answer(query_id, "Недоступно")
+            except Exception as exc:
+                print(f"ERROR owner notification management: {type(exc).__name__}: {exc}")
+                self.answer(query_id, "Не удалось сохранить")
+                self.send(
+                    "⚠️ Не удалось безопасно сохранить настройки пользователя.",
+                    reply_markup=self.with_nav(),
+                )
             return
         super().handle_callback(query)
 
@@ -414,14 +817,14 @@ def self_test() -> None:
     url = bot.miniapp_url_for_chat()
     assert url.startswith(MINIAPP_URL)
     assert f"release={MINIAPP_RELEASE}" in url
-    user_callbacks = [
-        button.get("callback_data")
-        for row in bot.compact_menu_rows(False)
-        for button in row
-    ]
-    assert "page:settings" in user_callbacks
     assert len(USER_NOTIFICATION_OPTIONS) == 3
     assert len(ADMIN_NOTIFICATION_OPTIONS) == 3
+    assert {key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS} == {
+        "wheels",
+        "wheel_final_reminders",
+        "wheel_draw_alerts",
+    }
+
     access = {
         "owner_id": "1",
         "admins": [],
@@ -430,12 +833,7 @@ def self_test() -> None:
         "settings": {"public_panel": True, "notifications": True},
         "users": {
             "1": {"id": "1", "chat_id": "101", "first_name": "Владелец"},
-            "2": {
-                "id": "2",
-                "chat_id": "202",
-                "first_name": "Новый",
-                "username": "new_user",
-            },
+            "2": {"id": "2", "chat_id": "202", "first_name": "Новый", "username": "new_user"},
         },
     }
     load_calls: list[bool] = []
@@ -446,26 +844,29 @@ def self_test() -> None:
     bot.notify_owner_about_new_user("2")
     assert sent and sent[-1][1]["chat_id"] == "101"
     assert "@new_user" in sent[-1][0]
-    sent.clear()
-    bot.show_access()
-    assert load_calls[-1] is False and True in load_calls
-    assert sent and "Известных пользователей: 2" in sent[-1][0]
-    assert "🔄 Обновить список" in str(sent[-1][1].get("reply_markup"))
-    member_bot = UserManagementRuntime()
-    registered: list[dict[str, Any]] = []
-    member_bot.set_context = lambda chat_id, user_id: None  # type: ignore[method-assign]
-    member_bot.register_user = lambda message: registered.append(message) or "user"  # type: ignore[method-assign]
-    member_bot.handle_update(
-        {
-            "my_chat_member": {
-                "chat": {"id": 303, "type": "private"},
-                "from": {"id": 303, "first_name": "Тест", "is_bot": False},
-                "new_chat_member": {"status": "member"},
-            }
-        }
+
+    class SettingsPanel(UserSettingsMixin, UserManagementRuntime):
+        pass
+
+    settings = SettingsPanel()
+    settings.current_user_id = "1"
+    settings.current_chat_id = "101"
+    settings.current_role = "owner"
+    settings.is_owner = lambda: True  # type: ignore[method-assign]
+    settings.is_admin = lambda: True  # type: ignore[method-assign]
+    settings.role_for = lambda user_id: "owner" if str(user_id) == "1" else "user"  # type: ignore[method-assign]
+    settings.load_access = lambda force=False: access  # type: ignore[method-assign]
+    saved: list[str] = []
+    dispatched: list[tuple[str, dict[str, str]]] = []
+    settings.save_access = lambda message="": saved.append(message)  # type: ignore[method-assign]
+    settings.dispatch = lambda workflow, inputs=None: dispatched.append(  # type: ignore[method-assign]
+        (workflow, dict(inputs or {}))
     )
-    assert registered and registered[0]["from"]["id"] == 303
-    print("BB V.G. user management subsystem self-test passed")
+    settings.set_user_notification("2", "wheels", False)
+    assert access["users"]["2"]["notifications_enabled"] is False
+    assert saved and dispatched == [("monitor.yml", {"continuous": "true"})]
+    assert settings.notification_preferences("2")["wheel_final_reminders"] is False
+    print("BB V.G. user management and settings subsystem self-test passed")
 
 
 if __name__ == "__main__":
