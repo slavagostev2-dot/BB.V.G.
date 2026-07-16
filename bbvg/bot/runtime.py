@@ -3,14 +3,36 @@ from __future__ import annotations
 import argparse
 import copy
 import html
+import os
 import re
 from types import SimpleNamespace
 from typing import Any
 
+import personal_wheel_voting
 import telegram_ui
 from admin_panel_runtime_v31 import SUMMARY_PERIODS
 from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
-from personal_wheel_voting import PersonalWheelVotingMixin
+
+
+def _install_dedicated_vote_key_contract() -> None:
+    """Prevent BOT_TOKEN from becoming a pseudonym key in the live panel."""
+
+    if getattr(personal_wheel_voting, "_bbvg_dedicated_vote_key_installed", False):
+        return
+    original = personal_wheel_voting.actor_vote_token
+
+    def dedicated_actor_vote_token(user_id: str, secret: str | None = None) -> str:
+        dedicated = str(secret or os.getenv("BOT_STATE_KEY") or "").strip()
+        if not dedicated:
+            raise RuntimeError("BOT_STATE_KEY is required for personal vote pseudonyms")
+        return original(user_id, secret=dedicated)
+
+    personal_wheel_voting.actor_vote_token = dedicated_actor_vote_token
+    personal_wheel_voting._bbvg_dedicated_vote_key_installed = True
+
+
+_install_dedicated_vote_key_contract()
+PersonalWheelVotingMixin = personal_wheel_voting.PersonalWheelVotingMixin
 
 RAINBOW_DOTS = ("🔵", "🟢", "🟡", "🟣", "🟠", "🔴")
 _DOT_GROUP = "(?:" + "|".join(re.escape(value) for value in RAINBOW_DOTS) + ")"

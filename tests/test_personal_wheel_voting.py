@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+import pytest
+
 import personal_wheel_voting
+from bbvg.bot import runtime as bot_runtime
 
 
 UTC = timezone.utc
@@ -77,3 +80,11 @@ def test_reminder_event_key_does_not_reuse_old_action() -> None:
     old = personal_wheel_voting.wheel_event_key("wheel-a", {"action_id": 10})
     new = personal_wheel_voting.wheel_event_key("wheel-a", {"action_id": 11})
     assert old != new
+
+
+def test_bot_token_is_not_accepted_as_state_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert bot_runtime.PersonalWheelVotingMixin is personal_wheel_voting.PersonalWheelVotingMixin
+    monkeypatch.delenv("BOT_STATE_KEY", raising=False)
+    monkeypatch.setenv("BOT_TOKEN", "bot-token-must-not-be-used")
+    with pytest.raises(RuntimeError, match="BOT_STATE_KEY"):
+        personal_wheel_voting.actor_vote_token("100")
