@@ -1,0 +1,64 @@
+name: BB V.G. refactor validation
+
+on:
+  push:
+    branches:
+      - refactor/consolidate-runtime-v42
+    paths:
+      - "tests/production_acceptance.py"
+      - "chapter*.py"
+      - "docs/CODE_INVENTORY_RU.md"
+      - "docs/PROJECT_CHANGELOG_RU.md"
+      - ".github/workflows/refactor-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance-equivalence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/consolidate-runtime-v42
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+      - name: Compile consolidated acceptance
+        run: python -m py_compile tests/production_acceptance.py
+      - name: Run legacy acceptance files
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          UNKNOWN_DEDUP_HOURS: "2"
+        run: |
+          python chapter1_stability.py
+          python chapter2_unified_logic.py
+          python chapter3_acceptance.py
+          python chapter4_acceptance.py
+          python chapter5_acceptance.py
+      - name: Run consolidated acceptance sections
+        env:
+          BOT_TOKEN: test-bot-token
+          BOT_STATE_KEY: test-state-key
+          BOT_CHAT_ID: "1"
+          BBVG_TEST_MODE: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          UNKNOWN_DEDUP_HOURS: "2"
+        run: |
+          python tests/production_acceptance.py --section stability
+          python tests/production_acceptance.py --section unified
+          python tests/production_acceptance.py --section ci
+          python tests/production_acceptance.py --section interface
+          python tests/production_acceptance.py --section lifecycle
+          python tests/production_acceptance.py --section all
