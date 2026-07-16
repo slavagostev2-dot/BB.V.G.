@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "!docs/PROJECT_CHANGELOG_RU.md"
       - "state_api/**"
       - "private_state.py"
       - "migrate_private_state.py"
