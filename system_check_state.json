@@ -1,9 +1,9 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-07-16T02:58:15.542074+00:00",
-    "started_at": "2026-07-16T02:48:09.294342+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-07-16T03:11:03.974944+00:00",
+    "started_at": "2026-07-16T03:00:42.542280+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -26,13 +26,13 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "failed",
+    "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-16T03:00:44.900023+00:00",
+  "checked_at": "2026-07-16T03:12:45.925441+00:00",
   "discovery": {
     "active_size": 77,
     "candidate_count": 204,
@@ -69,25 +69,17 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "Последняя итерация была 47 минут назад.",
-      "kind": "monitor_stale",
-      "severity": "critical",
-      "subject": "",
-      "title": "Основной монитор давно не обновлялся"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-16T02:58:15.542074+00:00",
+    "active_incidents": 0,
+    "bot_panel_heartbeat": "2026-07-16T03:11:03.974944+00:00",
     "checked_sources": 77,
     "configured_sources": 79,
     "domain": "telegram.me",
     "reachable_sources": 77,
     "single_source": "system_check_state.json",
-    "status": "degraded"
+    "status": "ok"
   },
   "incident_delivery": {
     "digest_sent": false,
@@ -95,7 +87,7 @@
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 23,
+  "incident_sequence": 24,
   "inventory": {
     "configured": 77,
     "domain": "telegram.me",
@@ -114,28 +106,28 @@
     "brand": "BB V.G.",
     "checked_sources": 77,
     "checks_delta": 77,
-    "checks_total": 61502,
+    "checks_total": 61810,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 18,
+    "iteration": 4,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-16T02:13:21.669081+00:00",
+    "last_iteration_at": "2026-07-16T03:10:07.716985+00:00",
     "last_iteration_duration_seconds": 5,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-16T02:13:21.669081+00:00",
-    "last_successful_checks_total": 61502,
-    "last_successful_iteration_at": "2026-07-16T02:13:21.669081+00:00",
+    "last_process_heartbeat_at": "2026-07-16T03:10:07.716985+00:00",
+    "last_successful_checks_total": 61810,
+    "last_successful_iteration_at": "2026-07-16T03:10:07.716985+00:00",
     "pending_wheels": 0,
     "reachable_sources": 77,
     "restart_recommended": false,
-    "run_id": "29463929535",
-    "run_started_at": "2026-07-16T01:22:07.034242+00:00",
+    "run_id": "29467935808",
+    "run_started_at": "2026-07-16T03:01:01.414277+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 47,
+  "monitor_age_minutes": 2,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -165,10 +157,10 @@
   },
   "primary_telegram_domain": "telegram.me",
   "rating_consistency": {
-    "administrator_decisions": 19,
+    "administrator_decisions": 22,
     "inactive_wheel_leaks": [],
     "policy": "additive_only_v1",
-    "rated_sources": 18,
+    "rated_sources": 19,
     "score_mismatches": []
   },
   "source_health_summary": {
@@ -194,7 +186,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
