@@ -23,7 +23,6 @@
         ".github/workflows/monitor.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/validate-current.yml",
-        ".github/workflows/validate-private-state.yml",
         "docs/CODE_INVENTORY_RU.md"
       ]
     },
@@ -2103,11 +2102,12 @@
       "line_count": 8,
       "module": "admin_panel_runtime_v41",
       "path": "admin_panel_runtime_v41.py",
-      "reference_count": 9,
+      "reference_count": 10,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/v22-checks.yml",
+        ".github/workflows/validate-private-state.yml",
         "AGENTS.md",
         "bbvg/bot/runtime.py",
         "docs/CODE_INVENTORY_RU.md",
