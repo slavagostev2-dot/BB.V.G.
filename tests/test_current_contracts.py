@@ -8,12 +8,8 @@ install_optional_dependency_stubs()
 
 import admin_action_v2
 import admin_action_v3
-import admin_panel_runtime_v14
-import admin_panel_runtime_v34
 import admin_panel_runtime_v37
 import admin_panel_runtime_v38
-import admin_panel_runtime_v39
-import admin_panel_runtime_v40
 import admin_panel_runtime_v41
 import bot_private_state
 import incident_manager
@@ -29,6 +25,10 @@ import wheel_lifecycle_v2
 import wheel_link_lifecycle
 import wheel_metadata_quality
 import wheel_scenario_suite
+from bbvg.bot import interface as panel_interface
+from bbvg.bot import runtime as panel_runtime
+from bbvg.bot import sources as panel_sources
+from bbvg.bot import users as panel_users
 
 
 class CurrentProductionContractTests(unittest.TestCase):
@@ -37,14 +37,11 @@ class CurrentProductionContractTests(unittest.TestCase):
         admin_action_v3.self_test()
 
     def test_runtime_chain_contracts_used_by_v41(self) -> None:
-        # Earlier versions remain in the active inheritance chain, so their
-        # assertions must not be silently skipped.
-        admin_panel_runtime_v14.self_test()
-        admin_panel_runtime_v34.self_test()
+        panel_interface.self_test()
+        panel_users.self_test()
         admin_panel_runtime_v37.self_test()
         admin_panel_runtime_v38.self_test()
-        admin_panel_runtime_v39.self_test()
-        admin_panel_runtime_v40.self_test()
+        panel_runtime.self_test()
         admin_panel_runtime_v41.self_test()
 
     def test_encrypted_state_and_retention(self) -> None:
@@ -62,6 +59,7 @@ class CurrentProductionContractTests(unittest.TestCase):
         personal_reminder_filter.self_test()
 
     def test_source_and_wheel_contracts(self) -> None:
+        panel_sources.self_test()
         source_registry.self_test()
         source_intelligence_alerts.self_test()
         wheel_lifecycle_v2.self_test()

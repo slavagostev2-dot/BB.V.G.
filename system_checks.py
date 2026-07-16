@@ -38,8 +38,8 @@ MINIAPP_STYLES_PATH = ROOT / "docs" / "styles.css"
 ACTIVE_DOMAIN_FILES = (
     ROOT / "monitor.py",
     ROOT / "nightly_discovery.py",
-    ROOT / "admin_panel_runtime_v17.py",
-    ROOT / "admin_panel_runtime_v21.py",
+    ROOT / "bbvg" / "bot" / "source_requests.py",
+    ROOT / "bbvg" / "bot" / "users.py",
     ROOT / "docs" / "app.js",
     ROOT / "docs" / "bbvg-controls.js",
     ROOT / "docs" / "views-secondary.js",

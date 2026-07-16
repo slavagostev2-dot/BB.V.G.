@@ -14,7 +14,7 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import admin_action_queue
-from admin_panel_runtime_v34 import TelegramPanelRuntimeV34, _merge_value
+from bbvg.bot.storage import PrivateStateRuntime, _merge_value
 from ci_verify_current_commit import verify_current_commit
 
 
@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ConcurrentStateTests(unittest.TestCase):
     def test_registration_and_personal_action_merge_without_data_loss(self) -> None:
-        panel = TelegramPanelRuntimeV34()
+        panel = PrivateStateRuntime()
         base = panel.normalize_access(
             {
                 "owner_id": "1",
