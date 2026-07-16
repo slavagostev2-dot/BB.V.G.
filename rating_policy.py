@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+import argparse
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any, Callable, Sequence
+
+DEFAULT_STATS_PATH = Path(__file__).resolve().parent / "source_stats.json"
 
 
 def normalize_additive_rating(data: dict[str, Any]) -> bool:
@@ -41,7 +47,7 @@ def record_admin_wheel_decision(
 ) -> bool:
     """Apply the latest administrator verdict with a non-negative rating.
 
-    ``inactive`` must reverse an earlier confirmation for the same wheel.  The
+    ``inactive`` must reverse an earlier confirmation for the same wheel. The
     source loses the points from that confirmation and receives an inactive
     counter, but its total score is never allowed to become negative.
     """
@@ -55,3 +61,85 @@ def record_admin_wheel_decision(
     )
     normalized_changed = normalize_additive_rating(data)
     return changed or normalized_changed
+
+
+def load_rating_data(path: Path) -> dict[str, Any]:
+    """Load rating state, returning the stable empty shape for invalid input."""
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        value = {"version": 1, "sources": {}, "daily": {}}
+    if not isinstance(value, dict):
+        return {"version": 1, "sources": {}, "daily": {}}
+    return value
+
+
+def normalize_file(path: Path) -> bool:
+    """Normalize one rating JSON file and replace it atomically when changed."""
+    data = load_rating_data(path)
+    changed = normalize_additive_rating(data)
+    if changed:
+        temporary = path.with_name(path.name + ".tmp")
+        temporary.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(path)
+    return changed
+
+
+def self_test() -> None:
+    with TemporaryDirectory() as temporary:
+        path = Path(temporary) / "source_stats.json"
+        path.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "sources": {
+                        "first": {
+                            "quality_score": -80,
+                            "quality_decisions": {
+                                "wheel-a": -40,
+                                "wheel-b": 40,
+                            },
+                        },
+                        "second": {"quality_score": -5},
+                    },
+                    "daily": {},
+                }
+            ),
+            encoding="utf-8",
+        )
+        assert normalize_file(path) is True
+        normalized = json.loads(path.read_text(encoding="utf-8"))
+        assert normalized["source_rating_policy"] == "additive_only_v1"
+        assert normalized["sources"]["first"]["quality_decisions"] == {
+            "wheel-a": 0,
+            "wheel-b": 40,
+        }
+        assert normalized["sources"]["first"]["quality_score"] == 40
+        assert normalized["sources"]["second"]["quality_score"] == 0
+        assert normalize_file(path) is False
+    print("rating policy file normalization self-test passed")
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Normalize BB V.G. source ratings")
+    parser.add_argument(
+        "--path",
+        type=Path,
+        default=DEFAULT_STATS_PATH,
+        help="Path to source_stats.json",
+    )
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args(argv)
+    if args.self_test:
+        self_test()
+        return 0
+    changed = normalize_file(args.path)
+    print(f"Additive source rating normalization: {'changed' if changed else 'unchanged'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
