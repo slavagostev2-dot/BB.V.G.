@@ -1,7 +1,7 @@
 {
   "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 100,
+    "age_minutes": 146,
     "last_heartbeat_at": "2026-07-15T22:29:43.053419+00:00",
     "started_at": "2026-07-15T17:10:48.247225+00:00",
     "status": "running",
@@ -32,7 +32,7 @@
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-16T00:10:14.264507+00:00",
+  "checked_at": "2026-07-16T00:56:35.861714+00:00",
   "discovery": {
     "active_size": 77,
     "candidate_count": 204,
@@ -72,7 +72,7 @@
   "finding_count": 2,
   "findings": [
     {
-      "detail": "Последний живой сигнал был 100 минут назад.",
+      "detail": "Последний живой сигнал был 146 минут назад.",
       "kind": "admin_panel_stale",
       "severity": "critical",
       "subject": "",
@@ -121,17 +121,17 @@
     "brand": "BB V.G.",
     "checked_sources": 77,
     "checks_delta": 77,
-    "checks_total": 58191,
+    "checks_total": 59346,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 26,
+    "iteration": 41,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-16T00:03:22.125120+00:00",
-    "last_iteration_duration_seconds": 5,
+    "last_iteration_at": "2026-07-16T00:48:28.137118+00:00",
+    "last_iteration_duration_seconds": 6,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-16T00:03:22.125120+00:00",
-    "last_successful_checks_total": 58191,
-    "last_successful_iteration_at": "2026-07-16T00:03:22.125120+00:00",
+    "last_process_heartbeat_at": "2026-07-16T00:48:28.137118+00:00",
+    "last_successful_checks_total": 59346,
+    "last_successful_iteration_at": "2026-07-16T00:48:28.137118+00:00",
     "pending_wheels": 0,
     "reachable_sources": 77,
     "restart_recommended": false,
@@ -142,7 +142,7 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 6,
+  "monitor_age_minutes": 8,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
