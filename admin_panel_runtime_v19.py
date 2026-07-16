@@ -1,56 +1,21 @@
 from __future__ import annotations
 
 import argparse
-from urllib.parse import quote
 
-from admin_panel_runtime_v18 import TelegramPanelRuntimeV18
+from admin_panel_runtime_v17 import TelegramPanelRuntimeV17
+from bbvg.bot.foundation import BRAND_NAME, MINIAPP_URL
 
-MINIAPP_V4_URL = (
-    "https://raw.githack.com/slavagostev2-dot/"
-    "betboom-wheel-monitor/main/docs/index.html"
-)
-BRAND_NAME = "BB V.G."
+MINIAPP_V4_URL = MINIAPP_URL
 
 
-class TelegramPanelRuntimeV19(TelegramPanelRuntimeV18):
-    """Panel v19: BB V.G. branding and Mini App v4."""
-
-    def miniapp_url_for_chat(self) -> str:
-        params = ["v=4.0.0"]
-        username = self.bot_username()
-        if username:
-            params.append(f"bot={quote(username)}")
-        return MINIAPP_V4_URL + "?" + "&".join(params)
-
-    def show_menu(self, *, clear_stack: bool = True) -> None:
-        if clear_stack:
-            self.navigation[str(self.current_user_id or "guest")] = ["menu"]
-        role = self.role_for(self.current_user_id)
-        admin = role in {"owner", "admin"}
-        title = "панель управления" if admin else "информационная панель"
-        self.send(
-            f"◈ <b>{BRAND_NAME} — {title}</b>\n\n"
-            f"Ваш доступ: <b>{self.role_name(role)}</b>\n"
-            "Выберите раздел.",
-            reply_markup={"inline_keyboard": self.compact_menu_rows(admin)},
-        )
-
-    def show_app_entry(self) -> None:
-        url = self.miniapp_url_for_chat()
-        self.send(
-            f"📱 <b>Приложение {BRAND_NAME}</b>\n\n"
-            "Актуальные колёса, статистика, источники и запросы пользователей.",
-            reply_markup=self.with_nav([
-                [{"text": "📱 Открыть внутри Telegram", "web_app": {"url": url}}],
-                [{"text": "🌐 Открыть в браузере", "url": url}],
-            ]),
-        )
+class TelegramPanelRuntimeV19(TelegramPanelRuntimeV17):
+    """Compatibility entrypoint after consolidating Mini App behavior."""
 
 
 def self_test() -> None:
     assert BRAND_NAME == "BB V.G."
-    assert MINIAPP_V4_URL.endswith("docs/index.html")
-    print("admin_panel_runtime_v19 BB V.G. self-test passed")
+    assert MINIAPP_V4_URL.endswith(".pages.dev/")
+    print("admin_panel_runtime_v19 compatibility self-test passed")
 
 
 def main() -> int:
