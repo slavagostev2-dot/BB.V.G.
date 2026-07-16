@@ -417,6 +417,200 @@ class RecurringWheelHotfixTests(unittest.TestCase):
         self.assertNotEqual(first, reused)
         self.assertNotEqual(first, available)
 
+    def test_active_revalidation_removes_confirmed_inactive_wheel(self) -> None:
+        runtime = bbvg_monitor_main.runtime
+        current = datetime(2026, 7, 16, 17, 23, tzinfo=UTC)
+        state = {
+            "active_wheels": {
+                "papa": {
+                    "identifier": "papa",
+                    "url": "https://betboom.ru/freestream/papa",
+                    "action_id": 852,
+                }
+            },
+            "participating_wheels": {
+                "papa": {"marked_at": current.isoformat()}
+            },
+            "button_contexts": {
+                "token": {"wheel_key": "papa"}
+            },
+            "wheel_action_history": {},
+        }
+        original = runtime.monitor.inspect_wheel_page
+        runtime.monitor.inspect_wheel_page = lambda url: runtime.monitor.WheelInspection(
+            "inactive",
+            current - timedelta(minutes=1),
+            "confirmed inactive",
+            action_id=852,
+            verification_status=runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+        )
+        try:
+            result = runtime.revalidate_active_wheels(state, current)
+        finally:
+            runtime.monitor.inspect_wheel_page = original
+
+        self.assertEqual(result["checked"], 1)
+        self.assertEqual(result["removed"], 1)
+        self.assertNotIn("papa", state["active_wheels"])
+        self.assertNotIn("papa", state["participating_wheels"])
+        self.assertNotIn("token", state["button_contexts"])
+        self.assertEqual(state["wheel_action_history"]["papa"]["action_id"], 852)
+
+    def test_active_revalidation_updates_identity_but_keeps_manual_time(self) -> None:
+        runtime = bbvg_monitor_main.runtime
+        current = datetime(2026, 7, 16, 17, 23, tzinfo=UTC)
+        message_at = current - timedelta(hours=1)
+        manual_deadline = current + timedelta(hours=3)
+        api_deadline = current + timedelta(hours=1)
+        state = {
+            "active_wheels": {
+                "cct1": {
+                    "identifier": "cct1",
+                    "url": "https://betboom.ru/freestream/cct1",
+                    "message_date": message_at.isoformat(),
+                    "first_notified_at": message_at.isoformat(),
+                }
+            },
+            "manual_deadlines": {
+                "cct1": {
+                    "deadline": manual_deadline.isoformat(),
+                    "updated_at": current.isoformat(),
+                }
+            },
+            "wheel_action_history": {},
+        }
+        original = runtime.monitor.inspect_wheel_page
+        runtime.monitor.inspect_wheel_page = lambda url: runtime.monitor.WheelInspection(
+            "active",
+            api_deadline,
+            "confirmed active",
+            action_id=837,
+            verification_status=runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+        )
+        try:
+            result = runtime.revalidate_active_wheels(state, current)
+        finally:
+            runtime.monitor.inspect_wheel_page = original
+
+        entry = state["active_wheels"]["cct1"]
+        self.assertEqual(result["confirmed"], 1)
+        self.assertEqual(entry["action_id"], 837)
+        self.assertEqual(entry["deadline"], manual_deadline.isoformat())
+        self.assertEqual(entry["deadline_source"], "manual")
+        self.assertEqual(entry["verification_status"], "confirmed")
+
+    def test_active_revalidation_failure_keeps_wheel_with_warning(self) -> None:
+        runtime = bbvg_monitor_main.runtime
+        current = datetime(2026, 7, 16, 17, 23, tzinfo=UTC)
+        state = {
+            "active_wheels": {
+                "zonertg7": {
+                    "identifier": "zonertg7",
+                    "url": "https://betboom.ru/freestream/zonertg7",
+                    "deadline": (current + timedelta(hours=1)).isoformat(),
+                }
+            }
+        }
+        original = runtime.monitor.inspect_wheel_page
+        runtime.monitor.inspect_wheel_page = lambda url: runtime.monitor.WheelInspection(
+            "verification_failed",
+            None,
+            "temporary API failure",
+            verification_status=runtime.monitor.WHEEL_VERIFICATION_FAILED,
+        )
+        try:
+            result = runtime.revalidate_active_wheels(state, current)
+        finally:
+            runtime.monitor.inspect_wheel_page = original
+
+        self.assertEqual(result["failed"], 1)
+        self.assertIn("zonertg7", state["active_wheels"])
+        entry = state["active_wheels"]["zonertg7"]
+        self.assertEqual(entry["verification_status"], "failed")
+        self.assertEqual(entry["last_verification_error"], "temporary API failure")
+
+    def test_confirmed_api_without_timer_does_not_restore_telegram_timer(self) -> None:
+        runtime = bbvg_monitor_main.runtime
+        current = datetime(2026, 7, 16, 17, 23, tzinfo=UTC)
+        message_at = current - timedelta(minutes=10)
+        state = {
+            "active_wheels": {
+                "untimed": {
+                    "identifier": "untimed",
+                    "url": "https://betboom.ru/freestream/untimed",
+                    "message_date": message_at.isoformat(),
+                    "message_text": "Прокрутка через 2 часа",
+                    "first_notified_at": message_at.isoformat(),
+                }
+            }
+        }
+        original = runtime.monitor.inspect_wheel_page
+        runtime.monitor.inspect_wheel_page = lambda url: runtime.monitor.WheelInspection(
+            "active",
+            None,
+            "confirmed without timer",
+            action_id=900,
+            verification_status=runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+        )
+        try:
+            runtime.revalidate_active_wheels(state, current)
+        finally:
+            runtime.monitor.inspect_wheel_page = original
+
+        entry = state["active_wheels"]["untimed"]
+        self.assertNotIn("deadline", entry)
+        self.assertEqual(entry["deadline_source"], "api_missing")
+        self.assertIsNone(
+            bbvg_monitor_main.recover_deadline_manual_first(
+                state, "untimed", entry
+            )
+        )
+
+    def test_active_revalidation_new_action_clears_previous_participation(self) -> None:
+        runtime = bbvg_monitor_main.runtime
+        current = datetime(2026, 7, 16, 17, 23, tzinfo=UTC)
+        state = {
+            "active_wheels": {
+                "reused": {
+                    "identifier": "reused",
+                    "url": "https://betboom.ru/freestream/reused",
+                    "action_id": 100,
+                    "participating": True,
+                    "first_notified_at": (current - timedelta(hours=1)).isoformat(),
+                }
+            },
+            "participating_wheels": {
+                "reused": {"marked_at": current.isoformat()}
+            },
+            "manual_deadlines": {
+                "reused": {
+                    "deadline": (current + timedelta(hours=4)).isoformat(),
+                    "updated_at": current.isoformat(),
+                }
+            },
+            "wheel_action_history": {
+                "reused": {"action_id": 100, "seen_at": current.isoformat()}
+            },
+        }
+        original = runtime.monitor.inspect_wheel_page
+        runtime.monitor.inspect_wheel_page = lambda url: runtime.monitor.WheelInspection(
+            "active",
+            current + timedelta(hours=2),
+            "new action",
+            action_id=101,
+            verification_status=runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+        )
+        try:
+            runtime.revalidate_active_wheels(state, current)
+        finally:
+            runtime.monitor.inspect_wheel_page = original
+
+        entry = state["active_wheels"]["reused"]
+        self.assertEqual(entry["action_id"], 101)
+        self.assertFalse(entry["participating"])
+        self.assertNotIn("reused", state["participating_wheels"])
+        self.assertNotIn("reused", state["manual_deadlines"])
+
 
 if __name__ == "__main__":
     unittest.main()

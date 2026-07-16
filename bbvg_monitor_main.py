@@ -98,6 +98,12 @@ def recover_deadline_manual_first(state: dict, key: str, entry: dict):
         deadline = monitor.parse_datetime(entry.get("deadline"))
         if deadline:
             return deadline
+    if (
+        str(entry.get("verification_status") or "")
+        == monitor.WHEEL_VERIFICATION_CONFIRMED
+        and str(entry.get("deadline_source") or "") == "api_missing"
+    ):
+        return None
     return _original_recover_deadline(state, normalized, entry)
 
 

@@ -354,47 +354,141 @@ def wheel_reply_markup_bbvg(
     return {"inline_keyboard": rebuilt}
 
 
-def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
-    """Retry only wheels admitted after a transient BetBoom API failure."""
+def _manual_deadline(state: dict, key: str, entry: dict):
+    manual = state.get("manual_deadlines", {}).get(str(key).casefold())
+    if isinstance(manual, dict):
+        deadline = monitor.parse_datetime(manual.get("deadline"))
+        updated_at = monitor.parse_datetime(manual.get("updated_at"))
+        message_at = monitor.parse_datetime(entry.get("message_date"))
+        if deadline and (
+            message_at is None
+            or updated_at is None
+            or updated_at >= message_at
+        ):
+            return deadline
+    if str(entry.get("deadline_source") or "") == "manual":
+        return monitor.parse_datetime(entry.get("deadline"))
+    return None
+
+
+def _start_revalidated_action(
+    state: dict,
+    active: dict,
+    key: str,
+    entry: dict,
+    action_id: int | None,
+    current,
+) -> dict:
+    previous_action = _record_action_id(entry) or _record_action_id(
+        state.get("wheel_action_history", {}).get(str(key).casefold())
+        if isinstance(state.get("wheel_action_history"), dict)
+        else None
+    )
+    if (
+        previous_action is None
+        or action_id is None
+        or previous_action == action_id
+    ):
+        return entry
+
+    # BetBoom reused the URL for a different action. Mutable decisions from
+    # the previous event must not leak into the new one, while the source
+    # metadata remains useful for the active card.
+    import wheel_event_runtime
+    import wheel_lifecycle_v2
+
+    preserved = dict(entry)
+    wheel_event_runtime.reset_changed_action_state(state, key, action_id)
+    for field in (
+        "event_id",
+        "lifecycle_state",
+        "lifecycle_changed_at",
+        "participating",
+        "participating_at",
+        "known_reminder_sent_at",
+        "final_reminder_sent_at",
+        "last_unknown_reminder_at",
+        "manual_time_waiting_since",
+        "availability_notified_at",
+        "last_reminder_error",
+        "final_reminder_error",
+    ):
+        preserved.pop(field, None)
+    preserved["first_notified_at"] = current.isoformat()
+    preserved["participating"] = False
+    active[key] = preserved
+    wheel_lifecycle_v2.stamp_lifecycle(str(key).casefold(), preserved, current)
+    return preserved
+
+
+def revalidate_active_wheels(state: dict, current=None) -> dict[str, int | bool]:
+    """Recheck every active wheel through the authoritative BetBoom API."""
 
     current = current or monitor.now_utc()
     active = state.setdefault("active_wheels", {})
     changed = False
+    checked = 0
     confirmed = 0
+    failed = 0
     removed = 0
     for key, entry in list(active.items()):
         if not isinstance(entry, dict):
-            continue
-        if entry.get("verification_status") != monitor.WHEEL_VERIFICATION_FAILED:
-            continue
-        retry_at = monitor.parse_datetime(entry.get("verification_retry_at"))
-        if retry_at is not None and retry_at > current:
             continue
         url = str(entry.get("url") or "")
         if not url:
             continue
         inspection = monitor.inspect_wheel_page(url)
+        checked += 1
         monitor.record_wheel_api_verification(
             state, inspection, checked_at=current
         )
         entry["last_verification_at"] = current.isoformat()
+        entry["last_checked_at"] = current.isoformat()
         if inspection.status == "verification_failed":
+            entry["verification_status"] = monitor.WHEEL_VERIFICATION_FAILED
             entry["verification_retry_at"] = (
                 current + timedelta(minutes=monitor.PENDING_RECHECK_MINUTES)
             ).isoformat()
+            entry["last_verification_error"] = inspection.method[:300]
+            failed += 1
             changed = True
             continue
         if inspection.status == "inactive":
-            active.pop(key, None)
+            if inspection.action_id is not None:
+                state.setdefault("wheel_action_history", {})[
+                    str(key).casefold()
+                ] = {
+                    "action_id": inspection.action_id,
+                    "seen_at": current.isoformat(),
+                }
+            import wheel_lifecycle_v2
+
+            wheel_lifecycle_v2.cleanup_event_records(
+                state, str(key).casefold()
+            )
             removed += 1
             changed = True
             continue
 
+        entry = _start_revalidated_action(
+            state,
+            active,
+            str(key).casefold(),
+            entry,
+            inspection.action_id,
+            current,
+        )
         entry["verification_status"] = monitor.WHEEL_VERIFICATION_CONFIRMED
-        entry["status"] = "active"
+        entry["status"] = (
+            "scheduled_availability"
+            if inspection.available_at is not None
+            and inspection.available_at > current
+            else "active"
+        )
         entry["page_status"] = "active"
         entry["method"] = inspection.method[:300]
         entry.pop("verification_retry_at", None)
+        entry.pop("last_verification_error", None)
         if inspection.action_id is not None:
             entry["action_id"] = inspection.action_id
             state.setdefault("wheel_action_history", {})[str(key).casefold()] = {
@@ -403,26 +497,54 @@ def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
             }
         if inspection.available_at is not None:
             entry["available_at"] = inspection.available_at.isoformat()
-        if inspection.deadline is not None:
-            entry["deadline"] = inspection.deadline.isoformat()
+            entry["availability_status"] = "scheduled"
+        else:
+            entry.pop("available_at", None)
+            entry["availability_status"] = "available"
+
+        deadline = _manual_deadline(state, str(key), entry)
+        deadline_source = "manual" if deadline is not None else "api"
+        deadline = deadline or inspection.deadline
+        if deadline is not None:
+            entry["deadline"] = deadline.isoformat()
+            entry["deadline_source"] = deadline_source
             entry["expires_at"] = monitor.participation_expiry(
-                inspection.deadline, current=current
+                deadline, current=current
             ).isoformat()
+            participant = state.get("participating_wheels", {}).get(
+                str(key).casefold()
+            )
+            if isinstance(participant, dict):
+                participant["deadline"] = deadline.isoformat()
+                participant["expires_at"] = entry["expires_at"]
             entry["needs_manual_time"] = False
         else:
             entry.pop("deadline", None)
+            entry["deadline_source"] = "api_missing"
             entry["expires_at"] = _entry_untimed_expiry(
                 entry, current
             ).isoformat()
             entry["needs_manual_time"] = True
         confirmed += 1
         changed = True
-    return {"changed": changed, "confirmed": confirmed, "removed": removed}
+    return {
+        "changed": changed,
+        "checked": checked,
+        "confirmed": confirmed,
+        "failed": failed,
+        "removed": removed,
+    }
+
+
+def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
+    """Compatibility alias for the full active-wheel revalidation pass."""
+
+    return revalidate_active_wheels(state, current)
 
 
 def process_active_without_page_verdict(state: dict, stats: dict):
     current = monitor.now_utc()
-    verification = retry_unverified_wheels(state, current)
+    verification = revalidate_active_wheels(state, current)
     changed = bool(verification.get("changed"))
     state.setdefault("pending_posts", {}).clear()
 
@@ -456,6 +578,8 @@ def process_active_without_page_verdict(state: dict, stats: dict):
     if changed:
         result["changed"] = True
     result["verification_confirmed"] = int(verification.get("confirmed", 0) or 0)
+    result["verification_checked"] = int(verification.get("checked", 0) or 0)
+    result["verification_failed"] = int(verification.get("failed", 0) or 0)
     result["verification_removed"] = int(verification.get("removed", 0) or 0)
     result["pending_total"] = 0
     return result
