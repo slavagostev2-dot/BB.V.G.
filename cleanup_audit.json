@@ -71,7 +71,7 @@
     }
   ],
   "current_runtime": "admin_panel_runtime_v41",
-  "runtime_chain_count": 37,
+  "runtime_chain_count": 36,
   "runtime_file_count": 40,
   "runtime_files": [
     {
@@ -3701,47 +3701,25 @@
       "direct_imports": [
         "bbvg.bot.runtime"
       ],
-      "in_current_import_chain": true,
+      "in_current_import_chain": false,
       "line_count": 8,
       "module": "admin_panel_runtime_v40",
       "path": "admin_panel_runtime_v40.py",
-      "reference_count": 4,
+      "reference_count": 3,
       "references": [
         ".github/workflows/admin-bot.yml",
-        "admin_panel_runtime_v41.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "tests/test_current_contracts.py"
       ],
       "top_level_functions": []
     },
     {
-      "classes": [
-        {
-          "bases": [
-            "TelegramPanelRuntimeV40"
-          ],
-          "class_attributes": [
-            "RUNTIME_VERSION"
-          ],
-          "method_count": 1,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 29,
-              "line_count": 15,
-              "name": "show_menu",
-              "start_line": 15
-            }
-          ],
-          "name": "TelegramPanelRuntimeV41"
-        }
-      ],
+      "classes": [],
       "direct_imports": [
-        "admin_panel_runtime_v40"
+        "bbvg.bot.runtime"
       ],
       "in_current_import_chain": true,
-      "line_count": 70,
+      "line_count": 8,
       "module": "admin_panel_runtime_v41",
       "path": "admin_panel_runtime_v41.py",
       "reference_count": 7,
@@ -3754,10 +3732,7 @@
         "tests/production_acceptance.py",
         "tests/test_current_contracts.py"
       ],
-      "top_level_functions": [
-        "main",
-        "self_test"
-      ]
+      "top_level_functions": []
     },
     {
       "classes": [
@@ -4848,7 +4823,6 @@
       "admin_panel_runtime_v19",
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v4",
-      "admin_panel_runtime_v41",
       "admin_panel_runtime_v6",
       "admin_panel_runtime_v7",
       "admin_panel_runtime_v9"
@@ -4975,7 +4949,7 @@
       "admin_panel_runtime_v12"
     ]
   },
-  "runtime_total_lines": 10626,
+  "runtime_total_lines": 10564,
   "runtime_unique_method_count": 153,
   "unreferenced_python_candidates": []
 }

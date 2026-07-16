@@ -3,8 +3,8 @@
 Файл генерируется автоматически из AST. Он описывает текущую ветку рефакторинга и не заменяет ручной анализ поведения.
 
 - Runtime-файлов: **40**
-- В текущей цепочке: **37**
-- Суммарно строк: **10626**
+- В текущей цепочке: **36**
+- Суммарно строк: **10564**
 - Уникальных имён методов: **153**
 
 ## Файлы и определённые методы
@@ -536,19 +536,17 @@
 - `_collect_current_wheels()` — 63 строк
 - `show_active()` — 56 строк
 
-### `admin_panel_runtime_v40.py` — 8 строк, в рабочей цепочке
+### `admin_panel_runtime_v40.py` — 8 строк, вне рабочей цепочки
 
 Прямые импорты: `bbvg.bot.runtime`
 
 Классы не определены.
 
-### `admin_panel_runtime_v41.py` — 70 строк, в рабочей цепочке
+### `admin_panel_runtime_v41.py` — 8 строк, в рабочей цепочке
 
-Прямые импорты: `admin_panel_runtime_v40`
+Прямые импорты: `bbvg.bot.runtime`
 
-Класс `TelegramPanelRuntimeV41`; база: `TelegramPanelRuntimeV40`.
-
-- `show_menu()` — 15 строк
+Классы не определены.
 
 ### `admin_panel_runtime_v5.py` — 421 строк, в рабочей цепочке
 
@@ -682,7 +680,7 @@
 - `show_inactive_report()` — `admin_panel_runtime_v31`, `admin_panel_runtime_v38`
 - `show_intelligence()` — `admin_panel_runtime_v37`, `admin_panel_runtime_v6`
 - `show_intelligence_list()` — `admin_panel_runtime_v14`, `admin_panel_runtime_v6`
-- `show_menu()` — `admin_panel_runtime_v14`, `admin_panel_runtime_v19`, `admin_panel_runtime_v37`, `admin_panel_runtime_v4`, `admin_panel_runtime_v41`, `admin_panel_runtime_v6`, `admin_panel_runtime_v7`, `admin_panel_runtime_v9`
+- `show_menu()` — `admin_panel_runtime_v14`, `admin_panel_runtime_v19`, `admin_panel_runtime_v37`, `admin_panel_runtime_v4`, `admin_panel_runtime_v6`, `admin_panel_runtime_v7`, `admin_panel_runtime_v9`
 - `show_more()` — `admin_panel_runtime_v14`, `admin_panel_runtime_v15`
 - `show_notifications()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v33`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`
 - `show_period_report()` — `admin_panel_runtime_v31`, `admin_panel_runtime_v32`, `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
