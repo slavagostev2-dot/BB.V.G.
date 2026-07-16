@@ -93,8 +93,10 @@ def main() -> int:
     assert runtime.monitor.wheel_reply_markup.__module__ == "bbvg_monitor_main"
     assert runtime.monitor.process_active_wheels.__module__ == "wheel_lifecycle_v2"
     assert runtime.runtime.base_runtime._persist_publications.__module__ == "wheel_publications_v2"
-    assert runtime.monitor.is_suppressed.__module__ == "wheel_link_lifecycle"
-    assert runtime.monitor.is_activation_suppressed.__module__ == "wheel_link_lifecycle"
+    # The public integration name stays compatible with the original workflow;
+    # the installation flag below proves the timer-aware lifecycle is active.
+    assert runtime.monitor.is_suppressed.__module__ == "wheel_publications_v2"
+    assert runtime.monitor.is_activation_suppressed.__module__ == "wheel_publications_v2"
     assert runtime.monitor.telegram_api.__module__ == "personal_reminder_filter"
     assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
     assert runtime.monitor.fetch_public_channel.__module__ == "telegram_post_links_v2"
