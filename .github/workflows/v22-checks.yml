@@ -69,11 +69,11 @@ jobs:
           python security_audit.py --current
           python security_audit.py --history --history-output security_history_report.json
 
-      - name: Run full tests and production acceptance
-        run: |
-          set -euo pipefail
-          python -m pytest -q
-          python tests/production_acceptance.py
+      - name: Run full pytest suite
+        run: python -m pytest -q
+
+      - name: Run production acceptance
+        run: python tests/production_acceptance.py --section all
 
       - name: Validate current production boundaries
         run: |
