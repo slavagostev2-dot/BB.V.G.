@@ -1,11 +1,11 @@
 # BB V.G. — карта методов исторического runtime панели
 
 Файл генерируется автоматически из AST и фактической MRO текущего runtime.
-Исходный коммит аудита: `69bfac18114e49be02f039c9aa4cf9f1398b9626`.
+Исходный коммит аудита: `1520e91b39b48d7c77589e66b44def92e89073d5`.
 
-- Runtime-файлов: **34**
+- Runtime-файлов: **33**
 - В текущей цепочке: **29**
-- Суммарно строк: **8879**
+- Суммарно строк: **8827**
 - Уникальных имён методов: **128**
 
 ## Фактическая MRO текущей панели
@@ -187,14 +187,6 @@
 Класс `TelegramPanelRuntimeV17`; база: `SourceRequestRuntime`.
 
 - собственных методов нет
-
-### `admin_panel_runtime_v18.py` — 52 строк, вне рабочей цепочки
-
-Прямые импорты: `admin_panel_runtime_v17`
-
-Класс `TelegramPanelRuntimeV18`; база: `TelegramPanelRuntimeV17`.
-
-- `miniapp_url_for_chat()` — 16 строк
 
 ### `admin_panel_runtime_v19.py` — 32 строк, в рабочей цепочке
 
@@ -706,7 +698,7 @@
 - `handle_message()` — `admin_panel_runtime_v20`, `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v37`, `admin_panel_runtime_v6`, `admin_panel_runtime_v7`, `admin_panel_runtime_v9`
 - `load_access()` — `admin_panel_runtime_v23`, `admin_panel_runtime_v25`
 - `load_source_requests()` — `admin_panel_runtime_v23`, `admin_panel_runtime_v25`
-- `miniapp_url_for_chat()` — `admin_panel_runtime_v18`, `admin_panel_runtime_v21`, `admin_panel_runtime_v22`
+- `miniapp_url_for_chat()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v22`
 - `normalize_access()` — `admin_panel_runtime_v3`, `admin_panel_runtime_v35`
 - `notification_preferences()` — `admin_panel_runtime_v21`, `admin_panel_runtime_v30`, `admin_panel_runtime_v31`, `admin_panel_runtime_v33`, `admin_panel_runtime_v37`
 - `open_page()` — `admin_panel_runtime_v38`, `admin_panel_runtime_v8`
