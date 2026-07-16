@@ -64,7 +64,7 @@
   ],
   "current_runtime": "admin_panel_runtime_v41",
   "runtime_chain_count": 22,
-  "runtime_file_count": 23,
+  "runtime_file_count": 22,
   "runtime_files": [
     {
       "classes": [
@@ -108,10 +108,9 @@
       "line_count": 39,
       "module": "admin_panel_runtime_v17",
       "path": "admin_panel_runtime_v17.py",
-      "reference_count": 9,
+      "reference_count": 8,
       "references": [
         "admin_panel_runtime_v17.py",
-        "admin_panel_runtime_v19.py",
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py",
         "admin_panel_runtime_v30.py",
@@ -119,26 +118,6 @@
         "docs/RUNTIME_METHOD_INVENTORY_RU.md",
         "system_checks.py",
         "tests/test_nightly_idle_policy.py"
-      ],
-      "top_level_functions": [
-        "main",
-        "self_test"
-      ]
-    },
-    {
-      "classes": [],
-      "direct_imports": [
-        "admin_panel_runtime_v17",
-        "bbvg.bot.foundation"
-      ],
-      "in_current_import_chain": false,
-      "line_count": 30,
-      "module": "admin_panel_runtime_v19",
-      "path": "admin_panel_runtime_v19.py",
-      "reference_count": 2,
-      "references": [
-        "admin_panel_runtime_v19.py",
-        "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
       "top_level_functions": [
         "main",
@@ -2911,7 +2890,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 6032,
+  "runtime_total_lines": 6002,
   "runtime_unique_method_count": 100,
   "unreferenced_python_candidates": []
 }
