@@ -1,6 +1,7 @@
 {
   "chapter_files": [
     {
+      "line_count": 11,
       "path": "chapter1_stability.py",
       "references": [
         ".github/workflows/admin-bot.yml",
@@ -15,6 +16,7 @@
       ]
     },
     {
+      "line_count": 11,
       "path": "chapter2_unified_logic.py",
       "references": [
         ".github/workflows/admin-bot.yml",
@@ -29,6 +31,7 @@
       ]
     },
     {
+      "line_count": 11,
       "path": "chapter3_acceptance.py",
       "references": [
         ".github/workflows/refactor-validation.yml",
@@ -37,6 +40,7 @@
       ]
     },
     {
+      "line_count": 12,
       "path": "chapter4_acceptance.py",
       "references": [
         ".github/workflows/admin-bot.yml",
@@ -51,6 +55,7 @@
       ]
     },
     {
+      "line_count": 15,
       "path": "chapter5_acceptance.py",
       "references": [
         ".github/workflows/admin-bot.yml",
@@ -70,65 +75,408 @@
   "runtime_file_count": 40,
   "runtime_files": [
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV9"
+          ],
+          "class_attributes": [],
+          "method_count": 3,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 35,
+              "line_count": 8,
+              "name": "setup_bot",
+              "start_line": 28
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 46,
+              "line_count": 10,
+              "name": "show_app_entry",
+              "start_line": 37
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 60,
+              "line_count": 13,
+              "name": "handle_message",
+              "start_line": 48
+            }
+          ],
+          "name": "TelegramPanelRuntimeV10"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v9"
       ],
       "in_current_import_chain": true,
+      "line_count": 82,
       "module": "admin_panel_runtime_v10",
       "path": "admin_panel_runtime_v10.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v10.py",
         "admin_panel_runtime_v11.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV10"
+          ],
+          "class_attributes": [],
+          "method_count": 4,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 29,
+              "line_count": 9,
+              "name": "miniapp_deployment",
+              "start_line": 21
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 54,
+              "line_count": 24,
+              "name": "show_app_entry",
+              "start_line": 31
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 105,
+              "line_count": 50,
+              "name": "show_discovery",
+              "start_line": 56
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 148,
+              "line_count": 42,
+              "name": "show_candidate_list",
+              "start_line": 107
+            }
+          ],
+          "name": "TelegramPanelRuntimeV11"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v10",
         "admin_panel_runtime_v5"
       ],
       "in_current_import_chain": true,
+      "line_count": 169,
       "module": "admin_panel_runtime_v11",
       "path": "admin_panel_runtime_v11.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v11.py",
         "admin_panel_runtime_v12.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV11"
+          ],
+          "class_attributes": [],
+          "method_count": 3,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 16,
+              "line_count": 4,
+              "name": "_callback_page",
+              "start_line": 13
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 30,
+              "line_count": 13,
+              "name": "nav_rows",
+              "start_line": 18
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 72,
+              "line_count": 41,
+              "name": "with_nav",
+              "start_line": 32
+            }
+          ],
+          "name": "TelegramPanelRuntimeV12"
+        },
+        {
+          "bases": [
+            "TelegramPanelRuntimeV12"
+          ],
+          "class_attributes": [],
+          "method_count": 1,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 78,
+              "line_count": 3,
+              "name": "__init__",
+              "start_line": 76
+            }
+          ],
+          "name": "_NavigationTestPanel"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v11"
       ],
       "in_current_import_chain": true,
+      "line_count": 115,
       "module": "admin_panel_runtime_v12",
       "path": "admin_panel_runtime_v12.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v12.py",
         "admin_panel_runtime_v13.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV12"
+          ],
+          "class_attributes": [],
+          "method_count": 2,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 20,
+              "line_count": 7,
+              "name": "intelligence_launch_text",
+              "start_line": 14
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 55,
+              "line_count": 34,
+              "name": "handle_callback",
+              "start_line": 22
+            }
+          ],
+          "name": "TelegramPanelRuntimeV13"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v12"
       ],
       "in_current_import_chain": true,
+      "line_count": 76,
       "module": "admin_panel_runtime_v13",
       "path": "admin_panel_runtime_v13.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v13.py",
         "admin_panel_runtime_v14.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV13"
+          ],
+          "class_attributes": [],
+          "method_count": 17,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 17,
+              "line_count": 4,
+              "name": "__init__",
+              "start_line": 14
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 51,
+              "line_count": 31,
+              "name": "compact_menu_rows",
+              "start_line": 21
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 74,
+              "line_count": 22,
+              "name": "_hide_reply_keyboard",
+              "start_line": 53
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 79,
+              "line_count": 3,
+              "name": "_telegram_error_text",
+              "start_line": 77
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 110,
+              "line_count": 30,
+              "name": "send",
+              "start_line": 81
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 123,
+              "line_count": 12,
+              "name": "show_menu",
+              "start_line": 112
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 138,
+              "line_count": 14,
+              "name": "show_more",
+              "start_line": 125
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 144,
+              "line_count": 5,
+              "name": "render_page",
+              "start_line": 140
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 156,
+              "line_count": 9,
+              "name": "source_mode_name",
+              "start_line": 148
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 201,
+              "line_count": 44,
+              "name": "show_source_detail",
+              "start_line": 158
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 244,
+              "line_count": 42,
+              "name": "show_active",
+              "start_line": 203
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 250,
+              "line_count": 4,
+              "name": "bulk_intelligence_rows",
+              "start_line": 247
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 300,
+              "line_count": 49,
+              "name": "show_intelligence_list",
+              "start_line": 252
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 312,
+              "line_count": 10,
+              "name": "_write_source_list",
+              "start_line": 303
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 354,
+              "line_count": 41,
+              "name": "bulk_set_intelligence_mode",
+              "start_line": 314
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 367,
+              "line_count": 11,
+              "name": "handle_message",
+              "start_line": 357
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 414,
+              "line_count": 46,
+              "name": "handle_callback",
+              "start_line": 369
+            }
+          ],
+          "name": "TelegramPanelRuntimeV14"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v13",
         "admin_panel_runtime_v6"
       ],
       "in_current_import_chain": true,
+      "line_count": 442,
       "module": "admin_panel_runtime_v14",
       "path": "admin_panel_runtime_v14.py",
       "reference_count": 4,
@@ -137,35 +485,283 @@
         "admin_panel_runtime_v15.py",
         "tests/test_current_contracts.py",
         "tests/test_nightly_idle_policy.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV14"
+          ],
+          "class_attributes": [],
+          "method_count": 6,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 26,
+              "line_count": 10,
+              "name": "show_more",
+              "start_line": 17
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 44,
+              "line_count": 17,
+              "name": "pending_rows",
+              "start_line": 28
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 55,
+              "line_count": 9,
+              "name": "pending_reason",
+              "start_line": 47
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 88,
+              "line_count": 32,
+              "name": "show_pending",
+              "start_line": 57
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 125,
+              "line_count": 36,
+              "name": "show_stats",
+              "start_line": 90
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 134,
+              "line_count": 8,
+              "name": "render_page",
+              "start_line": 127
+            }
+          ],
+          "name": "TelegramPanelRuntimeV15"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v14"
       ],
       "in_current_import_chain": true,
+      "line_count": 160,
       "module": "admin_panel_runtime_v15",
       "path": "admin_panel_runtime_v15.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v15.py",
         "admin_panel_runtime_v16.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV15"
+          ],
+          "class_attributes": [],
+          "method_count": 2,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 44,
+              "line_count": 32,
+              "name": "compact_menu_rows",
+              "start_line": 13
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 52,
+              "line_count": 7,
+              "name": "render_page",
+              "start_line": 46
+            }
+          ],
+          "name": "TelegramPanelRuntimeV16"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v15"
       ],
       "in_current_import_chain": true,
+      "line_count": 87,
       "module": "admin_panel_runtime_v16",
       "path": "admin_panel_runtime_v16.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v16.py",
         "admin_panel_runtime_v17.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV16"
+          ],
+          "class_attributes": [],
+          "method_count": 16,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 33,
+              "line_count": 3,
+              "name": "__init__",
+              "start_line": 31
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 45,
+              "line_count": 11,
+              "name": "bot_username",
+              "start_line": 35
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 57,
+              "line_count": 11,
+              "name": "miniapp_url_for_chat",
+              "start_line": 47
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 68,
+              "line_count": 10,
+              "name": "show_app_entry",
+              "start_line": 59
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 80,
+              "line_count": 11,
+              "name": "load_source_requests",
+              "start_line": 70
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 84,
+              "line_count": 3,
+              "name": "save_source_requests",
+              "start_line": 82
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 102,
+              "line_count": 17,
+              "name": "moderator_chat_ids",
+              "start_line": 86
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 105,
+              "line_count": 2,
+              "name": "can_moderate_source_requests",
+              "start_line": 104
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 116,
+              "line_count": 9,
+              "name": "requester_name",
+              "start_line": 108
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 162,
+              "line_count": 45,
+              "name": "inspect_source",
+              "start_line": 118
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 166,
+              "line_count": 3,
+              "name": "request_id",
+              "start_line": 164
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 201,
+              "line_count": 34,
+              "name": "notify_moderators",
+              "start_line": 168
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 268,
+              "line_count": 66,
+              "name": "submit_source_request",
+              "start_line": 203
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 313,
+              "line_count": 44,
+              "name": "decide_source_request",
+              "start_line": 270
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 344,
+              "line_count": 30,
+              "name": "handle_message",
+              "start_line": 315
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 379,
+              "line_count": 34,
+              "name": "handle_callback",
+              "start_line": 346
+            }
+          ],
+          "name": "TelegramPanelRuntimeV17"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v16",
@@ -173,6 +769,7 @@
         "telegram_transport"
       ],
       "in_current_import_chain": true,
+      "line_count": 403,
       "module": "admin_panel_runtime_v17",
       "path": "admin_panel_runtime_v17.py",
       "reference_count": 12,
@@ -189,54 +786,279 @@
         "preflight.py",
         "system_checks.py",
         "tests/test_nightly_idle_policy.py"
+      ],
+      "top_level_functions": [
+        "default_source_requests",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV17"
+          ],
+          "class_attributes": [],
+          "method_count": 1,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 32,
+              "line_count": 16,
+              "name": "miniapp_url_for_chat",
+              "start_line": 17
+            }
+          ],
+          "name": "TelegramPanelRuntimeV18"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v17"
       ],
       "in_current_import_chain": true,
+      "line_count": 52,
       "module": "admin_panel_runtime_v18",
       "path": "admin_panel_runtime_v18.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v18.py",
         "admin_panel_runtime_v19.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV18"
+          ],
+          "class_attributes": [],
+          "method_count": 3,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 23,
+              "line_count": 6,
+              "name": "miniapp_url_for_chat",
+              "start_line": 18
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 36,
+              "line_count": 12,
+              "name": "show_menu",
+              "start_line": 25
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 47,
+              "line_count": 10,
+              "name": "show_app_entry",
+              "start_line": 38
+            }
+          ],
+          "name": "TelegramPanelRuntimeV19"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v18"
       ],
       "in_current_import_chain": true,
+      "line_count": 67,
       "module": "admin_panel_runtime_v19",
       "path": "admin_panel_runtime_v19.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v19.py",
         "admin_panel_runtime_v20.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "admin_panel_v2.TelegramPanelV2"
+          ],
+          "class_attributes": [
+            "USER_SEEN_WRITE_INTERVAL"
+          ],
+          "method_count": 1,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 89,
+              "line_count": 72,
+              "name": "register_user",
+              "start_line": 18
+            }
+          ],
+          "name": "TelegramPanelRuntimeV2"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_v2"
       ],
       "in_current_import_chain": true,
+      "line_count": 140,
       "module": "admin_panel_runtime_v2",
       "path": "admin_panel_runtime_v2.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v2.py",
         "admin_panel_runtime_v3.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV19"
+          ],
+          "class_attributes": [],
+          "method_count": 14,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 43,
+              "line_count": 23,
+              "name": "_hidden_wheels",
+              "start_line": 21
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 65,
+              "line_count": 21,
+              "name": "hide_wheel_for_current_user",
+              "start_line": 45
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 77,
+              "line_count": 11,
+              "name": "_personal_participating_wheels",
+              "start_line": 67
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 98,
+              "line_count": 20,
+              "name": "mark_personal_participation",
+              "start_line": 79
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 107,
+              "line_count": 8,
+              "name": "_joined_wheel_keys",
+              "start_line": 100
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 146,
+              "line_count": 38,
+              "name": "_collect_current_wheels",
+              "start_line": 109
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 200,
+              "line_count": 53,
+              "name": "show_active",
+              "start_line": 148
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 233,
+              "line_count": 32,
+              "name": "show_stats",
+              "start_line": 202
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 290,
+              "line_count": 55,
+              "name": "parse_manual_deadline",
+              "start_line": 236
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 308,
+              "line_count": 17,
+              "name": "request_manual_time",
+              "start_line": 292
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 322,
+              "line_count": 13,
+              "name": "_delete_callback_message",
+              "start_line": 310
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 357,
+              "line_count": 34,
+              "name": "handle_message",
+              "start_line": 324
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 438,
+              "line_count": 80,
+              "name": "handle_callback",
+              "start_line": 359
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 444,
+              "line_count": 5,
+              "name": "render_page",
+              "start_line": 440
+            }
+          ],
+          "name": "TelegramPanelRuntimeV20"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v19"
       ],
       "in_current_import_chain": true,
+      "line_count": 468,
       "module": "admin_panel_runtime_v20",
       "path": "admin_panel_runtime_v20.py",
       "reference_count": 3,
@@ -244,13 +1066,168 @@
         "admin_panel_runtime_v20.py",
         "admin_panel_runtime_v21.py",
         "preflight.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV20"
+          ],
+          "class_attributes": [],
+          "method_count": 17,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 44,
+              "line_count": 17,
+              "name": "register_user",
+              "start_line": 28
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 63,
+              "line_count": 18,
+              "name": "handle_update",
+              "start_line": 46
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 100,
+              "line_count": 36,
+              "name": "notify_owner_about_new_user",
+              "start_line": 65
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 104,
+              "line_count": 3,
+              "name": "show_access",
+              "start_line": 102
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 108,
+              "line_count": 3,
+              "name": "show_user_detail",
+              "start_line": 106
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 112,
+              "line_count": 3,
+              "name": "show_recipients",
+              "start_line": 110
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 127,
+              "line_count": 14,
+              "name": "miniapp_url_for_chat",
+              "start_line": 114
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 136,
+              "line_count": 7,
+              "name": "compact_menu_rows",
+              "start_line": 130
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 178,
+              "line_count": 41,
+              "name": "notification_preferences",
+              "start_line": 138
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 197,
+              "line_count": 18,
+              "name": "show_settings",
+              "start_line": 180
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 238,
+              "line_count": 40,
+              "name": "show_notifications",
+              "start_line": 199
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 272,
+              "line_count": 33,
+              "name": "toggle_notification",
+              "start_line": 240
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 297,
+              "line_count": 24,
+              "name": "set_admin",
+              "start_line": 274
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 322,
+              "line_count": 24,
+              "name": "transfer_owner",
+              "start_line": 299
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 328,
+              "line_count": 5,
+              "name": "render_page",
+              "start_line": 324
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 349,
+              "line_count": 20,
+              "name": "handle_message",
+              "start_line": 330
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 371,
+              "line_count": 21,
+              "name": "handle_callback",
+              "start_line": 351
+            }
+          ],
+          "name": "TelegramPanelRuntimeV21"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v20"
       ],
       "in_current_import_chain": true,
+      "line_count": 439,
       "module": "admin_panel_runtime_v21",
       "path": "admin_panel_runtime_v21.py",
       "reference_count": 10,
@@ -265,14 +1242,105 @@
         "admin_panel_runtime_v37.py",
         "preflight.py",
         "system_checks.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV21"
+          ],
+          "class_attributes": [],
+          "method_count": 9,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 35,
+              "line_count": 16,
+              "name": "compact_menu_rows",
+              "start_line": 20
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 52,
+              "line_count": 16,
+              "name": "miniapp_url_for_chat",
+              "start_line": 37
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 62,
+              "line_count": 9,
+              "name": "load_source_registry",
+              "start_line": 54
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 111,
+              "line_count": 48,
+              "name": "source_registry_fallback",
+              "start_line": 64
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 151,
+              "line_count": 39,
+              "name": "show_sources",
+              "start_line": 113
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 185,
+              "line_count": 33,
+              "name": "show_stats",
+              "start_line": 153
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 220,
+              "line_count": 34,
+              "name": "show_ranking",
+              "start_line": 187
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 280,
+              "line_count": 59,
+              "name": "show_active",
+              "start_line": 222
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 292,
+              "line_count": 11,
+              "name": "render_page",
+              "start_line": 282
+            }
+          ],
+          "name": "TelegramPanelRuntimeV22"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v21"
       ],
       "in_current_import_chain": true,
+      "line_count": 327,
       "module": "admin_panel_runtime_v22",
       "path": "admin_panel_runtime_v22.py",
       "reference_count": 4,
@@ -281,9 +1349,75 @@
         "admin_panel_runtime_v23.py",
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV22"
+          ],
+          "class_attributes": [],
+          "method_count": 6,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 21,
+              "line_count": 3,
+              "name": "__init__",
+              "start_line": 19
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 44,
+              "line_count": 21,
+              "name": "temporary_access",
+              "start_line": 24
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 56,
+              "line_count": 11,
+              "name": "load_access",
+              "start_line": 46
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 65,
+              "line_count": 8,
+              "name": "save_access",
+              "start_line": 58
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 76,
+              "line_count": 10,
+              "name": "load_source_requests",
+              "start_line": 67
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 83,
+              "line_count": 6,
+              "name": "save_source_requests",
+              "start_line": 78
+            }
+          ],
+          "name": "TelegramPanelRuntimeV23"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v17",
@@ -292,6 +1426,7 @@
         "private_state"
       ],
       "in_current_import_chain": false,
+      "line_count": 138,
       "module": "admin_panel_runtime_v23",
       "path": "admin_panel_runtime_v23.py",
       "reference_count": 4,
@@ -300,23 +1435,214 @@
         "admin_panel_runtime_v23.py",
         "admin_panel_runtime_v24.py",
         "docs/CODE_INVENTORY_RU.md"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV23"
+          ],
+          "class_attributes": [],
+          "method_count": 5,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 43,
+              "line_count": 27,
+              "name": "compact_menu_rows",
+              "start_line": 17
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 87,
+              "line_count": 43,
+              "name": "show_sources",
+              "start_line": 45
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 122,
+              "line_count": 34,
+              "name": "show_ranking",
+              "start_line": 89
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 179,
+              "line_count": 56,
+              "name": "show_active",
+              "start_line": 124
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 194,
+              "line_count": 14,
+              "name": "render_page",
+              "start_line": 181
+            }
+          ],
+          "name": "TelegramPanelRuntimeV24"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v21",
         "admin_panel_runtime_v23"
       ],
       "in_current_import_chain": false,
+      "line_count": 222,
       "module": "admin_panel_runtime_v24",
       "path": "admin_panel_runtime_v24.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v24.py",
         "docs/CODE_INVENTORY_RU.md"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV22"
+          ],
+          "class_attributes": [],
+          "method_count": 14,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 27,
+              "line_count": 4,
+              "name": "__init__",
+              "start_line": 24
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 72,
+              "line_count": 43,
+              "name": "_bootstrap_access",
+              "start_line": 30
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 91,
+              "line_count": 18,
+              "name": "_load_bot_bundle",
+              "start_line": 74
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 110,
+              "line_count": 18,
+              "name": "_save_bot_bundle",
+              "start_line": 93
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 119,
+              "line_count": 8,
+              "name": "load_access",
+              "start_line": 112
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 128,
+              "line_count": 8,
+              "name": "save_access",
+              "start_line": 121
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 136,
+              "line_count": 7,
+              "name": "load_source_requests",
+              "start_line": 130
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 145,
+              "line_count": 8,
+              "name": "save_source_requests",
+              "start_line": 138
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 170,
+              "line_count": 23,
+              "name": "compact_menu_rows",
+              "start_line": 148
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 213,
+              "line_count": 42,
+              "name": "show_sources",
+              "start_line": 172
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 250,
+              "line_count": 36,
+              "name": "show_ranking",
+              "start_line": 215
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 309,
+              "line_count": 58,
+              "name": "show_active",
+              "start_line": 252
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 322,
+              "line_count": 12,
+              "name": "handle_callback",
+              "start_line": 311
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 344,
+              "line_count": 21,
+              "name": "render_page",
+              "start_line": 324
+            }
+          ],
+          "name": "TelegramPanelRuntimeV25"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v17",
@@ -326,6 +1652,7 @@
         "bot_private_state"
       ],
       "in_current_import_chain": true,
+      "line_count": 393,
       "module": "admin_panel_runtime_v25",
       "path": "admin_panel_runtime_v25.py",
       "reference_count": 8,
@@ -338,9 +1665,85 @@
         "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py",
         "admin_panel_runtime_v27.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV25"
+          ],
+          "class_attributes": [],
+          "method_count": 7,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 33,
+              "line_count": 11,
+              "name": "compact_menu_rows",
+              "start_line": 23
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 52,
+              "line_count": 18,
+              "name": "_read_json_at",
+              "start_line": 35
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 57,
+              "line_count": 3,
+              "name": "_serialize_json",
+              "start_line": 55
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 161,
+              "line_count": 103,
+              "name": "_apply_admin_action_direct",
+              "start_line": 59
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 175,
+              "line_count": 13,
+              "name": "dispatch_admin_action",
+              "start_line": 163
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 189,
+              "line_count": 13,
+              "name": "_prepare_callback_user",
+              "start_line": 177
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 242,
+              "line_count": 52,
+              "name": "handle_callback",
+              "start_line": 191
+            }
+          ],
+          "name": "TelegramPanelRuntimeV26"
+        }
+      ],
       "direct_imports": [
         "admin_action_v2",
         "admin_bot",
@@ -350,6 +1753,7 @@
         "bot_private_state"
       ],
       "in_current_import_chain": true,
+      "line_count": 320,
       "module": "admin_panel_runtime_v26",
       "path": "admin_panel_runtime_v26.py",
       "reference_count": 6,
@@ -360,9 +1764,24 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v26.py",
         "admin_panel_runtime_v27.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV26"
+          ],
+          "class_attributes": [],
+          "method_count": 0,
+          "methods": [],
+          "name": "TelegramPanelRuntimeV27"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v17",
         "admin_panel_runtime_v25",
@@ -370,6 +1789,7 @@
         "bot_private_state"
       ],
       "in_current_import_chain": true,
+      "line_count": 106,
       "module": "admin_panel_runtime_v27",
       "path": "admin_panel_runtime_v27.py",
       "reference_count": 4,
@@ -378,14 +1798,39 @@
         ".github/workflows/bot-recovery-smoke.yml",
         "admin_panel_runtime_v27.py",
         "admin_panel_runtime_v28.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV27"
+          ],
+          "class_attributes": [],
+          "method_count": 1,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 64,
+              "line_count": 52,
+              "name": "_apply_admin_action_direct",
+              "start_line": 13
+            }
+          ],
+          "name": "TelegramPanelRuntimeV28"
+        }
+      ],
       "direct_imports": [
         "admin_action_v2",
         "admin_panel_runtime_v27"
       ],
       "in_current_import_chain": true,
+      "line_count": 85,
       "module": "admin_panel_runtime_v28",
       "path": "admin_panel_runtime_v28.py",
       "reference_count": 6,
@@ -396,13 +1841,124 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v28.py",
         "admin_panel_runtime_v29.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV28"
+          ],
+          "class_attributes": [],
+          "method_count": 11,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 29,
+              "line_count": 16,
+              "name": "compact_menu_rows",
+              "start_line": 14
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 59,
+              "line_count": 28,
+              "name": "source_menu_rows",
+              "start_line": 32
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 68,
+              "line_count": 7,
+              "name": "control_menu_rows",
+              "start_line": 62
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 83,
+              "line_count": 14,
+              "name": "show_analytics",
+              "start_line": 70
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 107,
+              "line_count": 23,
+              "name": "show_stats",
+              "start_line": 85
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 122,
+              "line_count": 14,
+              "name": "show_reports",
+              "start_line": 109
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 158,
+              "line_count": 35,
+              "name": "show_sources",
+              "start_line": 124
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 169,
+              "line_count": 10,
+              "name": "show_control",
+              "start_line": 160
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 178,
+              "line_count": 8,
+              "name": "show_source_request_help",
+              "start_line": 171
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 199,
+              "line_count": 20,
+              "name": "render_page",
+              "start_line": 180
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 208,
+              "line_count": 8,
+              "name": "handle_callback",
+              "start_line": 201
+            }
+          ],
+          "name": "TelegramPanelRuntimeV29"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v28"
       ],
       "in_current_import_chain": true,
+      "line_count": 275,
       "module": "admin_panel_runtime_v29",
       "path": "admin_panel_runtime_v29.py",
       "reference_count": 6,
@@ -413,15 +1969,143 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v29.py",
         "admin_panel_runtime_v30.py"
+      ],
+      "top_level_functions": [
+        "_callbacks",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV2"
+          ],
+          "class_attributes": [],
+          "method_count": 13,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 34,
+              "line_count": 11,
+              "name": "_security_payload",
+              "start_line": 24
+            },
+            {
+              "async": false,
+              "decorators": [
+                "classmethod"
+              ],
+              "end_line": 41,
+              "line_count": 5,
+              "name": "_signature",
+              "start_line": 37
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 45,
+              "line_count": 2,
+              "name": "_trusted_owner",
+              "start_line": 44
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 72,
+              "line_count": 26,
+              "name": "normalize_access",
+              "start_line": 47
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 156,
+              "line_count": 83,
+              "name": "show_active",
+              "start_line": 74
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 188,
+              "line_count": 31,
+              "name": "show_sources",
+              "start_line": 158
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 203,
+              "line_count": 14,
+              "name": "show_reports",
+              "start_line": 190
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 253,
+              "line_count": 49,
+              "name": "show_discovery",
+              "start_line": 205
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 276,
+              "line_count": 22,
+              "name": "show_settings",
+              "start_line": 255
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 294,
+              "line_count": 17,
+              "name": "show_interval",
+              "start_line": 278
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 302,
+              "line_count": 7,
+              "name": "set_interval",
+              "start_line": 296
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 308,
+              "line_count": 5,
+              "name": "render_page",
+              "start_line": 304
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 333,
+              "line_count": 24,
+              "name": "handle_callback",
+              "start_line": 310
+            }
+          ],
+          "name": "TelegramPanelRuntimeV3"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v2",
         "admin_panel_v2"
       ],
       "in_current_import_chain": true,
+      "line_count": 364,
       "module": "admin_panel_runtime_v3",
       "path": "admin_panel_runtime_v3.py",
       "reference_count": 3,
@@ -429,9 +2113,143 @@
         "admin_panel_runtime_v3.py",
         "admin_panel_runtime_v35.py",
         "admin_panel_runtime_v4.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV29"
+          ],
+          "class_attributes": [],
+          "method_count": 14,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 21,
+              "line_count": 5,
+              "name": "analytics_menu_rows",
+              "start_line": 17
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 51,
+              "line_count": 28,
+              "name": "source_menu_rows",
+              "start_line": 24
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 67,
+              "line_count": 14,
+              "name": "ranked_sources",
+              "start_line": 54
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 77,
+              "line_count": 9,
+              "name": "notification_preferences",
+              "start_line": 69
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 116,
+              "line_count": 38,
+              "name": "register_user",
+              "start_line": 79
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 126,
+              "line_count": 9,
+              "name": "show_analytics",
+              "start_line": 118
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 132,
+              "line_count": 5,
+              "name": "show_reports",
+              "start_line": 128
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 157,
+              "line_count": 24,
+              "name": "show_ranking",
+              "start_line": 134
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 184,
+              "line_count": 26,
+              "name": "show_notifications",
+              "start_line": 159
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 189,
+              "line_count": 4,
+              "name": "toggle_notification",
+              "start_line": 186
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 200,
+              "line_count": 10,
+              "name": "begin_source_request",
+              "start_line": 191
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 206,
+              "line_count": 5,
+              "name": "render_page",
+              "start_line": 202
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 227,
+              "line_count": 20,
+              "name": "handle_message",
+              "start_line": 208
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 239,
+              "line_count": 11,
+              "name": "handle_callback",
+              "start_line": 229
+            }
+          ],
+          "name": "TelegramPanelRuntimeV30"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v17",
         "admin_panel_runtime_v21",
@@ -439,6 +2257,7 @@
         "bot_private_state"
       ],
       "in_current_import_chain": true,
+      "line_count": 313,
       "module": "admin_panel_runtime_v30",
       "path": "admin_panel_runtime_v30.py",
       "reference_count": 6,
@@ -449,14 +2268,176 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v30.py",
         "admin_panel_runtime_v31.py"
+      ],
+      "top_level_functions": [
+        "_callbacks",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV30"
+          ],
+          "class_attributes": [],
+          "method_count": 17,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 29,
+              "line_count": 7,
+              "name": "setup_bot",
+              "start_line": 23
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 39,
+              "line_count": 8,
+              "name": "analytics_menu_rows",
+              "start_line": 32
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 47,
+              "line_count": 6,
+              "name": "control_menu_rows",
+              "start_line": 42
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 55,
+              "line_count": 6,
+              "name": "summary_send_rows",
+              "start_line": 50
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 65,
+              "line_count": 8,
+              "name": "period_title",
+              "start_line": 58
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 125,
+              "line_count": 59,
+              "name": "period_overview",
+              "start_line": 67
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 133,
+              "line_count": 7,
+              "name": "show_analytics",
+              "start_line": 127
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 171,
+              "line_count": 37,
+              "name": "show_stats",
+              "start_line": 135
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 189,
+              "line_count": 17,
+              "name": "show_reports",
+              "start_line": 173
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 198,
+              "line_count": 8,
+              "name": "show_send_summary_menu",
+              "start_line": 191
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 204,
+              "line_count": 5,
+              "name": "dispatch_summary",
+              "start_line": 200
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 246,
+              "line_count": 41,
+              "name": "show_period_report",
+              "start_line": 206
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 269,
+              "line_count": 22,
+              "name": "show_inactive_report",
+              "start_line": 248
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 280,
+              "line_count": 10,
+              "name": "show_control",
+              "start_line": 271
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 287,
+              "line_count": 6,
+              "name": "notification_preferences",
+              "start_line": 282
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 310,
+              "line_count": 22,
+              "name": "render_page",
+              "start_line": 289
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 332,
+              "line_count": 21,
+              "name": "handle_callback",
+              "start_line": 312
+            }
+          ],
+          "name": "TelegramPanelRuntimeV31"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v30"
       ],
       "in_current_import_chain": true,
+      "line_count": 408,
       "module": "admin_panel_runtime_v31",
       "path": "admin_panel_runtime_v31.py",
       "reference_count": 8,
@@ -469,15 +2450,125 @@
         "admin_panel_runtime_v32.py",
         "admin_panel_runtime_v39.py",
         "preflight.py"
+      ],
+      "top_level_functions": [
+        "_callbacks",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV31"
+          ],
+          "class_attributes": [],
+          "method_count": 11,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 25,
+              "line_count": 7,
+              "name": "setup_bot",
+              "start_line": 19
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 41,
+              "line_count": 14,
+              "name": "compact_menu_rows",
+              "start_line": 28
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 52,
+              "line_count": 10,
+              "name": "_collect_current_wheels",
+              "start_line": 43
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 78,
+              "line_count": 24,
+              "name": "_sources_for_item",
+              "start_line": 55
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 155,
+              "line_count": 76,
+              "name": "show_active",
+              "start_line": 80
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 203,
+              "line_count": 47,
+              "name": "show_analytics",
+              "start_line": 157
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 206,
+              "line_count": 2,
+              "name": "show_stats",
+              "start_line": 205
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 209,
+              "line_count": 2,
+              "name": "show_reports",
+              "start_line": 208
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 212,
+              "line_count": 2,
+              "name": "show_period_report",
+              "start_line": 211
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 243,
+              "line_count": 30,
+              "name": "render_page",
+              "start_line": 214
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 289,
+              "line_count": 45,
+              "name": "handle_callback",
+              "start_line": 245
+            }
+          ],
+          "name": "TelegramPanelRuntimeV32"
+        }
+      ],
       "direct_imports": [
         "admin_action_v3",
         "admin_bot",
         "admin_panel_runtime_v31"
       ],
       "in_current_import_chain": true,
+      "line_count": 330,
       "module": "admin_panel_runtime_v32",
       "path": "admin_panel_runtime_v32.py",
       "reference_count": 5,
@@ -487,9 +2578,82 @@
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v33.py"
+      ],
+      "top_level_functions": [
+        "_callbacks",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV32"
+          ],
+          "class_attributes": [],
+          "method_count": 7,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 45,
+              "line_count": 14,
+              "name": "notification_preferences",
+              "start_line": 32
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 69,
+              "line_count": 23,
+              "name": "register_user",
+              "start_line": 47
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 98,
+              "line_count": 28,
+              "name": "show_settings",
+              "start_line": 71
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 137,
+              "line_count": 38,
+              "name": "show_notifications",
+              "start_line": 100
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 175,
+              "line_count": 37,
+              "name": "toggle_notification",
+              "start_line": 139
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 191,
+              "line_count": 15,
+              "name": "delete_current_user_data",
+              "start_line": 177
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 237,
+              "line_count": 45,
+              "name": "handle_callback",
+              "start_line": 193
+            }
+          ],
+          "name": "TelegramPanelRuntimeV33"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v17",
         "admin_panel_runtime_v21",
@@ -498,6 +2662,7 @@
         "privacy_retention"
       ],
       "in_current_import_chain": true,
+      "line_count": 289,
       "module": "admin_panel_runtime_v33",
       "path": "admin_panel_runtime_v33.py",
       "reference_count": 7,
@@ -509,9 +2674,155 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v34.py",
         "admin_panel_runtime_v37.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV33"
+          ],
+          "class_attributes": [],
+          "method_count": 16,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 86,
+              "line_count": 3,
+              "name": "__init__",
+              "start_line": 84
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 99,
+              "line_count": 12,
+              "name": "_normalize_bundle",
+              "start_line": 88
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 108,
+              "line_count": 8,
+              "name": "_load_remote_bundle",
+              "start_line": 101
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 120,
+              "line_count": 11,
+              "name": "_load_bot_bundle",
+              "start_line": 110
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 189,
+              "line_count": 68,
+              "name": "_merge_access",
+              "start_line": 122
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 210,
+              "line_count": 20,
+              "name": "_write_remote_bundle",
+              "start_line": 191
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 250,
+              "line_count": 39,
+              "name": "_save_bot_bundle",
+              "start_line": 212
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 309,
+              "line_count": 58,
+              "name": "show_notifications",
+              "start_line": 252
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 348,
+              "line_count": 38,
+              "name": "toggle_notification",
+              "start_line": 311
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 358,
+              "line_count": 8,
+              "name": "_notification_options_for_role",
+              "start_line": 351
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 420,
+              "line_count": 61,
+              "name": "show_user_detail",
+              "start_line": 360
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 487,
+              "line_count": 66,
+              "name": "show_user_notifications",
+              "start_line": 422
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 522,
+              "line_count": 34,
+              "name": "set_user_notification",
+              "start_line": 489
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 551,
+              "line_count": 28,
+              "name": "set_all_user_notifications",
+              "start_line": 524
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 557,
+              "line_count": 5,
+              "name": "render_page",
+              "start_line": 553
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 596,
+              "line_count": 38,
+              "name": "handle_callback",
+              "start_line": 559
+            }
+          ],
+          "name": "TelegramPanelRuntimeV34"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v17",
@@ -521,6 +2832,7 @@
         "privacy_retention"
       ],
       "in_current_import_chain": true,
+      "line_count": 695,
       "module": "admin_panel_runtime_v34",
       "path": "admin_panel_runtime_v34.py",
       "reference_count": 8,
@@ -533,15 +2845,68 @@
         "admin_panel_runtime_v35.py",
         "tests/test_concurrency_and_ci.py",
         "tests/test_current_contracts.py"
+      ],
+      "top_level_functions": [
+        "_clone",
+        "_display_name",
+        "_merge_set_list",
+        "_merge_value",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV34"
+          ],
+          "class_attributes": [],
+          "method_count": 4,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 61,
+              "line_count": 43,
+              "name": "normalize_access",
+              "start_line": 19
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 115,
+              "line_count": 53,
+              "name": "_merge_access",
+              "start_line": 63
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 124,
+              "line_count": 8,
+              "name": "set_user_notification",
+              "start_line": 117
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 128,
+              "line_count": 3,
+              "name": "set_all_user_notifications",
+              "start_line": 126
+            }
+          ],
+          "name": "TelegramPanelRuntimeV35"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v3",
         "admin_panel_runtime_v34",
         "admin_panel_v2"
       ],
       "in_current_import_chain": true,
+      "line_count": 196,
       "module": "admin_panel_runtime_v35",
       "path": "admin_panel_runtime_v35.py",
       "reference_count": 6,
@@ -552,15 +2917,76 @@
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v36.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV35"
+          ],
+          "class_attributes": [],
+          "method_count": 5,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 34,
+              "line_count": 5,
+              "name": "safe_text_for_role",
+              "start_line": 30
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 44,
+              "line_count": 9,
+              "name": "send",
+              "start_line": 36
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 54,
+              "line_count": 9,
+              "name": "setup_bot",
+              "start_line": 46
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 63,
+              "line_count": 7,
+              "name": "source_menu_rows",
+              "start_line": 57
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 89,
+              "line_count": 25,
+              "name": "show_ranking",
+              "start_line": 65
+            }
+          ],
+          "name": "TelegramPanelRuntimeV36"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v35",
         "bot_notification_state"
       ],
       "in_current_import_chain": true,
+      "line_count": 151,
       "module": "admin_panel_runtime_v36",
       "path": "admin_panel_runtime_v36.py",
       "reference_count": 6,
@@ -571,9 +2997,271 @@
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v37.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV36"
+          ],
+          "class_attributes": [
+            "RUNTIME_VERSION"
+          ],
+          "method_count": 30,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 44,
+              "line_count": 5,
+              "name": "__init__",
+              "start_line": 40
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 89,
+              "line_count": 44,
+              "name": "record_runtime_heartbeat",
+              "start_line": 46
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 104,
+              "line_count": 13,
+              "name": "notification_preferences",
+              "start_line": 92
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 113,
+              "line_count": 7,
+              "name": "_notification_options_for_role",
+              "start_line": 107
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 140,
+              "line_count": 26,
+              "name": "_apply_notification_policy_once",
+              "start_line": 115
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 162,
+              "line_count": 21,
+              "name": "setup_bot",
+              "start_line": 142
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 191,
+              "line_count": 28,
+              "name": "register_user",
+              "start_line": 164
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 228,
+              "line_count": 36,
+              "name": "show_notifications",
+              "start_line": 193
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 233,
+              "line_count": 4,
+              "name": "toggle_notification",
+              "start_line": 230
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 251,
+              "line_count": 17,
+              "name": "_remove_summary_preferences",
+              "start_line": 235
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 255,
+              "line_count": 3,
+              "name": "set_admin",
+              "start_line": 253
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 260,
+              "line_count": 4,
+              "name": "transfer_owner",
+              "start_line": 257
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 281,
+              "line_count": 19,
+              "name": "show_menu",
+              "start_line": 263
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 291,
+              "line_count": 9,
+              "name": "handle_message",
+              "start_line": 283
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 306,
+              "line_count": 13,
+              "name": "dispatch_admin_action",
+              "start_line": 294
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 312,
+              "line_count": 5,
+              "name": "_monitor_status",
+              "start_line": 308
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 380,
+              "line_count": 67,
+              "name": "show_active",
+              "start_line": 314
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 396,
+              "line_count": 14,
+              "name": "parse_manual_deadline",
+              "start_line": 383
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 438,
+              "line_count": 41,
+              "name": "request_manual_time",
+              "start_line": 398
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 448,
+              "line_count": 9,
+              "name": "_set_quick_time",
+              "start_line": 440
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 499,
+              "line_count": 49,
+              "name": "show_analytics",
+              "start_line": 451
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 502,
+              "line_count": 2,
+              "name": "show_stats",
+              "start_line": 501
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 505,
+              "line_count": 2,
+              "name": "show_reports",
+              "start_line": 504
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 508,
+              "line_count": 2,
+              "name": "show_period_report",
+              "start_line": 507
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 543,
+              "line_count": 34,
+              "name": "show_status",
+              "start_line": 510
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 583,
+              "line_count": 39,
+              "name": "show_sources",
+              "start_line": 545
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 627,
+              "line_count": 43,
+              "name": "show_intelligence",
+              "start_line": 585
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 675,
+              "line_count": 47,
+              "name": "show_discovery",
+              "start_line": 629
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 684,
+              "line_count": 8,
+              "name": "render_page",
+              "start_line": 677
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 716,
+              "line_count": 31,
+              "name": "handle_callback",
+              "start_line": 686
+            }
+          ],
+          "name": "TelegramPanelRuntimeV37"
+        }
+      ],
       "direct_imports": [
         "admin_action_queue",
         "admin_bot",
@@ -582,6 +3270,7 @@
         "admin_panel_runtime_v36"
       ],
       "in_current_import_chain": true,
+      "line_count": 873,
       "module": "admin_panel_runtime_v37",
       "path": "admin_panel_runtime_v37.py",
       "reference_count": 7,
@@ -593,15 +3282,269 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v38.py",
         "tests/test_current_contracts.py"
+      ],
+      "top_level_functions": [
+        "_callbacks",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV37"
+          ],
+          "class_attributes": [
+            "RUNTIME_VERSION"
+          ],
+          "method_count": 27,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 41,
+              "line_count": 12,
+              "name": "send",
+              "start_line": 30
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 61,
+              "line_count": 18,
+              "name": "compact_menu_rows",
+              "start_line": 44
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 81,
+              "line_count": 18,
+              "name": "_normalize_page",
+              "start_line": 64
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 95,
+              "line_count": 12,
+              "name": "_page_family",
+              "start_line": 84
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 105,
+              "line_count": 9,
+              "name": "open_page",
+              "start_line": 97
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 110,
+              "line_count": 3,
+              "name": "_wheel_digest",
+              "start_line": 108
+            },
+            {
+              "async": false,
+              "decorators": [
+                "classmethod"
+              ],
+              "end_line": 121,
+              "line_count": 9,
+              "name": "_wheel_token",
+              "start_line": 113
+            },
+            {
+              "async": false,
+              "decorators": [
+                "classmethod"
+              ],
+              "end_line": 129,
+              "line_count": 6,
+              "name": "_wheel_callback",
+              "start_line": 124
+            },
+            {
+              "async": false,
+              "decorators": [
+                "classmethod"
+              ],
+              "end_line": 140,
+              "line_count": 9,
+              "name": "_quick_time_callback",
+              "start_line": 132
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 151,
+              "line_count": 10,
+              "name": "_resolve_wheel_token",
+              "start_line": 142
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 279,
+              "line_count": 126,
+              "name": "show_active",
+              "start_line": 154
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 325,
+              "line_count": 45,
+              "name": "request_manual_time",
+              "start_line": 281
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 331,
+              "line_count": 5,
+              "name": "_set_quick_time",
+              "start_line": 327
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 348,
+              "line_count": 15,
+              "name": "period_overview",
+              "start_line": 334
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 359,
+              "line_count": 9,
+              "name": "_period_buttons",
+              "start_line": 351
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 409,
+              "line_count": 49,
+              "name": "show_analytics",
+              "start_line": 361
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 412,
+              "line_count": 2,
+              "name": "show_stats",
+              "start_line": 411
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 415,
+              "line_count": 2,
+              "name": "show_reports",
+              "start_line": 414
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 418,
+              "line_count": 2,
+              "name": "show_period_report",
+              "start_line": 417
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 440,
+              "line_count": 21,
+              "name": "show_ranking",
+              "start_line": 420
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 500,
+              "line_count": 59,
+              "name": "show_inactive_report",
+              "start_line": 442
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 535,
+              "line_count": 33,
+              "name": "show_status",
+              "start_line": 503
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 548,
+              "line_count": 11,
+              "name": "_display_user",
+              "start_line": 538
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 623,
+              "line_count": 74,
+              "name": "show_access",
+              "start_line": 550
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 681,
+              "line_count": 57,
+              "name": "show_recipients",
+              "start_line": 625
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 712,
+              "line_count": 29,
+              "name": "render_page",
+              "start_line": 684
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 731,
+              "line_count": 18,
+              "name": "handle_callback",
+              "start_line": 714
+            }
+          ],
+          "name": "TelegramPanelRuntimeV38"
+        }
+      ],
       "direct_imports": [
         "admin_bot",
         "admin_panel_runtime_v37",
         "telegram_ui"
       ],
       "in_current_import_chain": true,
+      "line_count": 801,
       "module": "admin_panel_runtime_v38",
       "path": "admin_panel_runtime_v38.py",
       "reference_count": 11,
@@ -617,14 +3560,41 @@
         "tests/test_current_contracts.py",
         "tests/test_nightly_idle_policy.py",
         "tests/test_ui_chapter4.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV38"
+          ],
+          "class_attributes": [
+            "RUNTIME_VERSION"
+          ],
+          "method_count": 1,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 43,
+              "line_count": 28,
+              "name": "handle_callback",
+              "start_line": 16
+            }
+          ],
+          "name": "TelegramPanelRuntimeV39"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v31",
         "admin_panel_runtime_v38"
       ],
       "in_current_import_chain": true,
+      "line_count": 67,
       "module": "admin_panel_runtime_v39",
       "path": "admin_panel_runtime_v39.py",
       "reference_count": 3,
@@ -632,28 +3602,142 @@
         ".github/workflows/admin-bot.yml",
         "admin_panel_runtime_v40.py",
         "tests/test_current_contracts.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV3"
+          ],
+          "class_attributes": [],
+          "method_count": 6,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 53,
+              "line_count": 12,
+              "name": "show_menu",
+              "start_line": 42
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 57,
+              "line_count": 2,
+              "name": "_entry_key",
+              "start_line": 56
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 71,
+              "line_count": 13,
+              "name": "_restore_telegram_deadline",
+              "start_line": 59
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 81,
+              "line_count": 9,
+              "name": "_inspect_entry",
+              "start_line": 73
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 145,
+              "line_count": 63,
+              "name": "_collect_current_wheels",
+              "start_line": 83
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 202,
+              "line_count": 56,
+              "name": "show_active",
+              "start_line": 147
+            }
+          ],
+          "name": "TelegramPanelRuntimeV4"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v3",
         "monitor"
       ],
       "in_current_import_chain": true,
+      "line_count": 228,
       "module": "admin_panel_runtime_v4",
       "path": "admin_panel_runtime_v4.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v4.py",
         "admin_panel_runtime_v5.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV39"
+          ],
+          "class_attributes": [
+            "RUNTIME_VERSION"
+          ],
+          "method_count": 3,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [
+                "classmethod"
+              ],
+              "end_line": 50,
+              "line_count": 21,
+              "name": "_simplify_active_payload",
+              "start_line": 30
+            },
+            {
+              "async": false,
+              "decorators": [
+                "classmethod"
+              ],
+              "end_line": 59,
+              "line_count": 7,
+              "name": "_color_active_payload",
+              "start_line": 53
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 83,
+              "line_count": 23,
+              "name": "show_active",
+              "start_line": 61
+            }
+          ],
+          "name": "TelegramPanelRuntimeV40"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v39",
         "telegram_ui"
       ],
       "in_current_import_chain": true,
+      "line_count": 198,
       "module": "admin_panel_runtime_v40",
       "path": "admin_panel_runtime_v40.py",
       "reference_count": 3,
@@ -661,13 +3745,41 @@
         ".github/workflows/admin-bot.yml",
         "admin_panel_runtime_v41.py",
         "tests/test_current_contracts.py"
+      ],
+      "top_level_functions": [
+        "_configured_panel",
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV40"
+          ],
+          "class_attributes": [
+            "RUNTIME_VERSION"
+          ],
+          "method_count": 1,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 29,
+              "line_count": 15,
+              "name": "show_menu",
+              "start_line": 15
+            }
+          ],
+          "name": "TelegramPanelRuntimeV41"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v40"
       ],
       "in_current_import_chain": true,
+      "line_count": 70,
       "module": "admin_panel_runtime_v41",
       "path": "admin_panel_runtime_v41.py",
       "reference_count": 5,
@@ -677,13 +3789,164 @@
         "docs/CODE_INVENTORY_RU.md",
         "tests/production_acceptance.py",
         "tests/test_current_contracts.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV4"
+          ],
+          "class_attributes": [],
+          "method_count": 16,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 36,
+              "line_count": 18,
+              "name": "load_moderation",
+              "start_line": 19
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 44,
+              "line_count": 7,
+              "name": "save_moderation",
+              "start_line": 38
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 64,
+              "line_count": 18,
+              "name": "candidate_score",
+              "start_line": 47
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 72,
+              "line_count": 6,
+              "name": "score_label",
+              "start_line": 67
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 80,
+              "line_count": 6,
+              "name": "recommendation",
+              "start_line": 75
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 117,
+              "line_count": 36,
+              "name": "candidate_rows",
+              "start_line": 82
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 123,
+              "line_count": 5,
+              "name": "_candidate_filter",
+              "start_line": 119
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 170,
+              "line_count": 46,
+              "name": "show_discovery",
+              "start_line": 125
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 213,
+              "line_count": 42,
+              "name": "show_candidate_list",
+              "start_line": 172
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 225,
+              "line_count": 11,
+              "name": "_recent_candidate_wheels",
+              "start_line": 215
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 276,
+              "line_count": 50,
+              "name": "show_candidate_detail",
+              "start_line": 227
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 294,
+              "line_count": 17,
+              "name": "set_candidate_mode",
+              "start_line": 278
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 308,
+              "line_count": 13,
+              "name": "ignore_candidate",
+              "start_line": 296
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 321,
+              "line_count": 12,
+              "name": "restore_candidate",
+              "start_line": 310
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 331,
+              "line_count": 9,
+              "name": "render_page",
+              "start_line": 323
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 397,
+              "line_count": 65,
+              "name": "handle_callback",
+              "start_line": 333
+            }
+          ],
+          "name": "TelegramPanelRuntimeV5"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v4"
       ],
       "in_current_import_chain": true,
+      "line_count": 421,
       "module": "admin_panel_runtime_v5",
       "path": "admin_panel_runtime_v5.py",
       "reference_count": 4,
@@ -692,13 +3955,120 @@
         "admin_panel_runtime_v5.py",
         "admin_panel_runtime_v6.py",
         "tests/test_nightly_idle_policy.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV5"
+          ],
+          "class_attributes": [],
+          "method_count": 11,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 54,
+              "line_count": 13,
+              "name": "show_menu",
+              "start_line": 42
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 63,
+              "line_count": 8,
+              "name": "intelligence_state",
+              "start_line": 56
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 92,
+              "line_count": 28,
+              "name": "intelligence_rows",
+              "start_line": 65
+            },
+            {
+              "async": false,
+              "decorators": [
+                "staticmethod"
+              ],
+              "end_line": 100,
+              "line_count": 6,
+              "name": "intelligence_label",
+              "start_line": 95
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 146,
+              "line_count": 45,
+              "name": "show_intelligence",
+              "start_line": 102
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 156,
+              "line_count": 9,
+              "name": "filtered_intelligence_rows",
+              "start_line": 148
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 193,
+              "line_count": 36,
+              "name": "show_intelligence_list",
+              "start_line": 158
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 233,
+              "line_count": 39,
+              "name": "show_intelligence_detail",
+              "start_line": 195
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 246,
+              "line_count": 12,
+              "name": "render_page",
+              "start_line": 235
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 257,
+              "line_count": 10,
+              "name": "handle_message",
+              "start_line": 248
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 321,
+              "line_count": 63,
+              "name": "handle_callback",
+              "start_line": 259
+            }
+          ],
+          "name": "TelegramPanelRuntimeV6"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v5"
       ],
       "in_current_import_chain": true,
+      "line_count": 343,
       "module": "admin_panel_runtime_v6",
       "path": "admin_panel_runtime_v6.py",
       "reference_count": 4,
@@ -707,14 +4077,55 @@
         "admin_panel_runtime_v6.py",
         "admin_panel_runtime_v7.py",
         "admin_panel_runtime_v9.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV6"
+          ],
+          "class_attributes": [],
+          "method_count": 3,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 61,
+              "line_count": 12,
+              "name": "show_menu",
+              "start_line": 50
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 145,
+              "line_count": 83,
+              "name": "_collect_current_wheels",
+              "start_line": 63
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 185,
+              "line_count": 39,
+              "name": "handle_message",
+              "start_line": 147
+            }
+          ],
+          "name": "TelegramPanelRuntimeV7"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v6",
         "monitor"
       ],
       "in_current_import_chain": true,
+      "line_count": 211,
       "module": "admin_panel_runtime_v7",
       "path": "admin_panel_runtime_v7.py",
       "reference_count": 3,
@@ -722,36 +4133,888 @@
         "admin_panel_runtime_v7.py",
         "admin_panel_runtime_v8.py",
         "admin_panel_runtime_v9.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV7"
+          ],
+          "class_attributes": [],
+          "method_count": 3,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 39,
+              "line_count": 21,
+              "name": "show_sources",
+              "start_line": 19
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 54,
+              "line_count": 14,
+              "name": "show_reports",
+              "start_line": 41
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 92,
+              "line_count": 37,
+              "name": "handle_callback",
+              "start_line": 56
+            }
+          ],
+          "name": "TelegramPanelRuntimeV8"
+        },
+        {
+          "bases": [
+            "TelegramPanelRuntimeV8"
+          ],
+          "class_attributes": [],
+          "method_count": 9,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 104,
+              "line_count": 9,
+              "name": "__init__",
+              "start_line": 96
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 107,
+              "line_count": 2,
+              "name": "role_for",
+              "start_line": 106
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 110,
+              "line_count": 2,
+              "name": "can_view",
+              "start_line": 109
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 113,
+              "line_count": 2,
+              "name": "is_admin",
+              "start_line": 112
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 118,
+              "line_count": 4,
+              "name": "set_context",
+              "start_line": 115
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 122,
+              "line_count": 3,
+              "name": "send",
+              "start_line": 120
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 125,
+              "line_count": 2,
+              "name": "answer",
+              "start_line": 124
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 128,
+              "line_count": 2,
+              "name": "open_page",
+              "start_line": 127
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 132,
+              "line_count": 3,
+              "name": "dispatch_admin_action",
+              "start_line": 130
+            }
+          ],
+          "name": "_TestPanel"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v7"
       ],
       "in_current_import_chain": true,
+      "line_count": 182,
       "module": "admin_panel_runtime_v8",
       "path": "admin_panel_runtime_v8.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v8.py",
         "admin_panel_runtime_v9.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     },
     {
+      "classes": [
+        {
+          "bases": [
+            "TelegramPanelRuntimeV8"
+          ],
+          "class_attributes": [],
+          "method_count": 6,
+          "methods": [
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 52,
+              "line_count": 12,
+              "name": "show_menu",
+              "start_line": 41
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 62,
+              "line_count": 9,
+              "name": "show_app_entry",
+              "start_line": 54
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 65,
+              "line_count": 2,
+              "name": "show_settings",
+              "start_line": 64
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 118,
+              "line_count": 49,
+              "name": "show_active",
+              "start_line": 70
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 138,
+              "line_count": 19,
+              "name": "handle_message",
+              "start_line": 120
+            },
+            {
+              "async": false,
+              "decorators": [],
+              "end_line": 144,
+              "line_count": 5,
+              "name": "render_page",
+              "start_line": 140
+            }
+          ],
+          "name": "TelegramPanelRuntimeV9"
+        }
+      ],
       "direct_imports": [
         "admin_panel_runtime_v6",
         "admin_panel_runtime_v7",
         "admin_panel_runtime_v8"
       ],
       "in_current_import_chain": true,
+      "line_count": 169,
       "module": "admin_panel_runtime_v9",
       "path": "admin_panel_runtime_v9.py",
       "reference_count": 2,
       "references": [
         "admin_panel_runtime_v10.py",
         "admin_panel_runtime_v9.py"
+      ],
+      "top_level_functions": [
+        "main",
+        "self_test"
       ]
     }
   ],
+  "runtime_method_index": {
+    "__init__": [
+      "admin_panel_runtime_v12",
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v17",
+      "admin_panel_runtime_v23",
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v8"
+    ],
+    "_apply_admin_action_direct": [
+      "admin_panel_runtime_v26",
+      "admin_panel_runtime_v28"
+    ],
+    "_apply_notification_policy_once": [
+      "admin_panel_runtime_v37"
+    ],
+    "_bootstrap_access": [
+      "admin_panel_runtime_v25"
+    ],
+    "_callback_page": [
+      "admin_panel_runtime_v12"
+    ],
+    "_candidate_filter": [
+      "admin_panel_runtime_v5"
+    ],
+    "_collect_current_wheels": [
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v4",
+      "admin_panel_runtime_v7"
+    ],
+    "_color_active_payload": [
+      "admin_panel_runtime_v40"
+    ],
+    "_delete_callback_message": [
+      "admin_panel_runtime_v20"
+    ],
+    "_display_user": [
+      "admin_panel_runtime_v38"
+    ],
+    "_entry_key": [
+      "admin_panel_runtime_v4"
+    ],
+    "_hidden_wheels": [
+      "admin_panel_runtime_v20"
+    ],
+    "_hide_reply_keyboard": [
+      "admin_panel_runtime_v14"
+    ],
+    "_inspect_entry": [
+      "admin_panel_runtime_v4"
+    ],
+    "_joined_wheel_keys": [
+      "admin_panel_runtime_v20"
+    ],
+    "_load_bot_bundle": [
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v34"
+    ],
+    "_load_remote_bundle": [
+      "admin_panel_runtime_v34"
+    ],
+    "_merge_access": [
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v35"
+    ],
+    "_monitor_status": [
+      "admin_panel_runtime_v37"
+    ],
+    "_normalize_bundle": [
+      "admin_panel_runtime_v34"
+    ],
+    "_normalize_page": [
+      "admin_panel_runtime_v38"
+    ],
+    "_notification_options_for_role": [
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v37"
+    ],
+    "_page_family": [
+      "admin_panel_runtime_v38"
+    ],
+    "_period_buttons": [
+      "admin_panel_runtime_v38"
+    ],
+    "_personal_participating_wheels": [
+      "admin_panel_runtime_v20"
+    ],
+    "_prepare_callback_user": [
+      "admin_panel_runtime_v26"
+    ],
+    "_quick_time_callback": [
+      "admin_panel_runtime_v38"
+    ],
+    "_read_json_at": [
+      "admin_panel_runtime_v26"
+    ],
+    "_recent_candidate_wheels": [
+      "admin_panel_runtime_v5"
+    ],
+    "_remove_summary_preferences": [
+      "admin_panel_runtime_v37"
+    ],
+    "_resolve_wheel_token": [
+      "admin_panel_runtime_v38"
+    ],
+    "_restore_telegram_deadline": [
+      "admin_panel_runtime_v4"
+    ],
+    "_save_bot_bundle": [
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v34"
+    ],
+    "_security_payload": [
+      "admin_panel_runtime_v3"
+    ],
+    "_serialize_json": [
+      "admin_panel_runtime_v26"
+    ],
+    "_set_quick_time": [
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38"
+    ],
+    "_signature": [
+      "admin_panel_runtime_v3"
+    ],
+    "_simplify_active_payload": [
+      "admin_panel_runtime_v40"
+    ],
+    "_sources_for_item": [
+      "admin_panel_runtime_v32"
+    ],
+    "_telegram_error_text": [
+      "admin_panel_runtime_v14"
+    ],
+    "_trusted_owner": [
+      "admin_panel_runtime_v3"
+    ],
+    "_wheel_callback": [
+      "admin_panel_runtime_v38"
+    ],
+    "_wheel_digest": [
+      "admin_panel_runtime_v38"
+    ],
+    "_wheel_token": [
+      "admin_panel_runtime_v38"
+    ],
+    "_write_remote_bundle": [
+      "admin_panel_runtime_v34"
+    ],
+    "_write_source_list": [
+      "admin_panel_runtime_v14"
+    ],
+    "analytics_menu_rows": [
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v31"
+    ],
+    "answer": [
+      "admin_panel_runtime_v8"
+    ],
+    "begin_source_request": [
+      "admin_panel_runtime_v30"
+    ],
+    "bot_username": [
+      "admin_panel_runtime_v17"
+    ],
+    "bulk_intelligence_rows": [
+      "admin_panel_runtime_v14"
+    ],
+    "bulk_set_intelligence_mode": [
+      "admin_panel_runtime_v14"
+    ],
+    "can_moderate_source_requests": [
+      "admin_panel_runtime_v17"
+    ],
+    "can_view": [
+      "admin_panel_runtime_v8"
+    ],
+    "candidate_rows": [
+      "admin_panel_runtime_v5"
+    ],
+    "candidate_score": [
+      "admin_panel_runtime_v5"
+    ],
+    "compact_menu_rows": [
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v16",
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v22",
+      "admin_panel_runtime_v24",
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v26",
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v38"
+    ],
+    "control_menu_rows": [
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v31"
+    ],
+    "decide_source_request": [
+      "admin_panel_runtime_v17"
+    ],
+    "delete_current_user_data": [
+      "admin_panel_runtime_v33"
+    ],
+    "dispatch_admin_action": [
+      "admin_panel_runtime_v26",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v8"
+    ],
+    "dispatch_summary": [
+      "admin_panel_runtime_v31"
+    ],
+    "filtered_intelligence_rows": [
+      "admin_panel_runtime_v6"
+    ],
+    "handle_callback": [
+      "admin_panel_runtime_v13",
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v17",
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v26",
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v33",
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38",
+      "admin_panel_runtime_v39",
+      "admin_panel_runtime_v5",
+      "admin_panel_runtime_v6",
+      "admin_panel_runtime_v8"
+    ],
+    "handle_message": [
+      "admin_panel_runtime_v10",
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v17",
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v6",
+      "admin_panel_runtime_v7",
+      "admin_panel_runtime_v9"
+    ],
+    "handle_update": [
+      "admin_panel_runtime_v21"
+    ],
+    "hide_wheel_for_current_user": [
+      "admin_panel_runtime_v20"
+    ],
+    "ignore_candidate": [
+      "admin_panel_runtime_v5"
+    ],
+    "inspect_source": [
+      "admin_panel_runtime_v17"
+    ],
+    "intelligence_label": [
+      "admin_panel_runtime_v6"
+    ],
+    "intelligence_launch_text": [
+      "admin_panel_runtime_v13"
+    ],
+    "intelligence_rows": [
+      "admin_panel_runtime_v6"
+    ],
+    "intelligence_state": [
+      "admin_panel_runtime_v6"
+    ],
+    "is_admin": [
+      "admin_panel_runtime_v8"
+    ],
+    "load_access": [
+      "admin_panel_runtime_v23",
+      "admin_panel_runtime_v25"
+    ],
+    "load_moderation": [
+      "admin_panel_runtime_v5"
+    ],
+    "load_source_registry": [
+      "admin_panel_runtime_v22"
+    ],
+    "load_source_requests": [
+      "admin_panel_runtime_v17",
+      "admin_panel_runtime_v23",
+      "admin_panel_runtime_v25"
+    ],
+    "mark_personal_participation": [
+      "admin_panel_runtime_v20"
+    ],
+    "miniapp_deployment": [
+      "admin_panel_runtime_v11"
+    ],
+    "miniapp_url_for_chat": [
+      "admin_panel_runtime_v17",
+      "admin_panel_runtime_v18",
+      "admin_panel_runtime_v19",
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v22"
+    ],
+    "moderator_chat_ids": [
+      "admin_panel_runtime_v17"
+    ],
+    "nav_rows": [
+      "admin_panel_runtime_v12"
+    ],
+    "normalize_access": [
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v35"
+    ],
+    "notification_preferences": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v33",
+      "admin_panel_runtime_v37"
+    ],
+    "notify_moderators": [
+      "admin_panel_runtime_v17"
+    ],
+    "notify_owner_about_new_user": [
+      "admin_panel_runtime_v21"
+    ],
+    "open_page": [
+      "admin_panel_runtime_v38",
+      "admin_panel_runtime_v8"
+    ],
+    "parse_manual_deadline": [
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v37"
+    ],
+    "pending_reason": [
+      "admin_panel_runtime_v15"
+    ],
+    "pending_rows": [
+      "admin_panel_runtime_v15"
+    ],
+    "period_overview": [
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v38"
+    ],
+    "period_title": [
+      "admin_panel_runtime_v31"
+    ],
+    "ranked_sources": [
+      "admin_panel_runtime_v30"
+    ],
+    "recommendation": [
+      "admin_panel_runtime_v5"
+    ],
+    "record_runtime_heartbeat": [
+      "admin_panel_runtime_v37"
+    ],
+    "register_user": [
+      "admin_panel_runtime_v2",
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v33",
+      "admin_panel_runtime_v37"
+    ],
+    "render_page": [
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v15",
+      "admin_panel_runtime_v16",
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v22",
+      "admin_panel_runtime_v24",
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38",
+      "admin_panel_runtime_v5",
+      "admin_panel_runtime_v6",
+      "admin_panel_runtime_v9"
+    ],
+    "request_id": [
+      "admin_panel_runtime_v17"
+    ],
+    "request_manual_time": [
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38"
+    ],
+    "requester_name": [
+      "admin_panel_runtime_v17"
+    ],
+    "restore_candidate": [
+      "admin_panel_runtime_v5"
+    ],
+    "role_for": [
+      "admin_panel_runtime_v8"
+    ],
+    "safe_text_for_role": [
+      "admin_panel_runtime_v36"
+    ],
+    "save_access": [
+      "admin_panel_runtime_v23",
+      "admin_panel_runtime_v25"
+    ],
+    "save_moderation": [
+      "admin_panel_runtime_v5"
+    ],
+    "save_source_requests": [
+      "admin_panel_runtime_v17",
+      "admin_panel_runtime_v23",
+      "admin_panel_runtime_v25"
+    ],
+    "score_label": [
+      "admin_panel_runtime_v5"
+    ],
+    "send": [
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v36",
+      "admin_panel_runtime_v38",
+      "admin_panel_runtime_v8"
+    ],
+    "set_admin": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v37"
+    ],
+    "set_all_user_notifications": [
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v35"
+    ],
+    "set_candidate_mode": [
+      "admin_panel_runtime_v5"
+    ],
+    "set_context": [
+      "admin_panel_runtime_v8"
+    ],
+    "set_interval": [
+      "admin_panel_runtime_v3"
+    ],
+    "set_user_notification": [
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v35"
+    ],
+    "setup_bot": [
+      "admin_panel_runtime_v10",
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v36",
+      "admin_panel_runtime_v37"
+    ],
+    "show_access": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v38"
+    ],
+    "show_active": [
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v22",
+      "admin_panel_runtime_v24",
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38",
+      "admin_panel_runtime_v4",
+      "admin_panel_runtime_v40",
+      "admin_panel_runtime_v9"
+    ],
+    "show_analytics": [
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38"
+    ],
+    "show_app_entry": [
+      "admin_panel_runtime_v10",
+      "admin_panel_runtime_v11",
+      "admin_panel_runtime_v17",
+      "admin_panel_runtime_v19",
+      "admin_panel_runtime_v9"
+    ],
+    "show_candidate_detail": [
+      "admin_panel_runtime_v5"
+    ],
+    "show_candidate_list": [
+      "admin_panel_runtime_v11",
+      "admin_panel_runtime_v5"
+    ],
+    "show_control": [
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v31"
+    ],
+    "show_discovery": [
+      "admin_panel_runtime_v11",
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v5"
+    ],
+    "show_inactive_report": [
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v38"
+    ],
+    "show_intelligence": [
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v6"
+    ],
+    "show_intelligence_detail": [
+      "admin_panel_runtime_v6"
+    ],
+    "show_intelligence_list": [
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v6"
+    ],
+    "show_interval": [
+      "admin_panel_runtime_v3"
+    ],
+    "show_menu": [
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v19",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v4",
+      "admin_panel_runtime_v41",
+      "admin_panel_runtime_v6",
+      "admin_panel_runtime_v7",
+      "admin_panel_runtime_v9"
+    ],
+    "show_more": [
+      "admin_panel_runtime_v14",
+      "admin_panel_runtime_v15"
+    ],
+    "show_notifications": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v33",
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v37"
+    ],
+    "show_pending": [
+      "admin_panel_runtime_v15"
+    ],
+    "show_period_report": [
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38"
+    ],
+    "show_ranking": [
+      "admin_panel_runtime_v22",
+      "admin_panel_runtime_v24",
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v36",
+      "admin_panel_runtime_v38"
+    ],
+    "show_recipients": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v38"
+    ],
+    "show_reports": [
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38",
+      "admin_panel_runtime_v8"
+    ],
+    "show_send_summary_menu": [
+      "admin_panel_runtime_v31"
+    ],
+    "show_settings": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v33",
+      "admin_panel_runtime_v9"
+    ],
+    "show_source_detail": [
+      "admin_panel_runtime_v14"
+    ],
+    "show_source_request_help": [
+      "admin_panel_runtime_v29"
+    ],
+    "show_sources": [
+      "admin_panel_runtime_v22",
+      "admin_panel_runtime_v24",
+      "admin_panel_runtime_v25",
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v3",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v8"
+    ],
+    "show_stats": [
+      "admin_panel_runtime_v15",
+      "admin_panel_runtime_v20",
+      "admin_panel_runtime_v22",
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v31",
+      "admin_panel_runtime_v32",
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38"
+    ],
+    "show_status": [
+      "admin_panel_runtime_v37",
+      "admin_panel_runtime_v38"
+    ],
+    "show_user_detail": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v34"
+    ],
+    "show_user_notifications": [
+      "admin_panel_runtime_v34"
+    ],
+    "source_menu_rows": [
+      "admin_panel_runtime_v29",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v36"
+    ],
+    "source_mode_name": [
+      "admin_panel_runtime_v14"
+    ],
+    "source_registry_fallback": [
+      "admin_panel_runtime_v22"
+    ],
+    "submit_source_request": [
+      "admin_panel_runtime_v17"
+    ],
+    "summary_send_rows": [
+      "admin_panel_runtime_v31"
+    ],
+    "temporary_access": [
+      "admin_panel_runtime_v23"
+    ],
+    "toggle_notification": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v30",
+      "admin_panel_runtime_v33",
+      "admin_panel_runtime_v34",
+      "admin_panel_runtime_v37"
+    ],
+    "transfer_owner": [
+      "admin_panel_runtime_v21",
+      "admin_panel_runtime_v37"
+    ],
+    "with_nav": [
+      "admin_panel_runtime_v12"
+    ]
+  },
+  "runtime_total_lines": 10875,
+  "runtime_unique_method_count": 155,
   "unreferenced_python_candidates": []
 }
