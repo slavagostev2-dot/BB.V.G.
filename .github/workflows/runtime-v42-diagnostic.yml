@@ -108,7 +108,51 @@ jobs:
           python system_checks_v2.py --self-test
           python source_tier_maintenance_v2.py --self-test
 
+      - name: FAILURE — pytest
+        if: ${{ always() && steps.pytest.outcome != 'success' }}
+        run: echo "pytest failed"
+      - name: FAILURE — production acceptance
+        if: ${{ always() && steps.acceptance.outcome != 'success' }}
+        run: echo "production acceptance failed"
+      - name: FAILURE — runtime v25
+        if: ${{ always() && steps.v25.outcome != 'success' }}
+        run: echo "v25 failed"
+      - name: FAILURE — runtime v26
+        if: ${{ always() && steps.v26.outcome != 'success' }}
+        run: echo "v26 failed"
+      - name: FAILURE — runtime v28
+        if: ${{ always() && steps.v28.outcome != 'success' }}
+        run: echo "v28 failed"
+      - name: FAILURE — runtime v29
+        if: ${{ always() && steps.v29.outcome != 'success' }}
+        run: echo "v29 failed"
+      - name: FAILURE — runtime v30
+        if: ${{ always() && steps.v30.outcome != 'success' }}
+        run: echo "v30 failed"
+      - name: FAILURE — runtime v31
+        if: ${{ always() && steps.v31.outcome != 'success' }}
+        run: echo "v31 failed"
+      - name: FAILURE — runtime v32
+        if: ${{ always() && steps.v32.outcome != 'success' }}
+        run: echo "v32 failed"
+      - name: FAILURE — runtime v36
+        if: ${{ always() && steps.v36.outcome != 'success' }}
+        run: echo "v36 failed"
+      - name: FAILURE — runtime v37
+        if: ${{ always() && steps.v37.outcome != 'success' }}
+        run: echo "v37 failed"
+      - name: FAILURE — runtime v38
+        if: ${{ always() && steps.v38.outcome != 'success' }}
+        run: echo "v38 failed"
+      - name: FAILURE — runtime v41
+        if: ${{ always() && steps.v41.outcome != 'success' }}
+        run: echo "v41 failed"
+      - name: FAILURE — domain recovery
+        if: ${{ always() && steps.domain.outcome != 'success' }}
+        run: echo "domain recovery failed"
+
       - name: Require all diagnostics
+        if: ${{ always() }}
         env:
           PYTEST: ${{ steps.pytest.outcome }}
           ACCEPTANCE: ${{ steps.acceptance.outcome }}
