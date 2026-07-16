@@ -1,0 +1,88 @@
+name: BB V.G. monitor v41 recovery
+run-name: BB V.G. monitor v41 recovery — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/monitor-v41-recovery.yml"
+      - "monitor_v41_recovery_trigger.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bb-vg-monitor-continuous
+  cancel-in-progress: true
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Validate v41 scenarios
+        env:
+          BOT_TOKEN: "test-bot-token"
+          BOT_STATE_KEY: "test-state-key"
+          BOT_CHAT_ID: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+          UNKNOWN_DEDUP_HOURS: "2"
+        run: |
+          python preflight.py
+          python monitor_validation_v41.py
+      - name: Run monitor v41
+        id: monitor
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_BRANCH: main
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          EXPECTED_SOURCE_COUNT: "66"
+          DISPLAY_TIMEZONE: Asia/Barnaul
+          REQUEST_TIMEOUT_SECONDS: "15"
+          MAX_WORKERS: "16"
+          TRANSPORT_BATCH_ATTEMPTS: "3"
+          MONITOR_RESTART_FAILURES: "2"
+          MONITOR_RESTART_NO_PROGRESS: "2"
+          UNKNOWN_DEDUP_HOURS: "2"
+          DEADLINE_GRACE_MINUTES: "30"
+          FINAL_REMINDER_BEFORE_MINUTES: "5"
+          ACTIVE_REMOVE_GRACE_MINUTES: "0"
+          HEARTBEAT_HOURS: "6"
+          HEALTH_ALERT_COOLDOWN_HOURS: "24"
+          STATUS_REPORT_HOURS: "12"
+          MAX_NEW_POST_AGE_MINUTES: "360"
+          NEW_SOURCE_CATCHUP_MINUTES: "1440"
+          FRESH_UNKNOWN_POST_MINUTES: "20"
+          QUARANTINE_FAILURE_THRESHOLD: "3"
+          QUARANTINE_EMPTY_THRESHOLD: "4"
+          QUARANTINE_RECHECK_HOURS: "6"
+          UNAVAILABLE_REPORT_DAYS: "2"
+          SOURCE_INACTIVITY_DAYS: "7"
+          SOURCE_INACTIVITY_REPORT_DAYS: "7"
+          BOT_FEEDBACK_ENABLED: "false"
+          MANUAL_RUN: "false"
+          AUTO_RUN: "true"
+          CONTINUOUS: "true"
+        run: bash monitor_shift_v41.sh
+      - name: Start next recovery shift
+        if: ${{ always() && steps.monitor.outcome != 'cancelled' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run monitor-v41-recovery.yml --ref main
