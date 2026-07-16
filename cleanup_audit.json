@@ -19,7 +19,6 @@
       "path": "chapter2_unified_logic.py",
       "references": [
         ".github/workflows/admin-bot.yml",
-        ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/cleanup-audit.yml",
         ".github/workflows/monitor.yml",
         ".github/workflows/system-health.yml",
@@ -42,7 +41,6 @@
       "path": "chapter4_acceptance.py",
       "references": [
         ".github/workflows/admin-bot.yml",
-        ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/cleanup-audit.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/validate-current.yml",
@@ -463,9 +461,8 @@
       "line_count": 106,
       "module": "admin_panel_runtime_v27",
       "path": "admin_panel_runtime_v27.py",
-      "reference_count": 3,
+      "reference_count": 2,
       "references": [
-        ".github/workflows/bot-recovery-smoke.yml",
         "admin_panel_runtime_v27.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
@@ -1284,9 +1281,8 @@
       "line_count": 43,
       "module": "admin_panel_runtime_v33",
       "path": "admin_panel_runtime_v33.py",
-      "reference_count": 7,
+      "reference_count": 6,
       "references": [
-        ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
@@ -1320,9 +1316,8 @@
       "line_count": 39,
       "module": "admin_panel_runtime_v34",
       "path": "admin_panel_runtime_v34.py",
-      "reference_count": 7,
+      "reference_count": 6,
       "references": [
-        ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
@@ -1356,9 +1351,8 @@
       "line_count": 34,
       "module": "admin_panel_runtime_v35",
       "path": "admin_panel_runtime_v35.py",
-      "reference_count": 6,
+      "reference_count": 5,
       "references": [
-        ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-private-state.yml",
@@ -2109,9 +2103,10 @@
       "line_count": 8,
       "module": "admin_panel_runtime_v41",
       "path": "admin_panel_runtime_v41.py",
-      "reference_count": 8,
+      "reference_count": 9,
       "references": [
         ".github/workflows/admin-bot.yml",
+        ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/v22-checks.yml",
         "AGENTS.md",
         "bbvg/bot/runtime.py",
