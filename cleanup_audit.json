@@ -5,8 +5,10 @@
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/monitor.yml",
+        ".github/workflows/refactor-validation.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/validate-current.yml",
+        "docs/CODE_INVENTORY_RU.md",
         "docs/REFACTOR_PLAN_RU.md",
         "monitor_validation_v41.py"
       ]
@@ -17,16 +19,20 @@
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
         ".github/workflows/monitor.yml",
+        ".github/workflows/refactor-validation.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-current.yml",
-        ".github/workflows/validate-private-state.yml"
+        ".github/workflows/validate-private-state.yml",
+        "docs/CODE_INVENTORY_RU.md"
       ]
     },
     {
       "path": "chapter3_acceptance.py",
       "references": [
-        ".github/workflows/validate-current.yml"
+        ".github/workflows/refactor-validation.yml",
+        ".github/workflows/validate-current.yml",
+        "docs/CODE_INVENTORY_RU.md"
       ]
     },
     {
@@ -34,10 +40,12 @@
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
+        ".github/workflows/refactor-validation.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-current.yml",
         ".github/workflows/validate-private-state.yml",
+        "docs/CODE_INVENTORY_RU.md",
         "docs/REFACTOR_PLAN_RU.md"
       ]
     },
@@ -46,7 +54,9 @@
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/monitor.yml",
+        ".github/workflows/refactor-validation.yml",
         ".github/workflows/validate-current.yml",
+        "docs/CODE_INVENTORY_RU.md",
         "docs/REFACTOR_PLAN_RU.md",
         "monitor_validation_v41.py",
         "preflight.py"
@@ -282,11 +292,12 @@
       "in_current_import_chain": false,
       "module": "admin_panel_runtime_v23",
       "path": "admin_panel_runtime_v23.py",
-      "reference_count": 3,
+      "reference_count": 4,
       "references": [
         "PRIVATE_STATE_MIGRATION_RU.md",
         "admin_panel_runtime_v23.py",
-        "admin_panel_runtime_v24.py"
+        "admin_panel_runtime_v24.py",
+        "docs/CODE_INVENTORY_RU.md"
       ]
     },
     {
@@ -297,9 +308,10 @@
       "in_current_import_chain": false,
       "module": "admin_panel_runtime_v24",
       "path": "admin_panel_runtime_v24.py",
-      "reference_count": 1,
+      "reference_count": 2,
       "references": [
-        "admin_panel_runtime_v24.py"
+        "admin_panel_runtime_v24.py",
+        "docs/CODE_INVENTORY_RU.md"
       ]
     },
     {
@@ -657,11 +669,12 @@
       "in_current_import_chain": true,
       "module": "admin_panel_runtime_v41",
       "path": "admin_panel_runtime_v41.py",
-      "reference_count": 5,
+      "reference_count": 6,
       "references": [
         ".github/workflows/admin-bot.yml",
         "AGENTS.md",
         "chapter4_acceptance.py",
+        "docs/CODE_INVENTORY_RU.md",
         "tests/production_acceptance.py",
         "tests/test_current_contracts.py"
       ]
@@ -740,9 +753,5 @@
       ]
     }
   ],
-  "unreferenced_python_candidates": [
-    "admin_panel_runtime_v24.py",
-    "monitor_resilience.py",
-    "normalize_source_ratings.py"
-  ]
+  "unreferenced_python_candidates": []
 }
