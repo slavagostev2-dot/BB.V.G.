@@ -1,69 +1,23 @@
 from __future__ import annotations
 
 import argparse
-import base64
-import copy
 import html
-import json
 from typing import Any
-from urllib.parse import quote
 
-import admin_bot as legacy
-import bot_private_state
-import privacy_retention
-from admin_panel_runtime_v17 import default_source_requests
 from admin_panel_runtime_v21 import ADMIN_NOTIFICATION_OPTIONS
 from admin_panel_runtime_v33 import (
     SUMMARY_NOTIFICATION_OPTIONS,
     WHEEL_NOTIFICATION_OPTIONS,
     TelegramPanelRuntimeV33,
 )
+from bbvg.bot.storage import (
+    _clone,
+    _merge_set_list,
+    _merge_value,
+    self_test as storage_self_test,
+)
 
 ALL_SUMMARY_NOTIFICATION_OPTIONS = tuple(SUMMARY_NOTIFICATION_OPTIONS)
-_MISSING = object()
-
-
-def _clone(value: Any) -> Any:
-    return copy.deepcopy(value)
-
-
-def _merge_value(base: Any, local: Any, remote: Any) -> Any:
-    """Three-way merge: apply local changes to the freshest remote value."""
-
-    if local == base:
-        return _clone(remote)
-    if isinstance(base, dict) and isinstance(local, dict) and isinstance(remote, dict):
-        result = _clone(remote)
-        for key in set(base) | set(local):
-            base_value = base.get(key, _MISSING)
-            local_value = local.get(key, _MISSING)
-            if local_value == base_value:
-                continue
-            if local_value is _MISSING:
-                result.pop(key, None)
-                continue
-            remote_value = remote.get(key, _MISSING)
-            if (
-                base_value is not _MISSING
-                and remote_value is not _MISSING
-                and isinstance(base_value, dict)
-                and isinstance(local_value, dict)
-                and isinstance(remote_value, dict)
-            ):
-                result[key] = _merge_value(base_value, local_value, remote_value)
-            else:
-                result[key] = _clone(local_value)
-        return result
-    return _clone(local)
-
-
-def _merge_set_list(base: Any, local: Any, remote: Any) -> list[str]:
-    base_set = {str(value) for value in (base or []) if str(value)}
-    local_set = {str(value) for value in (local or []) if str(value)}
-    remote_set = {str(value) for value in (remote or []) if str(value)}
-    additions = local_set - base_set
-    removals = base_set - local_set
-    return sorted((remote_set | additions) - removals)
 
 
 def _display_name(record: dict[str, Any], user_id: str) -> str:
@@ -79,175 +33,7 @@ def _display_name(record: dict[str, Any], user_id: str) -> str:
 
 
 class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
-    """Persistent roles and owner-managed notification preferences."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._bundle_baseline: dict[str, Any] | None = None
-
-    def _normalize_bundle(self, value: dict[str, Any]) -> dict[str, Any]:
-        access = value.get("access") if isinstance(value.get("access"), dict) else {}
-        requests = (
-            value.get("source_requests")
-            if isinstance(value.get("source_requests"), dict)
-            else default_source_requests()
-        )
-        return {
-            "version": max(2, int(value.get("version", 2) or 2)),
-            "access": self._bootstrap_access(access),
-            "source_requests": requests,
-        }
-
-    def _load_remote_bundle(self) -> tuple[dict[str, Any], str]:
-        text, sha = self.get_file(bot_private_state.STATE_PATH.name)
-        bundle = bot_private_state.load_text(
-            text,
-            access_default=self._bootstrap_access(),
-            source_requests_default=default_source_requests(),
-        )
-        return self._normalize_bundle(bundle), sha
-
-    def _load_bot_bundle(self, force: bool = False) -> dict[str, Any]:
-        with self._bot_state_lock:
-            if self._bot_bundle is not None and not force:
-                return self._bot_bundle
-            if force:
-                bundle, _ = self._load_remote_bundle()
-            else:
-                bundle = self._normalize_bundle(super()._load_bot_bundle(force=False))
-            self._bot_bundle = bundle
-            self._bundle_baseline = _clone(bundle)
-            return bundle
-
-    def _merge_access(
-        self,
-        base: dict[str, Any],
-        local: dict[str, Any],
-        remote: dict[str, Any],
-    ) -> dict[str, Any]:
-        base = self.normalize_access(base)
-        local = self.normalize_access(local)
-        remote = self.normalize_access(remote)
-        result = _clone(remote)
-
-        if local.get("owner_id") != base.get("owner_id"):
-            result["owner_id"] = str(local.get("owner_id") or "")
-
-        for key in ("admins", "blocked_users", "notification_recipients"):
-            result[key] = _merge_set_list(base.get(key), local.get(key), remote.get(key))
-
-        result["settings"] = _merge_value(
-            base.get("settings", {}),
-            local.get("settings", {}),
-            remote.get("settings", {}),
-        )
-
-        base_users = base.get("users") if isinstance(base.get("users"), dict) else {}
-        local_users = local.get("users") if isinstance(local.get("users"), dict) else {}
-        remote_users = remote.get("users") if isinstance(remote.get("users"), dict) else {}
-        merged_users = _clone(remote_users)
-
-        for user_id in set(base_users) | set(local_users):
-            if user_id not in local_users:
-                if user_id in base_users:
-                    merged_users.pop(user_id, None)
-                continue
-            local_record = (
-                local_users.get(user_id) if isinstance(local_users.get(user_id), dict) else {}
-            )
-            if user_id not in base_users:
-                remote_record = (
-                    remote_users.get(user_id)
-                    if isinstance(remote_users.get(user_id), dict)
-                    else {}
-                )
-                merged_users[user_id] = _merge_value({}, local_record, remote_record)
-                continue
-            base_record = (
-                base_users.get(user_id) if isinstance(base_users.get(user_id), dict) else {}
-            )
-            remote_record = (
-                remote_users.get(user_id)
-                if isinstance(remote_users.get(user_id), dict)
-                else {}
-            )
-            merged_users[user_id] = _merge_value(base_record, local_record, remote_record)
-
-        result["users"] = merged_users
-        owner_id = str(result.get("owner_id") or "")
-        result["admins"] = sorted(
-            {
-                str(value)
-                for value in result.get("admins", [])
-                if str(value) and str(value) != owner_id
-            }
-        )
-        # The result is produced from three already trusted snapshots.  Refresh
-        # the legacy v34 role signature before its final normalization; without
-        # this, a valid local role change was cleared as if it were tampering.
-        result["access_signature"] = self._signature(result)
-        return self.normalize_access(result)
-
-    def _write_remote_bundle(self, bundle: dict[str, Any], sha: str, message: str) -> str:
-        privacy_retention.prune_bundle(bundle)
-        text = bot_private_state.seal(bundle)
-        body = {
-            "message": message,
-            "content": base64.b64encode(text.encode("utf-8")).decode("ascii"),
-            "sha": sha,
-            "branch": legacy.GITHUB_BRANCH,
-        }
-        self.gh_request(
-            "PUT",
-            (
-                f"/repos/{legacy.GITHUB_REPOSITORY}/contents/"
-                f"{quote(bot_private_state.STATE_PATH.name, safe='/')}"
-            ),
-            json_body=body,
-            expected=(200, 201),
-        )
-        bot_private_state.STATE_PATH.write_text(text, encoding="utf-8")
-        return text
-
-    def _save_bot_bundle(self, message: str) -> bool:
-        """Persist a three-way merge so stale processes cannot erase roles."""
-
-        with self._bot_state_lock:
-            local = self._normalize_bundle(self._load_bot_bundle())
-            base = self._normalize_bundle(self._bundle_baseline or local)
-            last_error: Exception | None = None
-            for _attempt in range(3):
-                try:
-                    remote, sha = self._load_remote_bundle()
-                    merged = {
-                        "version": max(
-                            int(base.get("version", 2) or 2),
-                            int(local.get("version", 2) or 2),
-                            int(remote.get("version", 2) or 2),
-                        ),
-                        "access": self._merge_access(
-                            base.get("access", {}),
-                            local.get("access", {}),
-                            remote.get("access", {}),
-                        ),
-                        "source_requests": _merge_value(
-                            base.get("source_requests", {}),
-                            local.get("source_requests", {}),
-                            remote.get("source_requests", {}),
-                        ),
-                    }
-                    self._write_remote_bundle(merged, sha, message)
-                    self._bot_bundle = merged
-                    self._bundle_baseline = _clone(merged)
-                    with self.access_lock:
-                        self.access = self.normalize_access(merged["access"])
-                        self.access_loaded = True
-                    return True
-                except Exception as exc:
-                    last_error = exc
-            raise RuntimeError(
-                "Не удалось безопасно сохранить состояние без потери ролей"
-            ) from last_error
+    """Owner-managed notification interface over consolidated private storage."""
 
     def show_notifications(self) -> None:
         prefs = self.notification_preferences()
@@ -266,12 +52,10 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
                 f"{html.escape(label)} — {html.escape(description)}"
             )
             rows.append(
-                [
-                    {
-                        "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
-                        "callback_data": f"notify:{key}",
-                    }
-                ]
+                [{
+                    "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
+                    "callback_data": f"notify:{key}",
+                }]
             )
         if admin:
             lines.extend(["", "<b>Сводки</b>"])
@@ -281,12 +65,10 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
                     f"{html.escape(label)} — {html.escape(description)}"
                 )
                 rows.append(
-                    [
-                        {
-                            "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
-                            "callback_data": f"notify:{key}",
-                        }
-                    ]
+                    [{
+                        "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
+                        "callback_data": f"notify:{key}",
+                    }]
                 )
             lines.extend(["", "<b>Административные</b>"])
             for key, label, description in ADMIN_NOTIFICATION_OPTIONS:
@@ -295,12 +77,10 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
                     f"{html.escape(label)} — {html.escape(description)}"
                 )
                 rows.append(
-                    [
-                        {
-                            "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
-                            "callback_data": f"notify:{key}",
-                        }
-                    ]
+                    [{
+                        "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
+                        "callback_data": f"notify:{key}",
+                    }]
                 )
         else:
             lines.extend(
@@ -383,39 +163,31 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
             f"Последняя активность: {self.fmt_dt(record.get('last_seen_at'))}"
         )
         rows: list[list[dict[str, str]]] = [
-            [
-                {
-                    "text": "🔔 Управлять уведомлениями",
-                    "callback_data": f"usernotifications:{user_id}",
-                }
-            ]
+            [{
+                "text": "🔔 Управлять уведомлениями",
+                "callback_data": f"usernotifications:{user_id}",
+            }]
         ]
         if role == "user":
             rows.append(
-                [
-                    {
-                        "text": "Сделать администратором",
-                        "callback_data": f"access:promote:{user_id}",
-                    }
-                ]
+                [{
+                    "text": "Сделать администратором",
+                    "callback_data": f"access:promote:{user_id}",
+                }]
             )
         elif role == "admin":
             rows.append(
-                [
-                    {
-                        "text": "Убрать права администратора",
-                        "callback_data": f"access:demote:{user_id}",
-                    }
-                ]
+                [{
+                    "text": "Убрать права администратора",
+                    "callback_data": f"access:demote:{user_id}",
+                }]
             )
         if role != "owner":
             rows.append(
-                [
-                    {
-                        "text": "👑 Передать владение",
-                        "callback_data": f"access:transferask:{user_id}",
-                    }
-                ]
+                [{
+                    "text": "👑 Передать владение",
+                    "callback_data": f"access:transferask:{user_id}",
+                }]
             )
         self.send(text, reply_markup=self.with_nav(rows))
 
@@ -457,12 +229,10 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
                 f"{html.escape(label)} — {html.escape(description)}"
             )
             rows.append(
-                [
-                    {
-                        "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
-                        "callback_data": f"usernotify:{user_id}:{key}",
-                    }
-                ]
+                [{
+                    "text": f"{self.bool_mark(bool(prefs.get(key, False)))} {label}",
+                    "callback_data": f"usernotify:{user_id}:{key}",
+                }]
             )
         rows.extend(
             [
@@ -476,12 +246,7 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
                         "callback_data": f"usernotifyall:{user_id}:off",
                     },
                 ],
-                [
-                    {
-                        "text": "👤 К пользователю",
-                        "callback_data": f"page:user:{user_id}",
-                    }
-                ],
+                [{"text": "👤 К пользователю", "callback_data": f"page:user:{user_id}"}],
             ]
         )
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
@@ -597,88 +362,49 @@ class TelegramPanelRuntimeV34(TelegramPanelRuntimeV33):
 
 
 def self_test() -> None:
-    class _SelfTestPanel(TelegramPanelRuntimeV34):
-        @classmethod
-        def _signature(cls, value: dict[str, Any]) -> str:
-            # The legacy v34 signature predates encrypted state and normally
-            # uses BOT_TOKEN.  A self-test must stay deterministic without a
-            # production secret while still exercising the signed merge path.
-            return "v34-isolated-self-test-signature"
-
-        @staticmethod
-        def _trusted_owner() -> str:
-            return "1"
-
-    panel = _SelfTestPanel()
-    base = panel.normalize_access(
-        {
-            "owner_id": "1",
-            "admins": [],
-            "blocked_users": [],
-            "notification_recipients": ["10"],
-            "settings": {"public_panel": True, "notifications": True},
-            "users": {
-                "1": {"id": "1", "chat_id": "10", "first_name": "Owner"},
-                "2": {
-                    "id": "2",
-                    "chat_id": "20",
-                    "first_name": "User",
-                    "notification_preferences": {"wheels": True},
-                },
+    storage_self_test()
+    panel = TelegramPanelRuntimeV34()
+    access = {
+        "owner_id": "1",
+        "admins": [],
+        "blocked_users": [],
+        "notification_recipients": ["10", "20"],
+        "settings": {},
+        "users": {
+            "1": {"id": "1", "chat_id": "10"},
+            "2": {
+                "id": "2",
+                "chat_id": "20",
+                "notification_preferences": {"wheels": True},
             },
-        }
-    )
-    local = _clone(base)
-    local["users"]["2"]["notification_preferences"]["wheel_final_reminders"] = False
-    remote = _clone(base)
-    remote["admins"] = ["2"]
-    remote["users"]["2"]["last_name"] = "Remote"
-    remote["access_signature"] = panel._signature(remote)
-    merged = panel._merge_access(base, local, remote)
-    assert merged["admins"] == ["2"], "A stale preference write erased a remote administrator role"
-    assert merged["users"]["2"]["last_name"] == "Remote"
-    assert merged["users"]["2"]["notification_preferences"]["wheel_final_reminders"] is False
-
-    role_local = _clone(base)
-    role_local["admins"] = ["2"]
-    role_local["access_signature"] = panel._signature(role_local)
-    remote_with_new_user = _clone(base)
-    remote_with_new_user["users"]["3"] = {"id": "3", "chat_id": "30"}
-    merged_role = panel._merge_access(base, role_local, remote_with_new_user)
-    assert merged_role["admins"] == ["2"]
-    assert "3" in merged_role["users"], "Role update erased a newly registered user"
-
-    panel._bot_bundle = bot_private_state.default_bundle(base, default_source_requests())
-    panel._bundle_baseline = _clone(panel._bot_bundle)
-    panel.access = base
-    panel.access_loaded = True
-    panel.current_user_id = "1"
-    panel.current_chat_id = "10"
-    panel.current_role = "owner"
-    saved: list[str] = []
-    panel._save_bot_bundle = lambda message: saved.append(message) or True  # type: ignore[method-assign]
-    panel.set_user_notification("2", "wheel_final_reminders", False)
-    assert (
-        panel.access["users"]["2"]["notification_preferences"]["wheel_final_reminders"]
-        is False
-    )
-    assert saved
-
-    options = {
-        key
-        for key, _, _ in panel._notification_options_for_role("admin")
+        },
     }
-    assert {
-        "wheels",
-        "wheel_final_reminders",
-        "wheel_draw_alerts",
-        "daily_reports",
-        "weekly_reports",
-        "admin_system",
-        "admin_sources",
-        "admin_requests",
-    } <= options
-    print("admin panel v34 persistent roles and owner notification management self-test passed")
+    saved: list[str] = []
+    panel.current_user_id = "1"
+    panel.current_role = "owner"
+    panel.is_owner = lambda: True  # type: ignore[method-assign]
+    panel.load_access = lambda force=False: access  # type: ignore[method-assign]
+    panel.save_access = lambda message="": saved.append(message)  # type: ignore[method-assign]
+    panel.role_for = lambda user_id: "owner" if str(user_id) == "1" else "user"  # type: ignore[method-assign]
+    panel.notification_preferences = lambda user_id=None: {  # type: ignore[method-assign]
+        "wheels": bool(
+            access["users"].get(str(user_id or panel.current_user_id), {})
+            .get("notification_preferences", {})
+            .get("wheels", True)
+        ),
+        "wheel_final_reminders": True,
+        "wheel_draw_alerts": False,
+        "daily_reports": False,
+        "weekly_reports": False,
+        "admin_system": False,
+        "admin_sources": False,
+        "admin_requests": False,
+    }
+    panel.set_user_notification("2", "wheels", False)
+    assert access["users"]["2"]["notifications_enabled"] is False
+    assert "20" not in access["notification_recipients"]
+    assert saved
+    print("admin panel v34 notification interface self-test passed")
 
 
 def main() -> int:
