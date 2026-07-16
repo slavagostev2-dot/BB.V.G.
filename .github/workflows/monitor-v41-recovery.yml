@@ -41,8 +41,12 @@ jobs:
           EXPECTED_SOURCE_COUNT: "66"
           UNKNOWN_DEDUP_HOURS: "2"
         run: |
-          python preflight.py
-          python monitor_validation_v41.py
+          set +e
+          (python preflight.py && python monitor_validation_v41.py) > monitor_validation.log 2>&1
+          code=$?
+          tail -n 120 monitor_validation.log > monitor_validation_diagnostic.txt
+          cat monitor_validation_diagnostic.txt
+          exit "$code"
       - name: Record recovery validation status
         if: ${{ always() }}
         continue-on-error: true
@@ -63,10 +67,11 @@ jobs:
               json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
               stream.write("\n")
           PY
+          test -f monitor_validation_diagnostic.txt || echo "No validation log was produced." > monitor_validation_diagnostic.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add monitor_recovery_status.json
-          git commit -m "Update monitor v41 recovery status [skip ci]" || true
+          git add monitor_recovery_status.json monitor_validation_diagnostic.txt
+          git commit -m "Update monitor v41 recovery diagnostics [skip ci]" || true
           git pull --rebase origin main || { git rebase --abort || true; exit 0; }
           git push origin HEAD:main || true
       - name: Run monitor v41
