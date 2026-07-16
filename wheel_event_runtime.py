@@ -115,6 +115,55 @@ def reset_stale_event_state(
     return removed
 
 
+def reset_changed_action_state(
+    state: dict[str, Any],
+    key: str,
+    action_id: int | None,
+) -> list[str]:
+    """Start a clean event when BetBoom assigns a new action to a reused URL."""
+
+    if action_id is None:
+        return []
+    normalized = str(key or "").casefold()
+    known_ids: set[int] = set()
+    for collection_name in (
+        "active_wheels",
+        "inactive_wheels",
+        "recently_completed_wheels",
+    ):
+        collection = state.get(collection_name)
+        record = collection.get(normalized) if isinstance(collection, dict) else None
+        if not isinstance(record, dict):
+            continue
+        try:
+            known = int(record.get("action_id"))
+        except (TypeError, ValueError):
+            continue
+        if known > 0:
+            known_ids.add(known)
+    if not known_ids or action_id in known_ids:
+        return []
+
+    removed: list[str] = []
+    for collection_name in (
+        "active_wheels",
+        "inactive_wheels",
+        "recently_completed_wheels",
+        "completed_wheel_alerts",
+        "url_alerts",
+        "activation_alerts",
+        "manual_deadlines",
+        "manual_overrides",
+        "participating_wheels",
+        "wheel_publications",
+    ):
+        collection = state.get(collection_name)
+        if isinstance(collection, dict) and normalized in collection:
+            collection.pop(normalized, None)
+            removed.append(collection_name)
+    return removed
+
+
 def recover_recent_events_from_seen(
     state: dict[str, Any],
     stats: dict[str, Any],
@@ -184,10 +233,15 @@ def _tag_availability(
     state: dict[str, Any],
     message: Any,
     link: str,
+    *,
+    available_at: datetime | None = None,
+    method: str = "",
 ) -> None:
-    available_at, method = _availability_for_message(
-        monitor_module, original_deadline_parser, message
-    )
+    if available_at is None:
+        available_at, inferred_method = _availability_for_message(
+            monitor_module, original_deadline_parser, message
+        )
+        method = method or inferred_method
     if available_at is None:
         return
     key = monitor_module.wheel_key(link)
@@ -195,20 +249,19 @@ def _tag_availability(
     if not isinstance(entry, dict):
         return
     current = monitor_module.now_utc()
-    entry.pop("deadline", None)
-    entry.pop("deadline_source", None)
     entry["available_at"] = available_at.isoformat()
     entry["availability_method"] = method[:300]
     entry["expires_at"] = (current + ACTIVE_WITHOUT_DRAW_TTL).isoformat()
+    deadline = monitor_module.parse_datetime(entry.get("deadline"))
     if available_at > current:
         entry["status"] = "scheduled_availability"
         entry["availability_status"] = "scheduled"
-        entry["needs_manual_time"] = False
+        entry["needs_manual_time"] = deadline is None
         entry.pop("availability_notified_at", None)
     else:
         entry["status"] = "available"
         entry["availability_status"] = "available"
-        entry["needs_manual_time"] = True
+        entry["needs_manual_time"] = deadline is None
         entry.setdefault("availability_notified_at", current.isoformat())
 
 
@@ -219,6 +272,10 @@ def _availability_message(
     link: str,
     available_at: datetime,
     method: str,
+    deadline: datetime | None = None,
+    *,
+    action_id: int | None = None,
+    verification_status: str = "",
 ) -> None:
     current = monitor_module.now_utc()
     future = available_at > current
@@ -230,18 +287,36 @@ def _availability_message(
             "🕒 Будет доступно через: "
             f"<b>{html.escape(monitor_module.human_remaining(available_at))}</b>"
         )
+        if deadline is not None:
+            timing += (
+                "\n⏳ До прокрутки: "
+                f"<b>{html.escape(monitor_module.human_remaining(deadline))}</b>"
+            )
         status = "scheduled_availability"
     else:
         title = "🟢 <b>Колесо BetBoom доступно для участия</b>"
-        timing = "✅ Можно участвовать сейчас\n🔴 <b>Время прокрутки неизвестно</b>"
+        timing = (
+            "✅ Можно участвовать сейчас\n"
+            + (
+                "⏳ До прокрутки: "
+                f"<b>{html.escape(monitor_module.human_remaining(deadline))}</b>"
+                if deadline is not None
+                else "🔴 <b>Время прокрутки неизвестно</b>"
+            )
+        )
         status = "available"
+    verification = (
+        "\n🟡 <b>Проверка активности временно недоступна</b>"
+        if verification_status == monitor_module.WHEEL_VERIFICATION_FAILED
+        else ""
+    )
     monitor_module.send_message(
         f"{title}\n\n"
         f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
         f"@{html.escape(message.source)}</a>\n"
         f"Идентификатор: <code>{identifier}</code>\n"
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
-        f"{timing}",
+        f"{timing}{verification}",
         reply_markup=monitor_module.wheel_reply_markup(
             state,
             message,
@@ -255,13 +330,22 @@ def _availability_message(
         state,
         message,
         link,
-        None,
+        deadline,
         status,
         method,
         "",
+        action_id=action_id,
+        available_at=available_at,
+        verification_status=verification_status,
     )
     _tag_availability(
-        monitor_module, monitor_module._bbvg_original_deadline_parser, state, message, link
+        monitor_module,
+        monitor_module._bbvg_original_deadline_parser,
+        state,
+        message,
+        link,
+        available_at=available_at,
+        method=method,
     )
 
 
@@ -285,12 +369,25 @@ def process_due_availability(monitor_module: Any, state: dict[str, Any]) -> dict
         source_text = ", ".join(f"@{html.escape(str(value).lstrip('@'))}" for value in sources)
         if not source_text:
             source_text = f"@{html.escape(str(entry.get('source') or 'неизвестно'))}"
+        deadline = monitor_module.parse_datetime(entry.get("deadline"))
+        timing = (
+            "⏳ До прокрутки: "
+            f"<b>{html.escape(monitor_module.human_remaining(deadline))}</b>"
+            if deadline is not None
+            else "🔴 <b>Время прокрутки неизвестно</b>"
+        )
+        verification = (
+            "\n🟡 <b>Проверка активности временно недоступна</b>"
+            if entry.get("verification_status")
+            == getattr(monitor_module, "WHEEL_VERIFICATION_FAILED", "failed")
+            else ""
+        )
         monitor_module.send_message(
             "🟢 <b>Колесо BetBoom доступно для участия</b>\n\n"
             f"Идентификатор: <code>{html.escape(str(entry.get('identifier') or key))}</code>\n"
             f"Источники: {source_text}\n"
             "✅ Теперь можно принять участие.\n"
-            "🔴 <b>Время прокрутки неизвестно</b>",
+            f"{timing}{verification}",
             reply_markup=monitor_module.wheel_reply_markup(
                 state,
                 message,
@@ -304,9 +401,13 @@ def process_due_availability(monitor_module: Any, state: dict[str, Any]) -> dict
         entry["availability_notified_at"] = current.isoformat()
         entry["availability_status"] = "available"
         entry["status"] = "available"
-        entry["needs_manual_time"] = True
+        entry["needs_manual_time"] = deadline is None
         entry["last_notification_at"] = current.isoformat()
-        entry["expires_at"] = (current + ACTIVE_WITHOUT_DRAW_TTL).isoformat()
+        entry["expires_at"] = (
+            monitor_module.participation_expiry(deadline, current=current).isoformat()
+            if deadline is not None
+            else (current + ACTIVE_WITHOUT_DRAW_TTL).isoformat()
+        )
         wheel_lifecycle_v2.stamp_lifecycle(str(key).casefold(), entry, current)
         sent += 1
         changed = True
@@ -335,47 +436,104 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             return None, method
         return original_deadline_parser(text, published_at)
 
-    def prepare_event(message: Any, link: str, state: Any) -> None:
+    def prepare_event(
+        message: Any,
+        link: str,
+        state: Any,
+        action_id: int | None = None,
+    ) -> None:
         if not isinstance(state, dict):
             return
-        reset_stale_event_state(
-            state,
-            monitor_module.wheel_key(link),
-            message.date.astimezone(UTC),
+        key = monitor_module.wheel_key(link)
+        reset_stale_event_state(state, key, message.date.astimezone(UTC))
+        reset_changed_action_state(state, key, action_id)
+
+    def assessment_availability(message: Any, result: Any):
+        text_available, text_method = _availability_for_message(
+            monitor_module, original_deadline_parser, message
         )
+        candidates = [
+            value
+            for value in (result.available_at, text_available)
+            if value is not None
+        ]
+        available_at = max(candidates) if candidates else None
+        method = text_method if text_available == available_at else result.method
+        return available_at, method
 
     def assess_new(message: Any, link: str, state: Any = None):
         prepare_event(message, link, state)
         result = original_assess_new(message, link, state)
-        available_at, method = _availability_for_message(
-            monitor_module, original_deadline_parser, message
-        )
-        if available_at is None:
+        if result.status == "inactive":
             return result
-        status = "scheduled_availability" if available_at > monitor_module.now_utc() else "active"
+        prepare_event(message, link, state, result.action_id)
+        available_at, method = assessment_availability(message, result)
+        if available_at is None or available_at <= monitor_module.now_utc():
+            return result
         return monitor_module.WheelAssessment(
-            True, None, method, status, result.page_excerpt
+            True,
+            result.deadline,
+            method or result.method,
+            "scheduled_availability",
+            result.page_excerpt,
+            action_id=result.action_id,
+            available_at=available_at,
+            verification_status=result.verification_status,
         )
 
     def assess_pending(message: Any, link: str, state: Any = None):
         prepare_event(message, link, state)
         result = original_assess_pending(message, link, state)
-        available_at, method = _availability_for_message(
-            monitor_module, original_deadline_parser, message
-        )
-        if available_at is None:
+        if result.status == "inactive":
             return result
-        status = "scheduled_availability" if available_at > monitor_module.now_utc() else "active"
+        prepare_event(message, link, state, result.action_id)
+        available_at, method = assessment_availability(message, result)
+        if available_at is None or available_at <= monitor_module.now_utc():
+            return result
         return monitor_module.WheelAssessment(
-            True, None, method, status, result.page_excerpt
+            True,
+            result.deadline,
+            method or result.method,
+            "scheduled_availability",
+            result.page_excerpt,
+            action_id=result.action_id,
+            available_at=available_at,
+            verification_status=result.verification_status,
         )
 
-    def remember_active(state, message, link, deadline, status, method, page_excerpt=""):
+    def remember_active(
+        state,
+        message,
+        link,
+        deadline,
+        status,
+        method,
+        page_excerpt="",
+        *,
+        action_id=None,
+        available_at=None,
+        verification_status="",
+    ):
         original_remember_active(
-            state, message, link, deadline, status, method, page_excerpt
+            state,
+            message,
+            link,
+            deadline,
+            status,
+            method,
+            page_excerpt,
+            action_id=action_id,
+            available_at=available_at,
+            verification_status=verification_status,
         )
         _tag_availability(
-            monitor_module, original_deadline_parser, state, message, link
+            monitor_module,
+            original_deadline_parser,
+            state,
+            message,
+            link,
+            available_at=available_at,
+            method=method,
         )
 
     def remember_pending(
@@ -401,13 +559,36 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             monitor_module, original_deadline_parser, state, message, link
         )
 
-    def notify_new(message, link, deadline, method, mappings, state=None, page_excerpt=""):
-        available_at, availability_method = _availability_for_message(
+    def notify_new(
+        message,
+        link,
+        deadline,
+        method,
+        mappings,
+        state=None,
+        page_excerpt="",
+        *,
+        action_id=None,
+        available_at=None,
+        verification_status="",
+    ):
+        inferred_at, availability_method = _availability_for_message(
             monitor_module, original_deadline_parser, message
         )
+        candidates = [value for value in (available_at, inferred_at) if value is not None]
+        available_at = max(candidates) if candidates else None
         if available_at is None or not isinstance(state, dict):
             return original_notify_new(
-                message, link, deadline, method, mappings, state, page_excerpt
+                message,
+                link,
+                deadline,
+                method,
+                mappings,
+                state,
+                page_excerpt,
+                action_id=action_id,
+                available_at=available_at,
+                verification_status=verification_status,
             )
         return _availability_message(
             monitor_module,
@@ -415,16 +596,42 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             message,
             link,
             available_at,
-            availability_method,
+            availability_method or method,
+            deadline,
+            action_id=action_id,
+            verification_status=verification_status,
         )
 
-    def notify_activation(message, link, deadline, method, mappings, state=None, page_excerpt=""):
-        available_at, availability_method = _availability_for_message(
+    def notify_activation(
+        message,
+        link,
+        deadline,
+        method,
+        mappings,
+        state=None,
+        page_excerpt="",
+        *,
+        action_id=None,
+        available_at=None,
+        verification_status="",
+    ):
+        inferred_at, availability_method = _availability_for_message(
             monitor_module, original_deadline_parser, message
         )
+        candidates = [value for value in (available_at, inferred_at) if value is not None]
+        available_at = max(candidates) if candidates else None
         if available_at is None or not isinstance(state, dict):
             return original_notify_activation(
-                message, link, deadline, method, mappings, state, page_excerpt
+                message,
+                link,
+                deadline,
+                method,
+                mappings,
+                state,
+                page_excerpt,
+                action_id=action_id,
+                available_at=available_at,
+                verification_status=verification_status,
             )
         return _availability_message(
             monitor_module,
@@ -432,7 +639,10 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             message,
             link,
             available_at,
-            availability_method,
+            availability_method or method,
+            deadline,
+            action_id=action_id,
+            verification_status=verification_status,
         )
 
     def process_active(state: dict, stats: dict):
@@ -488,6 +698,17 @@ def self_test() -> None:
     )
     assert available_at == published + timedelta(hours=2)
     assert infer_availability("Итоги через 2 часа", published, parser)[0] is None
+
+    reused = {
+        "active_wheels": {"same": {"action_id": 100}},
+        "participating_wheels": {"same": {"marked_at": published.isoformat()}},
+        "wheel_publications": {"same": [{"source": "old"}]},
+    }
+    removed = reset_changed_action_state(reused, "same", 101)
+    assert "active_wheels" in removed
+    assert "same" not in reused["active_wheels"]
+    assert "same" not in reused["participating_wheels"]
+    assert "same" not in reused["wheel_publications"]
 
     state = {
         "inactive_wheels": {

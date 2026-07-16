@@ -17,6 +17,10 @@ _EVIDENCE_FIELDS = (
     "page_excerpt",
     "button_token",
     "deadline_source",
+    "action_id",
+    "available_at",
+    "availability_status",
+    "verification_status",
 )
 
 
@@ -85,6 +89,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         status: str,
         method: str,
         page_excerpt: str = "",
+        **metadata: Any,
     ) -> None:
         key = monitor_module.wheel_key(link)
         raw_previous = state.setdefault("active_wheels", {}).get(key)
@@ -97,6 +102,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             status,
             method,
             page_excerpt,
+            **metadata,
         )
         if deadline is None:
             _restore_timed_evidence(monitor_module, state, key, previous)

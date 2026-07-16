@@ -33,6 +33,7 @@ MOSCOW = ZoneInfo("Europe/Moscow")
 DISPLAY_TZ = ZoneInfo(os.getenv("DISPLAY_TIMEZONE", "Asia/Barnaul"))
 
 REQUEST_TIMEOUT = max(5, int(os.getenv("REQUEST_TIMEOUT_SECONDS", "15")))
+WHEEL_API_ATTEMPTS = max(1, min(5, int(os.getenv("WHEEL_API_ATTEMPTS", "3"))))
 MAX_WORKERS = max(1, min(24, int(os.getenv("MAX_WORKERS", "12"))))
 UNKNOWN_DEDUP_HOURS = max(1, int(os.getenv("UNKNOWN_DEDUP_HOURS", "24")))
 DEADLINE_GRACE_MINUTES = max(0, int(os.getenv("DEADLINE_GRACE_MINUTES", "30")))
@@ -88,39 +89,15 @@ FRESH_UNKNOWN_POST_MINUTES = max(
 PENDING_RECHECK_HOURS = max(1, int(os.getenv("PENDING_RECHECK_HOURS", "24")))
 PENDING_RECHECK_MINUTES = max(1, int(os.getenv("PENDING_RECHECK_MINUTES", "4")))
 
-INACTIVE_PAGE_PHRASES = (
-    "пока ждёшь следующий запуск",
-    "пока ждешь следующий запуск",
-    "следующий запуск, заглядывай",
-    "розыгрыш завершен",
-    "розыгрыш завершён",
-    "колесо завершено",
-    "акция завершена",
-    "время участия истекло",
-    "прием участников завершен",
-    "приём участников завершён",
-    "ссылка недействительна",
-)
-
-ACTIVE_PAGE_PHRASES = (
-    "до прокрутки",
-    "до запуска колеса",
-    "до старта колеса",
-    "участвовать в колесе",
-    "крутить колесо",
-)
-
-ACTIVE_BUTTON_PHRASES = (
-    "участвовать",
-    "принять участие",
-    "participate",
-)
-
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/126.0 Safari/537.36"
 )
+
+BETBOOM_WHEEL_INFO_URL = "https://betboom.ru/api/streamer-wheel/action/get-info"
+WHEEL_VERIFICATION_CONFIRMED = "confirmed"
+WHEEL_VERIFICATION_FAILED = "failed"
 
 # Telegram can display the domain without a protocol and can hide it behind a button.
 LINK_RE = re.compile(
@@ -169,28 +146,6 @@ DATE_CLOCK_RE = re.compile(
     r"[^0-9]{0,30}(?:в\s*)?([01]?\d|2[0-3])[:.]([0-5]\d)",
     re.IGNORECASE,
 )
-COUNTDOWN_TRIGGER_RE = re.compile(
-    r"(?:остал\w*|до\s+(?:прокрутки|старта|конца|розыгрыша)|"
-    r"таймер|countdown|timer)",
-    re.IGNORECASE,
-)
-COUNTDOWN_COLON_RE = re.compile(
-    r"(?:остал\w*|до\s+(?:прокрутки|старта|конца|розыгрыша)|countdown|timer)"
-    r"[^0-9]{0,80}(?:(\d{1,3}):)?([0-5]?\d):([0-5]\d)",
-    re.IGNORECASE,
-)
-TIMESTAMP_FIELD_RE = re.compile(
-    r"(?:end(?:At|Date|Time)?|end_at|end_time|endsAt|finish(?:At|Date|Time)?|"
-    r"finish_at|expires(?:At|Date|Time)?|expires_at|expiration(?:At|Date|Time)?|"
-    r"deadline|draw(?:At|Date|Time)?|draw_at|spin(?:At|Date|Time)?|spin_at|"
-    r"start(?:At|Date|Time)?|start_at)"
-    r"[\\\"'\s]{0,8}[:=][\\\"'\s]{0,8}"
-    r"(\d{10,13}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
-    r"(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)",
-    re.IGNORECASE,
-)
-
-
 @dataclass(frozen=True)
 class Message:
     source: str
@@ -206,6 +161,9 @@ class WheelInspection:
     deadline: datetime | None
     method: str
     page_excerpt: str = ""
+    action_id: int | None = None
+    available_at: datetime | None = None
+    verification_status: str = ""
 
 
 @dataclass(frozen=True)
@@ -215,6 +173,9 @@ class WheelAssessment:
     method: str
     status: str
     page_excerpt: str = ""
+    action_id: int | None = None
+    available_at: datetime | None = None
+    verification_status: str = ""
 
 
 def now_utc() -> datetime:
@@ -594,229 +555,127 @@ def infer_deadline(text: str, published_at: datetime) -> tuple[datetime | None, 
     return None, "время в тексте Telegram не найдено"
 
 
-def countdown_deadline(text: str, reference: datetime) -> datetime | None:
-    trigger = COUNTDOWN_TRIGGER_RE.search(text)
-    if trigger:
-        tail = text[trigger.end() : trigger.end() + 180]
-        values = {"days": 0, "hours": 0, "minutes": 0, "seconds": 0}
-        patterns = (
-            ("days", r"(\d{1,3})\s*(?:дн(?:я|ей)?|д)\b"),
-            ("hours", r"(\d{1,3})\s*(?:час(?:а|ов)?|ч)\b"),
-            ("minutes", r"(\d{1,3})\s*(?:мин(?:ут[ыа]?)?|м)\b"),
-            ("seconds", r"(\d{1,3})\s*(?:сек(?:унд[ыа]?)?|с)\b"),
-        )
-        for key, pattern in patterns:
-            match = re.search(pattern, tail, re.IGNORECASE)
-            if match:
-                values[key] = int(match.group(1))
-        total = timedelta(**values)
-        if timedelta(0) < total <= timedelta(days=7):
-            return reference + total
-
-    match = COUNTDOWN_COLON_RE.search(text)
-    if match:
-        hours, minutes, seconds = (int(value or 0) for value in match.groups())
-        total = timedelta(hours=hours, minutes=minutes, seconds=seconds)
-        if timedelta(0) < total <= timedelta(days=7):
-            return reference + total
-    return None
+def _wheel_verification_failed(detail: str) -> WheelInspection:
+    print(f"WARNING BetBoom wheel verification failed: {detail}")
+    return WheelInspection(
+        "verification_failed",
+        None,
+        "проверка BetBoom временно недоступна",
+        verification_status=WHEEL_VERIFICATION_FAILED,
+    )
 
 
-def parse_page_timestamp(value: str) -> datetime | None:
-    if value.isdigit():
-        number = int(value)
-        if len(value) == 13:
-            number //= 1000
-        try:
-            parsed = datetime.fromtimestamp(number, UTC)
-        except (OverflowError, OSError, ValueError):
-            return None
-    else:
-        parsed = parse_datetime(value)
-        if parsed is None:
-            return None
-        parsed = parsed.astimezone(UTC)
-
-    now = now_utc()
-    return parsed if now - timedelta(hours=2) <= parsed <= now + timedelta(days=7) else None
+def _api_error_message(payload: dict) -> str:
+    error = payload.get("error")
+    if isinstance(error, dict):
+        return str(error.get("message") or "").strip()
+    return str(error or "").strip()
 
 
-TIME_KEY_RE = re.compile(
-    r"(?:end|finish|expire|expiration|deadline|draw|spin|start).*(?:at|date|time)?$",
-    re.IGNORECASE,
-)
-REMAINING_KEY_RE = re.compile(
-    r"(?:remaining|countdown|timeleft|secondsleft|duration)", re.IGNORECASE
-)
-
-
-def deadline_from_json(value: object, reference: datetime, key: str = "") -> datetime | None:
-    if isinstance(value, dict):
-        for child_key, child_value in value.items():
-            found = deadline_from_json(child_value, reference, str(child_key))
-            if found:
-                return found
+def _api_action_id(value: object) -> int | None:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
         return None
-    if isinstance(value, list):
-        for child in value:
-            found = deadline_from_json(child, reference, key)
-            if found:
-                return found
+    return parsed if parsed > 0 else None
+
+
+def _api_duration_minutes(value: object) -> float | None:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
         return None
-
-    if TIME_KEY_RE.search(key):
-        if isinstance(value, (int, float)):
-            found = parse_page_timestamp(str(int(value)))
-            if found:
-                return found
-        if isinstance(value, str):
-            found = parse_page_timestamp(value.strip())
-            if found:
-                return found
-
-    if REMAINING_KEY_RE.search(key) and isinstance(value, (int, float)):
-        seconds = float(value)
-        if seconds > 86_400 * 7 and seconds <= 86_400 * 7 * 1000:
-            seconds /= 1000
-        if 0 < seconds <= 86_400 * 7:
-            return reference + timedelta(seconds=seconds)
-    return None
-
-
-def json_deadline_from_soup(soup: BeautifulSoup, reference: datetime) -> datetime | None:
-    for script in soup.select('script[type="application/json"], script#__NEXT_DATA__'):
-        raw = script.string or script.get_text("", strip=True)
-        if not raw:
-            continue
-        try:
-            data = json.loads(raw)
-        except json.JSONDecodeError:
-            continue
-        found = deadline_from_json(data, reference)
-        if found:
-            return found
-    return None
+    return parsed if parsed > 0 else None
 
 
 def inspect_wheel_page(link: str) -> WheelInspection:
-    """Open a newly discovered wheel once and classify its current state."""
+    """Classify a new wheel using BetBoom's action-info response.
+
+    A successful response is authoritative for new discoveries. Transport,
+    HTTP and malformed-response failures remain distinguishable from a
+    confirmed inactive wheel so the bot can show one cautious notification
+    and retry only that unverified entry later.
+    """
+
+    normalized = normalize_url(link)
     try:
         response = request_with_retries(
-            "GET",
-            link,
-            attempts=2,
+            "POST",
+            BETBOOM_WHEEL_INFO_URL,
+            attempts=WHEEL_API_ATTEMPTS,
             timeout=REQUEST_TIMEOUT,
-            headers={"User-Agent": USER_AGENT},
-            allow_redirects=True,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": USER_AGENT,
+                "x-platform": "web",
+            },
+            json={"streamer_link": normalized},
         )
     except requests.RequestException as exc:
-        return WheelInspection(
-            "error", None, f"страница колеса недоступна: {type(exc).__name__}"
+        return _wheel_verification_failed(f"{type(exc).__name__}: {exc}")
+
+    try:
+        payload = response.json()
+    except (TypeError, ValueError) as exc:
+        return _wheel_verification_failed(
+            f"invalid JSON, HTTP {response.status_code}: {type(exc).__name__}"
+        )
+    if not isinstance(payload, dict):
+        return _wheel_verification_failed(
+            f"unexpected JSON type {type(payload).__name__}, HTTP {response.status_code}"
         )
 
-    if response.status_code in {404, 410}:
-        return WheelInspection(
-            "inactive", None, f"страница колеса вернула HTTP {response.status_code}"
+    error_message = _api_error_message(payload)
+    info = payload.get("info")
+    api_code = payload.get("code")
+    if not isinstance(info, dict):
+        if "не найд" in error_message.casefold():
+            return WheelInspection(
+                "inactive",
+                None,
+                "BetBoom не нашёл действующее колесо по этой ссылке",
+                verification_status=WHEEL_VERIFICATION_CONFIRMED,
+            )
+        return _wheel_verification_failed(
+            f"API code={api_code!r}, HTTP {response.status_code}, error={error_message!r}"
         )
+
     try:
         response.raise_for_status()
     except requests.RequestException as exc:
+        return _wheel_verification_failed(f"{type(exc).__name__}: {exc}")
+
+    action_id = _api_action_id(info.get("action_id"))
+    start = parse_datetime(info.get("start_dttm"))
+    duration = _api_duration_minutes(
+        info.get("duration_min", info.get("duration_in_minutes"))
+    )
+    deadline = start + timedelta(minutes=duration) if start and duration else None
+    reference = now_utc()
+    inactive = bool(info.get("is_ended")) or bool(info.get("is_early"))
+    if deadline is not None and deadline <= reference:
+        inactive = True
+
+    if inactive:
         return WheelInspection(
-            "error", None, f"ошибка страницы колеса: {type(exc).__name__}"
+            "inactive",
+            deadline,
+            "BetBoom подтвердил, что время участия истекло",
+            action_id=action_id,
+            verification_status=WHEEL_VERIFICATION_CONFIRMED,
         )
 
-    reference = now_utc()
-    raw_html = html.unescape(response.text)
-    soup = BeautifulSoup(response.text, "html.parser")
-    visible = soup.get_text("\n", strip=True)
-    combined_lower = f"{visible}\n{raw_html}".casefold()
-
-    for phrase in INACTIVE_PAGE_PHRASES:
-        if phrase.casefold() in combined_lower:
-            return WheelInspection(
-                "inactive", None, f"страница завершена: найдено «{phrase}»"
-            )
-
-    deadline = countdown_deadline(visible, reference) or countdown_deadline(
-        raw_html, reference
-    )
-    if deadline:
-        if deadline <= reference:
-            return WheelInspection("inactive", deadline, "таймер на странице уже истёк")
-        return WheelInspection("active", deadline, "таймер на странице колеса")
-
-    deadline = json_deadline_from_soup(soup, reference)
-    if deadline:
-        if deadline <= reference:
-            return WheelInspection("inactive", deadline, "таймер в JSON уже истёк")
-        return WheelInspection("active", deadline, "таймер в JSON-данных страницы")
-
-    for node in soup.select("[data-end], [data-deadline], [data-expires], [datetime]"):
-        for attr in ("data-end", "data-deadline", "data-expires", "datetime"):
-            raw_value = str(node.get(attr) or "").strip()
-            if raw_value and (deadline := parse_page_timestamp(raw_value)):
-                if deadline <= reference:
-                    return WheelInspection(
-                        "inactive", deadline, f"атрибут {attr}: время уже истекло"
-                    )
-                return WheelInspection(
-                    "active", deadline, f"атрибут {attr} на странице"
-                )
-
-    for match in TIMESTAMP_FIELD_RE.finditer(raw_html):
-        deadline = parse_page_timestamp(match.group(1))
-        if deadline:
-            if deadline <= reference:
-                return WheelInspection(
-                    "inactive", deadline, "время окончания в данных страницы уже истекло"
-                )
-            return WheelInspection(
-                "active", deadline, "время окончания в данных страницы"
-            )
-
-    for node in soup.select(
-        "button, a, [role=button], input[type=button], input[type=submit]"
-    ):
-        label = " ".join(
-            value
-            for value in (
-                node.get_text(" ", strip=True),
-                str(node.get("value") or "").strip(),
-                str(node.get("aria-label") or "").strip(),
-                str(node.get("title") or "").strip(),
-            )
-            if value
-        ).casefold()
-        for phrase in ACTIVE_BUTTON_PHRASES:
-            if phrase.casefold() in label:
-                return WheelInspection(
-                    "active", None, f"активная кнопка: найдено «{phrase}»", visible[:1200]
-                )
-
-    for phrase in ACTIVE_PAGE_PHRASES:
-        if phrase.casefold() in visible.casefold():
-            return WheelInspection(
-                "active", None, f"страница активна: найдено «{phrase}»", visible[:1200]
-            )
-
+    available_at = start if start and start > reference else None
     return WheelInspection(
-        "unknown", None, "страница открылась, но активность не подтверждена", visible[:1200]
+        "active",
+        deadline,
+        "активность и таймер подтверждены BetBoom"
+        if deadline
+        else "активность подтверждена BetBoom, таймер не указан",
+        action_id=action_id,
+        available_at=available_at,
+        verification_status=WHEEL_VERIFICATION_CONFIRMED,
     )
-
-
-def page_deadline(link: str) -> tuple[datetime | None, str]:
-    inspection = inspect_wheel_page(link)
-    return inspection.deadline, inspection.method
-
-
-def resolve_deadline(message: Message, link: str) -> tuple[datetime | None, str]:
-    post_value, post_method = infer_deadline(message.text, message.date)
-    inspection = inspect_wheel_page(link)
-    if inspection.deadline:
-        return inspection.deadline, inspection.method
-    if post_value:
-        return post_value, post_method
-    return None, f"{post_method}; {inspection.method}"
 
 
 def message_age(message: Message) -> timedelta:
@@ -841,18 +700,31 @@ def assess_new_wheel(
     link: str,
     state: dict | None = None,
 ) -> WheelAssessment:
-    override = manual_override(state, link)
-    if override == "active":
-        return WheelAssessment(True, None, "подтверждено кнопкой бота", "active")
-    if override == "inactive":
-        return WheelAssessment(False, None, "отмечено неактивным кнопкой бота", "inactive")
-
     post_deadline, post_method = infer_deadline(message.text, message.date)
     inspection = inspect_wheel_page(link)
 
+    metadata = {
+        "page_excerpt": inspection.page_excerpt,
+        "action_id": inspection.action_id,
+        "available_at": inspection.available_at,
+        "verification_status": inspection.verification_status,
+    }
+
     if inspection.status == "inactive":
         return WheelAssessment(
-            False, inspection.deadline, inspection.method, "inactive", inspection.page_excerpt
+            False, inspection.deadline, inspection.method, "inactive", **metadata
+        )
+
+    override = manual_override(state, link)
+    if override == "inactive":
+        return WheelAssessment(
+            False, inspection.deadline, "отмечено неактивным кнопкой бота", "inactive",
+            **metadata,
+        )
+    if override == "active":
+        return WheelAssessment(
+            True, inspection.deadline, "подтверждено кнопкой бота", "active",
+            **metadata,
         )
 
     if inspection.status == "active":
@@ -860,29 +732,21 @@ def assess_new_wheel(
         if deadline is None and post_deadline and post_deadline > now_utc():
             deadline = post_deadline
         return WheelAssessment(
-            True, deadline, inspection.method, "active", inspection.page_excerpt
+            True, deadline, inspection.method, "active", **metadata
         )
 
-    if post_deadline and post_deadline > now_utc():
-        return WheelAssessment(
-            True, post_deadline, post_method, "telegram_deadline", inspection.page_excerpt
-        )
-
-    if (
-        FRESH_UNKNOWN_POST_MINUTES > 0
-        and message_age(message)
-        <= timedelta(minutes=FRESH_UNKNOWN_POST_MINUTES)
-    ):
+    if inspection.status == "verification_failed":
+        deadline = post_deadline if post_deadline and post_deadline > now_utc() else None
         return WheelAssessment(
             True,
-            None,
-            f"свежий Telegram-пост; {inspection.method}",
-            "fresh_unconfirmed",
-            inspection.page_excerpt,
+            deadline,
+            f"{inspection.method}; {post_method}" if deadline else inspection.method,
+            "verification_failed",
+            **metadata,
         )
 
     return WheelAssessment(
-        False, None, inspection.method, "unconfirmed", inspection.page_excerpt
+        False, None, inspection.method, "unconfirmed", **metadata
     )
 
 
@@ -988,6 +852,10 @@ def remember_active_wheel(
     status: str,
     method: str,
     page_excerpt: str = "",
+    *,
+    action_id: int | None = None,
+    available_at: datetime | None = None,
+    verification_status: str = "",
 ) -> None:
     current = now_utc()
     key = wheel_key(link)
@@ -1022,6 +890,12 @@ def remember_active_wheel(
         entry["deadline"] = deadline.isoformat()
     else:
         entry.pop("deadline", None)
+    if action_id is not None:
+        entry["action_id"] = action_id
+    if available_at is not None:
+        entry["available_at"] = available_at.isoformat()
+    if verification_status:
+        entry["verification_status"] = verification_status
     state["active_wheels"][key] = entry
 
 
@@ -1087,9 +961,15 @@ def active_wheels_text(state: dict) -> str:
         if available_at and available_at > now_utc():
             timing = f"🟡 Участие откроется через {human_remaining(available_at)}"
         elif available_at and entry.get("availability_status") == "available":
-            timing = "🟢 Доступно сейчас · 🔴 время прокрутки неизвестно"
+            timing = (
+                f"🟢 Доступно сейчас · {human_remaining(deadline)}"
+                if deadline
+                else "🟢 Доступно сейчас · 🔴 время прокрутки неизвестно"
+            )
         else:
             timing = human_remaining(deadline) if deadline else "🔴 Время прокрутки неизвестно"
+        if entry.get("verification_status") == WHEEL_VERIFICATION_FAILED:
+            timing += " · 🟡 проверка временно недоступна"
         participation = "✅ участвую" if is_participating(state, identifier_raw) else "❌ не отмечено"
         lines.append(
             f"{index}. <code>{identifier}</code> — {html.escape(timing)} — {participation}\n"
@@ -1623,27 +1503,49 @@ def assess_pending_wheel(
     link: str,
     state: dict | None = None,
 ) -> WheelAssessment:
-    override = manual_override(state, link)
-    if override == "active":
-        return WheelAssessment(True, None, "подтверждено кнопкой бота", "active")
-    if override == "inactive":
-        return WheelAssessment(False, None, "отмечено неактивным кнопкой бота", "inactive")
-
     post_deadline, post_method = infer_deadline(message.text, message.date)
     inspection = inspect_wheel_page(link)
+    metadata = {
+        "page_excerpt": inspection.page_excerpt,
+        "action_id": inspection.action_id,
+        "available_at": inspection.available_at,
+        "verification_status": inspection.verification_status,
+    }
+    if inspection.status == "inactive":
+        return WheelAssessment(
+            False, inspection.deadline, inspection.method, "inactive", **metadata
+        )
+
+    override = manual_override(state, link)
+    if override == "inactive":
+        return WheelAssessment(
+            False, inspection.deadline, "отмечено неактивным кнопкой бота", "inactive",
+            **metadata,
+        )
+    if override == "active":
+        return WheelAssessment(
+            True, inspection.deadline, "подтверждено кнопкой бота", "active",
+            **metadata,
+        )
+
     if inspection.status == "active":
         deadline = inspection.deadline
         if deadline is None and post_deadline and post_deadline > now_utc():
             deadline = post_deadline
         return WheelAssessment(
-            True, deadline, inspection.method, "active", inspection.page_excerpt
+            True, deadline, inspection.method, "active", **metadata
         )
-    if post_deadline and post_deadline > now_utc():
+    if inspection.status == "verification_failed":
+        deadline = post_deadline if post_deadline and post_deadline > now_utc() else None
         return WheelAssessment(
-            True, post_deadline, post_method, "telegram_deadline", inspection.page_excerpt
+            True,
+            deadline,
+            f"{inspection.method}; {post_method}" if deadline else inspection.method,
+            "verification_failed",
+            **metadata,
         )
     return WheelAssessment(
-        False, inspection.deadline, inspection.method, inspection.status, inspection.page_excerpt
+        False, inspection.deadline, inspection.method, inspection.status, **metadata
     )
 
 
@@ -1655,6 +1557,10 @@ def notify_new_link(
     mappings: list[dict],
     state: dict | None = None,
     page_excerpt: str = "",
+    *,
+    action_id: int | None = None,
+    available_at: datetime | None = None,
+    verification_status: str = "",
 ) -> None:
     identifier_raw = wheel_identifier(link)
     identifier = html.escape(identifier_raw)
@@ -1665,12 +1571,18 @@ def notify_new_link(
         else "🔴 <b>Время прокрутки неизвестно</b>"
     )
 
+    verification = (
+        "🟡 <b>Проверка активности временно недоступна</b>\n"
+        if verification_status == WHEEL_VERIFICATION_FAILED
+        else ""
+    )
     send_message(
         "🎡 <b>Новое колесо BetBoom</b>\n\n"
         f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
         f"@{html.escape(message.source)}</a>\n"
         f"Идентификатор: <code>{identifier}</code>\n"
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
+        f"{verification}"
         f"{timing}",
         reply_markup=(
             wheel_reply_markup(
@@ -1682,7 +1594,16 @@ def notify_new_link(
     )
     if state is not None:
         remember_active_wheel(
-            state, message, link, deadline, "preliminary", method, page_excerpt
+            state,
+            message,
+            link,
+            deadline,
+            "preliminary",
+            method,
+            page_excerpt,
+            action_id=action_id,
+            available_at=available_at,
+            verification_status=verification_status,
         )
 
 
@@ -1694,6 +1615,10 @@ def notify_activation(
     mappings: list[dict],
     state: dict | None = None,
     page_excerpt: str = "",
+    *,
+    action_id: int | None = None,
+    available_at: datetime | None = None,
+    verification_status: str = "",
 ) -> None:
     identifier_raw = wheel_identifier(link)
     identifier = html.escape(identifier_raw)
@@ -1703,12 +1628,18 @@ def notify_activation(
         if deadline
         else "🔴 <b>Время прокрутки неизвестно</b>"
     )
+    verification = (
+        "🟡 <b>Проверка активности временно недоступна</b>\n"
+        if verification_status == WHEEL_VERIFICATION_FAILED
+        else ""
+    )
     send_message(
         "✅ <b>Колесо BetBoom стало активно</b>\n\n"
         f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
         f"@{html.escape(message.source)}</a>\n"
         f"Идентификатор: <code>{identifier}</code>\n"
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
+        f"{verification}"
         f"{timing}",
         reply_markup=(
             wheel_reply_markup(
@@ -1720,7 +1651,16 @@ def notify_activation(
     )
     if state is not None:
         remember_active_wheel(
-            state, message, link, deadline, "active", method, page_excerpt
+            state,
+            message,
+            link,
+            deadline,
+            "active",
+            method,
+            page_excerpt,
+            action_id=action_id,
+            available_at=available_at,
+            verification_status=verification_status,
         )
 
 
@@ -2031,6 +1971,9 @@ def main() -> int:
                 remember_active_wheel(
                     state, message, link, assessment.deadline, "active",
                     assessment.method, assessment.page_excerpt,
+                    action_id=assessment.action_id,
+                    available_at=assessment.available_at,
+                    verification_status=assessment.verification_status,
                 )
                 seen[key] = now_utc().isoformat()
                 pending.pop(key, None)
@@ -2053,6 +1996,9 @@ def main() -> int:
                     mappings,
                     state,
                     assessment.page_excerpt,
+                    action_id=assessment.action_id,
+                    available_at=assessment.available_at,
+                    verification_status=assessment.verification_status,
                 )
             except Exception as exc:
                 send_errors += 1
@@ -2079,6 +2025,9 @@ def main() -> int:
                 remember_active_wheel(
                     state, message, link, assessment.deadline, assessment.status,
                     assessment.method, assessment.page_excerpt,
+                    action_id=assessment.action_id,
+                    available_at=assessment.available_at,
+                    verification_status=assessment.verification_status,
                 )
                 state.get("pending_posts", {}).pop(key, None)
                 seen[key] = now_utc().isoformat()
@@ -2094,6 +2043,9 @@ def main() -> int:
                         mappings,
                         state,
                         assessment.page_excerpt,
+                        action_id=assessment.action_id,
+                        available_at=assessment.available_at,
+                        verification_status=assessment.verification_status,
                     )
                 except Exception as exc:
                     send_errors += 1
@@ -2189,6 +2141,9 @@ def main() -> int:
                     remember_active_wheel(
                         state, message, link, assessment.deadline, "active",
                         assessment.method, assessment.page_excerpt,
+                        action_id=assessment.action_id,
+                        available_at=assessment.available_at,
+                        verification_status=assessment.verification_status,
                     )
                     seen[key] = now_utc().isoformat()
                     data_store.increment_stat(stats, source, "participated_suppressed")
@@ -2209,6 +2164,9 @@ def main() -> int:
                         mappings,
                         state,
                         assessment.page_excerpt,
+                        action_id=assessment.action_id,
+                        available_at=assessment.available_at,
+                        verification_status=assessment.verification_status,
                     )
                 except Exception as exc:
                     send_errors += 1
@@ -2233,6 +2191,9 @@ def main() -> int:
                 remember_active_wheel(
                     state, message, link, assessment.deadline, assessment.status,
                     assessment.method, assessment.page_excerpt,
+                    action_id=assessment.action_id,
+                    available_at=assessment.available_at,
+                    verification_status=assessment.verification_status,
                 )
                 seen[key] = now_utc().isoformat()
                 changed = True
@@ -2247,6 +2208,9 @@ def main() -> int:
                         mappings,
                         state,
                         assessment.page_excerpt,
+                        action_id=assessment.action_id,
+                        available_at=assessment.available_at,
+                        verification_status=assessment.verification_status,
                     )
                 except Exception as exc:
                     send_errors += 1

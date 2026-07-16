@@ -254,6 +254,9 @@ def install(monitor_module: Any) -> None:
         _remember_window(monitor_module, state, link, deadline, activation=True)
 
     def assess_new(message: Any, link: str, state: dict[str, Any] | None = None):
+        result = original_assess_new(message, link, state)
+        if result.status == "inactive":
+            return result
         window = prepare_link(monitor_module, state, link)
         if window.blocked:
             return monitor_module.WheelAssessment(
@@ -261,11 +264,17 @@ def install(monitor_module: Any) -> None:
                 window.block_until if window.source != "no_timer" else None,
                 "повторная ссылка в пределах текущего события",
                 "duplicate_link",
-                "",
+                result.page_excerpt,
+                action_id=result.action_id,
+                available_at=result.available_at,
+                verification_status=result.verification_status,
             )
-        return original_assess_new(message, link, state)
+        return result
 
     def assess_pending(message: Any, link: str, state: dict[str, Any] | None = None):
+        result = original_assess_pending(message, link, state)
+        if result.status == "inactive":
+            return result
         window = prepare_link(monitor_module, state, link)
         if window.blocked:
             return monitor_module.WheelAssessment(
@@ -273,9 +282,12 @@ def install(monitor_module: Any) -> None:
                 window.block_until if window.source != "no_timer" else None,
                 "повторная ссылка в пределах текущего события",
                 "duplicate_link",
-                "",
+                result.page_excerpt,
+                action_id=result.action_id,
+                available_at=result.available_at,
+                verification_status=result.verification_status,
             )
-        return original_assess_pending(message, link, state)
+        return result
 
     monitor_module.UNKNOWN_DEDUP_HOURS = 2
     monitor_module.is_suppressed = suppressed
