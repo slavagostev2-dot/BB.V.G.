@@ -1,8 +1,8 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-07-16T20:34:33.400712+00:00",
+    "age_minutes": 3,
+    "last_heartbeat_at": "2026-07-16T21:45:22.986070+00:00",
     "started_at": "2026-07-16T19:18:14.190836+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -33,26 +33,26 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-16T20:37:20.119183+00:00",
+  "checked_at": "2026-07-16T21:49:13.198718+00:00",
   "discovery": {
     "active_size": 77,
-    "candidate_count": 204,
+    "candidate_count": 234,
     "catalog_size": 2,
     "discovery_errors": 0,
     "discovery_last_run_at": "2026-07-15T23:43:07.716972+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-15T21:38:15.696118+00:00",
+    "intelligence_last_run_at": "2026-07-16T21:48:54.212951+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
-      "known_sources": 79,
-      "references_found": 207,
-      "sources_scanned": 79,
+      "known_sources": 81,
+      "references_found": 228,
+      "sources_scanned": 81,
       "strong_candidates": 0,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 124,
+      "unique_candidates": 150,
       "verified_candidates": 60,
       "workers": 12
     }
@@ -70,7 +70,7 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
+  "finding_count": 2,
   "findings": [
     {
       "detail": "status=success; domain=telegram.me; accounted=72.",
@@ -78,11 +78,18 @@
       "severity": "critical",
       "subject": "",
       "title": "Полная транспортная проверка 66 источников не подтверждена"
+    },
+    {
+      "detail": "Нет свежего транспортного прогона за последние 36 часов.",
+      "kind": "source_transport_stale",
+      "severity": "warning",
+      "subject": "",
+      "title": "Давно не выполнялась полная проверка 66 источников"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-16T20:34:33.400712+00:00",
+    "active_incidents": 2,
+    "bot_panel_heartbeat": "2026-07-16T21:45:22.986070+00:00",
     "checked_sources": 78,
     "configured_sources": 81,
     "domain": "telegram.me",
@@ -92,19 +99,19 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-16T20:34:24.610643+00:00",
+      "last_checked_at": "2026-07-16T21:28:33.305694+00:00",
       "last_failure_at": null,
-      "last_success_at": "2026-07-16T20:34:24.610643+00:00",
+      "last_success_at": "2026-07-16T21:28:33.305694+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "messages_attempted": 0,
-    "opened": 0,
+    "digest_sent": true,
+    "messages_attempted": 1,
+    "opened": 1,
     "resolved": 0
   },
-  "incident_sequence": 27,
+  "incident_sequence": 28,
   "inventory": {
     "configured": 78,
     "domain": "telegram.me",
@@ -123,17 +130,17 @@
     "brand": "BB V.G.",
     "checked_sources": 78,
     "checks_delta": 78,
-    "checks_total": 87807,
+    "checks_total": 89367,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 29,
+    "iteration": 49,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-16T20:34:24.704148+00:00",
+    "last_iteration_at": "2026-07-16T21:34:33.454273+00:00",
     "last_iteration_duration_seconds": 5,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-16T20:34:24.704148+00:00",
-    "last_successful_checks_total": 87807,
-    "last_successful_iteration_at": "2026-07-16T20:34:24.704148+00:00",
+    "last_process_heartbeat_at": "2026-07-16T21:34:33.454273+00:00",
+    "last_successful_checks_total": 89367,
+    "last_successful_iteration_at": "2026-07-16T21:34:33.454273+00:00",
     "pending_wheels": 0,
     "reachable_sources": 78,
     "restart_recommended": false,
@@ -144,7 +151,7 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 2,
+  "monitor_age_minutes": 14,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -216,9 +223,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-16T20:34:24.610643+00:00",
+    "last_checked_at": "2026-07-16T21:28:33.305694+00:00",
     "last_failure_at": null,
-    "last_success_at": "2026-07-16T20:34:24.610643+00:00",
+    "last_success_at": "2026-07-16T21:28:33.305694+00:00",
     "status": "ok"
   }
 }

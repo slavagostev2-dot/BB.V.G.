@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 2,
   "incidents": {
     "system_checks:admin_panel_stale:9278d429b1e1ee67": {
       "detail": "Последний живой сигнал был 149 минут назад.",
@@ -174,9 +174,9 @@
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
       "kind": "source_transport_smoke",
-      "last_seen_at": "2026-07-16T20:37:21.361908+00:00",
+      "last_seen_at": "2026-07-16T21:49:14.573599+00:00",
       "metadata": {},
-      "occurrences": 11,
+      "occurrences": 12,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-16T13:22:00.499053+00:00",
       "opened_sequence": 26,
@@ -185,19 +185,36 @@
       "status": "active",
       "subject": "",
       "title": "Полная транспортная проверка 66 источников не подтверждена"
+    },
+    "system_checks:source_transport_stale:ef48db29ab7add98": {
+      "detail": "Нет свежего транспортного прогона за последние 36 часов.",
+      "first_seen_at": "2026-07-16T21:49:14.573599+00:00",
+      "key": "system_checks:source_transport_stale:ef48db29ab7add98",
+      "kind": "source_transport_stale",
+      "last_seen_at": "2026-07-16T21:49:14.573599+00:00",
+      "metadata": {},
+      "occurrences": 1,
+      "open_notification_pending": false,
+      "open_notified_at": "2026-07-16T21:49:15.680296+00:00",
+      "opened_sequence": 28,
+      "scope": "system_checks",
+      "severity": "warning",
+      "status": "active",
+      "subject": "",
+      "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-16T13:21:59.596712+00:00",
-  "last_reconcile_at": "2026-07-16T20:37:21.361908+00:00",
+  "last_change_at": "2026-07-16T21:49:14.573599+00:00",
+  "last_reconcile_at": "2026-07-16T21:49:14.573599+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
-    "new_notification_count": 0,
+    "active": 2,
+    "new_notification_count": 1,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 27,
+  "sequence": 28,
   "status": "initializing",
-  "updated_at": "2026-07-16T20:37:21.361972+00:00",
+  "updated_at": "2026-07-16T21:49:15.680323+00:00",
   "version": 1
 }
