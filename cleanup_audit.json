@@ -7,6 +7,7 @@
         ".github/workflows/monitor.yml",
         ".github/workflows/system-health.yml",
         ".github/workflows/validate-current.yml",
+        "docs/REFACTOR_PLAN_RU.md",
         "monitor_validation_v41.py"
       ]
     },
@@ -36,7 +37,8 @@
         ".github/workflows/system-health.yml",
         ".github/workflows/v22-checks.yml",
         ".github/workflows/validate-current.yml",
-        ".github/workflows/validate-private-state.yml"
+        ".github/workflows/validate-private-state.yml",
+        "docs/REFACTOR_PLAN_RU.md"
       ]
     },
     {
@@ -45,6 +47,7 @@
         ".github/workflows/admin-bot.yml",
         ".github/workflows/monitor.yml",
         ".github/workflows/validate-current.yml",
+        "docs/REFACTOR_PLAN_RU.md",
         "monitor_validation_v41.py",
         "preflight.py"
       ]
@@ -587,7 +590,7 @@
       "in_current_import_chain": true,
       "module": "admin_panel_runtime_v38",
       "path": "admin_panel_runtime_v38.py",
-      "reference_count": 11,
+      "reference_count": 12,
       "references": [
         ".github/workflows/admin-bot.yml",
         ".github/workflows/bot-recovery-smoke.yml",
@@ -596,6 +599,7 @@
         ".github/workflows/validate-private-state.yml",
         "admin_panel_runtime_v39.py",
         "chapter1_stability.py",
+        "tests/production_acceptance.py",
         "tests/test_button_matrix.py",
         "tests/test_current_contracts.py",
         "tests/test_nightly_idle_policy.py",
@@ -653,10 +657,12 @@
       "in_current_import_chain": true,
       "module": "admin_panel_runtime_v41",
       "path": "admin_panel_runtime_v41.py",
-      "reference_count": 3,
+      "reference_count": 5,
       "references": [
         ".github/workflows/admin-bot.yml",
+        "AGENTS.md",
         "chapter4_acceptance.py",
+        "tests/production_acceptance.py",
         "tests/test_current_contracts.py"
       ]
     },
