@@ -306,10 +306,9 @@
       "line_count": 43,
       "module": "admin_panel_runtime_v22",
       "path": "admin_panel_runtime_v22.py",
-      "reference_count": 4,
+      "reference_count": 3,
       "references": [
         "admin_panel_runtime_v22.py",
-        "admin_panel_runtime_v25.py",
         "admin_panel_runtime_v26.py",
         "docs/RUNTIME_METHOD_INVENTORY_RU.md"
       ],
@@ -322,141 +321,73 @@
       "classes": [
         {
           "bases": [
-            "TelegramPanelRuntimeV22"
+            "PrivateStateRuntime"
           ],
           "class_attributes": [],
-          "method_count": 14,
+          "method_count": 6,
           "methods": [
             {
               "async": false,
-              "decorators": [],
-              "end_line": 27,
-              "line_count": 4,
-              "name": "__init__",
-              "start_line": 24
-            },
-            {
-              "async": false,
               "decorators": [
                 "staticmethod"
               ],
-              "end_line": 72,
-              "line_count": 43,
-              "name": "_bootstrap_access",
-              "start_line": 30
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 91,
-              "line_count": 18,
-              "name": "_load_bot_bundle",
-              "start_line": 74
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 110,
-              "line_count": 18,
-              "name": "_save_bot_bundle",
-              "start_line": 93
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 119,
-              "line_count": 8,
-              "name": "load_access",
-              "start_line": 112
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 128,
-              "line_count": 8,
-              "name": "save_access",
-              "start_line": 121
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 136,
-              "line_count": 7,
-              "name": "load_source_requests",
-              "start_line": 130
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 145,
-              "line_count": 8,
-              "name": "save_source_requests",
-              "start_line": 138
-            },
-            {
-              "async": false,
-              "decorators": [
-                "staticmethod"
-              ],
-              "end_line": 170,
+              "end_line": 47,
               "line_count": 23,
               "name": "compact_menu_rows",
-              "start_line": 148
+              "start_line": 25
             },
             {
               "async": false,
               "decorators": [],
-              "end_line": 213,
+              "end_line": 90,
               "line_count": 42,
               "name": "show_sources",
-              "start_line": 172
+              "start_line": 49
             },
             {
               "async": false,
               "decorators": [],
-              "end_line": 250,
+              "end_line": 127,
               "line_count": 36,
               "name": "show_ranking",
-              "start_line": 215
+              "start_line": 92
             },
             {
               "async": false,
               "decorators": [],
-              "end_line": 309,
+              "end_line": 186,
               "line_count": 58,
               "name": "show_active",
-              "start_line": 252
+              "start_line": 129
             },
             {
               "async": false,
               "decorators": [],
-              "end_line": 322,
+              "end_line": 199,
               "line_count": 12,
               "name": "handle_callback",
-              "start_line": 311
+              "start_line": 188
             },
             {
               "async": false,
               "decorators": [],
-              "end_line": 344,
+              "end_line": 221,
               "line_count": 21,
               "name": "render_page",
-              "start_line": 324
+              "start_line": 201
             }
           ],
           "name": "TelegramPanelRuntimeV25"
         }
       ],
       "direct_imports": [
-        "admin_bot",
         "admin_panel_runtime_v17",
         "admin_panel_runtime_v21",
-        "admin_panel_runtime_v22",
-        "admin_panel_v2",
+        "bbvg.bot.storage",
         "bot_private_state"
       ],
       "in_current_import_chain": true,
-      "line_count": 393,
+      "line_count": 271,
       "module": "admin_panel_runtime_v25",
       "path": "admin_panel_runtime_v25.py",
       "reference_count": 9,
@@ -3094,7 +3025,6 @@
   ],
   "runtime_method_index": {
     "__init__": [
-      "admin_panel_runtime_v25",
       "admin_panel_runtime_v34",
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v8"
@@ -3105,9 +3035,6 @@
     ],
     "_apply_notification_policy_once": [
       "admin_panel_runtime_v37"
-    ],
-    "_bootstrap_access": [
-      "admin_panel_runtime_v25"
     ],
     "_candidate_filter": [
       "admin_panel_runtime_v5"
@@ -3127,7 +3054,6 @@
       "admin_panel_runtime_v4"
     ],
     "_load_bot_bundle": [
-      "admin_panel_runtime_v25",
       "admin_panel_runtime_v34"
     ],
     "_load_remote_bundle": [
@@ -3178,7 +3104,6 @@
       "admin_panel_runtime_v4"
     ],
     "_save_bot_bundle": [
-      "admin_panel_runtime_v25",
       "admin_panel_runtime_v34"
     ],
     "_security_payload": [
@@ -3294,14 +3219,8 @@
     "is_admin": [
       "admin_panel_runtime_v8"
     ],
-    "load_access": [
-      "admin_panel_runtime_v25"
-    ],
     "load_moderation": [
       "admin_panel_runtime_v5"
-    ],
-    "load_source_requests": [
-      "admin_panel_runtime_v25"
     ],
     "normalize_access": [
       "admin_panel_runtime_v3",
@@ -3369,14 +3288,8 @@
     "safe_text_for_role": [
       "admin_panel_runtime_v36"
     ],
-    "save_access": [
-      "admin_panel_runtime_v25"
-    ],
     "save_moderation": [
       "admin_panel_runtime_v5"
-    ],
-    "save_source_requests": [
-      "admin_panel_runtime_v25"
     ],
     "score_label": [
       "admin_panel_runtime_v5"
@@ -3558,7 +3471,7 @@
       "admin_panel_runtime_v37"
     ]
   },
-  "runtime_total_lines": 7533,
-  "runtime_unique_method_count": 116,
+  "runtime_total_lines": 7411,
+  "runtime_unique_method_count": 111,
   "unreferenced_python_candidates": []
 }

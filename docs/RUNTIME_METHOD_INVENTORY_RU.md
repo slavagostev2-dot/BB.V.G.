@@ -1,12 +1,12 @@
 # BB V.G. — карта методов исторического runtime панели
 
 Файл генерируется автоматически из AST и фактической MRO текущего runtime.
-Исходный коммит аудита: `6fabe62167a7857ca7b07f602e763d5f20ed7c4e`.
+Исходный коммит аудита: `e7cbd329c76809462a74ca2b403b584e75916fd8`.
 
 - Runtime-файлов: **31**
 - В текущей цепочке: **28**
-- Суммарно строк: **7533**
-- Уникальных имён методов: **116**
+- Суммарно строк: **7411**
+- Уникальных имён методов: **111**
 
 ## Фактическая MRO текущей панели
 
@@ -25,7 +25,7 @@
 13. `admin_panel_runtime_v27.TelegramPanelRuntimeV27`
 14. `admin_panel_runtime_v26.TelegramPanelRuntimeV26`
 15. `admin_panel_runtime_v25.TelegramPanelRuntimeV25`
-16. `admin_panel_runtime_v22.TelegramPanelRuntimeV22`
+16. `bbvg.bot.storage.PrivateStateRuntime`
 17. `bbvg.bot.sources.SourceRegistryRuntime`
 18. `bbvg.bot.users.UserManagementRuntime`
 19. `bbvg.bot.wheels.WheelInteractionRuntime`
@@ -103,7 +103,7 @@
 
 `_prepare_callback_user()`, `_read_json_at()`, `_serialize_json()`
 
-### `admin_panel_runtime_v25.TelegramPanelRuntimeV25` — 5 методов
+### `bbvg.bot.storage.PrivateStateRuntime` — 5 методов
 
 `_bootstrap_access()`, `load_access()`, `load_source_requests()`, `save_access()`, `save_source_requests()`
 
@@ -221,20 +221,12 @@
 
 - собственных методов нет
 
-### `admin_panel_runtime_v25.py` — 393 строк, в рабочей цепочке
+### `admin_panel_runtime_v25.py` — 271 строк, в рабочей цепочке
 
-Прямые импорты: `admin_bot`, `admin_panel_runtime_v17`, `admin_panel_runtime_v21`, `admin_panel_runtime_v22`, `admin_panel_v2`, `bot_private_state`
+Прямые импорты: `admin_panel_runtime_v17`, `admin_panel_runtime_v21`, `bbvg.bot.storage`, `bot_private_state`
 
-Класс `TelegramPanelRuntimeV25`; база: `TelegramPanelRuntimeV22`.
+Класс `TelegramPanelRuntimeV25`; база: `PrivateStateRuntime`.
 
-- `__init__()` — 4 строк
-- `_bootstrap_access()` — 43 строк
-- `_load_bot_bundle()` — 18 строк
-- `_save_bot_bundle()` — 18 строк
-- `load_access()` — 8 строк
-- `save_access()` — 8 строк
-- `load_source_requests()` — 7 строк
-- `save_source_requests()` — 8 строк
 - `compact_menu_rows()` — 23 строк
 - `show_sources()` — 42 строк
 - `show_ranking()` — 36 строк
@@ -625,13 +617,11 @@
 
 Такие методы требуют осторожного объединения.
 
-- `__init__()` — `admin_panel_runtime_v25`, `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v8`
+- `__init__()` — `admin_panel_runtime_v34`, `admin_panel_runtime_v37`, `admin_panel_runtime_v8`
 - `_apply_admin_action_direct()` — `admin_panel_runtime_v26`, `admin_panel_runtime_v28`
 - `_collect_current_wheels()` — `admin_panel_runtime_v32`, `admin_panel_runtime_v4`, `admin_panel_runtime_v7`
-- `_load_bot_bundle()` — `admin_panel_runtime_v25`, `admin_panel_runtime_v34`
 - `_merge_access()` — `admin_panel_runtime_v34`, `admin_panel_runtime_v35`
 - `_notification_options_for_role()` — `admin_panel_runtime_v34`, `admin_panel_runtime_v37`
-- `_save_bot_bundle()` — `admin_panel_runtime_v25`, `admin_panel_runtime_v34`
 - `_set_quick_time()` — `admin_panel_runtime_v37`, `admin_panel_runtime_v38`
 - `analytics_menu_rows()` — `admin_panel_runtime_v30`, `admin_panel_runtime_v31`
 - `compact_menu_rows()` — `admin_panel_runtime_v25`, `admin_panel_runtime_v26`, `admin_panel_runtime_v29`, `admin_panel_runtime_v32`, `admin_panel_runtime_v38`
