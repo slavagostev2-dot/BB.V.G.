@@ -1,12 +1,12 @@
 {
-  "active_incidents": 2,
+  "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 149,
-    "last_heartbeat_at": "2026-07-15T22:29:43.053419+00:00",
-    "started_at": "2026-07-15T17:10:48.247225+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-07-16T01:19:30.242595+00:00",
+    "started_at": "2026-07-16T00:59:14.360283+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
-    "version": 38
+    "version": 39
   },
   "automation_state": {
     "source_tier_last_run_at": "2026-07-16T00:09:30.509268+00:00",
@@ -22,7 +22,7 @@
   },
   "check_matrix": {
     "automations": "ok",
-    "bot_panel": "failed",
+    "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
@@ -32,7 +32,7 @@
     "source_health": "ok",
     "telegram_transport": "ok"
   },
-  "checked_at": "2026-07-16T00:59:09.204104+00:00",
+  "checked_at": "2026-07-16T01:22:08.208350+00:00",
   "discovery": {
     "active_size": 77,
     "candidate_count": 204,
@@ -69,15 +69,8 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 2,
+  "finding_count": 1,
   "findings": [
-    {
-      "detail": "Последний живой сигнал был 149 минут назад.",
-      "kind": "admin_panel_stale",
-      "severity": "critical",
-      "subject": "",
-      "title": "Бот давно не принимает команды пользователей"
-    },
     {
       "detail": "Количество событий: 2.",
       "kind": "inactive_wheel_leak",
@@ -87,8 +80,8 @@
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-07-15T22:29:43.053419+00:00",
+    "active_incidents": 1,
+    "bot_panel_heartbeat": "2026-07-16T01:19:30.242595+00:00",
     "checked_sources": 77,
     "configured_sources": 79,
     "domain": "telegram.me",
@@ -97,12 +90,12 @@
     "status": "degraded"
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "messages_attempted": 0,
+    "digest_sent": true,
+    "messages_attempted": 1,
     "opened": 0,
-    "resolved": 0
+    "resolved": 1
   },
-  "incident_sequence": 20,
+  "incident_sequence": 21,
   "inventory": {
     "configured": 77,
     "domain": "telegram.me",
@@ -121,17 +114,17 @@
     "brand": "BB V.G.",
     "checked_sources": 77,
     "checks_delta": 77,
-    "checks_total": 59346,
+    "checks_total": 60116,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 41,
+    "iteration": 51,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-16T00:48:28.137118+00:00",
+    "last_iteration_at": "2026-07-16T01:18:31.487565+00:00",
     "last_iteration_duration_seconds": 6,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-16T00:48:28.137118+00:00",
-    "last_successful_checks_total": 59346,
-    "last_successful_iteration_at": "2026-07-16T00:48:28.137118+00:00",
+    "last_process_heartbeat_at": "2026-07-16T01:18:31.487565+00:00",
+    "last_successful_checks_total": 60116,
+    "last_successful_iteration_at": "2026-07-16T01:18:31.487565+00:00",
     "pending_wheels": 0,
     "reachable_sources": 77,
     "restart_recommended": false,
@@ -142,7 +135,7 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 10,
+  "monitor_age_minutes": 3,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,

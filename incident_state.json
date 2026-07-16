@@ -1,20 +1,24 @@
 {
-  "active_count": 2,
+  "active_count": 1,
   "incidents": {
     "system_checks:admin_panel_stale:9278d429b1e1ee67": {
       "detail": "Последний живой сигнал был 149 минут назад.",
       "first_seen_at": "2026-07-15T23:43:26.915265+00:00",
       "key": "system_checks:admin_panel_stale:9278d429b1e1ee67",
       "kind": "admin_panel_stale",
-      "last_seen_at": "2026-07-16T00:59:10.300744+00:00",
+      "last_seen_at": "2026-07-16T01:22:09.478187+00:00",
       "metadata": {},
       "occurrences": 5,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-15T23:43:27.530677+00:00",
       "opened_sequence": 20,
+      "resolution_notification_pending": false,
+      "resolution_notified_at": "2026-07-16T01:22:10.465645+00:00",
+      "resolved_at": "2026-07-16T01:22:09.478187+00:00",
+      "resolved_sequence": 21,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Бот давно не принимает команды пользователей"
     },
@@ -44,9 +48,9 @@
       "first_seen_at": "2026-07-15T20:40:36.637366+00:00",
       "key": "system_checks:inactive_wheel_leak:d9fbb8f3a566c8a0",
       "kind": "inactive_wheel_leak",
-      "last_seen_at": "2026-07-16T00:59:10.300744+00:00",
+      "last_seen_at": "2026-07-16T01:22:09.478187+00:00",
       "metadata": {},
-      "occurrences": 11,
+      "occurrences": 12,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-15T20:40:37.323711+00:00",
       "opened_sequence": 19,
@@ -162,17 +166,17 @@
       "title": "Не для всех источников есть данные здоровья"
     }
   },
-  "last_change_at": "2026-07-16T00:59:10.300744+00:00",
-  "last_reconcile_at": "2026-07-16T00:59:10.300744+00:00",
+  "last_change_at": "2026-07-16T01:22:09.478187+00:00",
+  "last_reconcile_at": "2026-07-16T01:22:09.478187+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 2,
+    "active": 1,
     "new_notification_count": 0,
-    "recovery_notification_count": 0,
+    "recovery_notification_count": 1,
     "scope": "system_checks"
   },
-  "sequence": 20,
+  "sequence": 21,
   "status": "initializing",
-  "updated_at": "2026-07-16T00:59:10.300832+00:00",
+  "updated_at": "2026-07-16T01:22:10.465687+00:00",
   "version": 1
 }
