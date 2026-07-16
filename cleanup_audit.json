@@ -78,45 +78,21 @@
       "classes": [
         {
           "bases": [
+            "PanelFoundationMixin",
             "TelegramPanelRuntimeV9"
           ],
           "class_attributes": [],
-          "method_count": 3,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 35,
-              "line_count": 8,
-              "name": "setup_bot",
-              "start_line": 28
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 46,
-              "line_count": 10,
-              "name": "show_app_entry",
-              "start_line": 37
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 60,
-              "line_count": 13,
-              "name": "handle_message",
-              "start_line": 48
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV10"
         }
       ],
       "direct_imports": [
-        "admin_bot",
-        "admin_panel_runtime_v9"
+        "admin_panel_runtime_v9",
+        "bbvg.bot.foundation"
       ],
       "in_current_import_chain": false,
-      "line_count": 82,
+      "line_count": 43,
       "module": "admin_panel_runtime_v10",
       "path": "admin_panel_runtime_v10.py",
       "reference_count": 3,
@@ -137,50 +113,17 @@
             "TelegramPanelRuntimeV10"
           ],
           "class_attributes": [],
-          "method_count": 4,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 29,
-              "line_count": 9,
-              "name": "miniapp_deployment",
-              "start_line": 21
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 54,
-              "line_count": 24,
-              "name": "show_app_entry",
-              "start_line": 31
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 105,
-              "line_count": 50,
-              "name": "show_discovery",
-              "start_line": 56
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 148,
-              "line_count": 42,
-              "name": "show_candidate_list",
-              "start_line": 107
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV11"
         }
       ],
       "direct_imports": [
         "admin_panel_runtime_v10",
-        "admin_panel_runtime_v5"
+        "bbvg.bot.foundation"
       ],
       "in_current_import_chain": false,
-      "line_count": 169,
+      "line_count": 37,
       "module": "admin_panel_runtime_v11",
       "path": "admin_panel_runtime_v11.py",
       "reference_count": 3,
@@ -201,61 +144,17 @@
             "TelegramPanelRuntimeV11"
           ],
           "class_attributes": [],
-          "method_count": 3,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [
-                "staticmethod"
-              ],
-              "end_line": 16,
-              "line_count": 4,
-              "name": "_callback_page",
-              "start_line": 13
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 30,
-              "line_count": 13,
-              "name": "nav_rows",
-              "start_line": 18
-            },
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 72,
-              "line_count": 41,
-              "name": "with_nav",
-              "start_line": 32
-            }
-          ],
+          "method_count": 0,
+          "methods": [],
           "name": "TelegramPanelRuntimeV12"
-        },
-        {
-          "bases": [
-            "TelegramPanelRuntimeV12"
-          ],
-          "class_attributes": [],
-          "method_count": 1,
-          "methods": [
-            {
-              "async": false,
-              "decorators": [],
-              "end_line": 78,
-              "line_count": 3,
-              "name": "__init__",
-              "start_line": 76
-            }
-          ],
-          "name": "_NavigationTestPanel"
         }
       ],
       "direct_imports": [
-        "admin_panel_runtime_v11"
+        "admin_panel_runtime_v11",
+        "bbvg.bot.foundation"
       ],
       "in_current_import_chain": false,
-      "line_count": 115,
+      "line_count": 29,
       "module": "admin_panel_runtime_v12",
       "path": "admin_panel_runtime_v12.py",
       "reference_count": 2,
@@ -3797,9 +3696,8 @@
       "line_count": 421,
       "module": "admin_panel_runtime_v5",
       "path": "admin_panel_runtime_v5.py",
-      "reference_count": 6,
+      "reference_count": 5,
       "references": [
-        "admin_panel_runtime_v11.py",
         "admin_panel_runtime_v5.py",
         "admin_panel_runtime_v6.py",
         "bbvg/bot/foundation.py",
@@ -4214,7 +4112,6 @@
   ],
   "runtime_method_index": {
     "__init__": [
-      "admin_panel_runtime_v12",
       "admin_panel_runtime_v14",
       "admin_panel_runtime_v17",
       "admin_panel_runtime_v23",
@@ -4232,9 +4129,6 @@
     ],
     "_bootstrap_access": [
       "admin_panel_runtime_v25"
-    ],
-    "_callback_page": [
-      "admin_panel_runtime_v12"
     ],
     "_candidate_filter": [
       "admin_panel_runtime_v5"
@@ -4445,7 +4339,6 @@
       "admin_panel_runtime_v8"
     ],
     "handle_message": [
-      "admin_panel_runtime_v10",
       "admin_panel_runtime_v14",
       "admin_panel_runtime_v17",
       "admin_panel_runtime_v20",
@@ -4498,9 +4391,6 @@
     "mark_personal_participation": [
       "admin_panel_runtime_v20"
     ],
-    "miniapp_deployment": [
-      "admin_panel_runtime_v11"
-    ],
     "miniapp_url_for_chat": [
       "admin_panel_runtime_v17",
       "admin_panel_runtime_v18",
@@ -4510,9 +4400,6 @@
     ],
     "moderator_chat_ids": [
       "admin_panel_runtime_v17"
-    ],
-    "nav_rows": [
-      "admin_panel_runtime_v12"
     ],
     "normalize_access": [
       "admin_panel_runtime_v3",
@@ -4651,7 +4538,6 @@
       "admin_panel_runtime_v35"
     ],
     "setup_bot": [
-      "admin_panel_runtime_v10",
       "admin_panel_runtime_v31",
       "admin_panel_runtime_v32",
       "admin_panel_runtime_v36",
@@ -4682,8 +4568,6 @@
       "admin_panel_runtime_v38"
     ],
     "show_app_entry": [
-      "admin_panel_runtime_v10",
-      "admin_panel_runtime_v11",
       "admin_panel_runtime_v17",
       "admin_panel_runtime_v19",
       "admin_panel_runtime_v9"
@@ -4692,7 +4576,6 @@
       "admin_panel_runtime_v5"
     ],
     "show_candidate_list": [
-      "admin_panel_runtime_v11",
       "admin_panel_runtime_v5"
     ],
     "show_control": [
@@ -4700,7 +4583,6 @@
       "admin_panel_runtime_v31"
     ],
     "show_discovery": [
-      "admin_panel_runtime_v11",
       "admin_panel_runtime_v3",
       "admin_panel_runtime_v37",
       "admin_panel_runtime_v5"
@@ -4847,12 +4729,9 @@
     "transfer_owner": [
       "admin_panel_runtime_v21",
       "admin_panel_runtime_v37"
-    ],
-    "with_nav": [
-      "admin_panel_runtime_v12"
     ]
   },
-  "runtime_total_lines": 10299,
-  "runtime_unique_method_count": 152,
+  "runtime_total_lines": 10042,
+  "runtime_unique_method_count": 148,
   "unreferenced_python_candidates": []
 }
