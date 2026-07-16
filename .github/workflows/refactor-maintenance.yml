@@ -1,0 +1,70 @@
+name: BB V.G. one-shot runtime reference maintenance
+
+on:
+  push:
+    branches:
+      - refactor/consolidate-runtime-v42
+    paths:
+      - ".github/workflows/refactor-maintenance.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/consolidate-runtime-v42
+          fetch-depth: 0
+      - name: Point runtime references at consolidated modules
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path_text: str, old: str, new: str) -> None:
+              path = Path(path_text)
+              text = path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one occurrence, found {count}: {old!r}")
+              path.write_text(text.replace(old, new), encoding="utf-8")
+
+          replace_once(
+              "admin_panel_runtime_v37.py",
+              "from admin_panel_runtime_v33 import WHEEL_NOTIFICATION_OPTIONS",
+              "from bbvg.bot.users import WHEEL_NOTIFICATION_OPTIONS",
+          )
+          replace_once(
+              ".github/workflows/admin-bot.yml",
+              "admin_panel_runtime_v27.py admin_panel_runtime_v28.py admin_panel_runtime_v29.py",
+              "admin_panel_runtime_v28.py admin_panel_runtime_v29.py",
+          )
+          replace_once(
+              ".github/workflows/admin-bot.yml",
+              "admin_panel_runtime_v33.py admin_panel_runtime_v34.py admin_panel_runtime_v35.py \\\n            admin_panel_runtime_v36.py",
+              "admin_panel_runtime_v36.py",
+          )
+          replace_once(
+              ".github/workflows/admin-bot.yml",
+              "          python admin_panel_runtime_v33.py --self-test\n          python admin_panel_runtime_v35.py --self-test\n",
+              "          python -m bbvg.bot.users\n",
+          )
+          replace_once(
+              ".github/workflows/admin-bot.yml",
+              "          from admin_panel_runtime_v34 import TelegramPanelRuntimeV34\n",
+              "          from bbvg.bot.users import UserSettingsMixin\n",
+          )
+          replace_once(
+              ".github/workflows/admin-bot.yml",
+              "          handler = inspect.getsource(TelegramPanelRuntimeV34.handle_callback)\n",
+              "          handler = inspect.getsource(UserSettingsMixin.handle_callback)\n",
+          )
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add admin_panel_runtime_v37.py .github/workflows/admin-bot.yml
+          git commit -m "Point production runtime references at consolidated user modules [skip ci]"
+          git pull --rebase origin refactor/consolidate-runtime-v42
+          git push origin HEAD:refactor/consolidate-runtime-v42
