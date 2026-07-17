@@ -615,7 +615,7 @@ def record_admin_wheel_decision(
         "sources": clean_sources,
         "decided_at": at.isoformat(),
         "day": _stats_day(at),
-        "actor": str(actor or "admin"),
+        "actor": "admin",
     }
 
     # Remove only derived administrator fields. Automatic monitoring counters

@@ -6,6 +6,24 @@
 
 ---
 
+## 2026-07-17 — Глава 1: административные Telegram ID удалены из публичного runtime state
+
+**Причина:** `state.json`, `source_stats.json` и `candidate_moderation.json` сохраняли Telegram ID администратора в технических provenance-полях. Эти значения не нужны для функциональной идентичности и не должны публиковаться в Git.
+
+**Что изменено:**
+
+- `marked_by`, `confirmed_finished_by`, `admin_wheel_decisions.*.actor` и `ignored_by` теперь сохраняют только значение `admin`;
+- текущие три JSON-файла мигрируются атомарно без изменения wheel keys, rating event keys, времён, счётчиков и прочих данных;
+- личные голоса продолжают использовать существующий стабильный HMAC-псевдоним формата `vote_*`;
+- `security_audit.py --current` проверяет все три публичных runtime-файла и отклоняет raw provenance или некорректный actor token;
+- `security_audit.py --migrate-current` выполняет повторяемую безопасную миграцию.
+
+**Encrypted backup gate:** run `29551631560`, artifact `bbvg-encrypted-state-29551631560`, source SHA `12785cfcfc6353b76b862e599d23e8aa5e5acab2`. Проверены расшифровка только текущим production `BOT_STATE_KEY`, exact SHA, encrypted SHA-256, HMAC state fingerprint, restore smoke и обезличенные aggregates. Artifact хранится вне public Git refs.
+
+**Изменённые файлы:** `.github/workflows/bot-state-backup.yml`, `wheel_lifecycle_v2.py`, `monitor_data.py`, `admin_action_v3.py`, `admin_panel_runtime_v5.py`, `security_audit.py`, `state.json`, `source_stats.json`, `candidate_moderation.json`, `tests/test_lifecycle.py`, `docs/PROJECT_CHANGELOG_RU.md`. Новые файлы не создавались.
+
+**Откат:** вернуть merge commit главы 1 целиком и восстановить encrypted state из artifact run `29551631560`; ручное восстановление отдельных полей не требуется.
+
 ## 2026-07-17 — Технические разделы скрыты от обычных пользователей
 
 **Причина:** обычным пользователям не нужны внутренние сведения о production API, legacy checker и отключённых административных механизмах. Кнопка состояния системы должна находиться внутри настроек, а не занимать место в главном меню.

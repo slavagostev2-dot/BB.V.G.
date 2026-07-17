@@ -302,7 +302,7 @@ class TelegramPanelRuntimeV5(TelegramPanelRuntimeV4):
         moderation["ignored"][source.casefold()] = {
             "source": source,
             "ignored_at": datetime.now(UTC).isoformat(),
-            "ignored_by": str(self.current_user_id or ""),
+            "ignored_by": "admin",
         }
         self.save_moderation(moderation, f"Ignore @{source} discovery candidate via Telegram [skip ci]")
         return f"@{source} исключён из поиска и скрыт из очереди."
