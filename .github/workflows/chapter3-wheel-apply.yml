@@ -35,96 +35,79 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements-dev.txt
 
-      - name: Apply code and documentation correction
+      - name: Apply code correction
+        id: apply_code
         shell: bash
         run: |
-          set -euo pipefail
-          if grep -q 'BetBoom создал колесо, но участие ещё не открыто' monitor.py; then
-            echo 'Wheel correction is already applied.'
-            exit 0
-          fi
-          git apply --check .github/chapter3-wheel-start.patch
-          git apply .github/chapter3-wheel-start.patch
-          python - <<'PY'
-          from pathlib import Path
-
-          agents = Path('AGENTS.md')
-          text = agents.read_text(encoding='utf-8')
-          marker = '- каждое колесо из активного списка повторно проверяется через BetBoom API на каждой итерации монитора;\n'
-          contract = '- ответ BetBoom с `action_id` и `duration_min`, но без `start_dttm` означает созданную, но ещё не запущенную акцию: она не показывается в активных и без уведомления перепроверяется до появления времени старта;\n'
-          if contract not in text:
-              if marker not in text:
-                  raise RuntimeError('AGENTS wheel contract marker missing')
-              text = text.replace(marker, marker + contract, 1)
-          agents.write_text(text, encoding='utf-8')
-
-          changelog = Path('docs/PROJECT_CHANGELOG_RU.md')
-          text = changelog.read_text(encoding='utf-8')
-          old_reason = '**Причина:** системная диагностика продолжала использовать исторические пороги 66/77 и могла держать critical incident при живом мониторе и уже успешной транспортной проверке полного пула. Двухчасовое окно без таймера одновременно задавалось как 24 часа в monitor/workflow и исправлялось monkey-install до 2 часов. Единственный `getUpdates` consumer проверялся поиском строки, а не поведением.'
-          new_reason = old_reason + ' Дополнительно BetBoom возвращал `action_id` и `duration_min` для ещё не запущенной акции без `start_dttm`, а notification-first слой ошибочно превращал такой ответ в активную карточку.'
-          if old_reason in text:
-              text = text.replace(old_reason, new_reason, 1)
-          marker = '- frozen-time fixture доказывает открытие transport incidents при плохом снимке и их закрытие после свежего точного inventory;\n'
-          bullet = '- ответ API с настроенной длительностью, но без `start_dttm`, теперь считается ещё не запущенной акцией: уведомление и активная карточка не создаются, а ранее ошибочно добавленная карточка удаляется вместе с участием и suppression-state и переводится в тихую повторную проверку;\n'
-          if bullet not in text:
-              if marker not in text:
-                  raise RuntimeError('Chapter 3 changelog marker missing')
-              text = text.replace(marker, marker + bullet, 1)
-          text = text.replace(
-              '**Изменённые файлы:** `monitor.py`, `wheel_link_lifecycle.py`, `system_checks.py`, `preflight.py`, `monitor_validation_v41.py`, действующие `.github/workflows/*.yml`, `tests/test_chapter3_contracts.py`, `tests/production_acceptance.py`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`.',
-              '**Изменённые файлы:** `monitor.py`, `monitor_entry.py`, `bbvg_monitor_runtime.py`, `wheel_link_lifecycle.py`, `system_checks.py`, `preflight.py`, `monitor_validation_v41.py`, действующие `.github/workflows/*.yml`, `tests/test_chapter3_contracts.py`, `tests/test_lifecycle.py`, `tests/production_acceptance.py`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`.',
-              1,
-          )
-          text = text.replace(
-              '**Проверки до PR:** targeted behavioral suite — 67 tests и 9 subtests; полный pytest — 103 tests и 9 subtests;',
-              '**Проверки до PR:** targeted behavioral suite — 70 tests и 9 subtests; полный pytest — 106 tests и 9 subtests;',
-              1,
-          )
-          diagnostic = '**Диагностика ложной карточки:** run `29591043004` подтвердил ответ HTTP 200 с `action_id=878`, `duration_min=15`, `is_ended=false`, но без `start_dttm`; именно отсутствие проверки этого сочетания было причиной попадания неработающего колеса в активные.\n\n'
-          rollback = '**Откат:** вернуть merge commit главы 3 целиком либо перейти на `backup/before-chapter3-contracts-health-2026-07-17`; state migration не требуется.\n'
-          if diagnostic not in text:
-              if rollback not in text:
-                  raise RuntimeError('Chapter 3 rollback marker missing')
-              text = text.replace(rollback, diagnostic + rollback, 1)
-          changelog.write_text(text, encoding='utf-8')
-          PY
+          set -o pipefail
+          {
+            set -euxo pipefail
+            if grep -q 'BetBoom создал колесо, но участие ещё не открыто' monitor.py; then
+              echo 'Wheel correction is already applied.'
+            else
+              git apply --check .github/chapter3-wheel-start.patch
+              git apply .github/chapter3-wheel-start.patch
+            fi
+            git diff --check
+            git status --short
+          } 2>&1 | tee chapter3-wheel-apply.log
 
       - name: Verify corrected behavior
+        if: steps.apply_code.outcome == 'success'
         shell: bash
         run: |
-          set -euo pipefail
-          python -m compileall -q -x '(^|/)(\.git|\.venv|state_api|docs)(/|$)' .
-          python -m pytest -q tests/test_lifecycle.py tests/test_chapter3_contracts.py tests/test_recurring_event_hotfix.py tests/test_personal_wheel_voting.py
-          python -m pytest -q
-          python system_checks.py --self-test
-          python system_checks_v2.py --self-test
-          python preflight.py
-          python monitor_validation_v41.py
-          python tests/production_acceptance.py --section all
-          if git diff --name-only | grep -E '\.json$'; then
-            echo 'Runtime JSON changed during validation' >&2
-            exit 1
-          fi
+          set -o pipefail
+          {
+            set -euxo pipefail
+            python -m compileall -q -x '(^|/)(\.git|\.venv|state_api|docs)(/|$)' .
+            python -m pytest -q tests/test_lifecycle.py tests/test_chapter3_contracts.py tests/test_recurring_event_hotfix.py tests/test_personal_wheel_voting.py
+            python -m pytest -q
+            python system_checks.py --self-test
+            python system_checks_v2.py --self-test
+            python preflight.py
+            python monitor_validation_v41.py
+            python tests/production_acceptance.py --section all
+            if git diff --name-only | grep -E '\.json$'; then
+              echo 'Runtime JSON changed during validation' >&2
+              exit 1
+            fi
+          } 2>&1 | tee chapter3-wheel-verify.log
 
       - name: Commit corrected behavior
+        if: steps.apply_code.outcome == 'success'
         shell: bash
         run: |
-          set -euo pipefail
-          if git diff --quiet -- monitor.py monitor_entry.py bbvg_monitor_runtime.py tests/test_lifecycle.py AGENTS.md docs/PROJECT_CHANGELOG_RU.md; then
-            echo 'No code correction remains to commit.'
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add monitor.py monitor_entry.py bbvg_monitor_runtime.py tests/test_lifecycle.py AGENTS.md docs/PROJECT_CHANGELOG_RU.md
-          git commit -m "Глава 3: исключить ещё не запущенные колёса"
-          for attempt in 1 2 3; do
-            if git push origin "HEAD:${GITHUB_HEAD_REF}"; then
+          set -o pipefail
+          {
+            set -euxo pipefail
+            if git diff --quiet -- monitor.py monitor_entry.py bbvg_monitor_runtime.py tests/test_lifecycle.py; then
+              echo 'No code correction remains to commit.'
               exit 0
             fi
-            git pull --rebase origin "${GITHUB_HEAD_REF}" || {
-              git rebase --abort || true
-              exit 1
-            }
-          done
-          exit 1
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add monitor.py monitor_entry.py bbvg_monitor_runtime.py tests/test_lifecycle.py
+            git commit -m "Глава 3: исключить ещё не запущенные колёса"
+            for attempt in 1 2 3; do
+              if git push origin "HEAD:${GITHUB_HEAD_REF}"; then
+                exit 0
+              fi
+              git pull --rebase origin "${GITHUB_HEAD_REF}" || {
+                git rebase --abort || true
+                exit 1
+              }
+            done
+            exit 1
+          } 2>&1 | tee chapter3-wheel-commit.log
+
+      - name: Upload correction logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: chapter3-wheel-correction-${{ github.run_id }}
+          path: |
+            chapter3-wheel-apply.log
+            chapter3-wheel-verify.log
+            chapter3-wheel-commit.log
+          retention-days: 1
+          if-no-files-found: warn
