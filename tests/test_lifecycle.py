@@ -73,6 +73,58 @@ class WheelApiVerificationTests(unittest.TestCase):
         self.assertEqual(result.deadline, datetime(2026, 7, 17, 0, 0, tzinfo=UTC))
         self.assertEqual(result.verification_status, "confirmed")
 
+    def test_action_with_duration_but_without_start_is_not_started(self) -> None:
+        self.response(
+            {
+                "action_id": 878,
+                "duration_min": 15,
+                "is_ended": False,
+                "is_early": False,
+            }
+        )
+        result = monitor.inspect_wheel_page(
+            "https://betboom.ru/freestream/dyrachyo"
+        )
+        self.assertEqual(result.status, "not_started")
+        self.assertEqual(result.action_id, 878)
+        self.assertIsNone(result.deadline)
+        self.assertEqual(result.verification_status, "confirmed")
+
+        message = monitor.Message(
+            "kolesaBB",
+            134,
+            self.current,
+            "https://betboom.ru/freestream/dyrachyo",
+            "https://telegram.me/kolesaBB/134",
+        )
+        assessment = monitor.assess_new_wheel(
+            message,
+            "https://betboom.ru/freestream/dyrachyo",
+            {},
+        )
+        self.assertFalse(assessment.should_notify)
+        self.assertEqual(assessment.status, "not_started")
+
+        import monitor_entry
+
+        notification_first = monitor_entry._notification_first(message, assessment)
+        self.assertFalse(notification_first.should_notify)
+        self.assertEqual(notification_first.status, "not_started")
+
+    def test_truly_untimed_started_action_remains_active(self) -> None:
+        self.response(
+            {
+                "action_id": 879,
+                "is_ended": False,
+                "is_early": False,
+            }
+        )
+        result = monitor.inspect_wheel_page(
+            "https://betboom.ru/freestream/untimed"
+        )
+        self.assertEqual(result.status, "active")
+        self.assertIsNone(result.deadline)
+
     def test_expired_timer_wins_even_when_is_ended_is_false(self) -> None:
         self.response(
             {
@@ -537,6 +589,71 @@ class PublicProvenancePrivacyTests(unittest.TestCase):
             self.assertEqual(moderation["ignored"]["source"]["ignored_by"], "admin")
             for path in (state_path, stats_path, moderation_path):
                 self.assertEqual(security_audit._runtime_provenance_findings(path), [])
+
+
+class WheelNotStartedRuntimeTests(unittest.TestCase):
+    def test_false_positive_is_removed_from_active_and_retried_silently(self) -> None:
+        import bbvg_monitor_runtime as runtime
+
+        current = datetime(2026, 7, 17, 15, 0, tzinfo=UTC)
+        url = "https://betboom.ru/freestream/dyrachyo"
+        message = monitor.Message(
+            "kolesaBB",
+            134,
+            current - timedelta(hours=2),
+            url,
+            "https://telegram.me/kolesaBB/134",
+        )
+        post_key = monitor.notification_key(message, url)
+        state = {
+            "active_wheels": {
+                "dyrachyo": {
+                    "identifier": "dyrachyo",
+                    "url": url,
+                    "source": message.source,
+                    "message_id": message.message_id,
+                    "message_date": message.date.isoformat(),
+                    "message_url": message.message_url,
+                    "message_text": message.text,
+                    "action_id": 878,
+                    "event_id": "event-878",
+                }
+            },
+            "participating_wheels": {"dyrachyo": {"identifier": "dyrachyo"}},
+            "button_contexts": {"token": {"wheel_key": "dyrachyo"}},
+            "pending_posts": {},
+            "manual_deadlines": {},
+            "manual_overrides": {},
+            "wheel_publications": {"dyrachyo": [{"source": "kolesaBB"}]},
+            "completed_wheel_alerts": {},
+            "wheel_action_history": {"dyrachyo": {"action_id": 878}},
+            "activation_alerts": {"dyrachyo": {"suppress_until": (current + timedelta(hours=1)).isoformat()}},
+            "url_alerts": {"dyrachyo": {"suppress_until": (current + timedelta(hours=1)).isoformat()}},
+            "seen": {post_key: current.isoformat()},
+        }
+        original_inspector = runtime.monitor.inspect_wheel_page
+        try:
+            runtime.monitor.inspect_wheel_page = lambda value: monitor.WheelInspection(
+                "not_started",
+                None,
+                "BetBoom создал колесо, но участие ещё не открыто",
+                action_id=878,
+                verification_status=monitor.WHEEL_VERIFICATION_CONFIRMED,
+            )
+            summary = runtime.revalidate_active_wheels(state, current)
+        finally:
+            runtime.monitor.inspect_wheel_page = original_inspector
+
+        self.assertEqual(summary["deferred"], 1)
+        self.assertNotIn("dyrachyo", state["active_wheels"])
+        self.assertNotIn("dyrachyo", state["participating_wheels"])
+        self.assertNotIn("dyrachyo", state["wheel_action_history"])
+        self.assertNotIn("dyrachyo", state["activation_alerts"])
+        self.assertNotIn("dyrachyo", state["url_alerts"])
+        self.assertNotIn(post_key, state["seen"])
+        self.assertEqual(state["pending_posts"][post_key]["status"], "not_started")
+        self.assertEqual(state["pending_posts"][post_key]["action_id"], 878)
+
 
 
 if __name__ == "__main__":

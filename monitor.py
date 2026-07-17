@@ -657,6 +657,19 @@ def inspect_wheel_page(link: str) -> WheelInspection:
     deadline = start + timedelta(minutes=duration) if start and duration else None
     reference = now_utc()
     inactive = bool(info.get("is_ended")) or bool(info.get("is_early"))
+
+    # BetBoom may create an action object before the streamer actually starts
+    # it.  Such a response has an action_id and duration but no start_dttm.
+    # The public page cannot accept participation yet, so it must stay out of
+    # the active list and be retried silently until start_dttm appears.
+    if not inactive and action_id is not None and duration is not None and start is None:
+        return WheelInspection(
+            "not_started",
+            None,
+            "BetBoom создал колесо, но участие ещё не открыто",
+            action_id=action_id,
+            verification_status=WHEEL_VERIFICATION_CONFIRMED,
+        )
     if deadline is not None and deadline <= reference:
         inactive = True
 
@@ -784,6 +797,10 @@ def assess_new_wheel(
             f"{inspection.method}; {post_method}" if deadline else inspection.method,
             "verification_failed",
             **metadata,
+        )
+    if inspection.status == "not_started":
+        return WheelAssessment(
+            False, None, inspection.method, "not_started", **metadata
         )
 
     return WheelAssessment(
@@ -1589,6 +1606,10 @@ def assess_pending_wheel(
             f"{inspection.method}; {post_method}" if deadline else inspection.method,
             "verification_failed",
             **metadata,
+        )
+    if inspection.status == "not_started":
+        return WheelAssessment(
+            False, None, inspection.method, "not_started", **metadata
         )
     return WheelAssessment(
         False, inspection.deadline, inspection.method, inspection.status, **metadata

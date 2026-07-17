@@ -130,6 +130,7 @@ def _notification_first(message, result):
         return result
     if result.status in {
         "inactive",
+        "not_started",
         "duplicate_action",
         "duplicate_link",
         "duplicate_publication",

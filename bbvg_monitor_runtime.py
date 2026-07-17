@@ -12,6 +12,7 @@ INACTIVE_TOMBSTONE_DAYS = 30
 
 _original_load_state = monitor.load_state
 _original_remember_active_wheel = monitor.remember_active_wheel
+_original_remember_pending = monitor.remember_pending
 _original_wheel_reply_markup = monitor.wheel_reply_markup
 _original_assess_new = monitor.assess_new_wheel
 _original_assess_pending = monitor.assess_pending_wheel
@@ -189,10 +190,15 @@ def load_state_without_pending() -> dict:
     for key in list(state["inactive_wheels"]):
         _inactive_entry(state, str(key))
 
-    for record in list(state["pending_posts"].values()):
-        if isinstance(record, dict):
+    retained_pending: dict[str, dict] = {}
+    for post_key, record in list(state["pending_posts"].items()):
+        if not isinstance(record, dict):
+            continue
+        if str(record.get("status") or "") == "not_started":
+            retained_pending[str(post_key)] = record
+        else:
             _pending_to_active(state, record)
-    state["pending_posts"] = {}
+    state["pending_posts"] = retained_pending
 
     for key in list(state["active_wheels"]):
         if _inactive_entry(state, str(key)):
@@ -211,6 +217,17 @@ def remember_without_pending(
     initial_notified: bool = False,
 ) -> None:
     key = monitor.wheel_key(link)
+    if status == "not_started":
+        _original_remember_pending(
+            state,
+            post_key,
+            message,
+            link,
+            status,
+            reason,
+            initial_notified=False,
+        )
+        return
     if status in {
         "inactive",
         "duplicate_action",
@@ -371,6 +388,56 @@ def _manual_deadline(state: dict, key: str, entry: dict):
     return None
 
 
+def _retain_not_started_pending(state: dict) -> int:
+    pending = state.setdefault("pending_posts", {})
+    if not isinstance(pending, dict):
+        state["pending_posts"] = {}
+        return 0
+    for post_key, record in list(pending.items()):
+        if not isinstance(record, dict) or str(record.get("status") or "") != "not_started":
+            pending.pop(post_key, None)
+    return len(pending)
+
+
+def _defer_unstarted_active(
+    state: dict,
+    key: str,
+    entry: dict,
+    inspection: Any,
+    current,
+) -> bool:
+    message = monitor.active_entry_message(entry)
+    url = str(entry.get("url") or "")
+
+    import wheel_lifecycle_v2
+
+    wheel_lifecycle_v2.cleanup_event_records(state, key)
+    state.setdefault("wheel_action_history", {}).pop(key, None)
+    state.setdefault("activation_alerts", {}).pop(key, None)
+    state.setdefault("url_alerts", {}).pop(key, None)
+
+    if message is None or not url:
+        return False
+    post_key = monitor.notification_key(message, url)
+    state.setdefault("seen", {}).pop(post_key, None)
+    _original_remember_pending(
+        state,
+        post_key,
+        message,
+        url,
+        "not_started",
+        inspection.method,
+        initial_notified=False,
+    )
+    pending_entry = state.setdefault("pending_posts", {}).get(post_key)
+    if isinstance(pending_entry, dict):
+        pending_entry["last_checked_at"] = current.isoformat()
+        pending_entry["verification_status"] = monitor.WHEEL_VERIFICATION_CONFIRMED
+        if inspection.action_id is not None:
+            pending_entry["action_id"] = inspection.action_id
+    return True
+
+
 def _start_revalidated_action(
     state: dict,
     active: dict,
@@ -431,6 +498,7 @@ def revalidate_active_wheels(state: dict, current=None) -> dict[str, int | bool]
     confirmed = 0
     failed = 0
     removed = 0
+    deferred = 0
     for key, entry in list(active.items()):
         if not isinstance(entry, dict):
             continue
@@ -451,6 +519,17 @@ def revalidate_active_wheels(state: dict, current=None) -> dict[str, int | bool]
             ).isoformat()
             entry["last_verification_error"] = inspection.method[:300]
             failed += 1
+            changed = True
+            continue
+        if inspection.status == "not_started":
+            _defer_unstarted_active(
+                state,
+                str(key).casefold(),
+                entry,
+                inspection,
+                current,
+            )
+            deferred += 1
             changed = True
             continue
         if inspection.status == "inactive":
@@ -533,6 +612,7 @@ def revalidate_active_wheels(state: dict, current=None) -> dict[str, int | bool]
         "confirmed": confirmed,
         "failed": failed,
         "removed": removed,
+        "deferred": deferred,
     }
 
 
@@ -546,7 +626,7 @@ def process_active_without_page_verdict(state: dict, stats: dict):
     current = monitor.now_utc()
     verification = revalidate_active_wheels(state, current)
     changed = bool(verification.get("changed"))
-    state.setdefault("pending_posts", {}).clear()
+    _retain_not_started_pending(state)
 
     for key, entry in list(state.setdefault("active_wheels", {}).items()):
         if not isinstance(entry, dict):
@@ -574,14 +654,15 @@ def process_active_without_page_verdict(state: dict, stats: dict):
     finally:
         monitor.inspect_wheel_page = original_inspector
 
-    state.setdefault("pending_posts", {}).clear()
+    pending_total = _retain_not_started_pending(state)
     if changed:
         result["changed"] = True
     result["verification_confirmed"] = int(verification.get("confirmed", 0) or 0)
     result["verification_checked"] = int(verification.get("checked", 0) or 0)
     result["verification_failed"] = int(verification.get("failed", 0) or 0)
     result["verification_removed"] = int(verification.get("removed", 0) or 0)
-    result["pending_total"] = 0
+    result["verification_deferred"] = int(verification.get("deferred", 0) or 0)
+    result["pending_total"] = pending_total
     return result
 
 
