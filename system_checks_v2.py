@@ -12,6 +12,7 @@ import bot_private_state
 import notification_integrity_v2
 import notification_navigation
 import notification_router
+import personal_wheel_voting
 import system_checks as legacy
 
 notification_router.load_config = bot_notification_state.load_config
@@ -134,26 +135,63 @@ def check_notification_routing_private(
             )
 
 
+def _personal_rating_expectation(
+    stats: dict[str, Any],
+) -> tuple[dict[str, int], int, int]:
+    votes = stats.get("personal_wheel_votes")
+    votes = votes if isinstance(votes, dict) else {}
+    expected: dict[str, int] = {}
+    valid_votes = 0
+    for entry in votes.values():
+        if not isinstance(entry, dict):
+            continue
+        try:
+            payload = personal_wheel_voting.normalize_vote_payload(entry)
+        except (TypeError, ValueError):
+            continue
+        valid_votes += 1
+        for source in payload["sources"]:
+            key = str(source).casefold()
+            if key:
+                expected[key] = expected.get(key, 0) + int(payload["weight"])
+    return expected, len(votes), valid_votes
+
+
 def check_rating_consistency_additive(
     details: dict[str, Any], findings: list[dict[str, Any]]
 ) -> None:
     stats = legacy.load_json(legacy.SOURCE_STATS_PATH, {})
     state = legacy.load_json(legacy.RUNTIME_STATE_PATH, {})
-    decisions = stats.get("admin_wheel_decisions") if isinstance(stats, dict) else {}
+    stats = stats if isinstance(stats, dict) else {}
+    state = state if isinstance(state, dict) else {}
+    decisions = stats.get("admin_wheel_decisions")
     decisions = decisions if isinstance(decisions, dict) else {}
-    expected: dict[str, int] = {}
     inactive_decisions: list[str] = []
     for wheel, entry in decisions.items():
-        if not isinstance(entry, dict):
-            continue
-        verdict = str(entry.get("decision") or "")
-        points = 40 if verdict == "confirmed" else 0
-        if verdict == "inactive":
+        if isinstance(entry, dict) and str(entry.get("decision") or "") == "inactive":
             inactive_decisions.append(str(wheel).casefold())
-        for source in entry.get("sources", []):
-            key = str(source).casefold()
-            if key:
-                expected[key] = expected.get(key, 0) + points
+
+    policy = str(stats.get("source_rating_policy") or "additive_only_v1")
+    personal_vote_records = 0
+    valid_personal_votes = 0
+    if policy == personal_wheel_voting.PERSONAL_RATING_POLICY:
+        expected, personal_vote_records, valid_personal_votes = _personal_rating_expectation(
+            stats
+        )
+        mismatch_title = "Рейтинг источников не совпадает с личными голосами"
+    else:
+        expected: dict[str, int] = {}
+        for entry in decisions.values():
+            if not isinstance(entry, dict):
+                continue
+            verdict = str(entry.get("decision") or "")
+            points = 40 if verdict == "confirmed" else 0
+            for source in entry.get("sources", []):
+                key = str(source).casefold()
+                if key:
+                    expected[key] = expected.get(key, 0) + points
+        mismatch_title = "Рейтинг источников не совпадает с решениями администратора"
+
     actual = {
         str(source).casefold(): max(0, int(entry.get("quality_score", 0) or 0))
         for source, entry in stats.get("sources", {}).items()
@@ -170,8 +208,10 @@ def check_rating_consistency_additive(
     }
     inactive_leaks = sorted(set(inactive_decisions) & (active_keys | participating_keys))
     details["rating_consistency"] = {
-        "policy": "additive_only_v1",
+        "policy": policy,
         "administrator_decisions": len(decisions),
+        "personal_vote_records": personal_vote_records,
+        "valid_personal_votes": valid_personal_votes,
         "rated_sources": len(expected),
         "score_mismatches": mismatches[:30],
         "inactive_wheel_leaks": inactive_leaks[:30],
@@ -180,7 +220,7 @@ def check_rating_consistency_additive(
         findings.append(
             legacy.finding(
                 "rating_score_mismatch",
-                "Рейтинг источников не совпадает с решениями администратора",
+                mismatch_title,
                 f"Количество несовпадений: {len(mismatches)}.",
                 severity="critical",
             )
@@ -229,6 +269,96 @@ def self_test() -> None:
     assert routing["wheel_with_error_word_kind"] == "wheels"
     assert routing_details["notification_integrity"]["status"] == "ok"
     assert not routing_findings
+
+    original_stats_path = legacy.SOURCE_STATS_PATH
+    original_runtime_path = legacy.RUNTIME_STATE_PATH
+    try:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            legacy.SOURCE_STATS_PATH = root / "source_stats.json"
+            legacy.RUNTIME_STATE_PATH = root / "state.json"
+            legacy.RUNTIME_STATE_PATH.write_text("{}", encoding="utf-8")
+            personal_stats = {
+                "source_rating_policy": personal_wheel_voting.PERSONAL_RATING_POLICY,
+                "personal_wheel_votes": {
+                    "owner": {
+                        "wheel_key": "wheel-a",
+                        "event_key": "wheel-a#action:1",
+                        "actor": personal_wheel_voting.actor_vote_token(
+                            "owner", secret="self-test-secret"
+                        ),
+                        "role": "owner",
+                        "weight": 5,
+                        "sources": ["source"],
+                    },
+                    "admin": {
+                        "wheel_key": "wheel-a",
+                        "event_key": "wheel-a#action:1",
+                        "actor": personal_wheel_voting.actor_vote_token(
+                            "admin", secret="self-test-secret"
+                        ),
+                        "role": "admin",
+                        "weight": 5,
+                        "sources": ["source"],
+                    },
+                    "user": {
+                        "wheel_key": "wheel-a",
+                        "event_key": "wheel-a#action:1",
+                        "actor": personal_wheel_voting.actor_vote_token(
+                            "user", secret="self-test-secret"
+                        ),
+                        "role": "user",
+                        "weight": 1,
+                        "sources": ["source"],
+                    },
+                },
+                "sources": {"source": {"quality_score": 11}},
+            }
+            legacy.SOURCE_STATS_PATH.write_text(
+                json.dumps(personal_stats), encoding="utf-8"
+            )
+            rating_details: dict[str, Any] = {}
+            rating_findings: list[dict[str, Any]] = []
+            check_rating_consistency_additive(rating_details, rating_findings)
+            assert not rating_findings
+            assert rating_details["rating_consistency"]["policy"] == "personal_votes_v1"
+            assert rating_details["rating_consistency"]["valid_personal_votes"] == 3
+            assert rating_details["rating_consistency"]["rated_sources"] == 1
+
+            personal_stats["sources"]["source"]["quality_score"] = 10
+            legacy.SOURCE_STATS_PATH.write_text(
+                json.dumps(personal_stats), encoding="utf-8"
+            )
+            mismatch_details: dict[str, Any] = {}
+            mismatch_findings: list[dict[str, Any]] = []
+            check_rating_consistency_additive(mismatch_details, mismatch_findings)
+            assert {item["kind"] for item in mismatch_findings} == {
+                "rating_score_mismatch"
+            }
+            assert mismatch_findings[0]["title"] == (
+                "Рейтинг источников не совпадает с личными голосами"
+            )
+
+            legacy_stats = {
+                "admin_wheel_decisions": {
+                    "wheel-a": {
+                        "decision": "confirmed",
+                        "sources": ["source"],
+                    }
+                },
+                "sources": {"source": {"quality_score": 40}},
+            }
+            legacy.SOURCE_STATS_PATH.write_text(
+                json.dumps(legacy_stats), encoding="utf-8"
+            )
+            legacy_details: dict[str, Any] = {}
+            legacy_findings: list[dict[str, Any]] = []
+            check_rating_consistency_additive(legacy_details, legacy_findings)
+            assert not legacy_findings
+            assert legacy_details["rating_consistency"]["policy"] == "additive_only_v1"
+    finally:
+        legacy.SOURCE_STATS_PATH = original_stats_path
+        legacy.RUNTIME_STATE_PATH = original_runtime_path
 
     original_panel_path = legacy.ADMIN_PANEL_STATUS_PATH
     try:
