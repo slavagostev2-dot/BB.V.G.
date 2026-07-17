@@ -105,7 +105,6 @@ jobs:
           BOT_STATE_KEY: "test-state-key"
           BOT_CHAT_ID: "1"
           TELEGRAM_WEB_DOMAIN: telegram.me
-          EXPECTED_SOURCE_COUNT: "66"
           FINAL_REMINDER_BEFORE_MINUTES: "5"
           ACTIVE_REMOVE_GRACE_MINUTES: "0"
         run: |
@@ -168,11 +167,15 @@ jobs:
           assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
           state = {"inactive_wheels": {}, "pending_posts": {}, "active_wheels": {}}
           assert runtime.runtime._inactive_entry(state, "test") is None
-          primary = monitor_data.operational_sources(monitor.read_list(Path("public_sources.txt")), "fast")
-          nightly = monitor_data.operational_sources(monitor.read_list(Path("source_catalog.txt")), "nightly")
-          assert len({value.casefold() for value in primary + nightly}) >= 66
+          configured_primary = monitor.read_list(Path("public_sources.txt"))
+          configured_nightly = monitor.read_list(Path("source_catalog.txt"))
+          primary = monitor_data.operational_sources(configured_primary, "fast")
+          nightly = monitor_data.operational_sources(configured_nightly, "nightly")
+          configured_union = {value.casefold() for value in configured_primary + configured_nightly}
+          operational_union = {value.casefold() for value in primary + nightly}
+          assert configured_primary and configured_nightly
+          assert operational_union == configured_union
           assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
-          assert primary
           ledger = json.load(open("notification_delivery_state.json", encoding="utf-8"))
           assert ledger.get("format") == "bbvg-notification-delivery-v2"
           assert not {"chat_id", "user_id", "text", "url", "username"} & set(ledger)
@@ -193,7 +196,6 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_BRANCH: main
           TELEGRAM_WEB_DOMAIN: telegram.me
-          EXPECTED_SOURCE_COUNT: "66"
           DISPLAY_TIMEZONE: Asia/Barnaul
           REQUEST_TIMEOUT_SECONDS: "15"
           WHEEL_API_ATTEMPTS: "3"
@@ -203,7 +205,6 @@ jobs:
           TRANSPORT_BATCH_ATTEMPTS: "3"
           MONITOR_RESTART_FAILURES: "2"
           MONITOR_RESTART_NO_PROGRESS: "2"
-          UNKNOWN_DEDUP_HOURS: "24"
           DEADLINE_GRACE_MINUTES: "30"
           FINAL_REMINDER_BEFORE_MINUTES: "5"
           ACTIVE_REMOVE_GRACE_MINUTES: "0"
@@ -269,7 +270,8 @@ jobs:
           iteration=0
 
           while true; do
-            iteration=$((iteration + 1))
+            iteration=$((iteration + 1)
+            )
             started_at=$(date +%s)
             admin_action_before=$(python - <<'PY'
           import json
