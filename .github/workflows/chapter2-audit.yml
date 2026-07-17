@@ -37,7 +37,6 @@ jobs:
           workflow_dir = root / '.github' / 'workflows'
           action_re = re.compile(r'^\s*-?\s*uses:\s*([^\s#]+)', re.MULTILINE)
           ref_re = re.compile(r'^\s*ref:\s*(.+?)\s*(?:#.*)?$', re.MULTILINE)
-          permissions_re = re.compile(r'^(\s*)permissions:\s*(.*?)$', re.MULTILINE)
           concurrency_re = re.compile(r'^\s*concurrency:\s*(.*)$', re.MULTILINE)
 
           workflows = []
@@ -115,6 +114,28 @@ jobs:
           Path('chapter2-workflow-audit.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
 
+      - name: Collect source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p chapter2-source-snapshot/workflows
+          cp .github/workflows/*.yml chapter2-source-snapshot/workflows/
+          for path in \
+            AGENTS.md \
+            docs/PROJECT_CHANGELOG_RU.md \
+            admin_panel_status.json \
+            monitor_status.json \
+            monitor_shift_v41.sh \
+            monitor_health.py \
+            admin_panel_runtime_v37.py \
+            system_checks.py \
+            system_checks_v2.py; do
+            if [ -f "$path" ]; then
+              mkdir -p "chapter2-source-snapshot/$(dirname "$path")"
+              cp "$path" "chapter2-source-snapshot/$path"
+            fi
+          done
+
       - name: Upload audit
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -122,4 +143,5 @@ jobs:
           path: |
             chapter2-workflow-audit.json
             chapter2-workflow-audit.md
+            chapter2-source-snapshot
           retention-days: 1
