@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  diagnose:
+  prepare:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -29,15 +29,12 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt pytest
 
-      - name: Run preparation and capture sanitized diagnostics
+      - name: Extract and apply prepared changes
         run: |
           python - <<'PY'
           from pathlib import Path
-          import json
-          import re
-          import subprocess
           import textwrap
 
           workflow = Path('.github/workflows/bot-state-backup.yml').read_text(encoding='utf-8')
@@ -48,34 +45,40 @@ jobs:
           Path('/tmp/apply_chapter1.py').write_text(
               textwrap.dedent(workflow[start:end]), encoding='utf-8'
           )
-
-          commands = [
-              ['python', '/tmp/apply_chapter1.py'],
-              ['python', 'security_audit.py', '--migrate-current'],
-              ['python', '-m', 'py_compile', 'security_audit.py', 'wheel_lifecycle_v2.py', 'monitor_data.py', 'admin_action_v3.py', 'admin_panel_runtime_v5.py'],
-              ['python', 'security_audit.py', '--self-test'],
-              ['python', 'security_audit.py', '--current'],
-              ['python', '-m', 'pytest', '-q', 'tests/test_lifecycle.py', 'tests/test_personal_wheel_voting.py'],
-          ]
-          rows = []
-          for command in commands:
-              result = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-              output = result.stdout[-12000:]
-              output = re.sub(r'(?<![A-Za-z0-9_])\d{7,15}(?![A-Za-z0-9_])', '<numeric-id>', output)
-              rows.append({'command': command, 'returncode': result.returncode, 'output_tail': output})
-              if result.returncode:
-                  break
-          Path('.chapter1-diagnostic.json').write_text(
-              json.dumps({'results': rows}, ensure_ascii=False, indent=2) + '\n',
-              encoding='utf-8',
-          )
           PY
+          python /tmp/apply_chapter1.py
 
-      - name: Publish diagnostic marker
+      - name: Migrate current JSON
+        run: python security_audit.py --migrate-current
+
+      - name: Compile changed Python
+        run: python -m py_compile security_audit.py wheel_lifecycle_v2.py monitor_data.py admin_action_v3.py admin_panel_runtime_v5.py
+
+      - name: Run security self-test
+        run: python security_audit.py --self-test
+
+      - name: Audit current tree
+        run: python security_audit.py --current
+
+      - name: Run targeted tests
+        run: python -m pytest -q tests/test_lifecycle.py tests/test_personal_wheel_voting.py
+
+      - name: Commit prepared changes
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .chapter1-diagnostic.json
-          git commit -m "Record chapter 1 preparation diagnostic [skip ci]"
+          git add \
+            wheel_lifecycle_v2.py \
+            monitor_data.py \
+            admin_action_v3.py \
+            admin_panel_runtime_v5.py \
+            security_audit.py \
+            state.json \
+            source_stats.json \
+            candidate_moderation.json \
+            tests/test_lifecycle.py \
+            docs/PROJECT_CHANGELOG_RU.md
+          git diff --cached --check
+          git commit -m "Anonymize public runtime provenance for chapter 1 [skip ci]"
           git push origin HEAD:chapter1-pii-hardening
