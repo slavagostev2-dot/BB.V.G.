@@ -1,4 +1,4 @@
-name: Chapter 3 final apply
+name: Chapter 3 wheel API diagnostic
 
 on:
   pull_request:
@@ -8,17 +8,15 @@ permissions:
   contents: read
 
 jobs:
-  apply:
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    permissions:
-      contents: write
+  diagnostic:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 10
     steps:
-      - name: Checkout chapter branch
+      - name: Checkout exact proposed commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up Python
@@ -27,28 +25,67 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Apply and verify chapter 3
-        id: apply
+      - name: Install production dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Capture public BetBoom wheel response semantics
         shell: bash
         run: |
-          set -o pipefail
-          bash .github/ch3-apply-test.sh 2>&1 | tee chapter3-apply.log
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import requests
 
-      - name: Commit verified chapter 3
-        if: steps.apply.outcome == 'success'
-        id: commit
-        shell: bash
-        run: |
-          set -o pipefail
-          bash .github/ch3-commit-push.sh 2>&1 | tee chapter3-commit.log
+          endpoint = "https://betboom.ru/api/streamer-wheel/action/get-info"
+          links = {
+              "reported_nonworking": "https://betboom.ru/freestream/dyrachyo",
+              "known_timed": "https://betboom.ru/freestream/solotg",
+              "known_long_timed": "https://betboom.ru/freestream/neret",
+          }
+          result = {}
+          for label, link in links.items():
+              response = requests.post(
+                  endpoint,
+                  json={"streamer_link": link},
+                  headers={
+                      "Content-Type": "application/json",
+                      "User-Agent": "BBVG-wheel-diagnostic/1.0",
+                      "x-platform": "web",
+                  },
+                  timeout=20,
+              )
+              try:
+                  payload = response.json()
+              except ValueError:
+                  payload = {"invalid_json": response.text[:300]}
+              info = payload.get("info") if isinstance(payload, dict) else None
+              scalar_info = {}
+              if isinstance(info, dict):
+                  for key, value in info.items():
+                      if value is None or isinstance(value, (str, int, float, bool)):
+                          scalar_info[key] = value
+                      elif isinstance(value, list):
+                          scalar_info[key] = {"type": "list", "length": len(value)}
+                      elif isinstance(value, dict):
+                          scalar_info[key] = {"type": "object", "keys": sorted(value)}
+              result[label] = {
+                  "http_status": response.status_code,
+                  "top_level_code": payload.get("code") if isinstance(payload, dict) else None,
+                  "top_level_status": payload.get("status") if isinstance(payload, dict) else None,
+                  "top_level_error": payload.get("error") if isinstance(payload, dict) else None,
+                  "info_keys": sorted(info) if isinstance(info, dict) else [],
+                  "info": scalar_info,
+              }
+          with open("wheel-api-diagnostic.json", "w", encoding="utf-8") as stream:
+              json.dump(result, stream, ensure_ascii=False, indent=2, sort_keys=True)
+              stream.write("\n")
+          print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+          PY
 
-      - name: Upload chapter logs
-        if: always()
+      - name: Upload diagnostic
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: chapter3-logs-${{ github.run_id }}
-          path: |
-            chapter3-apply.log
-            chapter3-commit.log
+          name: chapter3-wheel-api-${{ github.run_id }}
+          path: wheel-api-diagnostic.json
           retention-days: 1
-          if-no-files-found: warn
+          if-no-files-found: error
