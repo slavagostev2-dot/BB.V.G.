@@ -5,9 +5,14 @@ on:
   create:
   pull_request:
     types:
+      - opened
+      - synchronize
+      - reopened
       - closed
     paths:
       - ".github/workflows/bot-state-backup.yml"
+      - "bot_private_state.enc.json"
+      - "bot_private_state.py"
   push:
     branches:
       - "backup/**"
@@ -24,15 +29,21 @@ concurrency:
 
 jobs:
   backup:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.head_ref, 'chapter1-'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Checkout repository
+      - name: Checkout exact authoritative state
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || 'main' }}
           fetch-depth: 1
 
       - name: Set up Python
@@ -44,36 +55,104 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Verify encrypted state before backup
+      - name: Verify encrypted state and write non-PII metadata
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
-          BOT_STATE_PREVIOUS_KEY: ${{ secrets.BOT_STATE_PREVIOUS_KEY }}
-          BOT_STATE_LEGACY_KEY: ${{ secrets.BOT_STATE_LEGACY_KEY }}
         run: |
           set -euo pipefail
           python - <<'PY'
+          import hashlib
+          import hmac
           import json
+          import os
+          import subprocess
+          from datetime import datetime, timezone
+
           import bot_private_state
 
+          production_key = str(os.environ.get("BOT_STATE_KEY") or "").strip()
+          assert production_key, "BOT_STATE_KEY is required for a verified production backup"
+
           text = bot_private_state.STATE_PATH.read_text(encoding="utf-8")
-          value = bot_private_state.unseal(text)
+          source_sha = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"],
+              text=True,
+          ).strip()
+          assert len(source_sha) == 40, "Unable to resolve exact source SHA"
+          assert bot_private_state.state_format(text) == bot_private_state.FORMAT_V2
+          assert bot_private_state.state_key_mode(text) == "dedicated"
+
+          value = bot_private_state.unseal(text, secret=production_key)
           access = value.get("access") if isinstance(value.get("access"), dict) else {}
           users = access.get("users") if isinstance(access.get("users"), dict) else {}
+          admins = access.get("admins") if isinstance(access.get("admins"), list) else []
+          recipients = (
+              access.get("notification_recipients")
+              if isinstance(access.get("notification_recipients"), list)
+              else []
+          )
+          requests_bundle = (
+              value.get("source_requests")
+              if isinstance(value.get("source_requests"), dict)
+              else {}
+          )
+          requests = (
+              requests_bundle.get("requests")
+              if isinstance(requests_bundle.get("requests"), dict)
+              else {}
+          )
           assert access.get("owner_id"), "Encrypted state has no owner"
           assert users, "Encrypted state has no users"
+
+          canonical = json.dumps(
+              value,
+              ensure_ascii=False,
+              separators=(",", ":"),
+              sort_keys=True,
+          ).encode("utf-8")
+          encrypted_bytes = bot_private_state.STATE_PATH.read_bytes()
+          state_hmac = hmac.new(
+              production_key.encode("utf-8"),
+              b"bbvg-backup-state-v1\0" + canonical,
+              hashlib.sha256,
+          ).hexdigest()
+
+          restored = bot_private_state.unseal(
+              bot_private_state.seal(value, secret=production_key),
+              secret=production_key,
+          )
+          assert restored == value, "Encrypted restore smoke mismatch"
+
           metadata = {
+              "schema": "bbvg-encrypted-backup-metadata-v2",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "source_ref": "refs/heads/main",
+              "source_sha": source_sha,
+              "encrypted_sha256": hashlib.sha256(encrypted_bytes).hexdigest(),
+              "state_hmac_sha256": state_hmac,
               "format": bot_private_state.state_format(text),
-              "key_mode": bot_private_state.state_key_mode(text),
-              "verified": True,
-              "user_count": len(users),
+              "key_mode": "dedicated_current_production_key",
+              "verified_decrypt": True,
+              "verified_restore_smoke": True,
+              "artifact_outside_public_git_refs": True,
+              "aggregates": {
+                  "owner_present": True,
+                  "user_count": len(users),
+                  "admin_count": len(set(map(str, admins))),
+                  "notification_recipient_count": len(set(map(str, recipients))),
+                  "source_request_count": len(requests),
+                  "bundle_version": value.get("version"),
+              },
+              "generated_at": datetime.now(timezone.utc).isoformat(),
           }
           with open("bot_state_backup_metadata.json", "w", encoding="utf-8") as stream:
               json.dump(metadata, stream, ensure_ascii=False, indent=2, sort_keys=True)
               stream.write("\n")
           print(
               "Verified encrypted state backup: "
-              f"format={metadata['format']}, key_mode={metadata['key_mode']}, users={len(users)}"
+              f"source_sha={source_sha}, format={metadata['format']}, "
+              f"users={metadata['aggregates']['user_count']}, "
+              "restore_smoke=true"
           )
           PY
 
@@ -95,6 +174,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
       (github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
       github.event.pull_request.merged == true) ||
       (github.event_name == 'push' &&
       github.event.created &&
@@ -117,7 +197,6 @@ jobs:
           python - <<'PY'
           import json
           import os
-          import sys
           import urllib.error
           import urllib.parse
           import urllib.request
