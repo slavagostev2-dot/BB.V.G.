@@ -20,10 +20,8 @@ def main() -> int:
     os.environ.setdefault("BOT_STATE_KEY", "test-state-key")
     os.environ.setdefault("BOT_CHAT_ID", "1")
     os.environ.setdefault("TELEGRAM_WEB_DOMAIN", "telegram.me")
-    os.environ.setdefault("EXPECTED_SOURCE_COUNT", "66")
     os.environ.setdefault("FINAL_REMINDER_BEFORE_MINUTES", "5")
     os.environ.setdefault("ACTIVE_REMOVE_GRACE_MINUTES", "0")
-    os.environ["UNKNOWN_DEDUP_HOURS"] = "2"
 
     files = (
         "monitor.py",
@@ -106,13 +104,14 @@ def main() -> int:
     assert runtime.monitor.UNKNOWN_DEDUP_HOURS == 2
     assert notification_router._bbvg_notification_integrity_v2_installed is True
 
-    primary = monitor_data.operational_sources(
-        monitor.read_list(ROOT / "public_sources.txt"), "fast"
-    )
-    nightly = monitor_data.operational_sources(
-        monitor.read_list(ROOT / "source_catalog.txt"), "nightly"
-    )
-    assert len({value.casefold() for value in primary + nightly}) >= 66
+    configured_primary = monitor.read_list(ROOT / "public_sources.txt")
+    configured_nightly = monitor.read_list(ROOT / "source_catalog.txt")
+    primary = monitor_data.operational_sources(configured_primary, "fast")
+    nightly = monitor_data.operational_sources(configured_nightly, "nightly")
+    configured_union = {value.casefold() for value in configured_primary + configured_nightly}
+    operational_union = {value.casefold() for value in primary + nightly}
+    assert configured_primary and configured_nightly
+    assert operational_union == configured_union
     assert not {value.casefold() for value in primary} & {
         value.casefold() for value in nightly
     }

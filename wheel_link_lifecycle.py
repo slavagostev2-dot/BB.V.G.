@@ -289,7 +289,8 @@ def install(monitor_module: Any) -> None:
             )
         return result
 
-    monitor_module.UNKNOWN_DEDUP_HOURS = 2
+    if int(getattr(monitor_module, "UNKNOWN_DEDUP_HOURS", 0) or 0) != 2:
+        raise RuntimeError("Untimed wheel deduplication must remain exactly 2 hours")
     monitor_module.is_suppressed = suppressed
     monitor_module.is_activation_suppressed = activation_suppressed
     monitor_module.remember_alert = remember_alert

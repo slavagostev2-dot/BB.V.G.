@@ -65,7 +65,17 @@ def stability_acceptance() -> None:
     assert bbvg_monitor_main.monitor._bbvg_restart_duplicate_guard_installed is True
     assert bbvg_monitor_main.monitor._bbvg_wheel_link_lifecycle_installed is True
     assert bbvg_monitor_main.monitor.UNKNOWN_DEDUP_HOURS == 2
-    assert "getUpdates" not in inspect.getsource(bbvg_monitor_main)
+    update_calls: list[str] = []
+    original_telegram_api = bbvg_monitor_main.monitor.telegram_api
+    try:
+        bbvg_monitor_main.monitor.telegram_api = (
+            lambda method, payload: update_calls.append(method) or {"ok": True, "result": []}
+        )
+        feedback = bbvg_monitor_main.monitor.process_bot_feedback({}, {}, {})
+    finally:
+        bbvg_monitor_main.monitor.telegram_api = original_telegram_api
+    assert feedback == {"callbacks": 0, "participating": 0, "lists": 0}
+    assert update_calls == []
     wheel_link_lifecycle.self_test()
     wheel_scenario_suite.self_test()
 

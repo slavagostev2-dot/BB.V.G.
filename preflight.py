@@ -6,8 +6,6 @@ from pathlib import Path
 import monitor_data as data_store
 
 ROOT = Path(__file__).resolve().parent
-EXPECTED_SOURCE_COUNT = 66
-
 
 def require_text(path: str, markers: tuple[str, ...]) -> None:
     file_path = ROOT / path
@@ -139,7 +137,7 @@ def main() -> None:
     )
     require_text(
         "system_checks.py",
-        ("EXPECTED_SOURCE_COUNT", "check_telegram_web", "check_notification_routing"),
+        ("def source_inventory_snapshot", "check_telegram_web", "check_notification_routing"),
     )
     require_text(
         "monitor_health.py",
@@ -299,10 +297,9 @@ def main() -> None:
     nightly_values = source_values("source_catalog.txt")
     all_values = configured_values + nightly_values
     configured_keys = [item.casefold() for item in all_values]
-    if len(set(configured_keys)) < EXPECTED_SOURCE_COUNT:
-        raise SystemExit(
-            f"PRECHECK ERROR: expected at least {EXPECTED_SOURCE_COUNT} approved sources across both tiers, found {len(set(configured_keys))}"
-        )
+    configured_total = len(set(configured_keys))
+    if not configured_values or not nightly_values:
+        raise SystemExit("PRECHECK ERROR: primary and nightly inventories must both be explicit")
     if len(configured_keys) != len(set(configured_keys)):
         raise SystemExit("PRECHECK ERROR: source tiers contain duplicate or overlapping sources")
 
@@ -315,9 +312,10 @@ def main() -> None:
         for item in data_store.operational_sources(nightly_values, "nightly")
     }
     approved = fast | nightly
-    if len(approved) < EXPECTED_SOURCE_COUNT:
+    if len(approved) != configured_total:
         raise SystemExit(
-            f"PRECHECK ERROR: operational source union must contain at least {EXPECTED_SOURCE_COUNT}; found {len(approved)}"
+            "PRECHECK ERROR: operational source union does not match the current configured inventory: "
+            f"configured={configured_total}, operational={len(approved)}"
         )
     if fast & nightly:
         raise SystemExit("PRECHECK ERROR: primary and nightly source tiers overlap")

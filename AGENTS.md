@@ -141,6 +141,16 @@ docs/
 - в публичную очередь рейтинга записывается HMAC-псевдоним, а не Telegram ID;
 - финальное напоминание подавляется только для конкретного пользователя, отметившего участие в конкретном событии;
 - уведомление о наступлении времени отправляется до автоматической очистки завершившегося колеса.
+- основной монитор не вызывает Telegram `getUpdates`: единственным consumer входящих updates является production-панель; этот контракт проверяется запуском обоих путей с fake Telegram API, а не поиском текста в исходниках.
+- двухчасовое окно колеса без автоматического или ручного таймера является фиксированным доменным контрактом и не переопределяется переменной workflow.
+- каждая команда `admin_action_queue` идемпотентна по `command_id`; повтор любого поддержанного action не меняет state, health или rating.
+
+### Достоверный health и inventory источников
+
+- Авторитетный inventory вычисляется из текущих `public_sources.txt` и `source_catalog.txt`; historical constants вроде 66/77 запрещены для критических health-решений.
+- Диагностика отдельно показывает primary, nightly и общий operational total и сверяет их с `source_transport_state.json`.
+- Успешный свежий transport smoke обязан совпадать с текущим inventory по primary/nightly/total, не иметь missing/error sources и автоматически закрывать прежний stale incident.
+- `source_registry.json`, transport smoke и monitor heartbeat могут считать разные контуры только явно: registry/transport — весь primary + nightly inventory, monitor — primary текущей итерации.
 
 ## 8. Telegram-интерфейс
 

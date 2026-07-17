@@ -45,7 +45,6 @@ ACTIVE_DOMAIN_FILES = (
     ROOT / "docs" / "views-secondary.js",
 )
 UTC = timezone.utc
-EXPECTED_SOURCE_COUNT = max(1, int(os.getenv("EXPECTED_SOURCE_COUNT", "66")))
 MONITOR_MAX_AGE_MINUTES = max(5, int(os.getenv("MONITOR_MAX_AGE_MINUTES", "20")))
 ADMIN_PANEL_MAX_AGE_MINUTES = max(
     10, int(os.getenv("ADMIN_PANEL_MAX_AGE_MINUTES", "20"))
@@ -89,6 +88,35 @@ def unique_sources(path: Path) -> list[str]:
     return result
 
 
+
+
+def source_inventory_snapshot() -> dict[str, Any]:
+    primary_configured = unique_sources(PUBLIC_SOURCES_PATH)
+    nightly_configured = unique_sources(NIGHTLY_SOURCES_PATH)
+    primary_operational = data_store.operational_sources(primary_configured, "fast")
+    nightly_operational = data_store.operational_sources(nightly_configured, "nightly")
+
+    def unique(values: list[str]) -> list[str]:
+        result: list[str] = []
+        seen: set[str] = set()
+        for value in values:
+            clean = str(value).strip().lstrip("@")
+            if clean and clean.casefold() not in seen:
+                seen.add(clean.casefold())
+                result.append(clean)
+        return result
+
+    configured_union = unique(primary_configured + nightly_configured)
+    operational_union = unique(primary_operational + nightly_operational)
+    return {
+        "primary_configured": primary_configured,
+        "nightly_configured": nightly_configured,
+        "primary_operational": primary_operational,
+        "nightly_operational": nightly_operational,
+        "configured_union": configured_union,
+        "operational_union": operational_union,
+    }
+
 def finding(kind: str, title: str, detail: str, *, severity: str = "warning", subject: str = "") -> dict[str, Any]:
     return {
         "kind": kind,
@@ -124,40 +152,59 @@ def classify_transport_error(exc: BaseException) -> tuple[str, str]:
 
 
 def check_inventory(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
-    configured = unique_sources(PUBLIC_SOURCES_PATH)
-    nightly = unique_sources(NIGHTLY_SOURCES_PATH)
-    operational = data_store.operational_sources(configured, "fast")
-    operational_nightly = data_store.operational_sources(nightly, "nightly")
-    all_keys = [source.casefold() for source in operational + operational_nightly]
+    snapshot = source_inventory_snapshot()
+    primary_configured = snapshot["primary_configured"]
+    nightly_configured = snapshot["nightly_configured"]
+    primary_operational = snapshot["primary_operational"]
+    nightly_operational = snapshot["nightly_operational"]
+    configured_union = snapshot["configured_union"]
+    operational_union = snapshot["operational_union"]
+    all_keys = [source.casefold() for source in primary_operational + nightly_operational]
     duplicates = len(all_keys) - len(set(all_keys))
     details["inventory"] = {
-        "expected": EXPECTED_SOURCE_COUNT,
-        "configured": len(configured),
-        "operational": len(operational),
-        "nightly": len(nightly),
-        "total": len(set(all_keys)),
+        # Compatibility fields now describe the current authoritative inventory,
+        # never a historical minimum such as 66.
+        "expected": len(operational_union),
+        "configured": len(primary_configured),
+        "operational": len(primary_operational),
+        "nightly": len(nightly_operational),
+        "total": len(operational_union),
+        "configured_total": len(configured_union),
+        "primary_configured": len(primary_configured),
+        "primary_operational": len(primary_operational),
+        "nightly_configured": len(nightly_configured),
+        "nightly_operational": len(nightly_operational),
         "duplicates": duplicates,
         "domain": telegram_transport.PRIMARY_DOMAIN,
     }
-    if len(set(all_keys)) < EXPECTED_SOURCE_COUNT:
-        findings.append(finding(
-            "source_inventory",
-            "Неверное количество источников",
-            f"Ожидалось не меньше {EXPECTED_SOURCE_COUNT} в общем пуле, найдено {len(set(all_keys))}.",
-            severity="critical",
-        ))
-    if not operational:
+    if not primary_operational:
         findings.append(finding(
             "source_policy",
             "Основной мониторинг остался без источников",
-            "Все утверждённые источники оказались в ночном режиме.",
+            "Текущий основной inventory пуст.",
+            severity="critical",
+        ))
+    if not nightly_configured:
+        findings.append(finding(
+            "source_nightly_inventory",
+            "Не задан ночной inventory источников",
+            "Файл ночного наблюдения не содержит источников.",
+        ))
+    if len(operational_union) != len(configured_union):
+        findings.append(finding(
+            "source_inventory",
+            "Рабочий inventory не совпадает с настроенным",
+            (
+                f"Настроено {len(configured_union)}, в рабочем пуле {len(operational_union)}; "
+                f"основных {len(primary_operational)}, ночных {len(nightly_operational)}."
+            ),
             severity="critical",
         ))
     if duplicates:
         findings.append(finding(
             "source_duplicates",
             "Обнаружены дубли источников",
-            f"Количество повторов: {duplicates}.",
+            f"Количество повторов между primary/nightly: {duplicates}.",
         ))
 
 
@@ -527,21 +574,22 @@ def check_discovery_runtime(details: dict[str, Any], findings: list[dict[str, An
             f"Ожидался {telegram_transport.PRIMARY_DOMAIN}, записано {summary['intelligence_domain'] or 'нет данных'}.",
             severity="critical",
         ))
+    expected_total = len(source_inventory_snapshot()["operational_union"])
     discovered_pool = summary["active_size"] + summary["catalog_size"]
-    if discovered_pool and discovered_pool < EXPECTED_SOURCE_COUNT:
+    if discovered_pool and discovered_pool < expected_total:
         findings.append(finding(
             "discovery_inventory",
             "Ночная проверка видит не весь утверждённый пул",
-            f"В состоянии поиска записано {discovered_pool}, ожидается не меньше {EXPECTED_SOURCE_COUNT}.",
+            f"В состоянии поиска записано {discovered_pool}, текущий inventory содержит {expected_total}.",
         ))
     intelligence_summary = summary["intelligence_summary"]
     scanned = int(intelligence_summary.get("sources_scanned", 0) or 0)
     intelligence_errors = int(intelligence_summary.get("errors", 0) or 0)
-    if intelligence_errors or (intelligence_summary and scanned < EXPECTED_SOURCE_COUNT):
+    if intelligence_errors or (intelligence_summary and scanned < expected_total):
         findings.append(finding(
             "discovery_scan_failure",
             "Поиск новых источников не смог просканировать базу",
-            f"Просканировано {scanned} из {EXPECTED_SOURCE_COUNT}; ошибок {intelligence_errors}. "
+            f"Просканировано {scanned} из текущих {expected_total}; ошибок {intelligence_errors}. "
             f"Поиск должен выполняться через {telegram_transport.PRIMARY_DOMAIN}.",
             severity="critical",
         ))
@@ -691,13 +739,30 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
     transport = load_json(SOURCE_TRANSPORT_STATE_PATH, {})
     tier_at = parse_datetime(tier.get("last_run_at") if isinstance(tier, dict) else None)
     transport_at = parse_datetime(transport.get("checked_at") if isinstance(transport, dict) else None)
+    inventory = source_inventory_snapshot()
+    expected_primary = len(inventory["primary_operational"])
+    expected_nightly = len(inventory["nightly_operational"])
+    expected_total = len(inventory["operational_union"])
+    recorded_primary = int(transport.get("primary_sources", 0) or 0)
+    recorded_nightly = int(transport.get("nightly_sources", 0) or 0)
+    recorded_total = int(transport.get("accounted_sources", 0) or 0)
+    configured_total = int(transport.get("configured_sources", 0) or 0)
+    missing = transport.get("missing_sources")
+    missing = missing if isinstance(missing, list) else []
     details["automation_state"] = {
         "source_tier_policy": tier.get("policy") if isinstance(tier, dict) else None,
         "source_tier_last_run_at": tier.get("last_run_at") if isinstance(tier, dict) else None,
         "transport_status": transport.get("status") if isinstance(transport, dict) else None,
         "transport_checked_at": transport.get("checked_at") if isinstance(transport, dict) else None,
         "transport_domain": transport.get("domain") if isinstance(transport, dict) else None,
-        "transport_accounted_sources": transport.get("accounted_sources") if isinstance(transport, dict) else None,
+        "transport_accounted_sources": recorded_total,
+        "expected_primary_sources": expected_primary,
+        "expected_nightly_sources": expected_nightly,
+        "expected_total_sources": expected_total,
+        "recorded_primary_sources": recorded_primary,
+        "recorded_nightly_sources": recorded_nightly,
+        "recorded_configured_sources": configured_total,
+        "missing_sources": len(missing),
     }
     if tier.get("policy") != "seven_day_dynamic_primary_and_nightly":
         findings.append(finding(
@@ -712,22 +777,33 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
             "Давно не запускалось обслуживание режимов источников",
             "Нет свежего запуска за последние 36 часов.",
         ))
-    if (
-        transport.get("status") != "success"
-        or transport.get("domain") != telegram_transport.PRIMARY_DOMAIN
-        or int(transport.get("accounted_sources", 0) or 0) < EXPECTED_SOURCE_COUNT
-    ):
+    transport_matches_inventory = (
+        transport.get("status") == "success"
+        and transport.get("domain") == telegram_transport.PRIMARY_DOMAIN
+        and recorded_primary == expected_primary
+        and recorded_nightly == expected_nightly
+        and configured_total == expected_total
+        and recorded_total == expected_total
+        and not missing
+        and int(transport.get("error_sources", 0) or 0) == 0
+    )
+    if not transport_matches_inventory:
         findings.append(finding(
             "source_transport_smoke",
-            "Полная транспортная проверка 66 источников не подтверждена",
-            f"status={transport.get('status')}; domain={transport.get('domain')}; accounted={transport.get('accounted_sources')}.",
+            "Транспортная проверка текущего inventory не подтверждена",
+            (
+                f"status={transport.get('status')}; domain={transport.get('domain')}; "
+                f"primary={recorded_primary}/{expected_primary}; "
+                f"nightly={recorded_nightly}/{expected_nightly}; "
+                f"accounted={recorded_total}/{expected_total}; missing={len(missing)}."
+            ),
             severity="critical",
         ))
     if transport_at is None or now_utc() - transport_at > timedelta(hours=36):
         findings.append(finding(
             "source_transport_stale",
-            "Давно не выполнялась полная проверка 66 источников",
-            "Нет свежего транспортного прогона за последние 36 часов.",
+            "Давно не выполнялась полная проверка текущего inventory",
+            f"Нет свежего транспортного прогона для {expected_total} источников за последние 36 часов.",
         ))
 
 
@@ -853,7 +929,15 @@ def main() -> int:
         "monitor": "ok" if not any(str(item["kind"]).startswith("monitor_") or item["kind"] in {"all_sources_unreachable", "partial_source_failure"} for item in findings) else "failed",
         "wheel_api": "ok" if not any(item["kind"] == "wheel_api_validation_failure" for item in findings) else "failed",
         "bot_panel": "ok" if not any(str(item["kind"]).startswith("admin_panel_") for item in findings) else "failed",
-        "source_health": "ok" if not any(str(item["kind"]).startswith("source_") or item["kind"] == "sources_quarantined" for item in findings) else "failed",
+        "source_health": "ok" if not any(
+            (
+                str(item["kind"]).startswith("source_")
+                and not str(item["kind"]).startswith(("source_transport_", "source_tier_"))
+                and item["kind"] not in {"source_inventory", "source_policy", "source_duplicates"}
+            )
+            or item["kind"] == "sources_quarantined"
+            for item in findings
+        ) else "failed",
         "discovery": "ok" if not any(str(item["kind"]).startswith("discovery_") for item in findings) else "failed",
         "miniapp": "ok" if not any(str(item["kind"]).startswith("miniapp_") for item in findings) else "failed",
         "notifications": "ok" if not any(item["kind"] in {"notification_routing", "non_admin_error_recipient"} for item in findings) else "failed",
