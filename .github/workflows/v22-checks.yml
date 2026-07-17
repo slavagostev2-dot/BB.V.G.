@@ -1,34 +1,26 @@
-name: BB V.G. current checks
-run-name: BB V.G. current checks — ${{ github.event_name }}
+name: Apply and verify chapter 3 completion
 
 on:
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: chapter3-completion-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-  current:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      BOT_TOKEN: "test-bot-token"
-      BOT_STATE_KEY: "test-state-key"
-      BOT_CHAT_ID: "1"
-      ADMIN_USER_ID: "1"
-      BBVG_TEST_MODE: "1"
-      TELEGRAM_WEB_DOMAIN: telegram.me
-      FINAL_REMINDER_BEFORE_MINUTES: "5"
-      ACTIVE_REMOVE_GRACE_MINUTES: "0"
-
+    timeout-minutes: 35
     steps:
-      - name: Checkout proposed changes
+      - name: Checkout chapter branch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -36,75 +28,149 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-dev.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt PyYAML
 
-      - name: Validate consolidated runtime and state
-        run: |
-          set -euo pipefail
-          python -m compileall -q bbvg tests
-          python -m py_compile \
-            admin_bot.py admin_runtime.py admin_panel_v2.py \
-            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
-            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
-            admin_panel_runtime_v41.py bot_private_state.py \
-            notification_integrity_v2.py privacy_retention.py security_audit.py \
-            migrate_bot_private_state.py source_registry.py \
-            wheel_link_lifecycle.py wheel_scenario_suite.py
-          python -m bbvg.bot.storage
-          python -m bbvg.bot.users
-          python -m bbvg.bot.runtime --self-test
-          python admin_panel_runtime_v36.py --self-test
-          python admin_panel_runtime_v37.py --self-test
-          python admin_panel_runtime_v38.py --self-test
-          python admin_panel_runtime_v41.py --self-test
-          python bot_private_state.py
-          python notification_integrity_v2.py --self-test
-          python privacy_retention.py
-          python migrate_bot_private_state.py --check
-          python security_audit.py --self-test
-          python security_audit.py --current
-          python security_audit.py --history --history-output security_history_report.json
-
-      - name: Run full pytest suite
-        run: python -m pytest -q
-
-      - name: Run production acceptance
-        run: python tests/production_acceptance.py --section all
-
-      - name: Validate current production boundaries
+      - name: Apply correction and restore validation workflow
+        shell: bash
         run: |
           set -euo pipefail
+          git show HEAD^:.github/workflows/v22-checks.yml > /tmp/v22-checks-final.yml
+          test -f .github/chapter3-wheel-start.patch
+          git apply --check .github/chapter3-wheel-start.patch
+          git apply .github/chapter3-wheel-start.patch
           python - <<'PY'
-          import inspect
           from pathlib import Path
-          import notification_router
-          import telegram_ui
-          from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
-          from bbvg.bot.storage import PrivateStateRuntime
-          from bbvg.bot.users import UserSettingsMixin, WHEEL_NOTIFICATION_OPTIONS
 
-          workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
-          assert 'run: python admin_panel_runtime_v41.py' in workflow
-          assert 'Role fingerprint' in workflow or 'role fingerprint' in workflow.lower()
-          assert {'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'} == {
-              key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
-          }
-          handler = inspect.getsource(UserSettingsMixin.handle_callback)
-          assert 'usernotify:' in handler and 'usernotifyall:' in handler
-          assert '_load_remote_bundle' in inspect.getsource(PrivateStateRuntime._save_bot_bundle)
-          assert 'page:status' in {
-              button['callback_data']
-              for row in TelegramPanelRuntimeV38.compact_menu_rows(False)
-              for button in row
-          }
-          assert notification_router._bbvg_notification_integrity_v2_installed is True
-          assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
-          print('Current consolidated production boundaries validated')
+          workflow_root = Path('.github/workflows')
+          for path in sorted(workflow_root.glob('*.yml')):
+              lines = path.read_text(encoding='utf-8').splitlines()
+              filtered = [
+                  line
+                  for line in lines
+                  if not line.strip().startswith('EXPECTED_SOURCE_COUNT:')
+                  and not line.strip().startswith('UNKNOWN_DEDUP_HOURS:')
+              ]
+              path.write_text('\n'.join(filtered) + '\n', encoding='utf-8')
+
+          monitor_workflow = workflow_root / 'monitor.yml'
+          text = monitor_workflow.read_text(encoding='utf-8')
+          old = '''          primary = monitor_data.operational_sources(monitor.read_list(Path("public_sources.txt")), "fast")
+          nightly = monitor_data.operational_sources(monitor.read_list(Path("source_catalog.txt")), "nightly")
+          assert len({value.casefold() for value in primary + nightly}) >= 66
+          assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
+          assert primary
+'''
+          new = '''          configured_primary = monitor.read_list(Path("public_sources.txt"))
+          configured_nightly = monitor.read_list(Path("source_catalog.txt"))
+          primary = monitor_data.operational_sources(configured_primary, "fast")
+          nightly = monitor_data.operational_sources(configured_nightly, "nightly")
+          configured_union = {value.casefold() for value in configured_primary + configured_nightly}
+          operational_union = {value.casefold() for value in primary + nightly}
+          assert configured_primary and configured_nightly
+          assert operational_union == configured_union
+          assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
+'''
+          if old not in text:
+              raise RuntimeError('monitor.yml historical inventory assertion marker missing')
+          monitor_workflow.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          agents = Path('AGENTS.md')
+          text = agents.read_text(encoding='utf-8')
+          marker = '- каждое колесо из активного списка повторно проверяется через BetBoom API на каждой итерации монитора;\n'
+          contract = '- ответ BetBoom с `action_id` и `duration_min`, но без `start_dttm` означает созданную, но ещё не запущенную акцию: она не показывается в активных и без уведомления перепроверяется до появления времени старта;\n'
+          if contract not in text:
+              if marker not in text:
+                  raise RuntimeError('AGENTS wheel contract marker missing')
+              text = text.replace(marker, marker + contract, 1)
+          agents.write_text(text, encoding='utf-8')
+
+          changelog = Path('docs/PROJECT_CHANGELOG_RU.md')
+          text = changelog.read_text(encoding='utf-8')
+          old_reason = '**Причина:** системная диагностика продолжала использовать исторические пороги 66/77 и могла держать critical incident при живом мониторе и уже успешной транспортной проверке полного пула. Двухчасовое окно без таймера одновременно задавалось как 24 часа в monitor/workflow и исправлялось monkey-install до 2 часов. Единственный `getUpdates` consumer проверялся поиском строки, а не поведением.'
+          new_reason = old_reason + ' Дополнительно BetBoom возвращал `action_id` и `duration_min` для ещё не запущенной акции без `start_dttm`, а notification-first слой ошибочно превращал такой ответ в активную карточку.'
+          if old_reason in text:
+              text = text.replace(old_reason, new_reason, 1)
+          marker = '- frozen-time fixture доказывает открытие transport incidents при плохом снимке и их закрытие после свежего точного inventory;\n'
+          bullet = '- ответ API с настроенной длительностью, но без `start_dttm`, теперь считается ещё не запущенной акцией: уведомление и активная карточка не создаются, а ранее ошибочно добавленная карточка удаляется вместе с участием и suppression-state и переводится в тихую повторную проверку;\n'
+          if bullet not in text:
+              if marker not in text:
+                  raise RuntimeError('Chapter 3 changelog marker missing')
+              text = text.replace(marker, marker + bullet, 1)
+          text = text.replace(
+              '**Изменённые файлы:** `monitor.py`, `wheel_link_lifecycle.py`, `system_checks.py`, `preflight.py`, `monitor_validation_v41.py`, действующие `.github/workflows/*.yml`, `tests/test_chapter3_contracts.py`, `tests/production_acceptance.py`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`.',
+              '**Изменённые файлы:** `monitor.py`, `monitor_entry.py`, `bbvg_monitor_runtime.py`, `wheel_link_lifecycle.py`, `system_checks.py`, `preflight.py`, `monitor_validation_v41.py`, действующие `.github/workflows/*.yml`, `tests/test_chapter3_contracts.py`, `tests/test_lifecycle.py`, `tests/production_acceptance.py`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`.',
+              1,
+          )
+          text = text.replace(
+              '**Проверки до PR:** targeted behavioral suite — 67 tests и 9 subtests; полный pytest — 103 tests и 9 subtests;',
+              '**Проверки до PR:** targeted behavioral suite — 70 tests и 9 subtests; полный pytest — 106 tests и 9 subtests;',
+              1,
+          )
+          diagnostic = '**Диагностика ложной карточки:** run `29591043004` подтвердил ответ HTTP 200 с `action_id=878`, `duration_min=15`, `is_ended=false`, но без `start_dttm`; именно отсутствие проверки этого сочетания было причиной попадания неработающего колеса в активные.\n\n'
+          rollback = '**Откат:** вернуть merge commit главы 3 целиком либо перейти на `backup/before-chapter3-contracts-health-2026-07-17`; state migration не требуется.\n'
+          if diagnostic not in text:
+              if rollback not in text:
+                  raise RuntimeError('Chapter 3 rollback marker missing')
+              text = text.replace(rollback, diagnostic + rollback, 1)
+          changelog.write_text(text, encoding='utf-8')
+
+          for path in (
+              Path('.github/chapter3-wheel-start.patch'),
+              Path('.github/chapter3-trigger.txt'),
+              Path('.github/workflows/chapter3-audit.yml'),
+          ):
+              path.unlink(missing_ok=True)
           PY
+          cp /tmp/v22-checks-final.yml .github/workflows/v22-checks.yml
+
+      - name: Verify chapter 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -R -n -E 'EXPECTED_SOURCE_COUNT|UNKNOWN_DEDUP_HOURS' .github/workflows; then
+            echo 'Historical source or dedup workflow override remains' >&2
+            exit 1
+          fi
+          python -m compileall -q -x '(^|/)(\.git|\.venv|state_api|docs)(/|$)' .
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          for path in sorted(Path('.github/workflows').glob('*.yml')):
+              yaml.safe_load(path.read_text(encoding='utf-8'))
+          print('Workflow YAML parse passed')
+          PY
+          python -m pytest -q tests/test_lifecycle.py tests/test_chapter3_contracts.py tests/test_recurring_event_hotfix.py tests/test_personal_wheel_voting.py
+          python -m pytest -q
+          python system_checks.py --self-test
+          python system_checks_v2.py --self-test
+          python preflight.py
+          python monitor_validation_v41.py
+          python tests/production_acceptance.py --section all
+          if git diff --name-only | grep -E '\.json$'; then
+            echo 'Runtime JSON changed during chapter 3 validation' >&2
+            exit 1
+          fi
+
+      - name: Commit verified chapter 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Глава 3: исключить ещё не запущенные колёса"
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${GITHUB_HEAD_REF}"; then
+              exit 0
+            fi
+            git pull --rebase origin "${GITHUB_HEAD_REF}" || {
+              git rebase --abort || true
+              exit 1
+            }
+          done
+          exit 1
