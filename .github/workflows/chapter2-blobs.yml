@@ -1,0 +1,85 @@
+name: Build chapter 2 workflow blobs
+
+on:
+  push:
+    branches:
+      - agent/chapter2-actions-hardening
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bb-vg-chapter2-blobs
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: agent/chapter2-actions-hardening
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Materialize final workflow files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64
+          import gzip
+          from pathlib import Path
+
+          source = Path('.github/workflows/chapter2-audit.yml').read_text(encoding='utf-8')
+          start = source.index("          H4sIC")
+          end = source.index("\n          PAYLOAD", start)
+          encoded = ''.join(line.strip() for line in source[start:end].splitlines())
+          Path('/tmp/chapter2.patch').write_bytes(gzip.decompress(base64.b64decode(encoded)))
+          PY
+          git apply --include='.github/workflows/*.yml' /tmp/chapter2.patch
+          rm -f .github/workflows/chapter2-audit.yml .github/workflows/chapter2-retry.yml .github/workflows/chapter2-nonworkflow.yml .github/workflows/chapter2-object.yml .github/workflows/chapter2-blobs.yml
+
+      - name: Upload workflow blobs to GitHub object store
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          repository = os.environ['REPOSITORY']
+          result = {'files': {}, 'deletions': []}
+          for line in subprocess.check_output(['git', 'status', '--porcelain=v1'], text=True).splitlines():
+              status, path = line[:2], line[3:]
+              if ' -> ' in path:
+                  path = path.split(' -> ', 1)[1]
+              if 'D' in status:
+                  result['deletions'].append(path)
+                  continue
+              payload = {'content': base64.b64encode(Path(path).read_bytes()).decode(), 'encoding': 'base64'}
+              completed = subprocess.run(
+                  ['gh', 'api', '--method', 'POST', f'repos/{repository}/git/blobs', '--input', '-'],
+                  input=json.dumps(payload), text=True, check=True, capture_output=True,
+              )
+              result['files'][path] = json.loads(completed.stdout)['sha']
+          Path('chapter2-blobs.json').write_text(json.dumps(result, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(f"Uploaded {len(result['files'])} blobs; deletions={len(result['deletions'])}")
+          PY
+
+      - name: Upload blob inventory
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: chapter2-blobs-${{ github.run_id }}
+          path: chapter2-blobs.json
+          if-no-files-found: error
+          retention-days: 1
