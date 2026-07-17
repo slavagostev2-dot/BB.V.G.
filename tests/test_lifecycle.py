@@ -18,8 +18,10 @@ import monitor
 import monitor_data
 import rating_policy
 import recurring_wheel_events
+import security_audit
 import system_checks
 import wheel_publications_v2
+import wheel_lifecycle_v2
 
 
 UTC = timezone.utc
@@ -402,6 +404,139 @@ class WheelLifecycleTests(unittest.TestCase):
         )
         loaded = monitor.load_state()
         self.assertNotIn("closed", loaded["wheel_publications"])
+
+
+class PublicProvenancePrivacyTests(unittest.TestCase):
+    def test_admin_writers_store_only_admin_provenance(self) -> None:
+        current = datetime(2026, 7, 17, 3, 0, tzinfo=UTC)
+        stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
+        self.assertTrue(
+            monitor_data.record_admin_wheel_decision(
+                stats,
+                wheel_key="wheel-a#action:10",
+                sources=["source"],
+                decision="confirmed",
+                actor="123456789",
+                at=current,
+            )
+        )
+        decision = stats["admin_wheel_decisions"]["wheel-a#action:10"]
+        self.assertEqual(decision["actor"], "admin")
+        self.assertEqual(decision["decided_at"], current.isoformat())
+
+        state: dict[str, Any] = {
+            "active_wheels": {
+                "wheel-a": {
+                    "identifier": "wheel-a",
+                    "event_id": "event-a",
+                    "action_id": 10,
+                }
+            }
+        }
+        entry = state["active_wheels"]["wheel-a"]
+        wheel_lifecycle_v2.mark_inactive_event(
+            state,
+            "wheel-a",
+            entry,
+            current=current,
+            actor="123456789",
+        )
+        inactive = state["inactive_wheels"]["wheel-a"]
+        self.assertEqual(inactive["marked_by"], "admin")
+        self.assertEqual(inactive["action_id"], 10)
+        self.assertEqual(inactive["event_id"], "event-a")
+        self.assertEqual(inactive["marked_at"], current.isoformat())
+
+    def test_current_json_migration_preserves_keys_timestamps_and_counters(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state_path = root / "state.json"
+            stats_path = root / "source_stats.json"
+            moderation_path = root / "candidate_moderation.json"
+            state_path.write_text(
+                json.dumps(
+                    {
+                        "inactive_wheels": {
+                            "wheel-a": {
+                                "marked_by": "123456789",
+                                "marked_at": "2026-07-17T01:00:00+00:00",
+                                "action_id": 10,
+                            }
+                        },
+                        "recently_completed_wheels": {
+                            "wheel-b": {
+                                "confirmed_finished_by": "123456789",
+                                "rating_event_key": "wheel-b#action:11",
+                            }
+                        },
+                        "checks": 77,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            stats_path.write_text(
+                json.dumps(
+                    {
+                        "admin_wheel_decisions": {
+                            "wheel-b#action:11": {
+                                "actor": "123456789",
+                                "decision": "confirmed",
+                                "decided_at": "2026-07-17T01:05:00+00:00",
+                                "sources": ["source"],
+                            }
+                        },
+                        "personal_wheel_votes": {
+                            "event": {
+                                "actor": "vote_" + "a" * 32,
+                                "event_key": "wheel-b#action:11",
+                            }
+                        },
+                        "checks": 88,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            moderation_path.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "ignored": {
+                            "source": {
+                                "ignored_by": "123456789",
+                                "ignored_at": "2026-07-17T01:10:00+00:00",
+                            }
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            changed = security_audit.migrate_current(
+                [state_path, stats_path, moderation_path]
+            )
+            self.assertEqual(
+                changed,
+                ["state.json", "source_stats.json", "candidate_moderation.json"],
+            )
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            stats = json.loads(stats_path.read_text(encoding="utf-8"))
+            moderation = json.loads(moderation_path.read_text(encoding="utf-8"))
+            self.assertEqual(state["inactive_wheels"]["wheel-a"]["marked_by"], "admin")
+            self.assertEqual(
+                state["recently_completed_wheels"]["wheel-b"]["confirmed_finished_by"],
+                "admin",
+            )
+            self.assertEqual(state["checks"], 77)
+            self.assertEqual(state["inactive_wheels"]["wheel-a"]["action_id"], 10)
+            self.assertEqual(stats["admin_wheel_decisions"]["wheel-b#action:11"]["actor"], "admin")
+            self.assertEqual(stats["checks"], 88)
+            self.assertEqual(
+                stats["personal_wheel_votes"]["event"]["actor"],
+                "vote_" + "a" * 32,
+            )
+            self.assertEqual(moderation["ignored"]["source"]["ignored_by"], "admin")
+            for path in (state_path, stats_path, moderation_path):
+                self.assertEqual(security_audit._runtime_provenance_findings(path), [])
 
 
 if __name__ == "__main__":

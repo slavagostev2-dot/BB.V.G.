@@ -47,7 +47,7 @@ def confirm_finished_global(
         wheel_key=rating_key,
         sources=sources,
         decision="confirmed",
-        actor=actor or "admin",
+        actor="admin",
         at=current,
     )
 
@@ -63,7 +63,7 @@ def confirm_finished_global(
     )
     completed["sources"] = sources
     completed["confirmed_finished_at"] = current.isoformat()
-    completed["confirmed_finished_by"] = actor or "admin"
+    completed["confirmed_finished_by"] = "admin"
     completed["rating_event_key"] = rating_key
     detail = (
         "Колесо завершено; рейтинг источников начислен: по 40 очков каждому. "
@@ -195,6 +195,8 @@ def self_test() -> None:
     assert legacy_stats["sources"]["collector"]["quality_score"] == 40
     decisions = legacy_stats.get("admin_wheel_decisions", {})
     assert len(decisions) == 1
+    assert next(iter(decisions.values()))["actor"] == "admin"
+    assert state["recently_completed_wheels"]["wheel-a"]["confirmed_finished_by"] == "admin"
     print("admin action v3 personal and legacy rating self-test passed")
 
 

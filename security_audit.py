@@ -26,7 +26,17 @@ PUBLIC_PERSONAL_STATE = ("bot_access.json", "source_requests.json")
 PUBLIC_DIAGNOSTIC_STATE = "system_check_state.json"
 DELIVERY_STATE = "notification_delivery_state.json"
 ENCRYPTED_STATE = "bot_private_state.enc.json"
-HISTORY_PERSONAL_STATE = (*PUBLIC_PERSONAL_STATE, PUBLIC_DIAGNOSTIC_STATE)
+PUBLIC_RUNTIME_PROVENANCE = (
+    "state.json",
+    "source_stats.json",
+    "candidate_moderation.json",
+)
+VOTE_ACTOR_RE = re.compile(r"^vote_[0-9a-f]{32}$")
+HISTORY_PERSONAL_STATE = (
+    *PUBLIC_PERSONAL_STATE,
+    PUBLIC_DIAGNOSTIC_STATE,
+    *PUBLIC_RUNTIME_PROVENANCE,
+)
 
 
 @dataclass(frozen=True)
@@ -149,6 +159,124 @@ def _delivery_state_findings(path: Path) -> list[Finding]:
     return findings
 
 
+
+def _runtime_provenance_value_findings(
+    path_name: str, value: dict[str, Any]
+) -> list[Finding]:
+    findings: list[Finding] = []
+
+    def non_admin_count(collection_name: str, field: str) -> int:
+        collection = value.get(collection_name)
+        if not isinstance(collection, dict):
+            return 0
+        return sum(
+            1
+            for record in collection.values()
+            if isinstance(record, dict)
+            and field in record
+            and str(record.get(field) or "").strip().casefold() != "admin"
+        )
+
+    checks: tuple[tuple[str, str], ...] = ()
+    if path_name == "state.json":
+        checks = (
+            ("inactive_wheels", "marked_by"),
+            ("recently_completed_wheels", "confirmed_finished_by"),
+        )
+    elif path_name == "source_stats.json":
+        checks = (("admin_wheel_decisions", "actor"),)
+    elif path_name == "candidate_moderation.json":
+        checks = (("ignored", "ignored_by"),)
+
+    for collection_name, field in checks:
+        count = non_admin_count(collection_name, field)
+        if count:
+            findings.append(
+                Finding(
+                    "public_personal_data",
+                    path_name,
+                    f"non-anonymized {collection_name}.{field}: {count}",
+                )
+            )
+
+    if path_name == "source_stats.json":
+        votes = value.get("personal_wheel_votes")
+        invalid = 0
+        if isinstance(votes, dict):
+            for record in votes.values():
+                actor = (
+                    str(record.get("actor") or "").strip().casefold()
+                    if isinstance(record, dict)
+                    else ""
+                )
+                if not VOTE_ACTOR_RE.fullmatch(actor):
+                    invalid += 1
+        if invalid:
+            findings.append(
+                Finding(
+                    "public_personal_data",
+                    path_name,
+                    f"invalid personal_wheel_votes actor token: {invalid}",
+                )
+            )
+    return findings
+
+
+def _runtime_provenance_findings(path: Path) -> list[Finding]:
+    value, findings = _load_object(path, "invalid_public_runtime_state")
+    if value is None:
+        return findings
+    return findings + _runtime_provenance_value_findings(path.name, value)
+
+
+def _normalize_runtime_provenance_value(
+    path_name: str, value: dict[str, Any]
+) -> bool:
+    changed = False
+    checks: tuple[tuple[str, str], ...] = ()
+    if path_name == "state.json":
+        checks = (
+            ("inactive_wheels", "marked_by"),
+            ("recently_completed_wheels", "confirmed_finished_by"),
+        )
+    elif path_name == "source_stats.json":
+        checks = (("admin_wheel_decisions", "actor"),)
+    elif path_name == "candidate_moderation.json":
+        checks = (("ignored", "ignored_by"),)
+
+    for collection_name, field in checks:
+        collection = value.get(collection_name)
+        if not isinstance(collection, dict):
+            continue
+        for record in collection.values():
+            if not isinstance(record, dict) or field not in record:
+                continue
+            if str(record.get(field) or "").strip().casefold() != "admin":
+                record[field] = "admin"
+                changed = True
+    return changed
+
+
+def migrate_current(paths: Iterable[Path] | None = None) -> list[str]:
+    changed_paths: list[str] = []
+    selected = list(paths or (ROOT / name for name in PUBLIC_RUNTIME_PROVENANCE))
+    for path in selected:
+        value, findings = _load_object(path, "invalid_public_runtime_state")
+        if value is None:
+            detail = findings[0].detail if findings else "invalid JSON"
+            raise RuntimeError(f"Cannot migrate {path.name}: {detail}")
+        if not _normalize_runtime_provenance_value(path.name, value):
+            continue
+        temporary = path.with_name(path.name + ".tmp")
+        temporary.write_text(
+            json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(path)
+        changed_paths.append(path.name)
+    return changed_paths
+
+
 def _encrypted_state_findings(path: Path) -> list[Finding]:
     value, findings = _load_object(path, "invalid_encrypted_state")
     if value is None:
@@ -176,6 +304,8 @@ def scan_current(paths: Iterable[Path] | None = None) -> list[Finding]:
             findings.extend(_diagnostic_findings(path))
         if path.name == DELIVERY_STATE:
             findings.extend(_delivery_state_findings(path))
+        if path.name in PUBLIC_RUNTIME_PROVENANCE:
+            findings.extend(_runtime_provenance_findings(path))
         if path.name == ENCRYPTED_STATE:
             findings.extend(_encrypted_state_findings(path))
             continue
@@ -230,6 +360,10 @@ def history_report() -> dict:
                 contains_personal = bool(value.get("requests"))
             elif isinstance(value, dict) and path == PUBLIC_DIAGNOSTIC_STATE:
                 contains_personal = _diagnostic_contains_personal(value)
+            elif isinstance(value, dict) and path in PUBLIC_RUNTIME_PROVENANCE:
+                contains_personal = bool(
+                    _runtime_provenance_value_findings(path, value)
+                )
             if contains_personal:
                 rows.append({"path": path, "commit": commit[:12]})
     return {
@@ -245,6 +379,16 @@ def self_test() -> None:
     assert not _public_json_findings(ROOT / "bot_access.json")
     assert not _diagnostic_findings(ROOT / PUBLIC_DIAGNOSTIC_STATE)
     assert not _delivery_state_findings(ROOT / DELIVERY_STATE)
+    sample = {
+        "inactive_wheels": {"wheel": {"marked_by": "123456789"}},
+        "recently_completed_wheels": {
+            "wheel": {"confirmed_finished_by": "123456789"}
+        },
+    }
+    assert _runtime_provenance_value_findings("state.json", sample)
+    assert _normalize_runtime_provenance_value("state.json", sample)
+    assert not _runtime_provenance_value_findings("state.json", sample)
+    assert sample["inactive_wheels"]["wheel"]["marked_by"] == "admin"
     print("security audit self-test passed")
 
 
@@ -255,12 +399,20 @@ def main() -> int:
     parser.add_argument("--history-output")
     parser.add_argument("--fail-on-history", action="store_true")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--migrate-current", action="store_true")
     args = parser.parse_args()
     if args.self_test:
         self_test()
         return 0
 
-    run_current = args.current or not args.history
+    if args.migrate_current:
+        changed = migrate_current()
+        print(
+            "Current runtime provenance migration: "
+            + (", ".join(changed) if changed else "unchanged")
+        )
+
+    run_current = args.current or args.migrate_current or not args.history
     if run_current:
         findings = scan_current()
         for finding in findings:

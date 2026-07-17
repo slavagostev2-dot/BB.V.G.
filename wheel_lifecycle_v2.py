@@ -241,7 +241,7 @@ def mark_inactive_event(
         ),
         "lifecycle_state": "inactive",
         "marked_at": current.isoformat(),
-        "marked_by": str(actor or "admin"),
+        "marked_by": "admin",
         "expires_at": (current + retention).isoformat(),
     }
     return removed
