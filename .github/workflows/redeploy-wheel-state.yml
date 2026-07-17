@@ -1,0 +1,74 @@
+name: Redeploy wheel state contract
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout redeploy branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Apply deployment marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/monitor.yml')
+          text = path.read_text(encoding='utf-8')
+          marker = '          # Actions without start_dttm stay pending until BetBoom starts them.\n'
+          anchor = '          WHEEL_API_ATTEMPTS: "3"\n'
+          if marker not in text:
+              if anchor not in text:
+                  raise RuntimeError('monitor API anchor missing')
+              text = text.replace(anchor, marker + anchor, 1)
+          text = text.replace(
+              '            iteration=$((iteration + 1)\n            )\n',
+              '            iteration=$((iteration + 1))\n',
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
+          Path('.github/workflows/redeploy-wheel-state.yml').unlink()
+          PY
+
+      - name: Validate workflow and wheel contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install PyYAML
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          for path in Path('.github/workflows').glob('*.yml'):
+              yaml.safe_load(path.read_text(encoding='utf-8'))
+          print('Workflow YAML validation passed')
+          PY
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py
+          python -m pytest -q tests/test_lifecycle.py tests/test_chapter3_contracts.py
+
+      - name: Commit redeploy marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Redeploy monitor with wheel start-state contract"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
