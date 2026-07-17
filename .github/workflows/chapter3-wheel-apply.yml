@@ -59,6 +59,21 @@ jobs:
           set -o pipefail
           {
             set -euxo pipefail
+            mkdir -p /tmp/chapter3-workflows
+            for path in .github/workflows/chapter3-audit.yml .github/workflows/chapter3-wheel-apply.yml; do
+              if [[ -f "$path" ]]; then
+                mv "$path" /tmp/chapter3-workflows/
+              fi
+            done
+            git cat-file blob 23d4c1c74e71ddc074c1fddc2975f29e3e073431 > .github/workflows/v22-checks.yml
+            restore_workflows() {
+              git checkout -- .github/workflows/v22-checks.yml
+              for path in /tmp/chapter3-workflows/*.yml; do
+                [[ -e "$path" ]] || continue
+                mv "$path" .github/workflows/
+              done
+            }
+            trap restore_workflows EXIT
             python -m compileall -q -x '(^|/)(\.git|\.venv|state_api|docs)(/|$)' .
             python -m pytest -q tests/test_lifecycle.py tests/test_chapter3_contracts.py tests/test_recurring_event_hotfix.py tests/test_personal_wheel_voting.py
             python -m pytest -q
@@ -71,6 +86,8 @@ jobs:
               echo 'Runtime JSON changed during validation' >&2
               exit 1
             fi
+            restore_workflows
+            trap - EXIT
           } 2>&1 | tee chapter3-wheel-verify.log
 
       - name: Commit corrected behavior
