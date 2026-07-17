@@ -1,8 +1,8 @@
 {
   "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-07-17T10:53:09.831480+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-17T11:59:12.136035+00:00",
     "started_at": "2026-07-17T10:22:38.914714+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -33,7 +33,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-17T10:57:52.980230+00:00",
+  "checked_at": "2026-07-17T11:59:53.788715+00:00",
   "discovery": {
     "active_size": 78,
     "candidate_count": 234,
@@ -89,7 +89,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-07-17T10:53:09.831480+00:00",
+    "bot_panel_heartbeat": "2026-07-17T11:59:12.136035+00:00",
     "checked_sources": 78,
     "configured_sources": 81,
     "domain": "telegram.me",
@@ -99,9 +99,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-17T10:55:46.101797+00:00",
+      "last_checked_at": "2026-07-17T11:59:20.157196+00:00",
       "last_failure_at": null,
-      "last_success_at": "2026-07-17T10:55:46.101797+00:00",
+      "last_success_at": "2026-07-17T11:59:20.157196+00:00",
       "status": "ok"
     }
   },
@@ -130,17 +130,17 @@
     "brand": "BB V.G.",
     "checked_sources": 78,
     "checks_delta": 78,
-    "checks_total": 109101,
+    "checks_total": 110739,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "iteration": 35,
+    "iteration": 56,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-17T10:55:47.775719+00:00",
-    "last_iteration_duration_seconds": 7,
+    "last_iteration_at": "2026-07-17T11:59:20.236936+00:00",
+    "last_iteration_duration_seconds": 6,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-17T10:55:47.775719+00:00",
-    "last_successful_checks_total": 109101,
-    "last_successful_iteration_at": "2026-07-17T10:55:47.775719+00:00",
+    "last_process_heartbeat_at": "2026-07-17T11:59:20.236936+00:00",
+    "last_successful_checks_total": 110739,
+    "last_successful_iteration_at": "2026-07-17T11:59:20.236936+00:00",
     "pending_wheels": 0,
     "reachable_sources": 78,
     "restart_recommended": false,
@@ -151,11 +151,11 @@
     "status": "running",
     "version": 3
   },
-  "monitor_age_minutes": 2,
+  "monitor_age_minutes": 0,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 72,
+    "entry_count": 75,
     "format": "bbvg-notification-delivery-v2",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -183,11 +183,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 3,
+    "personal_vote_records": 6,
     "policy": "personal_votes_v1",
-    "rated_sources": 1,
+    "rated_sources": 3,
     "score_mismatches": [],
-    "valid_personal_votes": 3
+    "valid_personal_votes": 6
   },
   "source_health_summary": {
     "configured_records": 78,
@@ -225,9 +225,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-17T10:55:46.101797+00:00",
+    "last_checked_at": "2026-07-17T11:59:20.157196+00:00",
     "last_failure_at": null,
-    "last_success_at": "2026-07-17T10:55:46.101797+00:00",
+    "last_success_at": "2026-07-17T11:59:20.157196+00:00",
     "status": "ok"
   }
 }
