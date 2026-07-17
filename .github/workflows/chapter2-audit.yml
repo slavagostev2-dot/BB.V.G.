@@ -1,0 +1,125 @@
+name: Chapter 2 workflow audit
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact event commit
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+
+      - name: Inventory workflows and heartbeat writers
+        shell: bash
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import json
+          import re
+          from pathlib import Path
+
+          root = Path('.')
+          workflow_dir = root / '.github' / 'workflows'
+          action_re = re.compile(r'^\s*-?\s*uses:\s*([^\s#]+)', re.MULTILINE)
+          ref_re = re.compile(r'^\s*ref:\s*(.+?)\s*(?:#.*)?$', re.MULTILINE)
+          permissions_re = re.compile(r'^(\s*)permissions:\s*(.*?)$', re.MULTILINE)
+          concurrency_re = re.compile(r'^\s*concurrency:\s*(.*)$', re.MULTILINE)
+
+          workflows = []
+          action_refs = {}
+          for path in sorted(workflow_dir.glob('*.y*ml')):
+              text = path.read_text(encoding='utf-8')
+              uses = action_re.findall(text)
+              for item in uses:
+                  action_refs[item] = action_refs.get(item, 0) + 1
+              permissions = []
+              lines = text.splitlines()
+              for index, line in enumerate(lines):
+                  if re.match(r'^\s*permissions:\s*$', line):
+                      indent = len(line) - len(line.lstrip())
+                      block = []
+                      for child in lines[index + 1:]:
+                          child_indent = len(child) - len(child.lstrip())
+                          if child.strip() and child_indent <= indent:
+                              break
+                          if child.strip():
+                              block.append(child.strip())
+                      permissions.append(block)
+                  elif re.match(r'^\s*permissions:\s*\S+', line):
+                      permissions.append([line.strip()])
+              workflows.append({
+                  'path': str(path),
+                  'uses': uses,
+                  'permissions': permissions,
+                  'contents_write': 'contents: write' in text,
+                  'actions_write': 'actions: write' in text,
+                  'persist_credentials_false': 'persist-credentials: false' in text,
+                  'checkout_count': sum(item.startswith('actions/checkout@') for item in uses),
+                  'refs': [value.strip() for value in ref_re.findall(text)],
+                  'concurrency': concurrency_re.findall(text),
+              })
+
+          heartbeat_hits = []
+          needles = ('head_sha', 'workflow_run_id', 'run_attempt', 'monitor_status.json', 'admin_panel_status.json')
+          for path in sorted(root.rglob('*')):
+              if not path.is_file() or '.git' in path.parts:
+                  continue
+              if path.suffix.lower() not in {'.py', '.sh', '.yml', '.yaml'}:
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (OSError, UnicodeDecodeError):
+                  continue
+              found = [needle for needle in needles if needle in text]
+              if found:
+                  heartbeat_hits.append({'path': str(path), 'needles': found})
+
+          report = {
+              'workflow_count': len(workflows),
+              'workflows': workflows,
+              'action_refs': dict(sorted(action_refs.items())),
+              'heartbeat_hits': heartbeat_hits,
+          }
+          Path('chapter2-workflow-audit.json').write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
+          )
+
+          lines = [
+              '# Chapter 2 workflow audit',
+              '',
+              f"Workflows: {report['workflow_count']}",
+              '',
+              '## Action references',
+          ]
+          lines.extend(f'- `{name}`: {count}' for name, count in report['action_refs'].items())
+          lines.extend(['', '## Workflows'])
+          for item in workflows:
+              lines.append(f"- `{item['path']}`: contents_write={item['contents_write']}, actions_write={item['actions_write']}, persist_credentials_false={item['persist_credentials_false']}, uses={item['uses']}")
+          lines.extend(['', '## Heartbeat references'])
+          lines.extend(f"- `{item['path']}`: {', '.join(item['needles'])}" for item in heartbeat_hits)
+          Path('chapter2-workflow-audit.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+      - name: Upload audit
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chapter2-workflow-audit-${{ github.run_id }}
+          path: |
+            chapter2-workflow-audit.json
+            chapter2-workflow-audit.md
+          retention-days: 1
