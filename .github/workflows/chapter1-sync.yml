@@ -1,0 +1,170 @@
+name: Synchronize chapter 1 runtime state
+
+on:
+  push:
+    branches:
+      - chapter1-pii-hardening
+    paths:
+      - ".github/workflows/chapter1-sync.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout chapter branch
+        uses: actions/checkout@v4
+        with:
+          ref: chapter1-pii-hardening
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Verify functional head and merge latest runtime commits
+        env:
+          FUNCTIONAL_HEAD: e194b68c3fbd05bd8049bd25572106a7dc537326
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge-base --is-ancestor "$FUNCTIONAL_HEAD" origin/main
+          python - <<'PY'
+          import os
+          import subprocess
+
+          functional = os.environ['FUNCTIONAL_HEAD']
+          changed = set(
+              subprocess.check_output(
+                  ['git', 'diff', '--name-only', f'{functional}..origin/main'],
+                  text=True,
+              ).splitlines()
+          )
+          allowed = {
+              'admin_panel_status.json',
+              'incident_state.json',
+              'monitor_status.json',
+              'source_health.json',
+              'source_stats.json',
+              'state.json',
+              'system_check_state.json',
+          }
+          unexpected = sorted(changed - allowed)
+          if unexpected:
+              raise SystemExit('Functional head changed: ' + ', '.join(unexpected))
+          print('Functional head unchanged; runtime-only files:', ', '.join(sorted(changed)))
+          PY
+
+          set +e
+          git merge --no-ff --no-commit origin/main
+          merge_rc=$?
+          set -e
+          if [ "$merge_rc" -ne 0 ]; then
+            conflicts="$(git diff --name-only --diff-filter=U)"
+            python - "$conflicts" <<'PY'
+          import sys
+          conflicts = {line for line in sys.argv[1].splitlines() if line}
+          allowed = {'state.json', 'source_stats.json', 'candidate_moderation.json'}
+          unexpected = sorted(conflicts - allowed)
+          if unexpected:
+              raise SystemExit('Unexpected merge conflicts: ' + ', '.join(unexpected))
+          if not conflicts:
+              raise SystemExit('Merge failed without resolvable runtime conflicts')
+          print('Resolving runtime conflicts from latest main:', ', '.join(sorted(conflicts)))
+          PY
+            for path in $conflicts; do
+              git checkout --theirs -- "$path"
+              git add "$path"
+            done
+          fi
+
+      - name: Migrate latest runtime provenance and prove semantic identity
+        run: |
+          set -euo pipefail
+          python security_audit.py --migrate-current
+          python - <<'PY'
+          import copy
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+
+          paths = ('state.json', 'source_stats.json', 'candidate_moderation.json')
+
+          def load_main(path):
+              return json.loads(subprocess.check_output(['git', 'show', f'origin/main:{path}'], text=True))
+
+          def normalize(path, value):
+              value = copy.deepcopy(value)
+              checks = ()
+              if path == 'state.json':
+                  checks = (
+                      ('inactive_wheels', 'marked_by'),
+                      ('recently_completed_wheels', 'confirmed_finished_by'),
+                  )
+              elif path == 'source_stats.json':
+                  checks = (('admin_wheel_decisions', 'actor'),)
+              elif path == 'candidate_moderation.json':
+                  checks = (('ignored', 'ignored_by'),)
+              for collection_name, field in checks:
+                  collection = value.get(collection_name)
+                  if not isinstance(collection, dict):
+                      continue
+                  for record in collection.values():
+                      if isinstance(record, dict) and field in record:
+                          record[field] = 'admin'
+              return value
+
+          def digest(value):
+              canonical = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+              return hashlib.sha256(canonical.encode('utf-8')).hexdigest()
+
+          proof = {'source_main_sha': subprocess.check_output(['git', 'rev-parse', 'origin/main'], text=True).strip(), 'files': {}}
+          for path in paths:
+              before = load_main(path)
+              after = json.loads(Path(path).read_text(encoding='utf-8'))
+              expected = normalize(path, before)
+              if expected != after:
+                  raise SystemExit(f'Semantic state mismatch after provenance migration: {path}')
+              counts = {}
+              for key in ('active_wheels', 'inactive_wheels', 'recently_completed_wheels', 'wheel_publications', 'admin_wheel_decisions', 'personal_wheel_votes', 'ignored', 'sources', 'daily'):
+                  raw = after.get(key)
+                  if isinstance(raw, (dict, list)):
+                      counts[key] = len(raw)
+              proof['files'][path] = {
+                  'normalized_before_sha256': digest(expected),
+                  'after_sha256': digest(after),
+                  'semantic_match': True,
+                  'counts': counts,
+              }
+          Path('.chapter1-sync-proof.json').write_text(json.dumps(proof, ensure_ascii=False, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print('Runtime semantic identity verified for all chapter 1 state files')
+          PY
+          python security_audit.py --current
+          python -m pytest -q tests/test_lifecycle.py tests/test_personal_wheel_voting.py
+
+      - name: Commit synchronized state
+        run: |
+          set -euo pipefail
+          git add \
+            state.json \
+            source_stats.json \
+            candidate_moderation.json \
+            .chapter1-sync-proof.json
+          git diff --cached --check
+          git commit -m "Merge latest runtime state into chapter 1 [skip ci]"
+          git push origin HEAD:chapter1-pii-hardening
