@@ -76,6 +76,19 @@ jobs:
           print(f"Uploaded {len(result['files'])} blobs; deletions={len(result['deletions'])}")
           PY
 
+      - name: Publish blob inventory to candidate branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          encoded="$(base64 -w0 chapter2-blobs.json)"
+          gh api --method PUT "repos/$REPOSITORY/contents/chapter2-blobs.json" \
+            -f message='Record chapter 2 workflow blob inventory' \
+            -f content="$encoded" \
+            -f branch='agent/chapter2-actions-hardening' >/dev/null
+
       - name: Upload blob inventory
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
