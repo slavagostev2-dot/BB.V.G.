@@ -198,6 +198,7 @@ jobs:
           TELEGRAM_WEB_DOMAIN: telegram.me
           DISPLAY_TIMEZONE: Asia/Barnaul
           REQUEST_TIMEOUT_SECONDS: "15"
+          # Actions without start_dttm stay pending until BetBoom starts them.
           WHEEL_API_ATTEMPTS: "3"
           WHEEL_API_FAILURE_ALERT_THRESHOLD: "3"
           UNTIMED_WHEEL_TTL_HOURS: "2"
@@ -270,8 +271,7 @@ jobs:
           iteration=0
 
           while true; do
-            iteration=$((iteration + 1)
-            )
+            iteration=$((iteration + 1))
             started_at=$(date +%s)
             admin_action_before=$(python - <<'PY'
           import json
