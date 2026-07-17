@@ -6,6 +6,31 @@
 
 ---
 
+## 2026-07-17 — Глава 2: GitHub Actions закреплены за exact SHA и минимальными правами
+
+**Причина:** production и validation workflow использовали moving action tags, часть read-only checkout сохраняла Git credentials, права записи выдавались всему workflow, а heartbeat не показывал точный выполняемый commit. Ротация трёх backup была встроена в YAML без безопасного dry-run и изолированного тестового контракта.
+
+**Что изменено:**
+
+- все используемые `actions/checkout`, `actions/setup-python` и `actions/upload-artifact` закреплены полными 40-символьными SHA с комментариями проверенных версий;
+- validation workflow checkout выполняется по exact event SHA и сверяет именно его, а read-only checkout использует `persist-credentials: false`;
+- `contents: write` оставлен только конкретным state/queue writer jobs, `actions: write` — только jobs, выполняющим dispatch/restart; лишние права убраны у source migration и transport activation;
+- long-running production и maintenance jobs по-прежнему явно используют `ref: main`;
+- heartbeat панели и монитора записывает `head_sha`, `workflow_run_id` и `run_attempt`, сохраняя совместимое `run_id`;
+- создан устойчивый модуль `backup_rotation.py`: он проверяет namespace, inventory, ancestry и отсутствие уникальных commits до любого удаления, поддерживает dry-run и оставляет три последние валидные обычные backup-точки;
+- manual запуск backup workflow по умолчанию является dry-run, а create/push новой backup-ветки, schedule и merged workflow change выполняют реальную ротацию в единственной concurrency-группе;
+- fixture-контракт покрывает 0/1/2/3/4 refs, failed verification без удаления, idempotency, dry-run и запрет удаления вне `backup/*`.
+
+**Action provenance:** `actions/checkout` v4.2.2 → `11bd71901bbe5b1630ceea73d27597364c9af683`; `actions/setup-python` v5.6.0 → `a26af69be951a213d495a4c3e4e4022e16d87065`; `actions/upload-artifact` v4.6.2 → `ea165f8d65b6e75b540449e92b4886f43607fa02`.
+
+**Изменённые файлы:** действующие `.github/workflows/*.yml`, `monitor_health.py`, `monitor_shift_v41.sh`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`. Созданы `backup_rotation.py` как единственный владелец политики ротации и `tests/test_actions_security.py` как offline-контракт Actions. Runtime JSON, callback и concurrency state writers не менялись.
+
+**Pre-update backup:** `backup/before-chapter2-actions-hardening-2026-07-17`, SHA `be8421d29f2d4d688ee22eeeac2c9ce5b5ba3589`; ref проверен как точное совпадение baseline.
+
+**Проверки:** до PR прошли YAML parse всех workflow, `py_compile`, `backup_rotation.py --self-test`, `monitor_health.py --self-test`, shell syntax и профильный pytest-контракт. На final head PR №48 успешны runs `29579368810`, `29579368732`, `29579368716`, `29579368718`, `29579368737` и rotation-contract `29579368709`; полный pytest и production acceptance входят в обязательный current-check. Live heartbeat и post-update backup проверяются после merge.
+
+**Откат:** вернуть merge commit главы 2 целиком; при необходимости перейти на `backup/before-chapter2-actions-hardening-2026-07-17`. State migration не требуется.
+
 ## 2026-07-17 — Диагностика рейтинга переведена на журнал личных голосов
 
 **Причина:** после перехода на политику `personal_votes_v1` системная диагностика продолжала вычислять ожидаемый рейтинг только из `admin_wheel_decisions`. Поэтому корректные 11 очков от владельца, администратора и пользователя ошибочно определялись как одно несовпадение с отсутствующими административными решениями.

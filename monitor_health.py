@@ -122,7 +122,9 @@ def should_restart(consecutive_failures: int, consecutive_no_progress: int) -> b
     )
 
 
-def start_run(run_id: str) -> dict[str, Any]:
+def start_run(
+    run_id: str, *, head_sha: str = "", run_attempt: str = ""
+) -> dict[str, Any]:
     current = load_json(STATUS_PATH)
     timestamp = now_utc().isoformat()
     previous_success = parse_datetime(current.get("last_successful_iteration_at"))
@@ -141,6 +143,9 @@ def start_run(run_id: str) -> dict[str, Any]:
             "brand": "BB V.G.",
             "status": "starting",
             "run_id": str(run_id or ""),
+            "workflow_run_id": str(run_id or ""),
+            "run_attempt": str(run_attempt or ""),
+            "head_sha": str(head_sha or ""),
             "run_started_at": timestamp,
             "last_process_heartbeat_at": timestamp,
             "restart_recommended": False,
@@ -153,6 +158,8 @@ def start_run(run_id: str) -> dict[str, Any]:
 def record_iteration(
     *,
     run_id: str,
+    head_sha: str = "",
+    run_attempt: str = "",
     iteration: int,
     exit_code: int,
     duration_seconds: int,
@@ -207,6 +214,9 @@ def record_iteration(
         "brand": "BB V.G.",
         "status": status,
         "run_id": str(run_id or ""),
+        "workflow_run_id": str(run_id or previous.get("workflow_run_id") or ""),
+        "run_attempt": str(run_attempt or previous.get("run_attempt") or ""),
+        "head_sha": str(head_sha or previous.get("head_sha") or ""),
         "iteration": int(iteration),
         "last_iteration_at": current_time.isoformat(),
         "last_process_heartbeat_at": current_time.isoformat(),
@@ -311,11 +321,18 @@ def main() -> int:
     parser.add_argument("--self-test", action="store_true")
     subparsers = parser.add_subparsers(dest="command")
 
+    default_head_sha = os.getenv("BBVG_HEAD_SHA", os.getenv("GITHUB_SHA", ""))
+    default_run_attempt = os.getenv("GITHUB_RUN_ATTEMPT", "")
+
     start = subparsers.add_parser("start")
     start.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", ""))
+    start.add_argument("--head-sha", default=default_head_sha)
+    start.add_argument("--run-attempt", default=default_run_attempt)
 
     record = subparsers.add_parser("record")
     record.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", ""))
+    record.add_argument("--head-sha", default=default_head_sha)
+    record.add_argument("--run-attempt", default=default_run_attempt)
     record.add_argument("--iteration", type=int, required=True)
     record.add_argument("--exit-code", type=int, required=True)
     record.add_argument("--duration-seconds", type=int, default=0)
@@ -331,12 +348,18 @@ def main() -> int:
         self_test()
         return 0
     if args.command == "start":
-        payload = start_run(args.run_id)
+        payload = start_run(
+            args.run_id,
+            head_sha=args.head_sha,
+            run_attempt=args.run_attempt,
+        )
         print(json.dumps(payload, ensure_ascii=False))
         return 0
     if args.command == "record":
         payload = record_iteration(
             run_id=args.run_id,
+            head_sha=args.head_sha,
+            run_attempt=args.run_attempt,
             iteration=args.iteration,
             exit_code=args.exit_code,
             duration_seconds=args.duration_seconds,

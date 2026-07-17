@@ -125,7 +125,11 @@ push_runtime() {
   return 1
 }
 
-python monitor_health.py start --run-id "${GITHUB_RUN_ID:-}"
+BBVG_HEAD_SHA="$(git rev-parse HEAD)"
+python monitor_health.py start \
+  --run-id "${GITHUB_RUN_ID:-}" \
+  --head-sha "$BBVG_HEAD_SHA" \
+  --run-attempt "${GITHUB_RUN_ATTEMPT:-}"
 
 shift_end=$(( $(date +%s) + 19800 ))
 last_commit_at=0
@@ -151,6 +155,8 @@ PY
 
   python monitor_health.py record \
     --run-id "${GITHUB_RUN_ID:-}" \
+    --head-sha "$BBVG_HEAD_SHA" \
+    --run-attempt "${GITHUB_RUN_ATTEMPT:-}" \
     --iteration "$iteration" \
     --exit-code "$iteration_exit" \
     --duration-seconds "$duration"

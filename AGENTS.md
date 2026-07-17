@@ -79,6 +79,15 @@ docs/
 
 Развёртывание нельзя считать успешным только по коммиту или компиляции: нужен подтверждённый живой процесс.
 
+### GitHub Actions и точный production SHA
+
+- Сторонние `actions/checkout`, `actions/setup-python` и `actions/upload-artifact` закрепляются только полным 40-символьным commit SHA; рядом сохраняется комментарий с проверенной версией. Moving tags вида `@v4` и `@v5` запрещены.
+- Validation jobs получают exact event SHA: для pull request используется `github.event.pull_request.head.sha`, для push и ручного запуска - `github.sha`. Проверка не должна незаметно переходить на `main` или synthetic merge commit.
+- `ref: main` разрешён только для явно long-running production, maintenance и authoritative backup jobs.
+- Read-only checkout всегда использует `persist-credentials: false`.
+- `contents: write` выдаётся только job, который действительно записывает state или очередь; `actions: write` - только job, который dispatch/restart другой workflow.
+- `admin_panel_status.json` и `monitor_status.json` обязаны содержать `head_sha`, `workflow_run_id` и `run_attempt`, сохраняя совместимое поле `run_id`.
+
 ## 5. Обязательные бэкапы крупных обновлений
 
 Перед крупным обновлением, рефакторингом, миграцией состояния, изменением workflow или массовым удалением:
@@ -170,7 +179,10 @@ docs/
 - новый backup удалять запрещено;
 - старые ветки удаляются только после проверки ancestry и отсутствия уникальных commits;
 - точные имена и SHA сохранённых и удалённых веток записываются в summary workflow;
-- при ошибке проверки ротация завершается без удаления.
+- при ошибке проверки ротация завершается без удаления;
+- планирование и GitHub API-операции принадлежат `backup_rotation.py`; `--self-test` покрывает 0/1/2/3/4 refs, failed verification, idempotency, dry-run и защиту namespace;
+- ручной `workflow_dispatch` по умолчанию выполняет dry-run без удаления; create/push новой `backup/*`, schedule и merged workflow change применяют реальную ротацию;
+- creation и rotation используют единственную concurrency-группу `bb-vg-bot-state-backup`.
 
 Pre-update backup перед введением ротации:
 

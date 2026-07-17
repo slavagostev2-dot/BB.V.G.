@@ -13,10 +13,18 @@ on:
       - ".github/workflows/bot-state-backup.yml"
       - "bot_private_state.enc.json"
       - "bot_private_state.py"
+      - "backup_rotation.py"
+      - "tests/test_actions_security.py"
   push:
     branches:
       - "backup/**"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Verify inventory and show rotation plan without deleting refs"
+        required: false
+        type: boolean
+        default: true
   schedule:
     - cron: "42 2 * * *"
 
@@ -41,13 +49,14 @@ jobs:
 
     steps:
       - name: Checkout exact authoritative state
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || 'main' }}
+          persist-credentials: false
           fetch-depth: 1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
           cache: pip
@@ -157,7 +166,7 @@ jobs:
           PY
 
       - name: Upload verified encrypted backup
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: bbvg-encrypted-state-${{ github.run_id }}
           path: |
@@ -165,6 +174,29 @@ jobs:
             bot_state_backup_metadata.json
           if-no-files-found: error
           retention-days: 30
+
+  rotation-contract:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact proposed rotation contract
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate count-based rotation fixtures
+        run: |
+          python -m py_compile backup_rotation.py
+          python backup_rotation.py --self-test
 
   rotate-backup-branches:
     if: >-
@@ -188,191 +220,30 @@ jobs:
       REPOSITORY: ${{ github.repository }}
       CREATED_BACKUP_REF: ${{ github.event_name == 'create' && github.event.ref || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/backup/') && github.ref_name || '') }}
       KEEP_BACKUPS: "3"
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true && 'true' || 'false' }}
 
     steps:
-      - name: Verify new backup and retain only the newest three
+      - name: Checkout trusted rotation implementation
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Verify inventory and retain only the newest three
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import json
-          import os
-          import urllib.error
-          import urllib.parse
-          import urllib.request
-
-          token = os.environ["GH_TOKEN"]
-          repository = os.environ["REPOSITORY"]
-          created_ref = os.environ.get("CREATED_BACKUP_REF", "").strip()
-          keep_count = int(os.environ["KEEP_BACKUPS"])
-          api_root = f"https://api.github.com/repos/{repository}"
-
-          if keep_count != 3:
-              raise SystemExit("KEEP_BACKUPS must remain exactly 3")
-          if created_ref and (
-              not created_ref.startswith("backup/") or created_ref == "backup/"
-          ):
-              raise SystemExit(f"Unsafe backup ref: {created_ref!r}")
-
-          headers = {
-              "Accept": "application/vnd.github+json",
-              "Authorization": f"Bearer {token}",
-              "User-Agent": "bbvg-backup-retention",
-              "X-GitHub-Api-Version": "2022-11-28",
-          }
-
-          def request(method, path):
-              req = urllib.request.Request(api_root + path, headers=headers, method=method)
-              try:
-                  with urllib.request.urlopen(req, timeout=30) as response:
-                      body = response.read()
-              except urllib.error.HTTPError as exc:
-                  detail = exc.read().decode("utf-8", errors="replace")
-                  raise RuntimeError(
-                      f"GitHub API {method} {path} failed: HTTP {exc.code}: {detail}"
-                  ) from exc
-              return json.loads(body) if body else None
-
-          def ref_path(short_name):
-              return "/git/ref/heads/" + urllib.parse.quote(short_name, safe="/")
-
-          def delete_ref_path(short_name):
-              return "/git/refs/heads/" + urllib.parse.quote(short_name, safe="/")
-
-          def list_backup_refs():
-              refs = []
-              page = 1
-              while True:
-                  batch = request(
-                      "GET",
-                      f"/git/matching-refs/heads/backup/?per_page=100&page={page}",
-                  )
-                  refs.extend(batch)
-                  if len(batch) < 100:
-                      return refs
-                  page += 1
-
-          repository_info = request("GET", "")
-          default_branch = repository_info["default_branch"]
-          default_ref = request("GET", ref_path(default_branch))
-          default_sha = default_ref["object"]["sha"]
-
-          refs = list_backup_refs()
-          if len(refs) > 50:
-              raise SystemExit(f"Refusing unexpected backup ref count: {len(refs)}")
-
-          commit_cache = {}
-          records = []
-          for ref in refs:
-              full_name = ref["ref"]
-              prefix = "refs/heads/"
-              if not full_name.startswith(prefix + "backup/"):
-                  raise SystemExit(f"Unexpected ref outside backup namespace: {full_name}")
-              short_name = full_name[len(prefix):]
-              sha = ref["object"]["sha"]
-              commit = commit_cache.get(sha)
-              if commit is None:
-                  commit = request("GET", f"/commits/{sha}")
-                  commit_cache[sha] = commit
-              records.append(
-                  {
-                      "name": short_name,
-                      "sha": sha,
-                      "committed_at": commit["commit"]["committer"]["date"],
-                      "is_created_ref": False,
-                  }
-              )
-
-          if not records:
-              print("No backup refs exist; nothing to rotate")
-              raise SystemExit(0)
-
-          if not created_ref:
-              created_ref = max(
-                  records,
-                  key=lambda record: (record["committed_at"], record["name"]),
-              )["name"]
-              print(f"Maintenance run selected newest backup: {created_ref}")
-
-          selected = None
-          for record in records:
-              record["is_created_ref"] = record["name"] == created_ref
-              if record["is_created_ref"]:
-                  selected = record
-          if selected is None:
-              raise SystemExit("Selected backup ref is missing from repository inventory")
-
-          new_compare = request("GET", f"/compare/{selected['sha']}...{default_sha}")
-          if new_compare["status"] not in {"ahead", "identical"}:
-              raise SystemExit(
-                  f"New backup is not an ancestor of {default_branch}: "
-                  f"status={new_compare['status']}"
-              )
-          if new_compare["merge_base_commit"]["sha"] != selected["sha"]:
-              raise SystemExit("New backup ancestry verification failed")
-
-          records.sort(
-              key=lambda record: (
-                  record["is_created_ref"],
-                  record["committed_at"],
-                  record["name"],
-              ),
-              reverse=True,
+          args=(
+            --repository "$REPOSITORY"
+            --created-ref "$CREATED_BACKUP_REF"
+            --keep "$KEEP_BACKUPS"
           )
-          retained = records[:keep_count]
-          obsolete = records[keep_count:]
-
-          for record in obsolete:
-              compare = request("GET", f"/compare/{record['sha']}...{default_sha}")
-              if compare["status"] not in {"ahead", "identical"}:
-                  raise SystemExit(
-                      f"Refusing to delete {record['name']}: "
-                      f"status={compare['status']}"
-                  )
-              if compare["merge_base_commit"]["sha"] != record["sha"]:
-                  raise SystemExit(
-                      f"Refusing to delete {record['name']}: it has unique commits"
-                  )
-
-          print("Retaining verified backup refs:")
-          for record in retained:
-              print(f"  KEEP {record['name']} {record['sha']} {record['committed_at']}")
-          print("Deleting obsolete backup refs:")
-          for record in obsolete:
-              print(f"  DELETE {record['name']} {record['sha']} {record['committed_at']}")
-
-          for record in obsolete:
-              request("DELETE", delete_ref_path(record["name"]))
-
-          remaining = list_backup_refs()
-          remaining_names = sorted(
-              ref["ref"].removeprefix("refs/heads/") for ref in remaining
-          )
-          expected_names = sorted(record["name"] for record in retained)
-          if remaining_names != expected_names:
-              raise SystemExit(
-                  "Post-rotation inventory mismatch: "
-                  f"expected={expected_names}, actual={remaining_names}"
-              )
-          if len(remaining_names) != min(len(records), keep_count):
-              raise SystemExit("Post-rotation backup count is invalid")
-          if created_ref not in remaining_names:
-              raise SystemExit("Newly created backup was not retained")
-
-          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-          if summary_path:
-              with open(summary_path, "a", encoding="utf-8") as summary:
-                  summary.write("## Backup branch rotation\n\n")
-                  summary.write(f"Retained: {len(retained)}; deleted: {len(obsolete)}.\n\n")
-                  summary.write("### Retained\n")
-                  for record in retained:
-                      summary.write(f"- `{record['name']}` at `{record['sha']}`\n")
-                  summary.write("\n### Deleted\n")
-                  if obsolete:
-                      for record in obsolete:
-                          summary.write(f"- `{record['name']}` at `{record['sha']}`\n")
-                  else:
-                      summary.write("- None\n")
-
-          print(f"Backup rotation complete: {remaining_names}")
-          PY
+          if [[ "$DRY_RUN" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+          python backup_rotation.py "${args[@]}"
