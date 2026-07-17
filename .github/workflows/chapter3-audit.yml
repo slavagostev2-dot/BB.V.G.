@@ -51,5 +51,6 @@ jobs:
         with:
           name: chapter3-contract-source-${{ github.run_id }}
           path: chapter3-source
+          include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
