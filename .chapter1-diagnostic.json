@@ -1,0 +1,65 @@
+{
+  "results": [
+    {
+      "command": [
+        "python",
+        "/tmp/apply_chapter1.py"
+      ],
+      "returncode": 0,
+      "output_tail": ""
+    },
+    {
+      "command": [
+        "python",
+        "security_audit.py",
+        "--migrate-current"
+      ],
+      "returncode": 0,
+      "output_tail": "Current runtime provenance migration: state.json, candidate_moderation.json\nCurrent-tree security audit passed.\n"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "py_compile",
+        "security_audit.py",
+        "wheel_lifecycle_v2.py",
+        "monitor_data.py",
+        "admin_action_v3.py",
+        "admin_panel_runtime_v5.py"
+      ],
+      "returncode": 0,
+      "output_tail": ""
+    },
+    {
+      "command": [
+        "python",
+        "security_audit.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "output_tail": "security audit self-test passed\n"
+    },
+    {
+      "command": [
+        "python",
+        "security_audit.py",
+        "--current"
+      ],
+      "returncode": 0,
+      "output_tail": "Current-tree security audit passed.\n"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_lifecycle.py",
+        "tests/test_personal_wheel_voting.py"
+      ],
+      "returncode": 1,
+      "output_tail": "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python: No module named pytest\n"
+    }
+  ]
+}
