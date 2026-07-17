@@ -71,6 +71,10 @@ SOURCE_RATING_RESET_FIELDS = (
 # incident_state.json. The five-minute worker must not repeat the same warning.
 monitor.all_failed_alert_due = lambda state: False
 
+# Routine monitor health is available from the panel on demand. Do not send
+# a periodic Telegram status message when there is no actionable event.
+monitor.automatic_status_due = lambda state: False
+
 
 # The continuously running Telegram panel is the only callback consumer. The
 # monitor must not race it for menu and participation button updates.
