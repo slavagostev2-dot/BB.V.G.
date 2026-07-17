@@ -1,7 +1,7 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 1,
+    "age_minutes": 4,
     "last_heartbeat_at": "2026-07-17T16:36:46.589349+00:00",
     "started_at": "2026-07-17T16:16:05.852778+00:00",
     "status": "running",
@@ -40,7 +40,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-17T16:38:02.956644+00:00",
+  "checked_at": "2026-07-17T16:41:29.947506+00:00",
   "discovery": {
     "active_size": 78,
     "candidate_count": 237,
@@ -80,7 +80,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последняя итерация была 24 минут назад.",
+      "detail": "Последняя итерация была 27 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -106,9 +106,9 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
-    "messages_attempted": 1,
-    "opened": 1,
+    "digest_sent": false,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 31,
@@ -159,7 +159,7 @@
     "version": 3,
     "workflow_run_id": "29579678130"
   },
-  "monitor_age_minutes": 24,
+  "monitor_age_minutes": 27,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
