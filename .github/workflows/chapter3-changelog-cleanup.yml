@@ -1,0 +1,58 @@
+name: Chapter 3 changelog cleanup
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout chapter branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Normalize chapter entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          path = Path('docs/PROJECT_CHANGELOG_RU.md')
+          text = path.read_text(encoding='utf-8')
+          sentence = 'Дополнительно BetBoom возвращал `action_id` и `duration_min` для ещё не запущенной акции без `start_dttm`, а notification-first слой ошибочно превращал такой ответ в активную карточку.'
+          pattern = re.compile(r'(?: ' + re.escape(sentence) + r')+')
+          text, count = pattern.subn(' ' + sentence, text, count=1)
+          if count != 1:
+              raise RuntimeError('Chapter 3 repeated reason marker missing')
+          path.write_text(text, encoding='utf-8')
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('docs/PROJECT_CHANGELOG_RU.md').read_text(encoding='utf-8')
+          sentence = 'Дополнительно BetBoom возвращал `action_id` и `duration_min` для ещё не запущенной акции без `start_dttm`, а notification-first слой ошибочно превращал такой ответ в активную карточку.'
+          assert text.count(sentence) == 1
+          print('Chapter 3 changelog normalized')
+          PY
+
+      - name: Commit normalized changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/PROJECT_CHANGELOG_RU.md; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PROJECT_CHANGELOG_RU.md
+          git commit -m "Нормализовать запись главы 3"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
