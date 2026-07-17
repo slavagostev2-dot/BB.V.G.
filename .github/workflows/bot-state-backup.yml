@@ -1,40 +1,50 @@
 name: Backup encrypted bot state
-run-name: Prepare chapter 1 - ${{ github.event_name }}
+run-name: Backup encrypted bot state - ${{ github.event_name }}
 
 on:
+  create:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
     paths:
       - ".github/workflows/bot-state-backup.yml"
-      - "security_audit.py"
-      - "state.json"
-      - "source_stats.json"
-      - "candidate_moderation.json"
-      - "wheel_lifecycle_v2.py"
-      - "monitor_data.py"
-      - "admin_action_v3.py"
-      - "admin_panel_runtime_v5.py"
-      - "tests/test_lifecycle.py"
-      - "docs/PROJECT_CHANGELOG_RU.md"
+      - "bot_private_state.enc.json"
+      - "bot_private_state.py"
+  push:
+    branches:
+      - "backup/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "42 2 * * *"
 
 permissions:
   contents: read
 
+concurrency:
+  group: bb-vg-bot-state-backup
+  cancel-in-progress: false
+
 jobs:
-  prepare-chapter1:
+  backup:
     if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.head_ref == 'chapter1-pii-hardening'
-    permissions:
-      contents: write
+      startsWith(github.head_ref, 'chapter1-'))
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+
     steps:
-      - name: Checkout PR head
+      - name: Checkout exact authoritative state
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || 'main' }}
+          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,182 +55,324 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Apply chapter 1 code and audit changes
+      - name: Verify encrypted state and write non-PII metadata
+        env:
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
         run: |
+          set -euo pipefail
           python - <<'PY'
-          from pathlib import Path
+          import hashlib
+          import hmac
+          import json
+          import os
+          import subprocess
+          from datetime import datetime, timezone
 
-          def replace(path: str, old: str, new: str, *, count: int = 1) -> None:
-              target = Path(path)
-              text = target.read_text(encoding="utf-8")
-              if old not in text:
-                  raise SystemExit(f"Expected fragment is missing in {path}: {old[:80]!r}")
-              target.write_text(text.replace(old, new, count), encoding="utf-8")
+          import bot_private_state
 
-          replace(
-              "wheel_lifecycle_v2.py",
-              '        "marked_by": str(actor or "admin"),',
-              '        "marked_by": "admin",',
-          )
-          replace(
-              "monitor_data.py",
-              '        "actor": str(actor or "admin"),',
-              '        "actor": "admin",',
-          )
-          replace(
-              "admin_action_v3.py",
-              '        actor=actor or "admin",',
-              '        actor="admin",',
-          )
-          replace(
-              "admin_action_v3.py",
-              '    completed["confirmed_finished_by"] = actor or "admin"',
-              '    completed["confirmed_finished_by"] = "admin"',
-          )
-          replace(
-              "admin_action_v3.py",
-              '    assert len(decisions) == 1\n',
-              '    assert len(decisions) == 1\n'
-              '    assert next(iter(decisions.values()))["actor"] == "admin"\n'
-              '    assert state["recently_completed_wheels"]["wheel-a"]["confirmed_finished_by"] == "admin"\n',
-          )
-          replace(
-              "admin_panel_runtime_v5.py",
-              '            "ignored_by": str(self.current_user_id or ""),',
-              '            "ignored_by": "admin",',
-          )
+          production_key = str(os.environ.get("BOT_STATE_KEY") or "").strip()
+          assert production_key, "BOT_STATE_KEY is required for a verified production backup"
 
-          replace(
-              "security_audit.py",
-              'ENCRYPTED_STATE = "bot_private_state.enc.json"\nHISTORY_PERSONAL_STATE = (*PUBLIC_PERSONAL_STATE, PUBLIC_DIAGNOSTIC_STATE)\n',
-              'ENCRYPTED_STATE = "bot_private_state.enc.json"\n'
-              'PUBLIC_RUNTIME_PROVENANCE = (\n'
-              '    "state.json",\n'
-              '    "source_stats.json",\n'
-              '    "candidate_moderation.json",\n'
-              ')\n'
-              'VOTE_ACTOR_RE = re.compile(r"^vote_[0-9a-f]{32}$")\n'
-              'HISTORY_PERSONAL_STATE = (\n'
-              '    *PUBLIC_PERSONAL_STATE,\n'
-              '    PUBLIC_DIAGNOSTIC_STATE,\n'
-              '    *PUBLIC_RUNTIME_PROVENANCE,\n'
-              ')\n',
-          )
+          text = bot_private_state.STATE_PATH.read_text(encoding="utf-8")
+          source_sha = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"],
+              text=True,
+          ).strip()
+          assert len(source_sha) == 40, "Unable to resolve exact source SHA"
+          assert bot_private_state.state_format(text) == bot_private_state.FORMAT_V2
+          assert bot_private_state.state_key_mode(text) == "dedicated"
 
-          helper = '''\n\ndef _runtime_provenance_value_findings(\n    path_name: str, value: dict[str, Any]\n) -> list[Finding]:\n    findings: list[Finding] = []\n\n    def non_admin_count(collection_name: str, field: str) -> int:\n        collection = value.get(collection_name)\n        if not isinstance(collection, dict):\n            return 0\n        return sum(\n            1\n            for record in collection.values()\n            if isinstance(record, dict)\n            and field in record\n            and str(record.get(field) or "").strip().casefold() != "admin"\n        )\n\n    checks: tuple[tuple[str, str], ...] = ()\n    if path_name == "state.json":\n        checks = (\n            ("inactive_wheels", "marked_by"),\n            ("recently_completed_wheels", "confirmed_finished_by"),\n        )\n    elif path_name == "source_stats.json":\n        checks = (("admin_wheel_decisions", "actor"),)\n    elif path_name == "candidate_moderation.json":\n        checks = (("ignored", "ignored_by"),)\n\n    for collection_name, field in checks:\n        count = non_admin_count(collection_name, field)\n        if count:\n            findings.append(\n                Finding(\n                    "public_personal_data",\n                    path_name,\n                    f"non-anonymized {collection_name}.{field}: {count}",\n                )\n            )\n\n    if path_name == "source_stats.json":\n        votes = value.get("personal_wheel_votes")\n        invalid = 0\n        if isinstance(votes, dict):\n            for record in votes.values():\n                actor = (\n                    str(record.get("actor") or "").strip().casefold()\n                    if isinstance(record, dict)\n                    else ""\n                )\n                if not VOTE_ACTOR_RE.fullmatch(actor):\n                    invalid += 1\n        if invalid:\n            findings.append(\n                Finding(\n                    "public_personal_data",\n                    path_name,\n                    f"invalid personal_wheel_votes actor token: {invalid}",\n                )\n            )\n    return findings\n\n\ndef _runtime_provenance_findings(path: Path) -> list[Finding]:\n    value, findings = _load_object(path, "invalid_public_runtime_state")\n    if value is None:\n        return findings\n    return findings + _runtime_provenance_value_findings(path.name, value)\n\n\ndef _normalize_runtime_provenance_value(\n    path_name: str, value: dict[str, Any]\n) -> bool:\n    changed = False\n    checks: tuple[tuple[str, str], ...] = ()\n    if path_name == "state.json":\n        checks = (\n            ("inactive_wheels", "marked_by"),\n            ("recently_completed_wheels", "confirmed_finished_by"),\n        )\n    elif path_name == "source_stats.json":\n        checks = (("admin_wheel_decisions", "actor"),)\n    elif path_name == "candidate_moderation.json":\n        checks = (("ignored", "ignored_by"),)\n\n    for collection_name, field in checks:\n        collection = value.get(collection_name)\n        if not isinstance(collection, dict):\n            continue\n        for record in collection.values():\n            if not isinstance(record, dict) or field not in record:\n                continue\n            if str(record.get(field) or "").strip().casefold() != "admin":\n                record[field] = "admin"\n                changed = True\n    return changed\n\n\ndef migrate_current(paths: Iterable[Path] | None = None) -> list[str]:\n    changed_paths: list[str] = []\n    selected = list(paths or (ROOT / name for name in PUBLIC_RUNTIME_PROVENANCE))\n    for path in selected:\n        value, findings = _load_object(path, "invalid_public_runtime_state")\n        if value is None:\n            detail = findings[0].detail if findings else "invalid JSON"\n            raise RuntimeError(f"Cannot migrate {path.name}: {detail}")\n        if not _normalize_runtime_provenance_value(path.name, value):\n            continue\n        temporary = path.with_name(path.name + ".tmp")\n        temporary.write_text(\n            json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\\n",\n            encoding="utf-8",\n        )\n        temporary.replace(path)\n        changed_paths.append(path.name)\n    return changed_paths\n'''
-          replace(
-              "security_audit.py",
-              '\ndef _encrypted_state_findings(path: Path) -> list[Finding]:\n',
-              helper + '\n\ndef _encrypted_state_findings(path: Path) -> list[Finding]:\n',
+          value = bot_private_state.unseal(text, secret=production_key)
+          access = value.get("access") if isinstance(value.get("access"), dict) else {}
+          users = access.get("users") if isinstance(access.get("users"), dict) else {}
+          admins = access.get("admins") if isinstance(access.get("admins"), list) else []
+          recipients = (
+              access.get("notification_recipients")
+              if isinstance(access.get("notification_recipients"), list)
+              else []
           )
-          replace(
-              "security_audit.py",
-              '        if path.name == DELIVERY_STATE:\n            findings.extend(_delivery_state_findings(path))\n',
-              '        if path.name == DELIVERY_STATE:\n            findings.extend(_delivery_state_findings(path))\n'
-              '        if path.name in PUBLIC_RUNTIME_PROVENANCE:\n'
-              '            findings.extend(_runtime_provenance_findings(path))\n',
+          requests_bundle = (
+              value.get("source_requests")
+              if isinstance(value.get("source_requests"), dict)
+              else {}
           )
-          replace(
-              "security_audit.py",
-              '            elif isinstance(value, dict) and path == PUBLIC_DIAGNOSTIC_STATE:\n                contains_personal = _diagnostic_contains_personal(value)\n',
-              '            elif isinstance(value, dict) and path == PUBLIC_DIAGNOSTIC_STATE:\n'
-              '                contains_personal = _diagnostic_contains_personal(value)\n'
-              '            elif isinstance(value, dict) and path in PUBLIC_RUNTIME_PROVENANCE:\n'
-              '                contains_personal = bool(\n'
-              '                    _runtime_provenance_value_findings(path, value)\n'
-              '                )\n',
+          requests = (
+              requests_bundle.get("requests")
+              if isinstance(requests_bundle.get("requests"), dict)
+              else {}
           )
-          replace(
-              "security_audit.py",
-              '    assert not _delivery_state_findings(ROOT / DELIVERY_STATE)\n    print("security audit self-test passed")\n',
-              '    assert not _delivery_state_findings(ROOT / DELIVERY_STATE)\n'
-              '    sample = {\n'
-              '        "inactive_wheels": {"wheel": {"marked_by": "123456789"}},\n'
-              '        "recently_completed_wheels": {\n'
-              '            "wheel": {"confirmed_finished_by": "123456789"}\n'
-              '        },\n'
-              '    }\n'
-              '    assert _runtime_provenance_value_findings("state.json", sample)\n'
-              '    assert _normalize_runtime_provenance_value("state.json", sample)\n'
-              '    assert not _runtime_provenance_value_findings("state.json", sample)\n'
-              '    assert sample["inactive_wheels"]["wheel"]["marked_by"] == "admin"\n'
-              '    print("security audit self-test passed")\n',
-          )
-          replace(
-              "security_audit.py",
-              '    parser.add_argument("--self-test", action="store_true")\n',
-              '    parser.add_argument("--self-test", action="store_true")\n'
-              '    parser.add_argument("--migrate-current", action="store_true")\n',
-          )
-          replace(
-              "security_audit.py",
-              '    if args.self_test:\n        self_test()\n        return 0\n\n    run_current = args.current or not args.history\n',
-              '    if args.self_test:\n'
-              '        self_test()\n'
-              '        return 0\n\n'
-              '    if args.migrate_current:\n'
-              '        changed = migrate_current()\n'
-              '        print(\n'
-              '            "Current runtime provenance migration: "\n'
-              '            + (", ".join(changed) if changed else "unchanged")\n'
-              '        )\n\n'
-              '    run_current = args.current or args.migrate_current or not args.history\n',
-          )
+          assert access.get("owner_id"), "Encrypted state has no owner"
+          assert users, "Encrypted state has no users"
 
-          replace(
-              "tests/test_lifecycle.py",
-              'import rating_policy\nimport recurring_wheel_events\n',
-              'import rating_policy\nimport recurring_wheel_events\nimport security_audit\n',
-          )
-          replace(
-              "tests/test_lifecycle.py",
-              'import wheel_publications_v2\n',
-              'import wheel_publications_v2\nimport wheel_lifecycle_v2\n',
-          )
-          tests = '''\n\nclass PublicProvenancePrivacyTests(unittest.TestCase):\n    def test_admin_writers_store_only_admin_provenance(self) -> None:\n        current = datetime(2026, 7, 17, 3, 0, tzinfo=UTC)\n        stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}\n        self.assertTrue(\n            monitor_data.record_admin_wheel_decision(\n                stats,\n                wheel_key="wheel-a#action:10",\n                sources=["source"],\n                decision="confirmed",\n                actor="123456789",\n                at=current,\n            )\n        )\n        decision = stats["admin_wheel_decisions"]["wheel-a#action:10"]\n        self.assertEqual(decision["actor"], "admin")\n        self.assertEqual(decision["decided_at"], current.isoformat())\n\n        state: dict[str, Any] = {\n            "active_wheels": {\n                "wheel-a": {\n                    "identifier": "wheel-a",\n                    "event_id": "event-a",\n                    "action_id": 10,\n                }\n            }\n        }\n        entry = state["active_wheels"]["wheel-a"]\n        wheel_lifecycle_v2.mark_inactive_event(\n            state,\n            "wheel-a",\n            entry,\n            current=current,\n            actor="123456789",\n        )\n        inactive = state["inactive_wheels"]["wheel-a"]\n        self.assertEqual(inactive["marked_by"], "admin")\n        self.assertEqual(inactive["action_id"], 10)\n        self.assertEqual(inactive["event_id"], "event-a")\n        self.assertEqual(inactive["marked_at"], current.isoformat())\n\n    def test_current_json_migration_preserves_keys_timestamps_and_counters(self) -> None:\n        with TemporaryDirectory() as temporary:\n            root = Path(temporary)\n            state_path = root / "state.json"\n            stats_path = root / "source_stats.json"\n            moderation_path = root / "candidate_moderation.json"\n            state_path.write_text(\n                json.dumps(\n                    {\n                        "inactive_wheels": {\n                            "wheel-a": {\n                                "marked_by": "123456789",\n                                "marked_at": "2026-07-17T01:00:00+00:00",\n                                "action_id": 10,\n                            }\n                        },\n                        "recently_completed_wheels": {\n                            "wheel-b": {\n                                "confirmed_finished_by": "123456789",\n                                "rating_event_key": "wheel-b#action:11",\n                            }\n                        },\n                        "checks": 77,\n                    }\n                ),\n                encoding="utf-8",\n            )\n            stats_path.write_text(\n                json.dumps(\n                    {\n                        "admin_wheel_decisions": {\n                            "wheel-b#action:11": {\n                                "actor": "123456789",\n                                "decision": "confirmed",\n                                "decided_at": "2026-07-17T01:05:00+00:00",\n                                "sources": ["source"],\n                            }\n                        },\n                        "personal_wheel_votes": {\n                            "event": {\n                                "actor": "vote_" + "a" * 32,\n                                "event_key": "wheel-b#action:11",\n                            }\n                        },\n                        "checks": 88,\n                    }\n                ),\n                encoding="utf-8",\n            )\n            moderation_path.write_text(\n                json.dumps(\n                    {\n                        "version": 1,\n                        "ignored": {\n                            "source": {\n                                "ignored_by": "123456789",\n                                "ignored_at": "2026-07-17T01:10:00+00:00",\n                            }\n                        },\n                    }\n                ),\n                encoding="utf-8",\n            )\n\n            changed = security_audit.migrate_current(\n                [state_path, stats_path, moderation_path]\n            )\n            self.assertEqual(\n                changed,\n                ["state.json", "source_stats.json", "candidate_moderation.json"],\n            )\n            state = json.loads(state_path.read_text(encoding="utf-8"))\n            stats = json.loads(stats_path.read_text(encoding="utf-8"))\n            moderation = json.loads(moderation_path.read_text(encoding="utf-8"))\n            self.assertEqual(state["inactive_wheels"]["wheel-a"]["marked_by"], "admin")\n            self.assertEqual(\n                state["recently_completed_wheels"]["wheel-b"]["confirmed_finished_by"],\n                "admin",\n            )\n            self.assertEqual(state["checks"], 77)\n            self.assertEqual(state["inactive_wheels"]["wheel-a"]["action_id"], 10)\n            self.assertEqual(stats["admin_wheel_decisions"]["wheel-b#action:11"]["actor"], "admin")\n            self.assertEqual(stats["checks"], 88)\n            self.assertEqual(\n                stats["personal_wheel_votes"]["event"]["actor"],\n                "vote_" + "a" * 32,\n            )\n            self.assertEqual(moderation["ignored"]["source"]["ignored_by"], "admin")\n            for path in (state_path, stats_path, moderation_path):\n                self.assertEqual(security_audit._runtime_provenance_findings(path), [])\n'''
-          target = Path("tests/test_lifecycle.py")
-          text = target.read_text(encoding="utf-8")
-          marker = '\n\nif __name__ == "__main__":\n'
-          if marker not in text:
-              raise SystemExit("tests/test_lifecycle.py main marker missing")
-          target.write_text(text.replace(marker, tests + marker, 1), encoding="utf-8")
+          canonical = json.dumps(
+              value,
+              ensure_ascii=False,
+              separators=(",", ":"),
+              sort_keys=True,
+          ).encode("utf-8")
+          encrypted_bytes = bot_private_state.STATE_PATH.read_bytes()
+          state_hmac = hmac.new(
+              production_key.encode("utf-8"),
+              b"bbvg-backup-state-v1\0" + canonical,
+              hashlib.sha256,
+          ).hexdigest()
 
-          changelog = Path("docs/PROJECT_CHANGELOG_RU.md")
-          text = changelog.read_text(encoding="utf-8")
-          entry = '''---\n\n## 2026-07-17 — Глава 1: административные Telegram ID удалены из публичного runtime state\n\n**Причина:** `state.json`, `source_stats.json` и `candidate_moderation.json` сохраняли Telegram ID администратора в технических provenance-полях. Эти значения не нужны для функциональной идентичности и не должны публиковаться в Git.\n\n**Что изменено:**\n\n- `marked_by`, `confirmed_finished_by`, `admin_wheel_decisions.*.actor` и `ignored_by` теперь сохраняют только значение `admin`;\n- текущие три JSON-файла мигрируются атомарно без изменения wheel keys, rating event keys, времён, счётчиков и прочих данных;\n- личные голоса продолжают использовать существующий стабильный HMAC-псевдоним формата `vote_*`;\n- `security_audit.py --current` проверяет все три публичных runtime-файла и отклоняет raw provenance или некорректный actor token;\n- `security_audit.py --migrate-current` выполняет повторяемую безопасную миграцию.\n\n**Encrypted backup gate:** run `29551631560`, artifact `bbvg-encrypted-state-29551631560`, source SHA `12785cfcfc6353b76b862e599d23e8aa5e5acab2`. Проверены расшифровка только текущим production `BOT_STATE_KEY`, exact SHA, encrypted SHA-256, HMAC state fingerprint, restore smoke и обезличенные aggregates. Artifact хранится вне public Git refs.\n\n**Изменённые файлы:** `.github/workflows/bot-state-backup.yml`, `wheel_lifecycle_v2.py`, `monitor_data.py`, `admin_action_v3.py`, `admin_panel_runtime_v5.py`, `security_audit.py`, `state.json`, `source_stats.json`, `candidate_moderation.json`, `tests/test_lifecycle.py`, `docs/PROJECT_CHANGELOG_RU.md`. Новые файлы не создавались.\n\n**Откат:** вернуть merge commit главы 1 целиком и восстановить encrypted state из artifact run `29551631560`; ручное восстановление отдельных полей не требуется.\n\n'''
-          if not text.startswith("# BB V.G.") or "---\n\n" not in text:
-              raise SystemExit("Unexpected changelog format")
-          text = text.replace("---\n\n", entry, 1)
-          changelog.write_text(text, encoding="utf-8")
+          restored = bot_private_state.unseal(
+              bot_private_state.seal(value, secret=production_key),
+              secret=production_key,
+          )
+          assert restored == value, "Encrypted restore smoke mismatch"
+
+          metadata = {
+              "schema": "bbvg-encrypted-backup-metadata-v2",
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "source_ref": "refs/heads/main",
+              "source_sha": source_sha,
+              "encrypted_sha256": hashlib.sha256(encrypted_bytes).hexdigest(),
+              "state_hmac_sha256": state_hmac,
+              "format": bot_private_state.state_format(text),
+              "key_mode": "dedicated_current_production_key",
+              "verified_decrypt": True,
+              "verified_restore_smoke": True,
+              "artifact_outside_public_git_refs": True,
+              "aggregates": {
+                  "owner_present": True,
+                  "user_count": len(users),
+                  "admin_count": len(set(map(str, admins))),
+                  "notification_recipient_count": len(set(map(str, recipients))),
+                  "source_request_count": len(requests),
+                  "bundle_version": value.get("version"),
+              },
+              "generated_at": datetime.now(timezone.utc).isoformat(),
+          }
+          with open("bot_state_backup_metadata.json", "w", encoding="utf-8") as stream:
+              json.dump(metadata, stream, ensure_ascii=False, indent=2, sort_keys=True)
+              stream.write("\n")
+          print(
+              "Verified encrypted state backup: "
+              f"source_sha={source_sha}, format={metadata['format']}, "
+              f"users={metadata['aggregates']['user_count']}, "
+              "restore_smoke=true"
+          )
           PY
 
-      - name: Migrate current JSON and run targeted checks
-        run: |
-          set -euo pipefail
-          python security_audit.py --migrate-current
-          python -m py_compile security_audit.py wheel_lifecycle_v2.py monitor_data.py admin_action_v3.py admin_panel_runtime_v5.py
-          python security_audit.py --self-test
-          python security_audit.py --current
-          python -m pytest -q tests/test_lifecycle.py tests/test_personal_wheel_voting.py
+      - name: Upload verified encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbvg-encrypted-state-${{ github.run_id }}
+          path: |
+            bot_private_state.enc.json
+            bot_state_backup_metadata.json
+          if-no-files-found: error
+          retention-days: 30
 
-      - name: Commit prepared chapter 1 changes
-        env:
-          HEAD_REF: ${{ github.head_ref }}
+  rotate-backup-branches:
+    if: >-
+      (github.event_name == 'create' &&
+      github.event.ref_type == 'branch' &&
+      startsWith(github.event.ref, 'backup/')) ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true) ||
+      (github.event_name == 'push' &&
+      github.event.created &&
+      startsWith(github.ref, 'refs/heads/backup/'))
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
+      CREATED_BACKUP_REF: ${{ github.event_name == 'create' && github.event.ref || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/backup/') && github.ref_name || '') }}
+      KEEP_BACKUPS: "3"
+
+    steps:
+      - name: Verify new backup and retain only the newest three
+        shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            wheel_lifecycle_v2.py \
-            monitor_data.py \
-            admin_action_v3.py \
-            admin_panel_runtime_v5.py \
-            security_audit.py \
-            state.json \
-            source_stats.json \
-            candidate_moderation.json \
-            tests/test_lifecycle.py \
-            docs/PROJECT_CHANGELOG_RU.md
-          git diff --cached --check
-          git commit -m "Anonymize public runtime provenance for chapter 1 [skip ci]"
-          git push origin "HEAD:${HEAD_REF}"
+          python - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          token = os.environ["GH_TOKEN"]
+          repository = os.environ["REPOSITORY"]
+          created_ref = os.environ.get("CREATED_BACKUP_REF", "").strip()
+          keep_count = int(os.environ["KEEP_BACKUPS"])
+          api_root = f"https://api.github.com/repos/{repository}"
+
+          if keep_count != 3:
+              raise SystemExit("KEEP_BACKUPS must remain exactly 3")
+          if created_ref and (
+              not created_ref.startswith("backup/") or created_ref == "backup/"
+          ):
+              raise SystemExit(f"Unsafe backup ref: {created_ref!r}")
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "User-Agent": "bbvg-backup-retention",
+              "X-GitHub-Api-Version": "2022-11-28",
+          }
+
+          def request(method, path):
+              req = urllib.request.Request(api_root + path, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      body = response.read()
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read().decode("utf-8", errors="replace")
+                  raise RuntimeError(
+                      f"GitHub API {method} {path} failed: HTTP {exc.code}: {detail}"
+                  ) from exc
+              return json.loads(body) if body else None
+
+          def ref_path(short_name):
+              return "/git/ref/heads/" + urllib.parse.quote(short_name, safe="/")
+
+          def delete_ref_path(short_name):
+              return "/git/refs/heads/" + urllib.parse.quote(short_name, safe="/")
+
+          def list_backup_refs():
+              refs = []
+              page = 1
+              while True:
+                  batch = request(
+                      "GET",
+                      f"/git/matching-refs/heads/backup/?per_page=100&page={page}",
+                  )
+                  refs.extend(batch)
+                  if len(batch) < 100:
+                      return refs
+                  page += 1
+
+          repository_info = request("GET", "")
+          default_branch = repository_info["default_branch"]
+          default_ref = request("GET", ref_path(default_branch))
+          default_sha = default_ref["object"]["sha"]
+
+          refs = list_backup_refs()
+          if len(refs) > 50:
+              raise SystemExit(f"Refusing unexpected backup ref count: {len(refs)}")
+
+          commit_cache = {}
+          records = []
+          for ref in refs:
+              full_name = ref["ref"]
+              prefix = "refs/heads/"
+              if not full_name.startswith(prefix + "backup/"):
+                  raise SystemExit(f"Unexpected ref outside backup namespace: {full_name}")
+              short_name = full_name[len(prefix):]
+              sha = ref["object"]["sha"]
+              commit = commit_cache.get(sha)
+              if commit is None:
+                  commit = request("GET", f"/commits/{sha}")
+                  commit_cache[sha] = commit
+              records.append(
+                  {
+                      "name": short_name,
+                      "sha": sha,
+                      "committed_at": commit["commit"]["committer"]["date"],
+                      "is_created_ref": False,
+                  }
+              )
+
+          if not records:
+              print("No backup refs exist; nothing to rotate")
+              raise SystemExit(0)
+
+          if not created_ref:
+              created_ref = max(
+                  records,
+                  key=lambda record: (record["committed_at"], record["name"]),
+              )["name"]
+              print(f"Maintenance run selected newest backup: {created_ref}")
+
+          selected = None
+          for record in records:
+              record["is_created_ref"] = record["name"] == created_ref
+              if record["is_created_ref"]:
+                  selected = record
+          if selected is None:
+              raise SystemExit("Selected backup ref is missing from repository inventory")
+
+          new_compare = request("GET", f"/compare/{selected['sha']}...{default_sha}")
+          if new_compare["status"] not in {"ahead", "identical"}:
+              raise SystemExit(
+                  f"New backup is not an ancestor of {default_branch}: "
+                  f"status={new_compare['status']}"
+              )
+          if new_compare["merge_base_commit"]["sha"] != selected["sha"]:
+              raise SystemExit("New backup ancestry verification failed")
+
+          records.sort(
+              key=lambda record: (
+                  record["is_created_ref"],
+                  record["committed_at"],
+                  record["name"],
+              ),
+              reverse=True,
+          )
+          retained = records[:keep_count]
+          obsolete = records[keep_count:]
+
+          for record in obsolete:
+              compare = request("GET", f"/compare/{record['sha']}...{default_sha}")
+              if compare["status"] not in {"ahead", "identical"}:
+                  raise SystemExit(
+                      f"Refusing to delete {record['name']}: "
+                      f"status={compare['status']}"
+                  )
+              if compare["merge_base_commit"]["sha"] != record["sha"]:
+                  raise SystemExit(
+                      f"Refusing to delete {record['name']}: it has unique commits"
+                  )
+
+          print("Retaining verified backup refs:")
+          for record in retained:
+              print(f"  KEEP {record['name']} {record['sha']} {record['committed_at']}")
+          print("Deleting obsolete backup refs:")
+          for record in obsolete:
+              print(f"  DELETE {record['name']} {record['sha']} {record['committed_at']}")
+
+          for record in obsolete:
+              request("DELETE", delete_ref_path(record["name"]))
+
+          remaining = list_backup_refs()
+          remaining_names = sorted(
+              ref["ref"].removeprefix("refs/heads/") for ref in remaining
+          )
+          expected_names = sorted(record["name"] for record in retained)
+          if remaining_names != expected_names:
+              raise SystemExit(
+                  "Post-rotation inventory mismatch: "
+                  f"expected={expected_names}, actual={remaining_names}"
+              )
+          if len(remaining_names) != min(len(records), keep_count):
+              raise SystemExit("Post-rotation backup count is invalid")
+          if created_ref not in remaining_names:
+              raise SystemExit("Newly created backup was not retained")
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as summary:
+                  summary.write("## Backup branch rotation\n\n")
+                  summary.write(f"Retained: {len(retained)}; deleted: {len(obsolete)}.\n\n")
+                  summary.write("### Retained\n")
+                  for record in retained:
+                      summary.write(f"- `{record['name']}` at `{record['sha']}`\n")
+                  summary.write("\n### Deleted\n")
+                  if obsolete:
+                      for record in obsolete:
+                          summary.write(f"- `{record['name']}` at `{record['sha']}`\n")
+                  else:
+                      summary.write("- None\n")
+
+          print(f"Backup rotation complete: {remaining_names}")
+          PY
