@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import re
@@ -217,6 +218,21 @@ def _bounded_mapping(value: Any, maximum: int) -> dict[str, Any]:
     return dict(list(raw.items())[-maximum:])
 
 
+def _personal_vote_missing(stats: dict[str, Any], entry: dict[str, Any]) -> bool:
+    if str(entry.get("action") or "") != "record_personal_vote":
+        return False
+    try:
+        raw = json.loads(str(entry.get("value") or ""))
+        payload = personal_wheel_voting.normalize_vote_payload(raw)
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return False
+    vote_id = hashlib.sha256(
+        f"{payload['event_key']}\x1f{payload['actor']}".encode("utf-8")
+    ).hexdigest()[:32]
+    votes = stats.get("personal_wheel_votes")
+    return not isinstance(votes, dict) or vote_id not in votes
+
+
 def process_pending(
     state: dict[str, Any],
     health: dict[str, Any],
@@ -246,7 +262,7 @@ def process_pending(
     pending = [
         (command_id, entry)
         for command_id, entry in commands.items()
-        if command_id not in applied
+        if command_id not in applied or _personal_vote_missing(stats, entry)
     ]
     pending.sort(key=lambda item: (int(item[1]["sequence"]), item[0]))
     summary["pending"] = len(pending)
@@ -342,6 +358,14 @@ def self_test() -> None:
     assert vote_id in state["applied_admin_actions"]
     assert stats["sources"]["first"]["quality_score"] == 1
     assert stats["sources"]["second"]["quality_score"] == 1
+
+    lost_stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
+    repaired = process_pending(state, health, lost_stats, queue=vote_queue)
+    stable = process_pending(state, health, lost_stats, queue=vote_queue)
+    assert repaired["applied"] == 1
+    assert stable["applied"] == 0
+    assert lost_stats["sources"]["first"]["quality_score"] == 1
+    assert lost_stats["sources"]["second"]["quality_score"] == 1
     print("admin action queue self-test passed")
 
 

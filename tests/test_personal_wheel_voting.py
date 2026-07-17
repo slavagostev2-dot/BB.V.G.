@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
 
+import admin_action_queue
 import bbvg_monitor_main
 import personal_wheel_voting
 from bbvg.bot import runtime as bot_runtime
@@ -16,6 +19,7 @@ def test_user_and_admin_weights_credit_every_source_once() -> None:
     stats = {"version": 1, "sources": {}, "daily": {}}
     user = personal_wheel_voting.actor_vote_token("100", secret="test-secret")
     admin = personal_wheel_voting.actor_vote_token("200", secret="test-secret")
+    owner = personal_wheel_voting.actor_vote_token("300", secret="test-secret")
     event = "wheel-a#action:10"
     assert personal_wheel_voting.record_personal_vote(
         stats,
@@ -35,8 +39,17 @@ def test_user_and_admin_weights_credit_every_source_once() -> None:
         weight=5,
         at=datetime(2026, 7, 16, 12, 1, tzinfo=UTC),
     )
-    assert stats["sources"]["first"]["quality_score"] == 6
-    assert stats["sources"]["second"]["quality_score"] == 6
+    assert personal_wheel_voting.record_personal_vote(
+        stats,
+        event_key=event,
+        sources=["first", "second"],
+        actor=owner,
+        role="owner",
+        weight=5,
+        at=datetime(2026, 7, 16, 12, 2, tzinfo=UTC),
+    )
+    assert stats["sources"]["first"]["quality_score"] == 11
+    assert stats["sources"]["second"]["quality_score"] == 11
 
 
 def test_same_actor_is_idempotent_per_action_id() -> None:
@@ -89,6 +102,114 @@ def test_bot_token_is_not_accepted_as_state_key(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setenv("BOT_TOKEN", "bot-token-must-not-be-used")
     with pytest.raises(RuntimeError, match="BOT_STATE_KEY"):
         personal_wheel_voting.actor_vote_token("100")
+
+
+def test_applied_vote_commands_repair_lost_rating_without_duplicates() -> None:
+    queue = admin_action_queue.default_queue()
+    command_ids: list[str] = []
+    for index, (user_id, role, weight) in enumerate(
+        (("100", "owner", 5), ("200", "admin", 5), ("300", "user", 1)),
+        1,
+    ):
+        actor = personal_wheel_voting.actor_vote_token(user_id, secret="test-secret")
+        payload = {
+            "wheel_key": "wheel-a",
+            "event_key": "wheel-a#action:10",
+            "actor": actor,
+            "role": role,
+            "weight": weight,
+            "sources": ["first"],
+        }
+        queue, command_id = admin_action_queue.append_command(
+            queue,
+            "record_personal_vote",
+            json.dumps(payload),
+            command_id=f"repair-vote-{index}",
+        )
+        command_ids.append(command_id)
+
+    state = {
+        "applied_admin_actions": {
+            command_id: "2026-07-17T08:00:00+00:00" for command_id in command_ids
+        }
+    }
+    health = {"sources": {}}
+    lost_stats = {"version": 1, "sources": {}, "daily": {}}
+
+    repaired = admin_action_queue.process_pending(
+        state, health, lost_stats, queue=queue
+    )
+    stable = admin_action_queue.process_pending(
+        state, health, lost_stats, queue=queue
+    )
+
+    assert repaired["applied"] == 3
+    assert stable["applied"] == 0
+    assert len(lost_stats["personal_wheel_votes"]) == 3
+    assert lost_stats["sources"]["first"]["quality_score"] == 11
+    assert lost_stats["sources"]["first"]["admin_votes"] == 2
+    assert lost_stats["sources"]["first"]["user_votes"] == 1
+
+
+def test_participation_is_scoped_to_current_telegram_account(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("BOT_STATE_KEY", "test-state-key")
+    access = {
+        "users": {
+            "100": {"id": "100", "chat_id": "100", "participating_wheels": {}},
+            "200": {"id": "200", "chat_id": "200", "participating_wheels": {}},
+        }
+    }
+    dispatched: list[dict[str, object]] = []
+
+    class Panel(personal_wheel_voting.PersonalWheelVotingMixin):
+        current_user_id = "100"
+        current_chat_id = "100"
+        current_role = "user"
+
+        def load_access(self, force: bool = False) -> dict[str, object]:
+            del force
+            return access
+
+        def save_access(self, message: str) -> None:
+            del message
+
+        def _active_item(self, key: str) -> tuple[SimpleNamespace, dict[str, object]]:
+            return SimpleNamespace(), {
+                "_key": key,
+                "identifier": key,
+                "action_id": 10,
+            }
+
+        def role_for(self, user_id: str) -> str:
+            del user_id
+            return "user"
+
+        def _sources_for_item(
+            self, snap: SimpleNamespace, key: str, item: dict[str, object]
+        ) -> list[str]:
+            del snap, key, item
+            return ["first"]
+
+        def dispatch_admin_action(self, action: str, value: str) -> dict[str, object]:
+            dispatched.append({"action": action, "payload": json.loads(value)})
+            return {"queued": True, "command_id": f"command-{len(dispatched)}"}
+
+    panel = Panel()
+    panel.mark_personal_participation("wheel-a")
+    first_event = "wheel-a#action:10"
+    assert first_event in access["users"]["100"]["participating_wheels"]
+    assert first_event not in access["users"]["200"]["participating_wheels"]
+
+    panel.current_user_id = "200"
+    panel.current_chat_id = "200"
+    assert first_event not in panel._personal_participating_wheels()
+    panel.mark_personal_participation("wheel-a")
+
+    assert first_event in access["users"]["100"]["participating_wheels"]
+    assert first_event in access["users"]["200"]["participating_wheels"]
+    assert dispatched[0]["payload"]["actor"] != dispatched[1]["payload"]["actor"]
 
 
 def test_rating_reset_removes_scores_but_preserves_operations() -> None:
