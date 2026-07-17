@@ -8,7 +8,7 @@
 
 ## 2026-07-17 — Глава 3: функциональные контракты и health привязаны к текущему inventory
 
-**Причина:** системная диагностика продолжала использовать исторические пороги 66/77 и могла держать critical incident при живом мониторе и уже успешной транспортной проверке полного пула. Двухчасовое окно без таймера одновременно задавалось как 24 часа в monitor/workflow и исправлялось monkey-install до 2 часов. Единственный `getUpdates` consumer проверялся поиском строки, а не поведением.
+**Причина:** системная диагностика продолжала использовать исторические пороги 66/77 и могла держать critical incident при живом мониторе и уже успешной транспортной проверке полного пула. Двухчасовое окно без таймера одновременно задавалось как 24 часа в monitor/workflow и исправлялось monkey-install до 2 часов. Единственный `getUpdates` consumer проверялся поиском строки, а не поведением. Дополнительно BetBoom возвращал `action_id` и `duration_min` для ещё не запущенной акции без `start_dttm`, а notification-first слой ошибочно превращал такой ответ в активную карточку.
 
 **Что изменено:**
 
@@ -19,13 +19,16 @@
 - behavioral test запускает monitor feedback и production panel с fake Telegram API: monitor не вызывает `getUpdates`, панель является единственным consumer;
 - очередь проверена для каждого поддержанного administrative action: повтор того же `command_id` не меняет state, health и rating;
 - frozen-time fixture доказывает открытие transport incidents при плохом снимке и их закрытие после свежего точного inventory;
+- ответ API с настроенной длительностью, но без `start_dttm`, теперь считается ещё не запущенной акцией: уведомление и активная карточка не создаются, а ранее ошибочно добавленная карточка удаляется вместе с участием и suppression-state и переводится в тихую повторную проверку;
 - существующие сценарии доказывают Telegram-post dedup, timer/manual/2h, reused URL, очистку участия/публикаций при новом event, один rating на source/event, новый rating для нового action, reminders, draw notification и persistent delivery ledger без массовой отправки.
 
-**Изменённые файлы:** `monitor.py`, `wheel_link_lifecycle.py`, `system_checks.py`, `preflight.py`, `monitor_validation_v41.py`, действующие `.github/workflows/*.yml`, `tests/test_chapter3_contracts.py`, `tests/production_acceptance.py`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`. Создан только `tests/test_chapter3_contracts.py` как устойчивый behavioral-контракт главы; временный audit workflow удалён до merge. Runtime JSON и форматы callback не меняются PR.
+**Изменённые файлы:** `monitor.py`, `monitor_entry.py`, `bbvg_monitor_runtime.py`, `wheel_link_lifecycle.py`, `system_checks.py`, `preflight.py`, `monitor_validation_v41.py`, действующие `.github/workflows/*.yml`, `tests/test_chapter3_contracts.py`, `tests/test_lifecycle.py`, `tests/production_acceptance.py`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`. Создан только `tests/test_chapter3_contracts.py` как устойчивый behavioral-контракт главы; временный audit workflow удалён до merge. Runtime JSON и форматы callback не меняются PR.
 
 **Pre-update backup:** `backup/before-chapter3-contracts-health-2026-07-17` → `27e356d48378963c4e44af76fe32bff8367fb10b`.
 
-**Проверки до PR:** targeted behavioral suite — 67 tests и 9 subtests; полный pytest — 103 tests и 9 subtests; `preflight.py`, `monitor_validation_v41.py`, system self-tests и `tests/production_acceptance.py --section all` успешны. Финальные CI run IDs, result SHA, live health и post-update backup фиксируются после deploy.
+**Проверки до PR:** targeted behavioral suite — 70 tests и 9 subtests; полный pytest — 106 tests и 9 subtests; `preflight.py`, `monitor_validation_v41.py`, system self-tests и `tests/production_acceptance.py --section all` успешны. Финальные CI run IDs, result SHA, live health и post-update backup фиксируются после deploy.
+
+**Диагностика ложной карточки:** run `29591043004` подтвердил ответ HTTP 200 с `action_id=878`, `duration_min=15`, `is_ended=false`, но без `start_dttm`; именно отсутствие проверки этого сочетания было причиной попадания неработающего колеса в активные.
 
 **Откат:** вернуть merge commit главы 3 целиком либо перейти на `backup/before-chapter3-contracts-health-2026-07-17`; state migration не требуется.
 
