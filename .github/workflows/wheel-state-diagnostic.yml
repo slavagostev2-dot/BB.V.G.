@@ -85,6 +85,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: wheel-state-diagnostic-${{ github.run_id }}
-          path: wheel-state-diagnostic.json
+          path: |
+            wheel-state-diagnostic.json
+            .github/workflows/monitor.yml
           retention-days: 1
           if-no-files-found: error
