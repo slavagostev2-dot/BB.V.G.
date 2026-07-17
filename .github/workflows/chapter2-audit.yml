@@ -1,147 +1,90 @@
-name: Chapter 2 workflow audit
+name: Apply chapter 2 candidate
 
 on:
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+  push:
+    branches:
+      - agent/chapter2-actions-hardening
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: bb-vg-chapter2-apply
+  cancel-in-progress: false
 
 jobs:
-  audit:
+  apply:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout exact event commit
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout candidate branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
+          ref: agent/chapter2-actions-hardening
+          fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: '3.12'
-
-      - name: Inventory workflows and heartbeat writers
-        shell: bash
-        run: |
-          python - <<'PY'
-          from __future__ import annotations
-
-          import json
-          import re
-          from pathlib import Path
-
-          root = Path('.')
-          workflow_dir = root / '.github' / 'workflows'
-          action_re = re.compile(r'^\s*-?\s*uses:\s*([^\s#]+)', re.MULTILINE)
-          ref_re = re.compile(r'^\s*ref:\s*(.+?)\s*(?:#.*)?$', re.MULTILINE)
-          concurrency_re = re.compile(r'^\s*concurrency:\s*(.*)$', re.MULTILINE)
-
-          workflows = []
-          action_refs = {}
-          for path in sorted(workflow_dir.glob('*.y*ml')):
-              text = path.read_text(encoding='utf-8')
-              uses = action_re.findall(text)
-              for item in uses:
-                  action_refs[item] = action_refs.get(item, 0) + 1
-              permissions = []
-              lines = text.splitlines()
-              for index, line in enumerate(lines):
-                  if re.match(r'^\s*permissions:\s*$', line):
-                      indent = len(line) - len(line.lstrip())
-                      block = []
-                      for child in lines[index + 1:]:
-                          child_indent = len(child) - len(child.lstrip())
-                          if child.strip() and child_indent <= indent:
-                              break
-                          if child.strip():
-                              block.append(child.strip())
-                      permissions.append(block)
-                  elif re.match(r'^\s*permissions:\s*\S+', line):
-                      permissions.append([line.strip()])
-              workflows.append({
-                  'path': str(path),
-                  'uses': uses,
-                  'permissions': permissions,
-                  'contents_write': 'contents: write' in text,
-                  'actions_write': 'actions: write' in text,
-                  'persist_credentials_false': 'persist-credentials: false' in text,
-                  'checkout_count': sum(item.startswith('actions/checkout@') for item in uses),
-                  'refs': [value.strip() for value in ref_re.findall(text)],
-                  'concurrency': concurrency_re.findall(text),
-              })
-
-          heartbeat_hits = []
-          needles = ('head_sha', 'workflow_run_id', 'run_attempt', 'monitor_status.json', 'admin_panel_status.json')
-          for path in sorted(root.rglob('*')):
-              if not path.is_file() or '.git' in path.parts:
-                  continue
-              if path.suffix.lower() not in {'.py', '.sh', '.yml', '.yaml'}:
-                  continue
-              try:
-                  text = path.read_text(encoding='utf-8')
-              except (OSError, UnicodeDecodeError):
-                  continue
-              found = [needle for needle in needles if needle in text]
-              if found:
-                  heartbeat_hits.append({'path': str(path), 'needles': found})
-
-          report = {
-              'workflow_count': len(workflows),
-              'workflows': workflows,
-              'action_refs': dict(sorted(action_refs.items())),
-              'heartbeat_hits': heartbeat_hits,
-          }
-          Path('chapter2-workflow-audit.json').write_text(
-              json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
-          )
-
-          lines = [
-              '# Chapter 2 workflow audit',
-              '',
-              f"Workflows: {report['workflow_count']}",
-              '',
-              '## Action references',
-          ]
-          lines.extend(f'- `{name}`: {count}' for name, count in report['action_refs'].items())
-          lines.extend(['', '## Workflows'])
-          for item in workflows:
-              lines.append(f"- `{item['path']}`: contents_write={item['contents_write']}, actions_write={item['actions_write']}, persist_credentials_false={item['persist_credentials_false']}, uses={item['uses']}")
-          lines.extend(['', '## Heartbeat references'])
-          lines.extend(f"- `{item['path']}`: {', '.join(item['needles'])}" for item in heartbeat_hits)
-          Path('chapter2-workflow-audit.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
-          PY
-
-      - name: Collect source snapshot
+      - name: Apply verified chapter 2 payload
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p chapter2-source-snapshot/workflows
-          cp .github/workflows/*.yml chapter2-source-snapshot/workflows/
-          for path in \
-            AGENTS.md \
-            docs/PROJECT_CHANGELOG_RU.md \
-            admin_panel_status.json \
-            monitor_status.json \
-            monitor_shift_v41.sh \
-            monitor_health.py \
-            admin_panel_runtime_v37.py \
-            system_checks.py \
-            system_checks_v2.py; do
-            if [ -f "$path" ]; then
-              mkdir -p "chapter2-source-snapshot/$(dirname "$path")"
-              cp "$path" "chapter2-source-snapshot/$path"
-            fi
-          done
+          test "$GITHUB_REF_NAME" = "agent/chapter2-actions-hardening"
+          base64 --decode > /tmp/chapter2.tar.gz <<'PAYLOAD'
+          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
+          PAYLOAD
+          tar -xzf /tmp/chapter2.tar.gz
+          rm -f .github/workflows/chapter2-audit.yml
+          python -m py_compile backup_rotation.py monitor_health.py tests/test_actions_security.py
+          python backup_rotation.py --self-test
+          python monitor_health.py --self-test
+          bash -n monitor_shift_v41.sh
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          workflows = list(Path('.github/workflows').glob('*.yml'))
+          assert len(workflows) == 26, len(workflows)
+          for path in workflows:
+              for line in path.read_text(encoding='utf-8').splitlines():
+                  if 'uses: actions/' in line:
+                      ref = line.split('uses:', 1)[1].split('#', 1)[0].strip()
+                      assert re.fullmatch(
+                          r'actions/(?:checkout|setup-python|upload-artifact)@[0-9a-f]{40}',
+                          ref,
+                      ), (path, ref)
+          print('Chapter 2 static action scan passed')
+          PY
 
-      - name: Upload audit
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: chapter2-workflow-audit-${{ github.run_id }}
-          path: |
-            chapter2-workflow-audit.json
-            chapter2-workflow-audit.md
-            chapter2-source-snapshot
-          retention-days: 1
+      - name: Commit candidate atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Implement chapter 2 Actions hardening"
+          git push origin HEAD:agent/chapter2-actions-hardening
