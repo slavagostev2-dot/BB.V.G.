@@ -185,7 +185,6 @@ def recover_deadline_manual_first(state: dict, key: str, entry: dict):
 
 def wheel_markup_with_direct_key(state, message, link, **kwargs):
     markup = _original_markup(state, message, link, **kwargs)
-    key = monitor.wheel_key(link)
     cleaned_rows: list[list[dict[str, Any]]] = []
     for row in markup.get("inline_keyboard", []):
         if not isinstance(row, list):
@@ -195,29 +194,23 @@ def wheel_markup_with_direct_key(state, message, link, **kwargs):
             if not isinstance(button, dict):
                 continue
             callback = str(button.get("callback_data") or "")
-            if callback.startswith(("bb:x:", "wheel:inactive:", "wheel:finished:")):
+            if callback.startswith(
+                (
+                    "bb:t:",
+                    "wheel:time:",
+                    "bb:x:",
+                    "wheel:inactive:",
+                    "wheel:finished:",
+                )
+            ):
                 continue
             item = dict(button)
-            if callback.startswith("bb:t:"):
-                item["callback_data"] = f"bb:t:{key}"
             if callback.startswith(("bb:p:", "wheel:part:")):
                 item["text"] = "✅ Участвую"
             cleaned.append(item)
         if cleaned:
             cleaned_rows.append(cleaned)
     markup["inline_keyboard"] = cleaned_rows
-    callbacks = {
-        str(button.get("callback_data") or "")
-        for row in markup.get("inline_keyboard", [])
-        for button in row
-        if isinstance(button, dict)
-    }
-    if f"bb:t:{key}" not in callbacks:
-        rows = markup.setdefault("inline_keyboard", [])
-        rows.insert(
-            max(1, len(rows) - 1),
-            [{"text": "⏱ Указать время", "callback_data": f"bb:t:{key}"}],
-        )
     return markup
 
 

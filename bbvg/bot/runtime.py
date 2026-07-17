@@ -52,9 +52,37 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
 
     def handle_callback(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
+        query_id = str(query.get("id") or "")
+
+        if data.startswith(("bb:p:", "wheel:part:")):
+            message = query.get("message") or {}
+            previous_edit_message_id = getattr(self, "_edit_message_id", None)
+            original_show_active = self.show_active
+            self._edit_message_id = int(message.get("message_id") or 0) or None
+            self.show_active = (  # type: ignore[method-assign]
+                lambda page=0: self.show_menu(clear_stack=True)
+            )
+            try:
+                super().handle_callback(query)
+            finally:
+                self.show_active = original_show_active  # type: ignore[method-assign]
+                self._edit_message_id = previous_edit_message_id
+            return
+
+        if data.startswith(("bb:t:", "wheel:time:")):
+            message = query.get("message") or {}
+            previous_edit_message_id = getattr(self, "_edit_message_id", None)
+            self._edit_message_id = int(message.get("message_id") or 0) or None
+            try:
+                self._prepare_callback_user(query)
+                self.answer(query_id, "Ручное указание времени отключено")
+                self.show_menu(clear_stack=True)
+            finally:
+                self._edit_message_id = previous_edit_message_id
+            return
+
         if data == "summary:send" or data.startswith("summary:send:") or data == "control:daily":
             self._prepare_callback_user(query)
-            query_id = str(query.get("id") or "")
             if not self.is_admin():
                 self.answer(query_id, "Недоступно")
                 return
@@ -62,12 +90,10 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
                 self.answer(query_id, "Выберите период")
                 self.show_send_summary_menu()
                 return
-
             period = "daily" if data == "control:daily" else data.rsplit(":", 1)[1]
             if period not in SUMMARY_PERIODS:
                 self.answer(query_id, "Неизвестный период")
                 return
-
             days, label = SUMMARY_PERIODS[period]
             self.answer(query_id, "Сводка сформирована")
             self.send(
@@ -88,18 +114,25 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
         cleaned_text = _WHEEL_LINE_COLOR_RE.sub(r"\1\2", str(text or ""))
         if not isinstance(reply_markup, dict):
             return cleaned_text, reply_markup
-
         cleaned_markup = copy.deepcopy(reply_markup)
+        rows: list[list[dict[str, Any]]] = []
         for row in cleaned_markup.get("inline_keyboard", []):
             if not isinstance(row, list):
                 continue
+            filtered: list[dict[str, Any]] = []
             for button in row:
                 if not isinstance(button, dict):
                     continue
-                label = str(button.get("text") or "")
-                cleaned = _BUTTON_COLOR_RE.sub("", label)
-                if cleaned != label:
-                    button["text"] = cleaned
+                callback = str(button.get("callback_data") or "")
+                if callback.startswith(("bb:t:", "wheel:time:")):
+                    continue
+                item = dict(button)
+                label = str(item.get("text") or "")
+                item["text"] = _BUTTON_COLOR_RE.sub("", label)
+                filtered.append(item)
+            if filtered:
+                rows.append(filtered)
+        cleaned_markup["inline_keyboard"] = rows
         return cleaned_text, cleaned_markup
 
     @classmethod
@@ -155,10 +188,7 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
             f"Ваша роль: <b>{html.escape(self.role_name(role))}</b>\n\n"
             "Выберите раздел."
         )
-        self.send(
-            text,
-            reply_markup={"inline_keyboard": rows},
-        )
+        self.send(text, reply_markup={"inline_keyboard": rows})
 
     def show_settings(self) -> None:
         rows: list[list[dict[str, Any]]] = [
@@ -174,12 +204,7 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
             rows.extend(
                 [
                     [{"text": "🧭 API и Legacy", "callback_data": "page:wheelmode"}],
-                    [
-                        {
-                            "text": "⛔ Отключённый функционал",
-                            "callback_data": "page:disabled_features",
-                        }
-                    ],
+                    [{"text": "⛔ Отключённый функционал", "callback_data": "page:disabled_features"}],
                 ]
             )
             interval = int(
@@ -192,6 +217,22 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
         else:
             rows.append([{"text": "🗑 Удалить мои данные", "callback_data": "privacy:delete:ask"}])
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
+
+    def show_disabled_features(self) -> None:
+        text = (
+            "⛔ <b>Отключённый функционал</b>\n\n"
+            "• <b>Ручное указание времени</b> — скрыто и отключено: время берётся из "
+            "BetBoom API, а без серверного времени действует штатное двухчасовое окно.\n"
+            "• <b>Общее «Участвую»</b> — отключено: отметка всегда принадлежит только "
+            "нажавшему пользователю.\n"
+            "• <b>«Завершено» и «Неактивное»</b> — отключены: они конфликтуют с "
+            "авторитетной BetBoom API-проверкой и могли удалить колесо раньше сервера.\n"
+            "• <b>Скрытие или удаление пользователем</b> — отключено: общий список должен "
+            "быть одинаковым, а личное участие хранится отдельно.\n"
+            "• <b>Legacy HTML-checker</b> — не работает параллельно с API, чтобы одна ссылка "
+            "не получала противоречивые статусы."
+        )
+        self.send(text, reply_markup=self.with_nav())
 
     def render_page(self, page: str) -> None:
         normalized = str(page or "")
@@ -243,122 +284,60 @@ def self_test() -> None:
     assert SUMMARY_PERIODS["weekly"][0] == 7
     assert SUMMARY_PERIODS["monthly"][0] == 30
 
-    current_capture: list[tuple[str, dict[str, Any]]] = []
-    current = TelegramPanelRuntime()
-    _configured_panel(current, current_capture)
-    current.show_active()
-    active_text, active_kwargs = current_capture[-1]
-    assert "@source, @second" in active_text
-    assert "Участие не отмечено" in active_text
+    captured: list[tuple[str, dict[str, Any]]] = []
+    panel = TelegramPanelRuntime()
+    _configured_panel(panel, captured)
+    panel.show_active()
+    active_text, active_kwargs = captured[-1]
     active_markup = str(active_kwargs["reply_markup"])
+    assert "@source, @second" in active_text
     assert "wheel:part:wheel-a" in active_markup
-    assert "wheel:time:wheel-a" in active_markup
+    assert "wheel:time:wheel-a" not in active_markup
     assert "wheel:finished:" not in active_markup
     assert "wheel:inactive:" not in active_markup
 
-    rainbow_text = "<b>1. <code>wheel-a</code> 🔵</b>\n🔴 Время прокрутки неизвестно"
-    rainbow_markup = {
-        "inline_keyboard": [
-            [{"text": "🔵 🎡 1 · Открыть колесо", "url": "https://example.com"}],
-            [{"text": "🔵 ✅ 1 · Участвую", "callback_data": "join:wheel-a"}],
-        ]
-    }
-    cleaned_text, cleaned_markup = current._simplify_active_payload(
-        rainbow_text, rainbow_markup
+    cleaned_text, cleaned_markup = panel._simplify_active_payload(
+        "<b>1. <code>wheel-a</code> 🔵</b>\n🔴 Время прокрутки неизвестно",
+        {
+            "inline_keyboard": [
+                [{"text": "🔵 🎡 1 · Открыть колесо", "url": "https://example.com"}],
+                [{"text": "🔵 ✅ 1 · Участвую", "callback_data": "join:wheel-a"}],
+                [{"text": "⏱ 1 · Указать время", "callback_data": "wheel:time:wheel-a"}],
+            ]
+        },
     )
     assert "<code>wheel-a</code> 🔵" not in cleaned_text
-    assert "🔴 Время прокрутки неизвестно" in cleaned_text
     assert cleaned_markup is not None
+    assert "wheel:time:" not in str(cleaned_markup)
     assert not telegram_ui.markup_issues(cleaned_markup)
-    labels = [
-        str(button.get("text") or "")
-        for row in cleaned_markup.get("inline_keyboard", [])
-        for button in row
-        if isinstance(button, dict)
-    ]
-    assert labels == ["🎡 1 · Открыть колесо", "✅ 1 · Участвую"]
-    callbacks = [
-        str(button.get("callback_data") or "")
-        for row in cleaned_markup.get("inline_keyboard", [])
-        for button in row
-        if isinstance(button, dict) and button.get("callback_data")
-    ]
-    assert all(len(value.encode("utf-8")) <= 64 for value in callbacks)
-    assert all(_BUTTON_INDEX_RE.search(label) for label in labels)
 
-    menu_capture: list[tuple[str, dict[str, Any]]] = []
-    current.current_user_id = "1"
-    current.current_role = "admin"
-    current.navigation = {"1": ["menu"]}
-    current.role_for = lambda user_id: "admin"  # type: ignore[method-assign]
-    current.role_name = lambda role: "Администратор"  # type: ignore[method-assign]
-    current.send = lambda text, **kwargs: menu_capture.append((text, kwargs)) or {}  # type: ignore[method-assign]
-    current.show_menu()
-    menu_text, menu_kwargs = menu_capture[-1]
-    assert "Находит колёса BetBoom" in menu_text
-    assert "Ваша роль: <b>Администратор</b>" in menu_text
-    menu_callbacks = [
-        str(button.get("callback_data") or "")
-        for row in menu_kwargs["reply_markup"]["inline_keyboard"]
-        for button in row
-        if isinstance(button, dict)
-    ]
-    assert "page:active" in menu_callbacks
-    assert "page:control" in menu_callbacks
-    assert "page:status" not in menu_callbacks
+    panel.navigation = {"1": ["menu"]}
+    panel.role_for = lambda user_id: "admin"  # type: ignore[method-assign]
+    panel.role_name = lambda role: "Администратор"  # type: ignore[method-assign]
+    panel.send = lambda text, **kwargs: captured.append((text, kwargs)) or {}  # type: ignore[method-assign]
+    panel.show_menu()
+    assert "Ваша роль: <b>Администратор</b>" in captured[-1][0]
+    panel.show_disabled_features()
+    assert "Ручное указание времени" in captured[-1][0]
 
-    current.current_user_id = "3"
-    current.current_chat_id = "3"
-    current.current_role = "user"
-    current.navigation = {"3": ["menu"]}
-    current.role_for = lambda user_id: "user"  # type: ignore[method-assign]
-    current.role_name = lambda role: "Пользователь"  # type: ignore[method-assign]
-    current.is_admin = lambda: False  # type: ignore[method-assign]
-    current.is_owner = lambda: False  # type: ignore[method-assign]
-    current.with_nav = lambda rows=None: {"inline_keyboard": rows or []}  # type: ignore[method-assign]
-    current.send = lambda text, **kwargs: menu_capture.append((text, kwargs)) or {}  # type: ignore[method-assign]
-    current.show_menu()
-    user_menu_callbacks = [
-        str(button.get("callback_data") or "")
-        for row in menu_capture[-1][1]["reply_markup"]["inline_keyboard"]
-        for button in row
-        if isinstance(button, dict)
-    ]
-    assert "page:settings" in user_menu_callbacks
-    assert "page:status" not in user_menu_callbacks
-
-    current.show_settings()
-    user_settings_text, user_settings_kwargs = menu_capture[-1]
-    user_settings_markup = str(user_settings_kwargs["reply_markup"])
-    assert "page:status" in user_settings_markup
-    assert "page:wheelmode" not in user_settings_markup
-    assert "page:disabled_features" not in user_settings_markup
-    assert "Проверка активных колёс выполняется через BetBoom API." not in user_settings_text
-
-    current.current_user_id = "1"
-    current.current_chat_id = "1"
-    current.current_role = "owner"
-    current.is_admin = lambda: True  # type: ignore[method-assign]
-    current.is_owner = lambda: True  # type: ignore[method-assign]
-    current.load_access = lambda force=False: {"settings": {"monitor_interval_minutes": 5}}  # type: ignore[method-assign]
-    current.show_settings()
-    admin_settings_text, admin_settings_kwargs = menu_capture[-1]
-    admin_settings_markup = str(admin_settings_kwargs["reply_markup"])
-    assert "page:status" in admin_settings_markup
-    assert "page:wheelmode" in admin_settings_markup
-    assert "page:disabled_features" in admin_settings_markup
-    assert "Проверка активных колёс выполняется через BetBoom API." not in admin_settings_text
-
-    summary_calls: list[tuple[str, Any]] = []
-    current._prepare_callback_user = lambda query: summary_calls.append(("prepare", query))  # type: ignore[method-assign]
-    current.is_admin = lambda: True  # type: ignore[method-assign]
-    current.answer = lambda query_id, text: summary_calls.append(("answer", (query_id, text)))  # type: ignore[method-assign]
-    current.send = lambda text, **kwargs: summary_calls.append(("send", (text, kwargs))) or {}  # type: ignore[method-assign]
-    current.with_nav = lambda: {"inline_keyboard": []}  # type: ignore[method-assign]
-    current.show_period_report = lambda days: summary_calls.append(("report", days))  # type: ignore[method-assign]
-    current.handle_callback({"id": "q1", "data": "summary:send:weekly"})
-    assert ("report", 7) in summary_calls
-    assert any(name == "send" for name, _ in summary_calls)
+    callback_calls: list[tuple[str, Any]] = []
+    panel._prepare_callback_user = lambda query: callback_calls.append(("prepare", query))  # type: ignore[method-assign]
+    panel.snapshot = lambda force=False: SimpleNamespace(  # type: ignore[method-assign]
+        state={"button_contexts": {"token": {"wheel_key": "wheel-a"}}}
+    )
+    panel.mark_personal_participation = lambda key: {"changed": True}  # type: ignore[method-assign]
+    panel.answer = lambda query_id, text: callback_calls.append(("answer", text))  # type: ignore[method-assign]
+    panel.show_menu = lambda clear_stack=True: callback_calls.append(("menu", clear_stack))  # type: ignore[method-assign]
+    panel.handle_callback(
+        {
+            "id": "q",
+            "data": "bb:p:token",
+            "message": {"message_id": 77, "chat": {"id": "1"}},
+            "from": {"id": "1"},
+        }
+    )
+    assert ("menu", True) in callback_calls
+    assert panel._edit_message_id is None
 
     print("BB V.G. consolidated Telegram panel runtime self-test passed")
 

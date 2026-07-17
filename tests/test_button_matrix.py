@@ -31,11 +31,16 @@ class ButtonMatrixTests(unittest.TestCase):
         panel.current_user_id = "1" if admin else "3"
         panel.current_chat_id = panel.current_user_id
         panel.current_role = "owner" if admin else "user"
+        panel.navigation = {panel.current_user_id: ["menu"]}
         panel.set_context = lambda chat_id, user_id: None  # type: ignore[method-assign]
         panel._prepare_callback_user = lambda query: None  # type: ignore[method-assign]
         panel.is_admin = lambda: admin  # type: ignore[method-assign]
+        panel.role_for = lambda user_id: "owner" if admin else "user"  # type: ignore[method-assign]
+        panel.role_name = lambda role: "Владелец" if admin else "Пользователь"  # type: ignore[method-assign]
         panel.answer = lambda query_id, text="": calls.append(("answer", text))  # type: ignore[method-assign]
-        panel.send = lambda text, **kwargs: calls.append(("send", text)) or {}  # type: ignore[method-assign]
+        panel.send = lambda text, **kwargs: calls.append(  # type: ignore[method-assign]
+            ("send", text, getattr(panel, "_edit_message_id", None), kwargs)
+        ) or {}
         panel.with_nav = lambda rows=None: {"inline_keyboard": rows or []}  # type: ignore[method-assign]
         panel.show_active = lambda page=0: calls.append(("show_active", page))  # type: ignore[method-assign]
         panel.refresh_snapshot = lambda: calls.append(("refresh",))  # type: ignore[method-assign]
@@ -78,31 +83,42 @@ class ButtonMatrixTests(unittest.TestCase):
         }
         user = notification_router.markup_for_chat(source, admin=False)
         admin = notification_router.markup_for_chat(source, admin=True)
+        _, final_admin = TelegramPanelRuntime._simplify_active_payload("", admin)
         self.assertIn("✅ Участвую", str(user))
         self.assertNotIn("Скрыть у меня", str(user))
         self.assertNotIn("wheel:inactive:one", str(user))
         self.assertNotIn("wheel:time:one", str(user))
-        self.assertIn("✅ Участвую", str(admin))
-        self.assertNotIn("wheel:inactive:one", str(admin))
-        self.assertIn("wheel:time:one", str(admin))
+        self.assertIn("✅ Участвую", str(final_admin))
+        self.assertNotIn("wheel:inactive:one", str(final_admin))
+        self.assertNotIn("wheel:time:one", str(final_admin))
 
-    def test_participation_is_personal_for_every_role(self) -> None:
+    def test_participation_is_personal_and_opens_menu_in_same_message(self) -> None:
         for admin, user_id in ((False, 3), (True, 1)):
             panel, calls = self.panel(admin=admin)
             panel.handle_callback(self.query("wheel:part:wheel-a", user_id))
             self.assertIn(("personal", "wheel-a"), calls)
             self.assertFalse(any(row[0] == "admin" for row in calls))
+            menu_updates = [
+                row for row in calls
+                if row[0] == "send" and "Выберите раздел" in row[1]
+            ]
+            self.assertEqual(len(menu_updates), 1)
+            self.assertEqual(menu_updates[0][2], 1)
+            self.assertFalse(any(row[0] == "show_active" for row in calls))
 
-    def test_users_and_admins_cannot_delete_in_api_mode(self) -> None:
+    def test_users_and_admins_cannot_delete_or_set_time_in_api_mode(self) -> None:
         for admin, user_id in ((False, 3), (True, 1)):
             panel, calls = self.panel(admin=admin)
             panel.handle_callback(self.query("wheel:inactive:wheel-a", user_id))
             panel.handle_callback(self.query("wheel:finished:wheel-a", user_id))
+            panel.handle_callback(self.query("wheel:time:wheel-a", user_id))
             self.assertFalse(any(row[0] == "admin" for row in calls))
+            self.assertFalse(any(row[0] == "time" for row in calls))
             answers = [row[1] for row in calls if row[0] == "answer"]
             self.assertTrue(any("BetBoom API" in value for value in answers))
+            self.assertTrue(any("указание времени отключено" in value for value in answers))
 
-    def test_active_list_renders_only_personal_and_time_controls(self) -> None:
+    def test_active_list_renders_only_open_and_personal_controls(self) -> None:
         for admin in (False, True):
             panel = TelegramPanelRuntime()
             captured: list[dict[str, Any]] = []
@@ -132,10 +148,7 @@ class ButtonMatrixTests(unittest.TestCase):
             self.assertIn("wheel:part:wheel-a", markup)
             self.assertNotIn("wheel:inactive:wheel-a", markup)
             self.assertNotIn("wheel:finished:wheel-a", markup)
-            if admin:
-                self.assertIn("wheel:time:wheel-a", markup)
-            else:
-                self.assertNotIn("wheel:time:wheel-a", markup)
+            self.assertNotIn("wheel:time:wheel-a", markup)
 
 
 if __name__ == "__main__":
