@@ -73,9 +73,9 @@ jobs:
           TELEGRAM_WEB_DOMAIN: telegram.me
           DISPLAY_TIMEZONE: Asia/Barnaul
           REQUEST_TIMEOUT_SECONDS: "15"
-          INTELLIGENCE_SOURCE_LIMIT: "150"
-          INTELLIGENCE_CANDIDATE_LIMIT: "150"
-          INTELLIGENCE_VERIFY_LIMIT: "100"
+          INTELLIGENCE_SOURCE_LIMIT: "250"
+          INTELLIGENCE_CANDIDATE_LIMIT: "200"
+          INTELLIGENCE_VERIFY_LIMIT: "150"
         run: python source_intelligence_entry.py
 
       - name: Save intelligence state
