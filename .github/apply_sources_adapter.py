@@ -66,4 +66,5 @@ text = text.replace(
 )
 text = text.replace("registry = load_source_registry()", "registry = self.load_source_registry()")
 text = text.replace("registry = source_registry_fallback(snap)", "registry = self.source_registry_fallback()")
+text = text.replace('"\\n".join', '"\\\\n".join')
 ui.write_text(text, encoding="utf-8")
