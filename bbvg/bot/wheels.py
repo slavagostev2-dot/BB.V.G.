@@ -1,21 +1,96 @@
 from __future__ import annotations
 
 import html
+import hashlib
 import re
 from datetime import datetime, timedelta
 from typing import Any
 
 import admin_bot as legacy
+import telegram_ui
 from bbvg.bot.source_requests import SourceRequestRuntime
 from bbvg.bot.foundation import BRAND_NAME
 
 UTC = legacy.UTC
 HIDDEN_WHEEL_DAYS = 30
 DEADLINE_GRACE_MINUTES = 30
+_SAFE_CALLBACK_TOKEN_RE = re.compile(r"^[A-Za-z0-9_.~-]+$")
 
 
 class WheelInteractionRuntime(SourceRequestRuntime):
     """Personal wheel state, manual deadlines and wheel callback handling."""
+
+    @staticmethod
+    def _sources_for_item(
+        snap: Any,
+        key: str,
+        item: dict[str, Any],
+    ) -> list[str]:
+        result: list[str] = []
+        rows = snap.state.get("wheel_publications", {}).get(key.casefold(), [])
+        if isinstance(rows, list):
+            result.extend(
+                str(row.get("source") or "").strip().lstrip("@")
+                for row in rows
+                if isinstance(row, dict)
+            )
+        raw_sources = item.get("sources")
+        if isinstance(raw_sources, list):
+            result.extend(str(value).strip().lstrip("@") for value in raw_sources)
+        result.append(str(item.get("source") or "").strip().lstrip("@"))
+        seen: set[str] = set()
+        unique: list[str] = []
+        for source in result:
+            if source and source.casefold() not in seen:
+                seen.add(source.casefold())
+                unique.append(source)
+        return unique
+
+    @staticmethod
+    def _wheel_digest(key: str) -> str:
+        normalized = str(key or "").casefold()
+        return "~" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:20]
+
+    @classmethod
+    def _wheel_token(cls, key: str, available_bytes: int) -> str:
+        normalized = str(key or "").casefold()
+        if (
+            normalized
+            and _SAFE_CALLBACK_TOKEN_RE.fullmatch(normalized)
+            and len(normalized.encode("utf-8")) <= available_bytes
+        ):
+            return normalized
+        return cls._wheel_digest(normalized)
+
+    @classmethod
+    def _wheel_callback(cls, action: str, key: str) -> str:
+        prefix = f"wheel:{action}:"
+        token = cls._wheel_token(
+            key, telegram_ui.TELEGRAM_CALLBACK_LIMIT - len(prefix.encode("utf-8"))
+        )
+        return prefix + token
+
+    @classmethod
+    def _quick_time_callback(cls, key: str, minutes: int) -> str:
+        prefix = "wheel:timequick:"
+        suffix = f":{minutes}"
+        available = (
+            telegram_ui.TELEGRAM_CALLBACK_LIMIT
+            - len(prefix.encode("utf-8"))
+            - len(suffix.encode("utf-8"))
+        )
+        return prefix + cls._wheel_token(key, available) + suffix
+
+    def _resolve_wheel_token(self, token: str) -> str | None:
+        value = str(token or "")
+        if not value.startswith("~"):
+            return value.casefold()
+        matches: list[str] = []
+        for item in self._collect_current_wheels():
+            key = str(item.get("_key") or item.get("identifier") or "").casefold()
+            if key and self._wheel_digest(key) == value:
+                matches.append(key)
+        return matches[0] if len(set(matches)) == 1 else None
 
     def _hidden_wheels(self, user_id: str | None = None) -> dict[str, dict[str, Any]]:
         target = str(user_id or self.current_user_id or "")
