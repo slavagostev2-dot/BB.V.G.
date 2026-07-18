@@ -47,6 +47,12 @@ jobs:
           set -o pipefail
           {
             set -euo pipefail
+            sed -n '95,130p' monitor_entry.py
+            python - <<'PY'
+          import inspect
+          import monitor_entry
+          print(inspect.getsource(monitor_entry.fetch_all_sources_with_originals))
+          PY
             python -m compileall -q -x '(^|/)(\.git|\.venv|state_api|docs)(/|$)' .
             python - <<'PY'
           from pathlib import Path
