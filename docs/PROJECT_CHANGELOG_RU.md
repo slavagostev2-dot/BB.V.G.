@@ -43,6 +43,9 @@ BetBoom/стримеров оставались вне основной пров
 - успешный ночной discovery также перестраивает source registry, поэтому
   `[skip ci]` в runtime commit не оставляет новый ночной inventory в pending до
   следующего расписания;
+- health сравнивает `sources_scanned` с `known_sources` того же intelligence
+  run, а не с уже расширенным downstream inventory; полнота нового nightly
+  пула отдельно подтверждается discovery и transport smoke;
 - схема callback и существующие решения модерации не менялись; новые файлы не
   создавались.
 
@@ -51,7 +54,7 @@ BetBoom/стримеров оставались вне основной пров
 `e6dcf3e772344133f44551bf19f59eec470cab95`.
 
 **Проверки до deploy:** compile изменённых Python-модулей; относящиеся и
-полный набор из 139 pytest-тестов + 9 subtests, включая отсечение bot/noise,
+полный набор из 140 pytest-тестов + 9 subtests, включая отсечение bot/noise,
 отбор ночных кандидатов и маршруты панели; self-test, production acceptance,
 security audit и preflight на первом этапе из 107 источников прошли. Первый
 production heartbeat подтвердил полный проход 104/104 за 7 секунд без ошибок;
