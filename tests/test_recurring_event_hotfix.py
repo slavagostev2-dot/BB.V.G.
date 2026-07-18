@@ -307,6 +307,80 @@ class RecurringWheelHotfixTests(unittest.TestCase):
         self.assertNotIn("reused", state["wheel_publications"])
         self.assertNotIn("reused", state["recently_completed_wheels"])
 
+    def test_generation_observations_expose_reused_ids_without_personal_data(self) -> None:
+        first = datetime(2026, 7, 18, 8, 0, tzinfo=UTC)
+        second = first + timedelta(hours=5)
+        state: dict = {}
+        for current in (first, first + timedelta(minutes=3)):
+            wheel_event_runtime.record_generation_identity(
+                state,
+                "reused",
+                100,
+                first,
+                current=current,
+                status="active",
+            )
+        wheel_event_runtime.record_generation_identity(
+            state,
+            "reused",
+            100,
+            second,
+            current=second,
+            status="active",
+        )
+
+        observations = state[wheel_event_runtime.GENERATION_OBSERVATIONS_KEY]
+        self.assertEqual(len(observations), 2)
+        first_record = next(
+            row for row in observations.values() if row["server_start_at"] == first.isoformat()
+        )
+        self.assertEqual(first_record["observations"], 2)
+        self.assertNotIn("user_id", str(observations))
+        self.assertNotIn("chat_id", str(observations))
+
+        report = wheel_event_runtime.generation_observation_report(
+            state, current=second
+        )
+        self.assertEqual(
+            report["same_action_id_multiple_starts"],
+            [
+                {
+                    "wheel_key": "reused",
+                    "action_id": 100,
+                    "server_start_at": [first.isoformat(), second.isoformat()],
+                }
+            ],
+        )
+
+    def test_generation_observations_record_identity_gaps_and_prune_old_rows(self) -> None:
+        old = datetime(2026, 7, 1, 8, 0, tzinfo=UTC)
+        current = old + wheel_event_runtime.GENERATION_OBSERVATION_RETENTION + timedelta(minutes=1)
+        state: dict = {}
+        wheel_event_runtime.record_generation_observation(
+            state,
+            "old-wheel",
+            10,
+            old,
+            current=old,
+            status="active",
+        )
+        wheel_event_runtime.record_generation_observation(
+            state,
+            "missing-identity",
+            None,
+            None,
+            current=current,
+            status="legacy",
+        )
+
+        observations = state[wheel_event_runtime.GENERATION_OBSERVATIONS_KEY]
+        self.assertEqual(len(observations), 1)
+        report = wheel_event_runtime.generation_observation_report(
+            state, current=current
+        )
+        self.assertEqual(report["observation_identities"], 1)
+        self.assertEqual(report["missing_server_identity"][0]["wheel_key"], "missing-identity")
+
     def test_new_action_id_releases_old_timer_immediately(self) -> None:
         runtime = bbvg_monitor_main.monitor
         current = datetime.now(UTC)

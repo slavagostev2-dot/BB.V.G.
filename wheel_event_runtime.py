@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import argparse
 import hashlib
 import html
+import json
 import re
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Callable
 
 import wheel_lifecycle_v2
@@ -12,6 +15,9 @@ import wheel_lifecycle_v2
 UTC = timezone.utc
 EVENT_REUSE_GAP = timedelta(hours=6)
 ACTIVE_WITHOUT_DRAW_TTL = timedelta(hours=2)
+GENERATION_OBSERVATION_RETENTION = timedelta(days=14)
+GENERATION_OBSERVATION_LIMIT = 1000
+GENERATION_OBSERVATIONS_KEY = "wheel_generation_observations"
 
 _START_CUE_RE = re.compile(
     r"\b(?:"
@@ -138,6 +144,154 @@ def generation_id(key: str, action_id: int | None, server_start_at: Any) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:20]
 
 
+def _observation_id(
+    key: str,
+    action_id: int | None,
+    server_start_at: datetime | None,
+) -> str:
+    raw = "\x1f".join(
+        (
+            str(key or "").casefold(),
+            str(action_id) if action_id is not None else "missing-action-id",
+            server_start_at.isoformat() if server_start_at is not None else "missing-start",
+        )
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+
+
+def _prune_generation_observations(
+    observations: dict[str, Any],
+    *,
+    current: datetime,
+) -> None:
+    cutoff = current - GENERATION_OBSERVATION_RETENTION
+    for observation_id, raw in list(observations.items()):
+        last_seen = _record_time(raw, "last_seen_at", "first_seen_at")
+        if not isinstance(raw, dict) or last_seen is None or last_seen < cutoff:
+            observations.pop(observation_id, None)
+    overflow = len(observations) - GENERATION_OBSERVATION_LIMIT
+    if overflow <= 0:
+        return
+    ordered = sorted(
+        observations,
+        key=lambda observation_id: str(
+            (observations.get(observation_id) or {}).get("last_seen_at") or ""
+        ),
+    )
+    for observation_id in ordered[:overflow]:
+        observations.pop(observation_id, None)
+
+
+def record_generation_observation(
+    state: dict[str, Any],
+    key: str,
+    action_id: int | None,
+    server_start_at: Any,
+    *,
+    current: datetime,
+    status: str,
+) -> str:
+    """Persist a bounded, non-personal audit trail of BetBoom identities."""
+
+    normalized = str(key or "").strip().casefold()
+    if not normalized:
+        return ""
+    current = current.astimezone(UTC) if current.tzinfo else current.replace(tzinfo=UTC)
+    parsed_start = _parse_datetime(server_start_at)
+    parsed_action = _record_action_id({"action_id": action_id})
+    observation_id = _observation_id(normalized, parsed_action, parsed_start)
+    observations = state.setdefault(GENERATION_OBSERVATIONS_KEY, {})
+    if not isinstance(observations, dict):
+        observations = {}
+        state[GENERATION_OBSERVATIONS_KEY] = observations
+    previous = observations.get(observation_id)
+    previous = previous if isinstance(previous, dict) else {}
+    statuses = previous.get("statuses")
+    statuses = dict(statuses) if isinstance(statuses, dict) else {}
+    normalized_status = str(status or "observed").strip().casefold()[:40] or "observed"
+    statuses[normalized_status] = int(statuses.get(normalized_status, 0) or 0) + 1
+    generation = generation_id(normalized, parsed_action, parsed_start)
+    observation: dict[str, Any] = {
+        "wheel_key": normalized,
+        "action_id": parsed_action,
+        "server_start_at": parsed_start.isoformat() if parsed_start is not None else None,
+        "first_seen_at": str(previous.get("first_seen_at") or current.isoformat()),
+        "last_seen_at": current.isoformat(),
+        "observations": int(previous.get("observations", 0) or 0) + 1,
+        "statuses": statuses,
+    }
+    if generation:
+        observation["generation_id"] = generation
+    observations[observation_id] = observation
+    _prune_generation_observations(observations, current=current)
+    return observation_id
+
+
+def generation_observation_report(
+    state: dict[str, Any],
+    *,
+    current: datetime | None = None,
+) -> dict[str, Any]:
+    """Summarize evidence needed to decide whether the fallback rule is necessary."""
+
+    current = current or datetime.now(UTC)
+    raw_observations = state.get(GENERATION_OBSERVATIONS_KEY)
+    observations = raw_observations if isinstance(raw_observations, dict) else {}
+    links: dict[str, dict[str, Any]] = {}
+    missing_identity: list[dict[str, Any]] = []
+    for raw in observations.values():
+        if not isinstance(raw, dict):
+            continue
+        key = str(raw.get("wheel_key") or "").casefold()
+        if not key:
+            continue
+        action_id = _record_action_id(raw)
+        start = _parse_datetime(raw.get("server_start_at"))
+        link = links.setdefault(key, {"action_ids": set(), "starts_by_action": {}})
+        if action_id is not None:
+            link["action_ids"].add(action_id)
+            starts = link["starts_by_action"].setdefault(action_id, set())
+            if start is not None:
+                starts.add(start.isoformat())
+        if action_id is None or start is None:
+            missing_identity.append(
+                {
+                    "wheel_key": key,
+                    "action_id": action_id,
+                    "server_start_at": start.isoformat() if start is not None else None,
+                    "first_seen_at": raw.get("first_seen_at"),
+                    "last_seen_at": raw.get("last_seen_at"),
+                    "observations": int(raw.get("observations", 0) or 0),
+                }
+            )
+
+    repeated_action_ids: list[dict[str, Any]] = []
+    multiple_action_ids: list[dict[str, Any]] = []
+    for key, link in sorted(links.items()):
+        action_ids = sorted(link["action_ids"])
+        if len(action_ids) > 1:
+            multiple_action_ids.append({"wheel_key": key, "action_ids": action_ids})
+        for action_id, starts in sorted(link["starts_by_action"].items()):
+            ordered_starts = sorted(starts)
+            if len(ordered_starts) > 1:
+                repeated_action_ids.append(
+                    {
+                        "wheel_key": key,
+                        "action_id": action_id,
+                        "server_start_at": ordered_starts,
+                    }
+                )
+    return {
+        "generated_at": current.astimezone(UTC).isoformat(),
+        "retention_days": int(GENERATION_OBSERVATION_RETENTION.total_seconds() // 86400),
+        "observation_identities": len(observations),
+        "observed_links": len(links),
+        "same_action_id_multiple_starts": repeated_action_ids,
+        "same_link_multiple_action_ids": multiple_action_ids,
+        "missing_server_identity": missing_identity,
+    }
+
+
 def _generation_records(
     state: dict[str, Any], key: str
 ) -> list[tuple[str, dict[str, Any]]]:
@@ -221,6 +375,14 @@ def record_generation_identity(
     current: datetime,
     status: str = "active",
 ) -> str:
+    record_generation_observation(
+        state,
+        key,
+        action_id,
+        server_start_at,
+        current=current,
+        status=status,
+    )
     if action_id is None:
         return ""
     normalized = str(key or "").casefold()
@@ -606,9 +768,20 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         known_before: set[int],
     ):
         action_id = result.action_id
-        if not isinstance(state, dict) or action_id is None:
+        if not isinstance(state, dict):
             return result
         key = monitor_module.wheel_key(link)
+        if action_id is None or result.status in {"inactive", "not_started"}:
+            record_generation_observation(
+                state,
+                key,
+                action_id,
+                result.server_start_at,
+                current=monitor_module.now_utc(),
+                status=result.status,
+            )
+        if action_id is None:
+            return result
         generation_status = action_generation_status(
             state, key, action_id, result.server_start_at
         )
@@ -929,8 +1102,58 @@ def self_test() -> None:
     }
     removed = reset_stale_event_state(state, "risen", published)
     assert {"inactive_wheels", "manual_deadlines", "recently_completed_wheels"} <= set(removed)
+
+    observations: dict[str, Any] = {}
+    record_generation_observation(
+        observations,
+        "same",
+        100,
+        published,
+        current=published,
+        status="active",
+    )
+    record_generation_observation(
+        observations,
+        "same",
+        100,
+        published + timedelta(hours=6),
+        current=published + timedelta(hours=6),
+        status="active",
+    )
+    report = generation_observation_report(
+        observations, current=published + timedelta(hours=6)
+    )
+    assert report["same_action_id_multiple_starts"] == [
+        {
+            "wheel_key": "same",
+            "action_id": 100,
+            "server_start_at": [
+                published.isoformat(),
+                (published + timedelta(hours=6)).isoformat(),
+            ],
+        }
+    ]
     print("recurring wheel event and availability self-test passed")
 
 
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="BB V.G. recurring wheel identity diagnostics"
+    )
+    parser.add_argument(
+        "--observation-report",
+        type=Path,
+        metavar="STATE_JSON",
+        help="print a JSON report from the bounded generation history",
+    )
+    args = parser.parse_args()
+    if args.observation_report is None:
+        self_test()
+        return 0
+    state = json.loads(args.observation_report.read_text(encoding="utf-8"))
+    print(json.dumps(generation_observation_report(state), ensure_ascii=False, indent=2))
+    return 0
+
+
 if __name__ == "__main__":
-    self_test()
+    raise SystemExit(main())
