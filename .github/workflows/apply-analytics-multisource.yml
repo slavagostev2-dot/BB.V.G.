@@ -37,6 +37,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          python .github/apply_sources_adapter.py 2>&1 | tee analytics-adapter.log
           python .github/apply_analytics_core.py 2>&1 | tee analytics-core.log
           python .github/apply_analytics_ui.py 2>&1 | tee analytics-ui.log
 
@@ -80,6 +81,7 @@ jobs:
         with:
           name: analytics-multisource-${{ github.run_id }}
           path: |
+            analytics-adapter.log
             analytics-core.log
             analytics-ui.log
             analytics-verify.log
