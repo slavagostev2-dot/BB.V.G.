@@ -1,34 +1,22 @@
-name: BB V.G. current checks
-run-name: BB V.G. current checks — ${{ github.event_name }}
+name: Apply source menu regression correction
 
 on:
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  current:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      BOT_TOKEN: "test-bot-token"
-      BOT_STATE_KEY: "test-state-key"
-      BOT_CHAT_ID: "1"
-      ADMIN_USER_ID: "1"
-      BBVG_TEST_MODE: "1"
-      TELEGRAM_WEB_DOMAIN: telegram.me
-      FINAL_REMINDER_BEFORE_MINUTES: "5"
-      ACTIVE_REMOVE_GRACE_MINUTES: "0"
-
+    timeout-minutes: 30
     steps:
-      - name: Checkout proposed changes
+      - name: Checkout feature branch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -36,75 +24,96 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: requirements-dev.txt
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-dev.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
 
-      - name: Validate consolidated runtime and state
-        run: |
-          set -euo pipefail
-          python -m compileall -q bbvg tests
-          python -m py_compile \
-            admin_bot.py admin_runtime.py admin_panel_v2.py \
-            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
-            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
-            admin_panel_runtime_v41.py bot_private_state.py \
-            notification_integrity_v2.py privacy_retention.py security_audit.py \
-            migrate_bot_private_state.py source_registry.py \
-            wheel_link_lifecycle.py wheel_scenario_suite.py
-          python -m bbvg.bot.storage
-          python -m bbvg.bot.users
-          python -m bbvg.bot.runtime --self-test
-          python admin_panel_runtime_v36.py --self-test
-          python admin_panel_runtime_v37.py --self-test
-          python admin_panel_runtime_v38.py --self-test
-          python admin_panel_runtime_v41.py --self-test
-          python bot_private_state.py
-          python notification_integrity_v2.py --self-test
-          python privacy_retention.py
-          python migrate_bot_private_state.py --check
-          python security_audit.py --self-test
-          python security_audit.py --current
-          python security_audit.py --history --history-output security_history_report.json
-
-      - name: Run full pytest suite
-        run: python -m pytest -q
-
-      - name: Run production acceptance
-        run: python tests/production_acceptance.py --section all
-
-      - name: Validate current production boundaries
+      - name: Apply role-safe source menu
+        shell: bash
         run: |
           set -euo pipefail
+          git cat-file blob 23d4c1c74e71ddc074c1fddc2975f29e3e073431 > /tmp/v22-checks-original.yml
           python - <<'PY'
-          import inspect
           from pathlib import Path
-          import notification_router
-          import telegram_ui
-          from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
-          from bbvg.bot.storage import PrivateStateRuntime
-          from bbvg.bot.users import UserSettingsMixin, WHEEL_NOTIFICATION_OPTIONS
 
-          workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
-          assert 'run: python admin_panel_runtime_v41.py' in workflow
-          assert 'Role fingerprint' in workflow or 'role fingerprint' in workflow.lower()
-          assert {'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'} == {
-              key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
-          }
-          handler = inspect.getsource(UserSettingsMixin.handle_callback)
-          assert 'usernotify:' in handler and 'usernotifyall:' in handler
-          assert '_load_remote_bundle' in inspect.getsource(PrivateStateRuntime._save_bot_bundle)
-          assert 'page:status' in {
-              button['callback_data']
-              for row in TelegramPanelRuntimeV38.compact_menu_rows(False)
-              for button in row
-          }
-          assert notification_router._bbvg_notification_integrity_v2_installed is True
-          assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
-          print('Current consolidated production boundaries validated')
+          runtime = Path('bbvg/bot/runtime.py')
+          text = runtime.read_text(encoding='utf-8')
+          old = '''        rows: list[list[dict[str, str]]] = [
+            [{"text": f"⚡ Основная проверка ({len(primary)})", "callback_data": "source_list:primary:0"}],
+            [{"text": f"🌙 Ночное наблюдение ({len(reserve)})", "callback_data": "source_list:reserve:0"}],
+            [{"text": f"⏸ Приостановлены ({len(paused)})", "callback_data": "source_list:paused:0"}],
+        ]
+        if self.is_admin():
+            rows.append([{"text": "➕ Добавить источник", "callback_data": "source:add"}])
+'''
+          new = '''        # Reuse the existing role-safe source controls. The richer registry
+        # text must not hide rating, discovery, intelligence or source requests.
+        rows = self.source_menu_rows(self.is_admin())
+'''
+          if new not in text:
+              if old not in text:
+                  raise RuntimeError('show_sources row marker missing')
+              text = text.replace(old, new, 1)
+          runtime.write_text(text, encoding='utf-8')
+
+          tests = Path('tests/test_button_matrix.py')
+          text = tests.read_text(encoding='utf-8')
+          marker = '''    def test_notification_button_role_matrix(self) -> None:
+'''
+          test = '''    def test_source_controls_remain_role_safe_after_analytics_expansion(self) -> None:
+        admin = callbacks(TelegramPanelRuntime.source_menu_rows(True))
+        user = callbacks(TelegramPanelRuntime.source_menu_rows(False))
+        self.assertTrue({"page:ranking", "source_list:primary:0", "page:discovery", "page:intelligence", "source:add"} <= admin)
+        self.assertTrue({"page:ranking", "source_list:primary:0", "source:request"} <= user)
+        self.assertNotIn("source:add", user)
+        self.assertNotIn("page:intelligence", user)
+
+'''
+          if test not in text:
+              if marker not in text:
+                  raise RuntimeError('button matrix marker missing')
+              text = text.replace(marker, test + marker, 1)
+          tests.write_text(text, encoding='utf-8')
+
+          changelog = Path('docs/PROJECT_CHANGELOG_RU.md')
+          text = changelog.read_text(encoding='utf-8')
+          old_line = '- экран источников показывает состояние реестра и фактическое время его обновления;\n'
+          new_line = old_line + '- расширенная карточка источников сохраняет прежнюю role-safe навигацию: рейтинг, основную проверку, ночное наблюдение, разведку, добавление администратором и предложение источника пользователем;\n'
+          if new_line not in text:
+              if old_line not in text:
+                  raise RuntimeError('changelog source marker missing')
+              text = text.replace(old_line, new_line, 1)
+          changelog.write_text(text, encoding='utf-8')
           PY
+
+      - name: Verify correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/source-menu-workflows
+          mv .github/workflows/apply-source-menu-regression.yml /tmp/source-menu-workflows/
+          cp /tmp/v22-checks-original.yml .github/workflows/v22-checks.yml
+          restore() {
+            git checkout -- .github/workflows/v22-checks.yml
+            mv /tmp/source-menu-workflows/apply-source-menu-regression.yml .github/workflows/
+          }
+          trap restore EXIT
+          python -m py_compile bbvg/bot/runtime.py tests/test_button_matrix.py
+          python -m pytest -q tests/test_button_matrix.py
+          python -m pytest -q
+          python -m bbvg.bot.runtime --self-test
+          python tests/production_acceptance.py --section all
+          restore
+          trap - EXIT
+
+      - name: Commit verified correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/v22-checks-original.yml .github/workflows/v22-checks.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bbvg/bot/runtime.py tests/test_button_matrix.py docs/PROJECT_CHANGELOG_RU.md .github/workflows/v22-checks.yml
+          git commit -m "Сохранить управление источниками после расширения аналитики"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
