@@ -222,6 +222,31 @@ class ButtonMatrixTests(unittest.TestCase):
         self.assertIn("доступен администраторам", sent[-1][1])
         self.assertNotIn("Выберите раздел", sent[-1][1])
 
+    def test_intelligence_alert_buttons_support_new_and_delivered_callbacks(self) -> None:
+        panel, calls = self.panel(admin=True)
+        moved: list[tuple[str, str]] = []
+        panel.set_candidate_mode = lambda source, mode: (  # type: ignore[method-assign]
+            moved.append((source, mode)) or f"@{source} добавлен"
+        )
+
+        for callback in (
+            "intel:mode:fast:BetBoomPR",
+            "candidate:mode:fast:BetBoomPR",
+        ):
+            panel.handle_callback(self.query(callback))
+        self.assertEqual(
+            [("BetBoomPR", "fast"), ("BetBoomPR", "fast")],
+            moved,
+        )
+
+        for callback in (
+            "intel:defer:BetBoomPR",
+            "candidate:defer:BetBoomPR",
+        ):
+            panel.handle_callback(self.query(callback))
+        deferred = [row for row in calls if row[0] == "send" and "кандидатов" in row[1]]
+        self.assertEqual(2, len(deferred))
+
     def test_notification_button_role_matrix(self) -> None:
         source = {
             "inline_keyboard": [

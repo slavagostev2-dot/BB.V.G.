@@ -1131,6 +1131,13 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
         sender = query.get("from") or {}
         self.set_context(chat.get("id"), sender.get("id"))
         try:
+            # Intelligence alerts sent before the stable panel refactor used
+            # ``candidate:*`` callbacks. Keep those already delivered messages
+            # actionable while all newly generated alerts use ``intel:*``.
+            if data.startswith("candidate:mode:"):
+                data = "intel:mode:" + data.split(":", 2)[2]
+            elif data.startswith("candidate:defer:"):
+                data = "intel:defer:" + data.split(":", 2)[2]
             if data.startswith("intel:list:"):
                 if not self.is_admin():
                     raise PermissionError
@@ -1153,6 +1160,17 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
                 self.answer(query_id, "Добавлено")
                 self.refresh_snapshot()
                 self.send(f"✅ {html.escape(result)}", reply_markup=self.with_nav())
+                return
+            if data.startswith("intel:defer:"):
+                if not self.is_admin():
+                    raise PermissionError
+                source = data.split(":", 2)[2]
+                self.answer(query_id, "Оставлено в кандидатах")
+                self.send(
+                    f"⏸ @{html.escape(source)} пока не добавлен и остаётся "
+                    "в списке кандидатов.",
+                    reply_markup=self.with_nav(),
+                )
                 return
             if data.startswith("intel:ignoreask:"):
                 if not self.is_admin():

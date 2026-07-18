@@ -68,11 +68,11 @@ def candidate_message(source: str, entry: dict[str, Any]) -> tuple[str, dict[str
         [
             {
                 "text": "➕ Добавить в источники",
-                "callback_data": f"candidate:mode:fast:{source}",
+                "callback_data": f"intel:mode:fast:{source}",
             },
             {
                 "text": "⏸ Пока проигнорировать",
-                "callback_data": f"candidate:defer:{source}",
+                "callback_data": f"intel:defer:{source}",
             },
         ],
     ]
@@ -150,8 +150,8 @@ def self_test() -> None:
         if button.get("callback_data")
     ]
     assert callbacks == [
-        "candidate:mode:fast:NewSource",
-        "candidate:defer:NewSource",
+        "intel:mode:fast:NewSource",
+        "intel:defer:NewSource",
     ]
     print("source intelligence administrator alerts self-test passed")
 
