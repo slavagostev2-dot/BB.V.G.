@@ -9,6 +9,8 @@ import pytest
 import admin_action_queue
 import bbvg_monitor_main
 import monitor_data
+import notification_router
+import personal_reminder_filter
 import personal_wheel_voting
 from bbvg.bot import runtime as bot_runtime
 
@@ -119,6 +121,104 @@ def test_reminder_event_key_does_not_reuse_old_action() -> None:
     old = personal_wheel_voting.wheel_event_key("wheel-a", {"action_id": 10})
     new = personal_wheel_voting.wheel_event_key("wheel-a", {"action_id": 11})
     assert old != new
+
+
+def test_newly_applied_vote_suppresses_reminder_before_private_state_refresh(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("BOT_STATE_KEY", "test-state-key")
+    config = {
+        "users": {
+            "100": {
+                "id": "100",
+                "chat_id": "100",
+                "participating_wheels": {},
+            }
+        }
+    }
+    state = {
+        "active_wheels": {
+            "wheel-a": {
+                "identifier": "wheel-a",
+                "action_id": 10,
+            }
+        }
+    }
+    stats = {"version": 1, "sources": {}, "daily": {}}
+    delivered: list[dict[str, object]] = []
+
+    def process_admin_actions(
+        current_state: dict[str, object],
+        health: dict[str, object],
+        current_stats: dict[str, object],
+    ) -> dict[str, object]:
+        del current_state, health
+        personal_wheel_voting.record_personal_vote(
+            current_stats,
+            event_key="wheel-a#action:10",
+            sources=["first"],
+            actor=personal_wheel_voting.actor_vote_token("100"),
+            role="user",
+            weight=1,
+            at=datetime(2026, 7, 18, 12, 0, tzinfo=UTC),
+        )
+        return {"changed": True}
+
+    fake_monitor = SimpleNamespace(
+        telegram_api=lambda method, payload: delivered.append(payload)
+        or {"ok": True},
+        process_admin_actions=process_admin_actions,
+        load_state=lambda: state,
+        data_store=SimpleNamespace(load_stats=lambda: {"sources": {}, "daily": {}}),
+    )
+    fake_router = SimpleNamespace(
+        load_config=lambda: (config, True),
+        wheel_key_from_message=notification_router.wheel_key_from_message,
+    )
+
+    personal_reminder_filter.install(fake_monitor, fake_router)
+    fake_monitor.process_admin_actions(state, {}, stats)
+    personal_reminder_filter.set_current_stats(stats)
+    response = fake_monitor.telegram_api(
+        "sendMessage",
+        {
+            "chat_id": "100",
+            "text": (
+                "🚨 <b>Напоминание о колесе BetBoom: последний шанс</b>\n"
+                "Идентификатор: <code>wheel-a</code>\n"
+                "Вы ещё не отметили участие."
+            ),
+        },
+    )
+
+    assert response["result"]["suppressed"] is True
+    assert response["result"]["reason"] == "personal_event_participation_already_marked"
+    assert delivered == []
+
+
+def test_vote_from_old_generation_does_not_suppress_current_reminder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("BOT_STATE_KEY", "test-state-key")
+    config = {"users": {"100": {"id": "100", "chat_id": "100"}}}
+    stats = {"version": 1, "sources": {}, "daily": {}}
+    personal_wheel_voting.record_personal_vote(
+        stats,
+        event_key="wheel-a#action:10",
+        sources=["first"],
+        actor=personal_wheel_voting.actor_vote_token("100"),
+        role="user",
+        weight=1,
+        at=datetime(2026, 7, 18, 12, 0, tzinfo=UTC),
+    )
+
+    assert not personal_reminder_filter.participating_for_chat(
+        config,
+        "100",
+        "wheel-a",
+        {"action_id": 11},
+        stats=stats,
+    )
 
 
 def test_bot_token_is_not_accepted_as_state_key(monkeypatch: pytest.MonkeyPatch) -> None:
