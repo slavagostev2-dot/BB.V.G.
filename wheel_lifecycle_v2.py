@@ -57,6 +57,9 @@ def wheel_event_id(key: str, entry: dict[str, Any] | None) -> str:
     """Stable identity for one publication event even when its URL is reused."""
 
     record = entry if isinstance(entry, dict) else {}
+    generation = str(record.get("generation_id") or "").strip().casefold()
+    if generation:
+        return generation[:64]
     existing = str(record.get("event_id") or "").strip().casefold()
     if existing:
         return existing[:64]
@@ -170,6 +173,9 @@ def _remember_history(
         "state": terminal_state,
         "reason": reason,
         "changed_at": current.isoformat(),
+        **({"action_id": int(entry["action_id"])} if str(entry.get("action_id") or "").isdigit() else {}),
+        **({"server_start_at": str(entry.get("server_start_at"))} if entry.get("server_start_at") else {}),
+        **({"generation_id": str(entry.get("generation_id"))} if entry.get("generation_id") else {}),
     }
     if len(history) > 1000:
         ordered = sorted(
@@ -178,6 +184,28 @@ def _remember_history(
         )
         for old_key, _ in ordered[: len(history) - 1000]:
             history.pop(old_key, None)
+
+
+def _close_generation_history(
+    state: dict[str, Any],
+    key: str,
+    entry: dict[str, Any],
+    current: datetime,
+    state_name: str,
+) -> None:
+    if not str(entry.get("action_id") or "").isdigit():
+        return
+    record = {
+        "action_id": int(entry["action_id"]),
+        "seen_at": current.isoformat(),
+        "closed_at": current.isoformat(),
+        "state": state_name,
+    }
+    if entry.get("server_start_at"):
+        record["server_start_at"] = str(entry["server_start_at"])
+    if entry.get("generation_id"):
+        record["generation_id"] = str(entry["generation_id"])
+    state.setdefault("wheel_action_history", {})[str(key).casefold()] = record
 
 
 def complete_event(
@@ -205,6 +233,7 @@ def complete_event(
         recent["lifecycle_state"] = "finished"
         recent["completion_reason"] = reason
     _remember_history(state, normalized, entry, "finished", reason, current)
+    _close_generation_history(state, normalized, entry, current, "closed")
     return cleanup_event_records(state, normalized)
 
 
@@ -231,6 +260,7 @@ def mark_inactive_event(
         current,
     )
     removed = cleanup_event_records(state, normalized)
+    _close_generation_history(state, normalized, record, current, "inactive")
     state.setdefault("inactive_wheels", {})[normalized] = {
         "identifier": str(record.get("identifier") or normalized),
         "event_id": str(record.get("event_id") or wheel_event_id(normalized, record)),
@@ -239,6 +269,8 @@ def mark_inactive_event(
             if str(record.get("action_id") or "").isdigit()
             else {}
         ),
+        **({"server_start_at": str(record.get("server_start_at"))} if record.get("server_start_at") else {}),
+        **({"generation_id": str(record.get("generation_id"))} if record.get("generation_id") else {}),
         "lifecycle_state": "inactive",
         "marked_at": current.isoformat(),
         "marked_by": "admin",
@@ -292,6 +324,8 @@ def _remember_completed(
             if str(entry.get("action_id") or "").isdigit()
             else {}
         ),
+        **({"server_start_at": str(entry.get("server_start_at"))} if entry.get("server_start_at") else {}),
+        **({"generation_id": str(entry.get("generation_id"))} if entry.get("generation_id") else {}),
     }
     for old_key, raw in list(recent.items()):
         if not isinstance(raw, dict):

@@ -68,6 +68,30 @@ def test_same_actor_is_idempotent_per_action_id() -> None:
     assert stats["sources"]["first"]["quality_score"] == 1
 
 
+def test_same_action_id_new_generation_is_a_new_vote_event() -> None:
+    first = personal_wheel_voting.wheel_event_key(
+        "wheel-a", {"action_id": 10, "generation_id": "generation-one"}
+    )
+    second = personal_wheel_voting.wheel_event_key(
+        "wheel-a", {"action_id": 10, "generation_id": "generation-two"}
+    )
+    assert first != second
+
+    stats = {"version": 1, "sources": {}, "daily": {}}
+    actor = personal_wheel_voting.actor_vote_token("100", secret="test-secret")
+    for event in (first, second):
+        assert personal_wheel_voting.record_personal_vote(
+            stats,
+            event_key=event,
+            sources=["first"],
+            actor=actor,
+            role="user",
+            weight=1,
+            at=datetime(2026, 7, 16, 12, 0, tzinfo=UTC),
+        )
+    assert stats["sources"]["first"]["quality_score"] == 2
+
+
 def test_new_action_id_is_a_new_vote_event() -> None:
     stats = {"version": 1, "sources": {}, "daily": {}}
     actor = personal_wheel_voting.actor_vote_token("100", secret="test-secret")

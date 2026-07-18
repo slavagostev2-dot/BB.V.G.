@@ -28,6 +28,9 @@ def wheel_event_key(wheel_key: str, entry: dict[str, Any] | None) -> str:
 
     normalized = _clean_wheel_key(wheel_key)
     record = entry if isinstance(entry, dict) else {}
+    generation_id = str(record.get("generation_id") or "").strip().casefold()
+    if generation_id:
+        return f"{normalized}#generation:{generation_id[:64]}"
     action_id = str(record.get("action_id") or "").strip()
     if action_id.isdigit() and int(action_id) > 0:
         return f"{normalized}#action:{int(action_id)}"
@@ -429,6 +432,8 @@ class PersonalWheelVotingMixin:
             "wheel_key": normalized,
             "action_id": item.get("action_id"),
             "event_id": item.get("event_id"),
+            "generation_id": item.get("generation_id"),
+            "server_start_at": item.get("server_start_at"),
             "joined_at": datetime.now(UTC).isoformat(),
             "vote_weight": weight,
             **(

@@ -74,17 +74,14 @@ def _inactive_blocks_result(state: dict, key: str, result: Any) -> bool:
     inactive = _inactive_entry(state, key)
     if inactive is None:
         return False
-    previous_action = _record_action_id(inactive) or _record_action_id(
-        state.get("wheel_action_history", {}).get(key)
-        if isinstance(state.get("wheel_action_history"), dict)
-        else None
-    )
     current_action = _record_action_id({"action_id": result.action_id})
-    return not (
-        previous_action is not None
-        and current_action is not None
-        and previous_action != current_action
-    )
+    if current_action is None:
+        return True
+    import wheel_event_runtime
+
+    return wheel_event_runtime.action_generation_status(
+        state, key, current_action, result.server_start_at
+    ) == "same"
 
 
 def _untimed_expiry(current=None, *, available_at=None):
@@ -294,6 +291,7 @@ def assess_new_without_pending(message, link, state=None):
             action_id=result.action_id,
             available_at=result.available_at,
             verification_status=result.verification_status,
+            server_start_at=result.server_start_at,
         )
     return result
 
@@ -313,6 +311,7 @@ def assess_pending_without_pending(message, link, state=None):
             action_id=result.action_id,
             available_at=result.available_at,
             verification_status=result.verification_status,
+            server_start_at=result.server_start_at,
         )
     return result
 
@@ -444,30 +443,29 @@ def _start_revalidated_action(
     key: str,
     entry: dict,
     action_id: int | None,
+    server_start_at,
     current,
 ) -> dict:
-    previous_action = _record_action_id(entry) or _record_action_id(
-        state.get("wheel_action_history", {}).get(str(key).casefold())
-        if isinstance(state.get("wheel_action_history"), dict)
-        else None
-    )
-    if (
-        previous_action is None
-        or action_id is None
-        or previous_action == action_id
-    ):
-        return entry
-
-    # BetBoom reused the URL for a different action. Mutable decisions from
-    # the previous event must not leak into the new one, while the source
-    # metadata remains useful for the active card.
     import wheel_event_runtime
     import wheel_lifecycle_v2
 
+    status = wheel_event_runtime.action_generation_status(
+        state, key, action_id, server_start_at
+    )
+    if status not in {"new_action", "new_generation"}:
+        wheel_event_runtime.record_generation_identity(
+            state, key, action_id, server_start_at, current=current, status="active"
+        )
+        return entry
+
     preserved = dict(entry)
-    wheel_event_runtime.reset_changed_action_state(state, key, action_id)
+    wheel_event_runtime.reset_changed_generation_state(
+        state, key, action_id, server_start_at
+    )
     for field in (
         "event_id",
+        "generation_id",
+        "server_start_at",
         "lifecycle_state",
         "lifecycle_changed_at",
         "participating",
@@ -479,11 +477,19 @@ def _start_revalidated_action(
         "availability_notified_at",
         "last_reminder_error",
         "final_reminder_error",
+        "button_token",
     ):
         preserved.pop(field, None)
     preserved["first_notified_at"] = current.isoformat()
     preserved["participating"] = False
+    if action_id is not None:
+        preserved["action_id"] = action_id
+    if server_start_at is not None:
+        preserved["server_start_at"] = server_start_at.astimezone(monitor.UTC).isoformat()
     active[key] = preserved
+    wheel_event_runtime.record_generation_identity(
+        state, key, action_id, server_start_at, current=current, status="active"
+    )
     wheel_lifecycle_v2.stamp_lifecycle(str(key).casefold(), preserved, current)
     return preserved
 
@@ -533,15 +539,17 @@ def revalidate_active_wheels(state: dict, current=None) -> dict[str, int | bool]
             changed = True
             continue
         if inspection.status == "inactive":
-            if inspection.action_id is not None:
-                state.setdefault("wheel_action_history", {})[
-                    str(key).casefold()
-                ] = {
-                    "action_id": inspection.action_id,
-                    "seen_at": current.isoformat(),
-                }
+            import wheel_event_runtime
             import wheel_lifecycle_v2
 
+            wheel_event_runtime.record_generation_identity(
+                state,
+                str(key).casefold(),
+                inspection.action_id,
+                inspection.server_start_at,
+                current=current,
+                status="closed",
+            )
             wheel_lifecycle_v2.cleanup_event_records(
                 state, str(key).casefold()
             )
@@ -555,6 +563,7 @@ def revalidate_active_wheels(state: dict, current=None) -> dict[str, int | bool]
             str(key).casefold(),
             entry,
             inspection.action_id,
+            inspection.server_start_at,
             current,
         )
         entry["verification_status"] = monitor.WHEEL_VERIFICATION_CONFIRMED
@@ -570,10 +579,16 @@ def revalidate_active_wheels(state: dict, current=None) -> dict[str, int | bool]
         entry.pop("last_verification_error", None)
         if inspection.action_id is not None:
             entry["action_id"] = inspection.action_id
-            state.setdefault("wheel_action_history", {})[str(key).casefold()] = {
-                "action_id": inspection.action_id,
-                "seen_at": current.isoformat(),
-            }
+            import wheel_event_runtime
+
+            wheel_event_runtime.record_generation_identity(
+                state,
+                str(key).casefold(),
+                inspection.action_id,
+                inspection.server_start_at,
+                current=current,
+                status="active",
+            )
         if inspection.available_at is not None:
             entry["available_at"] = inspection.available_at.isoformat()
             entry["availability_status"] = "scheduled"

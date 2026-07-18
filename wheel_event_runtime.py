@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import html
 import re
 from datetime import datetime, timedelta, timezone
@@ -115,6 +116,172 @@ def reset_stale_event_state(
     return removed
 
 
+def _record_action_id(record: Any) -> int | None:
+    if not isinstance(record, dict):
+        return None
+    try:
+        value = int(record.get("action_id"))
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
+def generation_id(key: str, action_id: int | None, server_start_at: Any) -> str:
+    """Stable identity for one authoritative BetBoom server start."""
+
+    start = _parse_datetime(server_start_at)
+    if action_id is None or start is None:
+        return ""
+    raw = "\x1f".join(
+        (str(key or "").casefold(), str(int(action_id)), start.astimezone(UTC).isoformat())
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:20]
+
+
+def _generation_records(
+    state: dict[str, Any], key: str
+) -> list[tuple[str, dict[str, Any]]]:
+    normalized = str(key or "").casefold()
+    rows: list[tuple[str, dict[str, Any]]] = []
+    for collection_name in (
+        "active_wheels",
+        "inactive_wheels",
+        "recently_completed_wheels",
+        "wheel_action_history",
+    ):
+        collection = state.get(collection_name)
+        record = collection.get(normalized) if isinstance(collection, dict) else None
+        if isinstance(record, dict) and _record_action_id(record) is not None:
+            rows.append((collection_name, record))
+    return rows
+
+
+def action_generation_status(
+    state: dict[str, Any],
+    key: str,
+    action_id: int | None,
+    server_start_at: Any,
+) -> str:
+    """Return legacy/new/same/new_action/new_generation for API identity."""
+
+    if action_id is None:
+        return "legacy"
+    rows = _generation_records(state, key)
+    if not rows:
+        return "new"
+    same_action = [
+        (name, record) for name, record in rows
+        if _record_action_id(record) == action_id
+    ]
+    if not same_action:
+        return "new_action"
+
+    current_start = _parse_datetime(server_start_at)
+    if current_start is None:
+        return "same"
+    stored_starts = [
+        parsed for _, record in same_action
+        if (parsed := _parse_datetime(record.get("server_start_at"))) is not None
+    ]
+    if any(parsed == current_start for parsed in stored_starts):
+        return "same"
+    if stored_starts:
+        return "new_generation" if current_start > max(stored_starts) else "same"
+
+    terminal_markers: list[datetime] = []
+    for collection_name, record in same_action:
+        terminal = (
+            collection_name in {"inactive_wheels", "recently_completed_wheels"}
+            or str(record.get("state") or "") in {"closed", "finished", "inactive"}
+            or str(record.get("lifecycle_state") or "") in {"finished", "inactive"}
+        )
+        if not terminal:
+            continue
+        marker_time = _record_time(
+            record,
+            "closed_at",
+            "removed_at",
+            "confirmed_finished_at",
+            "marked_at",
+            "seen_at",
+        )
+        if marker_time is not None:
+            terminal_markers.append(marker_time)
+    if terminal_markers and current_start > max(terminal_markers):
+        return "new_generation"
+    return "same"
+
+
+def record_generation_identity(
+    state: dict[str, Any],
+    key: str,
+    action_id: int | None,
+    server_start_at: Any,
+    *,
+    current: datetime,
+    status: str = "active",
+) -> str:
+    if action_id is None:
+        return ""
+    normalized = str(key or "").casefold()
+    start = _parse_datetime(server_start_at)
+    identity = generation_id(normalized, action_id, start)
+    active = state.get("active_wheels")
+    entry = active.get(normalized) if isinstance(active, dict) else None
+    if isinstance(entry, dict):
+        entry["action_id"] = int(action_id)
+        if start is not None:
+            entry["server_start_at"] = start.isoformat()
+        if identity:
+            entry["generation_id"] = identity
+
+    history = {
+        "action_id": int(action_id),
+        "seen_at": current.astimezone(UTC).isoformat(),
+        "state": status,
+    }
+    if start is not None:
+        history["server_start_at"] = start.isoformat()
+    if identity:
+        history["generation_id"] = identity
+    if status in {"closed", "finished", "inactive"}:
+        history["closed_at"] = current.astimezone(UTC).isoformat()
+    state.setdefault("wheel_action_history", {})[normalized] = history
+    return identity
+
+
+def reset_changed_generation_state(
+    state: dict[str, Any],
+    key: str,
+    action_id: int | None,
+    server_start_at: Any,
+) -> list[str]:
+    if action_id is None:
+        return []
+    status = action_generation_status(state, key, action_id, server_start_at)
+    if status not in {"new_action", "new_generation"}:
+        return []
+    normalized = str(key or "").casefold()
+    removed: list[str] = []
+    for collection_name in (
+        "active_wheels",
+        "inactive_wheels",
+        "recently_completed_wheels",
+        "completed_wheel_alerts",
+        "url_alerts",
+        "activation_alerts",
+        "manual_deadlines",
+        "manual_overrides",
+        "participating_wheels",
+        "wheel_publications",
+    ):
+        collection = state.get(collection_name)
+        if isinstance(collection, dict) and normalized in collection:
+            collection.pop(normalized, None)
+            removed.append(collection_name)
+    return removed
+
+
 def known_action_ids(state: dict[str, Any], key: str) -> set[int]:
     """Return authoritative BetBoom identities already seen for one URL."""
 
@@ -144,33 +311,9 @@ def reset_changed_action_state(
     key: str,
     action_id: int | None,
 ) -> list[str]:
-    """Start a clean event when BetBoom assigns a new action to a reused URL."""
+    """Compatibility wrapper: a changed action is also a changed generation."""
 
-    if action_id is None:
-        return []
-    normalized = str(key or "").casefold()
-    known_ids = known_action_ids(state, normalized)
-    if not known_ids or action_id in known_ids:
-        return []
-
-    removed: list[str] = []
-    for collection_name in (
-        "active_wheels",
-        "inactive_wheels",
-        "recently_completed_wheels",
-        "completed_wheel_alerts",
-        "url_alerts",
-        "activation_alerts",
-        "manual_deadlines",
-        "manual_overrides",
-        "participating_wheels",
-        "wheel_publications",
-    ):
-        collection = state.get(collection_name)
-        if isinstance(collection, dict) and normalized in collection:
-            collection.pop(normalized, None)
-            removed.append(collection_name)
-    return removed
+    return reset_changed_generation_state(state, key, action_id, None)
 
 
 def recover_recent_events_from_seen(
@@ -285,6 +428,7 @@ def _availability_message(
     *,
     action_id: int | None = None,
     verification_status: str = "",
+    server_start_at: datetime | None = None,
 ) -> None:
     current = monitor_module.now_utc()
     future = available_at > current
@@ -346,6 +490,7 @@ def _availability_message(
         action_id=action_id,
         available_at=available_at,
         verification_status=verification_status,
+        server_start_at=server_start_at,
     )
     _tag_availability(
         monitor_module,
@@ -464,21 +609,27 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         if not isinstance(state, dict) or action_id is None:
             return result
         key = monitor_module.wheel_key(link)
-        if action_id in known_before:
+        generation_status = action_generation_status(
+            state, key, action_id, result.server_start_at
+        )
+        if action_id in known_before and generation_status == "same":
             if result.status == "inactive":
                 return result
             return monitor_module.WheelAssessment(
                 False,
                 result.deadline,
-                "эта акция BetBoom уже была обработана",
+                "это поколение колеса BetBoom уже было обработано",
                 "duplicate_action",
                 result.page_excerpt,
                 action_id=action_id,
                 available_at=result.available_at,
                 verification_status=result.verification_status,
+                server_start_at=result.server_start_at,
             )
-        if known_before:
-            reset_changed_action_state(state, key, action_id)
+        if generation_status in {"new_action", "new_generation"}:
+            reset_changed_generation_state(
+                state, key, action_id, result.server_start_at
+            )
         return result
 
     def assessment_availability(message: Any, result: Any):
@@ -514,6 +665,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             action_id=result.action_id,
             available_at=available_at,
             verification_status=result.verification_status,
+            server_start_at=result.server_start_at,
         )
 
     def assess_pending(message: Any, link: str, state: Any = None):
@@ -536,6 +688,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             action_id=result.action_id,
             available_at=available_at,
             verification_status=result.verification_status,
+            server_start_at=result.server_start_at,
         )
 
     def remember_active(
@@ -550,6 +703,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         action_id=None,
         available_at=None,
         verification_status="",
+        server_start_at=None,
     ):
         original_remember_active(
             state,
@@ -562,6 +716,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             action_id=action_id,
             available_at=available_at,
             verification_status=verification_status,
+            server_start_at=server_start_at,
         )
         _tag_availability(
             monitor_module,
@@ -571,6 +726,14 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             link,
             available_at=available_at,
             method=method,
+        )
+        record_generation_identity(
+            state,
+            monitor_module.wheel_key(link),
+            action_id,
+            server_start_at,
+            current=monitor_module.now_utc(),
+            status="active",
         )
 
     def remember_pending(
@@ -608,6 +771,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         action_id=None,
         available_at=None,
         verification_status="",
+        server_start_at=None,
     ):
         inferred_at, availability_method = _availability_for_message(
             monitor_module, original_deadline_parser, message
@@ -626,6 +790,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
                 action_id=action_id,
                 available_at=available_at,
                 verification_status=verification_status,
+                server_start_at=server_start_at,
             )
         return _availability_message(
             monitor_module,
@@ -637,6 +802,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             deadline,
             action_id=action_id,
             verification_status=verification_status,
+            server_start_at=server_start_at,
         )
 
     def notify_activation(
@@ -651,6 +817,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         action_id=None,
         available_at=None,
         verification_status="",
+        server_start_at=None,
     ):
         inferred_at, availability_method = _availability_for_message(
             monitor_module, original_deadline_parser, message
@@ -669,6 +836,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
                 action_id=action_id,
                 available_at=available_at,
                 verification_status=verification_status,
+                server_start_at=server_start_at,
             )
         return _availability_message(
             monitor_module,
@@ -680,6 +848,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             deadline,
             action_id=action_id,
             verification_status=verification_status,
+            server_start_at=server_start_at,
         )
 
     def process_active(state: dict, stats: dict):

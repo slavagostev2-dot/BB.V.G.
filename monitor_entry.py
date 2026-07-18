@@ -143,6 +143,7 @@ def _notification_first(message, result):
             action_id=result.action_id,
             available_at=result.available_at,
             verification_status=result.verification_status,
+            server_start_at=result.server_start_at,
         )
     return result
 

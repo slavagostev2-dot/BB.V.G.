@@ -167,6 +167,7 @@ class WheelInspection:
     action_id: int | None = None
     available_at: datetime | None = None
     verification_status: str = ""
+    server_start_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -179,6 +180,7 @@ class WheelAssessment:
     action_id: int | None = None
     available_at: datetime | None = None
     verification_status: str = ""
+    server_start_at: datetime | None = None
 
 
 def now_utc() -> datetime:
@@ -668,6 +670,7 @@ def inspect_wheel_page(link: str) -> WheelInspection:
             None,
             "BetBoom создал колесо, но участие ещё не открыто",
             action_id=action_id,
+            server_start_at=start,
             verification_status=WHEEL_VERIFICATION_CONFIRMED,
         )
     if deadline is not None and deadline <= reference:
@@ -679,6 +682,7 @@ def inspect_wheel_page(link: str) -> WheelInspection:
             deadline,
             "BetBoom подтвердил, что время участия истекло",
             action_id=action_id,
+            server_start_at=start,
             verification_status=WHEEL_VERIFICATION_CONFIRMED,
         )
 
@@ -691,6 +695,7 @@ def inspect_wheel_page(link: str) -> WheelInspection:
         else "активность подтверждена BetBoom, таймер не указан",
         action_id=action_id,
         available_at=available_at,
+        server_start_at=start,
         verification_status=WHEEL_VERIFICATION_CONFIRMED,
     )
 
@@ -761,6 +766,7 @@ def assess_new_wheel(
         "page_excerpt": inspection.page_excerpt,
         "action_id": inspection.action_id,
         "available_at": inspection.available_at,
+        "server_start_at": inspection.server_start_at,
         "verification_status": inspection.verification_status,
     }
 
@@ -914,6 +920,7 @@ def remember_active_wheel(
     action_id: int | None = None,
     available_at: datetime | None = None,
     verification_status: str = "",
+    server_start_at: datetime | None = None,
 ) -> None:
     current = now_utc()
     key = wheel_key(link)
@@ -950,10 +957,12 @@ def remember_active_wheel(
         entry.pop("deadline", None)
     if action_id is not None:
         entry["action_id"] = action_id
-        state.setdefault("wheel_action_history", {})[key] = {
-            "action_id": action_id,
-            "seen_at": current.isoformat(),
-        }
+        history_entry = {"action_id": action_id, "seen_at": current.isoformat()}
+        if server_start_at is not None:
+            history_entry["server_start_at"] = server_start_at.astimezone(UTC).isoformat()
+        state.setdefault("wheel_action_history", {})[key] = history_entry
+    if server_start_at is not None:
+        entry["server_start_at"] = server_start_at.astimezone(UTC).isoformat()
     if available_at is not None:
         entry["available_at"] = available_at.isoformat()
     if verification_status:
@@ -1572,6 +1581,7 @@ def assess_pending_wheel(
         "page_excerpt": inspection.page_excerpt,
         "action_id": inspection.action_id,
         "available_at": inspection.available_at,
+        "server_start_at": inspection.server_start_at,
         "verification_status": inspection.verification_status,
     }
     if inspection.status == "inactive":
@@ -1628,6 +1638,7 @@ def notify_new_link(
     action_id: int | None = None,
     available_at: datetime | None = None,
     verification_status: str = "",
+    server_start_at: datetime | None = None,
 ) -> None:
     identifier_raw = wheel_identifier(link)
     identifier = html.escape(identifier_raw)
@@ -1671,6 +1682,7 @@ def notify_new_link(
             action_id=action_id,
             available_at=available_at,
             verification_status=verification_status,
+            server_start_at=server_start_at,
         )
 
 
@@ -1686,6 +1698,7 @@ def notify_activation(
     action_id: int | None = None,
     available_at: datetime | None = None,
     verification_status: str = "",
+    server_start_at: datetime | None = None,
 ) -> None:
     identifier_raw = wheel_identifier(link)
     identifier = html.escape(identifier_raw)
@@ -1728,6 +1741,7 @@ def notify_activation(
             action_id=action_id,
             available_at=available_at,
             verification_status=verification_status,
+            server_start_at=server_start_at,
         )
 
 
@@ -2041,6 +2055,7 @@ def main() -> int:
                     action_id=assessment.action_id,
                     available_at=assessment.available_at,
                     verification_status=assessment.verification_status,
+                    server_start_at=assessment.server_start_at,
                 )
                 seen[key] = now_utc().isoformat()
                 pending.pop(key, None)
@@ -2066,6 +2081,7 @@ def main() -> int:
                     action_id=assessment.action_id,
                     available_at=assessment.available_at,
                     verification_status=assessment.verification_status,
+                    server_start_at=assessment.server_start_at,
                 )
             except Exception as exc:
                 send_errors += 1
@@ -2095,6 +2111,7 @@ def main() -> int:
                     action_id=assessment.action_id,
                     available_at=assessment.available_at,
                     verification_status=assessment.verification_status,
+                    server_start_at=assessment.server_start_at,
                 )
                 state.get("pending_posts", {}).pop(key, None)
                 seen[key] = now_utc().isoformat()
@@ -2113,6 +2130,7 @@ def main() -> int:
                         action_id=assessment.action_id,
                         available_at=assessment.available_at,
                         verification_status=assessment.verification_status,
+                        server_start_at=assessment.server_start_at,
                     )
                 except Exception as exc:
                     send_errors += 1
@@ -2211,6 +2229,7 @@ def main() -> int:
                         action_id=assessment.action_id,
                         available_at=assessment.available_at,
                         verification_status=assessment.verification_status,
+                        server_start_at=assessment.server_start_at,
                     )
                     seen[key] = now_utc().isoformat()
                     data_store.increment_stat(stats, source, "participated_suppressed")
@@ -2234,6 +2253,7 @@ def main() -> int:
                         action_id=assessment.action_id,
                         available_at=assessment.available_at,
                         verification_status=assessment.verification_status,
+                        server_start_at=assessment.server_start_at,
                     )
                 except Exception as exc:
                     send_errors += 1
@@ -2261,6 +2281,7 @@ def main() -> int:
                     action_id=assessment.action_id,
                     available_at=assessment.available_at,
                     verification_status=assessment.verification_status,
+                    server_start_at=assessment.server_start_at,
                 )
                 seen[key] = now_utc().isoformat()
                 changed = True
@@ -2278,6 +2299,7 @@ def main() -> int:
                         action_id=assessment.action_id,
                         available_at=assessment.available_at,
                         verification_status=assessment.verification_status,
+                        server_start_at=assessment.server_start_at,
                     )
                 except Exception as exc:
                     send_errors += 1
