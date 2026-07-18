@@ -183,6 +183,7 @@ class ButtonMatrixTests(unittest.TestCase):
             "mention_count": 4,
             "messages_checked": 20,
             "wheel_links_found": 2,
+            "relevance_status": "relevant",
             "discovered_from": ["known"],
             "last_verified_at": "2026-07-18T08:00:00+00:00",
         }

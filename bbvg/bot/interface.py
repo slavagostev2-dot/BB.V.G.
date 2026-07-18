@@ -557,7 +557,12 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             else {}
         )
         rows = self.intelligence_rows()
-        new_rows = [row for row in rows if row.get("decision") == "new"]
+        new_rows = [
+            row
+            for row in rows
+            if row.get("decision") == "new"
+            and self.intelligence_row_is_relevant(row)
+        ]
         wheel_rows = [
             row
             for row in new_rows
@@ -587,8 +592,10 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             f"<b>{int(summary.get('sources_scanned', 0) or 0)}</b>\n"
             f"Новых кандидатов: <b>{len(new_rows)}</b>\n"
             f"С найденными колёсами: <b>{len(wheel_rows)}</b>\n\n"
-            "Разведка ищет ссылки и упоминания telegram.me внутри известных "
-            "источников."
+            "Разведка учитывает только тематические ссылки и упоминания внутри "
+            "известных источников. Боты и обычные нетематические упоминания "
+            "отбрасываются; подтверждённые кандидаты сначала идут в ночную "
+            "проверку."
         )
         buttons = [
             [{
@@ -736,6 +743,19 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             if isinstance(item.get("discovered_from"), list)
             else []
         )
+        signals = sorted(
+            {
+                str(value)
+                for field in (
+                    item.get("context_signals", []),
+                    item.get("candidate_signals", []),
+                    item.get("username_signals", []),
+                )
+                if isinstance(field, list)
+                for value in field
+                if str(value)
+            }
+        )
         lines = [
             f"🛰️ <b>@{html.escape(source)}</b>",
             "",
@@ -747,6 +767,8 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             f"{int(item.get('messages_checked', 0) or 0)}",
             f"Последнее найденное колесо: {self.fmt_dt(item.get('latest_wheel_at'))}",
             f"Последняя проверка: {self.fmt_dt(item.get('last_verified_at'))}",
+            "Тематические признаки: "
+            + (", ".join(html.escape(value) for value in signals) if signals else "не сохранены"),
             "",
             "<b>Откуда найден</b>",
         ]
@@ -891,7 +913,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             nightly.extend(targets)
 
         fast_new = self._write_source_list(
-            "# Основная проверка: все ранее отобранные публичные Telegram-источники.\n"
+            "# Основной мониторинг: отобранные тематические источники в 7-дневном наблюдении.\n"
             "# Проверяется с интервалом, выбранным в настройках Telegram-панели.\n"
             "# Автоматический перенос в ночную проверку возможен только после 7 "
             "полных дней наблюдения без новых колёс.",

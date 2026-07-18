@@ -23,6 +23,59 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class NightlyIdlePolicyTests(unittest.TestCase):
+    def test_only_verified_thematic_candidates_enter_nightly_scan(self) -> None:
+        state = {
+            "candidates": {
+                "good": {
+                    "source": "GoodStream",
+                    "public": True,
+                    "status": "ok",
+                    "relevance_status": "relevant",
+                    "context_signals": ["стримы"],
+                    "score": 35,
+                },
+                "bot": {
+                    "source": "wheel_helper_bot",
+                    "public": True,
+                    "status": "ok",
+                    "relevance_status": "relevant",
+                    "context_signals": ["колёса и акции"],
+                    "score": 90,
+                },
+                "noise": {
+                    "source": "OrdinaryPerson",
+                    "public": True,
+                    "status": "ok",
+                    "relevance_status": "irrelevant",
+                    "score": 10,
+                },
+                "private": {
+                    "source": "PrivateStream",
+                    "public": False,
+                    "status": "empty",
+                    "relevance_status": "relevant",
+                    "context_signals": ["стримы"],
+                    "score": 40,
+                },
+            }
+        }
+        self.assertEqual(
+            nightly_discovery.intelligence_candidates_for_nightly(
+                state,
+                known=set(),
+                ignored=set(),
+            ),
+            ["GoodStream"],
+        )
+        self.assertEqual(
+            nightly_discovery.intelligence_candidates_for_nightly(
+                state,
+                known={"goodstream"},
+                ignored=set(),
+            ),
+            [],
+        )
+
     def test_completion_notice_requires_a_real_manual_scan(self) -> None:
         self.assertFalse(
             nightly_discovery.should_notify_completion(

@@ -20,6 +20,7 @@ import notification_navigation
 import notification_preferences_v2
 import personal_reminder_filter
 import privacy_retention
+import source_intelligence
 import source_intelligence_alerts
 import source_registry
 import system_checks_v2
@@ -34,6 +35,43 @@ from bbvg.bot import users as panel_users
 
 
 class CurrentProductionContractTests(unittest.TestCase):
+    def test_source_intelligence_keeps_only_thematic_non_bot_references(self) -> None:
+        noise = (
+            "Техническая поддержка @wheel_helper_bot. "
+            "Автор публикации @ordinaryperson."
+        )
+        self.assertEqual(source_intelligence.reference_candidates(noise), {})
+
+        relevant = source_intelligence.reference_candidates(
+            "Сегодня стрим и киберспортивный турнир у @RealCaster, "
+            "регистрация через @tournament_helper_bot."
+        )
+        self.assertEqual(set(relevant), {"RealCaster"})
+        self.assertIn("стримы", relevant["RealCaster"])
+        self.assertIn("киберспорт и игры", relevant["RealCaster"])
+
+    def test_indirect_verified_candidates_are_in_primary_inventory(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        primary = {
+            value.casefold()
+            for value in (root / "public_sources.txt").read_text(
+                encoding="utf-8"
+            ).splitlines()
+            if value and not value.startswith("#")
+        }
+        expected = {
+            "arszeeqq",
+            "bettingmedialeague",
+            "fishmandota2",
+            "fonbetesports",
+            "igmmlbb",
+            "stavka_tv",
+            "streamrosstg",
+            "xdzachq",
+        }
+        self.assertTrue(expected.issubset(primary))
+        self.assertEqual(len(primary), 104)
+
     def test_administrator_decisions(self) -> None:
         admin_action_v2.self_test()
         admin_action_v3.self_test()

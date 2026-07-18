@@ -219,6 +219,15 @@ class PanelFoundationMixin:
             return "🟡 связанный"
         return "⚪ слабый сигнал"
 
+    @staticmethod
+    def intelligence_row_is_relevant(row: dict[str, Any]) -> bool:
+        status = str(row.get("relevance_status") or "")
+        if status == "relevant":
+            return True
+        # Wheel evidence remains actionable for states written before the
+        # thematic classifier was introduced.
+        return int(row.get("wheel_links_found", 0) or 0) > 0
+
     def filtered_intelligence_rows(self, category: str) -> list[dict[str, Any]]:
         rows = self.intelligence_rows()
         if category == "wheels":
@@ -229,7 +238,15 @@ class PanelFoundationMixin:
                 and int(row.get("wheel_links_found", 0) or 0) > 0
             ]
         if category in {"new", "ignored"}:
-            return [row for row in rows if row.get("decision") == category]
+            return [
+                row
+                for row in rows
+                if row.get("decision") == category
+                and (
+                    category == "ignored"
+                    or self.intelligence_row_is_relevant(row)
+                )
+            ]
         return rows
 
     def setup_bot(self) -> None:
