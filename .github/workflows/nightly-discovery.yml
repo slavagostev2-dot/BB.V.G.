@@ -15,6 +15,10 @@ on:
       - "privacy_retention.py"
       - ".github/workflows/nightly-discovery.yml"
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Telegram source intelligence"]
+    types: [completed]
+    branches: [main]
   schedule:
     - cron: "27 20 * * *"
 
@@ -28,6 +32,7 @@ concurrency:
 
 jobs:
   discovery:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       actions: write

@@ -110,6 +110,13 @@ class NightlyIdlePolicyTests(unittest.TestCase):
         self.assertNotIn('"source_catalog.txt"', push_paths)
         self.assertNotIn('"public_sources.txt"', push_paths)
 
+    def test_successful_intelligence_run_feeds_nightly_discovery(self) -> None:
+        workflow = (ROOT / ".github/workflows/nightly-discovery.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('workflows: ["Telegram source intelligence"]', workflow)
+        self.assertIn("github.event.workflow_run.conclusion == 'success'", workflow)
+
     def test_empty_nightly_list_is_shown_as_idle_without_start_button(self) -> None:
         panel = TelegramPanelRuntime()
         captured: list[tuple[str, dict]] = []
