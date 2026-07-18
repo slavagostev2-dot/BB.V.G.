@@ -10,11 +10,10 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import telegram_ui
-from admin_panel_runtime_v38 import (
-    ACCESS_PAGE_SIZE,
-    ACTIVE_PAGE_SIZE,
-    TelegramPanelRuntimeV38,
-)
+from bbvg.bot.runtime import TelegramPanelRuntime
+
+ACCESS_PAGE_SIZE = 8
+ACTIVE_PAGE_SIZE = 6
 
 
 UTC = timezone.utc
@@ -39,8 +38,8 @@ class Chapter4InterfaceTests(unittest.TestCase):
         return SimpleNamespace(**values)
 
     @staticmethod
-    def capture_panel(*, role: str = "user") -> tuple[TelegramPanelRuntimeV38, list[Any]]:
-        panel = TelegramPanelRuntimeV38()
+    def capture_panel(*, role: str = "user") -> tuple[TelegramPanelRuntime, list[Any]]:
+        panel = TelegramPanelRuntime()
         captured: list[Any] = []
         panel.current_user_id = "1"
         panel.current_chat_id = "1"
@@ -60,8 +59,8 @@ class Chapter4InterfaceTests(unittest.TestCase):
         self.assertNotRegex(clipped, r"&(?:#\w*|\w*)$|<[^>]*$")
 
     def test_main_menu_is_grouped_and_role_safe(self) -> None:
-        user = {button["callback_data"] for row in TelegramPanelRuntimeV38.compact_menu_rows(False) for button in row}
-        admin = {button["callback_data"] for row in TelegramPanelRuntimeV38.compact_menu_rows(True) for button in row}
+        user = {button["callback_data"] for row in TelegramPanelRuntime.compact_menu_rows(False) for button in row}
+        admin = {button["callback_data"] for row in TelegramPanelRuntime.compact_menu_rows(True) for button in row}
         self.assertEqual(
             user,
             {"page:active", "page:analytics", "page:sources", "page:settings", "page:status"},
@@ -71,8 +70,8 @@ class Chapter4InterfaceTests(unittest.TestCase):
             {"page:active", "page:analytics", "page:sources", "page:settings", "page:control"},
         )
         for role_rows in (
-            TelegramPanelRuntimeV38.compact_menu_rows(False),
-            TelegramPanelRuntimeV38.compact_menu_rows(True),
+            TelegramPanelRuntime.compact_menu_rows(False),
+            TelegramPanelRuntime.compact_menu_rows(True),
         ):
             self.assertFalse(telegram_ui.markup_issues({"inline_keyboard": role_rows}))
 
@@ -90,7 +89,7 @@ class Chapter4InterfaceTests(unittest.TestCase):
         snap = self.snapshot()
         panel._collect_current_wheels = lambda: items  # type: ignore[method-assign]
         panel.snapshot = lambda force=False: snap  # type: ignore[method-assign]
-        panel._joined_wheel_keys = lambda value: set()  # type: ignore[method-assign]
+        panel._personal_participating_wheels = lambda: set()  # type: ignore[method-assign]
         panel._sources_for_item = lambda value, key, item: ["mechanogun"]  # type: ignore[method-assign]
         panel._monitor_status = lambda: {}  # type: ignore[method-assign]
         panel.show_active(1)
@@ -118,12 +117,12 @@ class Chapter4InterfaceTests(unittest.TestCase):
         snap = self.snapshot()
         panel._collect_current_wheels = lambda: [item]  # type: ignore[method-assign]
         panel.snapshot = lambda force=False: snap  # type: ignore[method-assign]
-        panel._joined_wheel_keys = lambda value: set()  # type: ignore[method-assign]
+        panel._personal_participating_wheels = lambda: set()  # type: ignore[method-assign]
         panel._sources_for_item = lambda value, key, row: ["artemkef"]  # type: ignore[method-assign]
         panel._monitor_status = lambda: {}  # type: ignore[method-assign]
         panel.show_active()
         text, _ = captured[-1]
-        self.assertIn("🟡 Участие откроется через", text)
+        self.assertIn("⏳ Участие откроется через", text)
         self.assertNotIn("🔴 Время прокрутки неизвестно", text)
 
     def test_long_wheel_key_uses_a_safe_resolvable_callback(self) -> None:
@@ -138,7 +137,7 @@ class Chapter4InterfaceTests(unittest.TestCase):
         snap = self.snapshot()
         panel._collect_current_wheels = lambda: [item]  # type: ignore[method-assign]
         panel.snapshot = lambda force=False: snap  # type: ignore[method-assign]
-        panel._joined_wheel_keys = lambda value: set()  # type: ignore[method-assign]
+        panel._personal_participating_wheels = lambda: set()  # type: ignore[method-assign]
         panel._sources_for_item = lambda value, current, row: ["mechanogun"]  # type: ignore[method-assign]
         panel._monitor_status = lambda: {}  # type: ignore[method-assign]
         panel.show_active()
@@ -154,7 +153,7 @@ class Chapter4InterfaceTests(unittest.TestCase):
         token = next(value.rsplit(":", 1)[1] for value in callbacks if ":~" in value)
         self.assertEqual(panel._resolve_wheel_token(token), key.casefold())
 
-    def test_hashed_wheel_callback_reaches_the_original_admin_action(self) -> None:
+    def test_hashed_wheel_callback_reaches_personal_participation(self) -> None:
         panel, _captured = self.capture_panel(role="owner")
         key = "ключ:" + "длинный-" * 30
         item = {"_key": key, "identifier": key, "source": "mechanogun"}
@@ -164,9 +163,8 @@ class Chapter4InterfaceTests(unittest.TestCase):
         panel.set_context = lambda chat_id, user_id: None  # type: ignore[method-assign]
         panel.answer = lambda query_id, text="": None  # type: ignore[method-assign]
         panel.refresh_snapshot = lambda: None  # type: ignore[method-assign]
-        panel.dispatch_admin_action = lambda action, value: calls.append((action, value)) or {  # type: ignore[method-assign]
-            "queued": True,
-            "detail": "queued",
+        panel.mark_personal_participation = lambda value: calls.append(("personal", value)) or {  # type: ignore[method-assign]
+            "changed": True
         }
         callback = panel._wheel_callback("part", key)
         panel.handle_callback(
@@ -177,9 +175,9 @@ class Chapter4InterfaceTests(unittest.TestCase):
                 "message": {"message_id": 1, "chat": {"id": 1, "type": "private"}},
             }
         )
-        self.assertIn(("participate_wheel", key.casefold()), calls)
+        self.assertIn(("personal", key.casefold()), calls)
 
-    def test_quick_time_template_resolves_a_hashed_wheel_key(self) -> None:
+    def test_legacy_quick_time_callback_is_safely_disabled(self) -> None:
         panel, _captured = self.capture_panel(role="owner")
         key = "https://example.invalid/" + "wheel/" * 30
         item = {"_key": key, "identifier": key, "source": "mechanogun"}
@@ -188,12 +186,21 @@ class Chapter4InterfaceTests(unittest.TestCase):
         panel.dispatch_admin_action = lambda action, value: calls.append((action, value)) or {  # type: ignore[method-assign]
             "queued": True
         }
-        panel.pending_input = {1: {"kind": "wheel_time", "key": key}}
-        token = panel._quick_time_callback(key, 75).split(":", 2)[2].rsplit(":", 1)[0]
-        panel._set_quick_time(token, 75)
-        self.assertTrue(calls)
-        self.assertEqual(calls[0][0], "set_deadline")
-        self.assertTrue(calls[0][1].startswith(key.casefold() + "|"))
+        answers: list[str] = []
+        panel._prepare_callback_user = lambda query: None  # type: ignore[method-assign]
+        panel.answer = lambda query_id, text="": answers.append(text)  # type: ignore[method-assign]
+        panel.show_menu = lambda clear_stack=True: None  # type: ignore[method-assign]
+        callback = panel._quick_time_callback(key, 75)
+        panel.handle_callback(
+            {
+                "id": "legacy-time",
+                "data": callback,
+                "from": {"id": 1},
+                "message": {"message_id": 1, "chat": {"id": 1, "type": "private"}},
+            }
+        )
+        self.assertFalse(calls)
+        self.assertTrue(any("отключено" in value for value in answers))
 
     def test_analytics_uses_clear_names_and_matches_visible_active_list(self) -> None:
         panel, captured = self.capture_panel(role="user")
@@ -223,15 +230,15 @@ class Chapter4InterfaceTests(unittest.TestCase):
         panel._collect_current_wheels = lambda: [  # type: ignore[method-assign]
             {"_key": "visible", "identifier": "visible"}
         ]
-        panel._joined_wheel_keys = lambda value: {"visible"}  # type: ignore[method-assign]
+        panel._personal_participating_wheels = lambda: {"visible"}  # type: ignore[method-assign]
+        panel._registry_snapshot = lambda value: {"summary": {}}  # type: ignore[method-assign]
         panel.show_analytics(7)
         text, kwargs = captured[-1]
-        self.assertIn("Постов с колёсами", text)
-        self.assertIn("Каналов с находками", text)
+        self.assertIn("Публикаций с колёсами", text)
+        self.assertIn("Источников с находками", text)
         self.assertIn("Активных колёс: <b>1</b>", text)
-        self.assertIn("С вашей отметкой: <b>1 из 1</b>", text)
-        self.assertNotIn("Публикац", text)
-        self.assertNotIn("Уведомлений:", text)
+        self.assertIn("Вы участвуете: <b>1</b>", text)
+        self.assertIn("Отправлено уведомлений", text)
         self.assertIn("✓ 7 дней", str(kwargs["reply_markup"]))
 
     def test_rating_hides_internal_confirmation_counter(self) -> None:
@@ -373,7 +380,7 @@ class Chapter4InterfaceTests(unittest.TestCase):
                 "source_errors": 0,
             }
             panel._collect_current_wheels = lambda: []  # type: ignore[method-assign]
-            panel._joined_wheel_keys = lambda value: set()  # type: ignore[method-assign]
+            panel._personal_participating_wheels = lambda: set()  # type: ignore[method-assign]
             panel.notification_preferences = lambda user_id=None: {  # type: ignore[method-assign]
                 "wheels": True,
                 "wheel_final_reminders": True,
