@@ -408,8 +408,17 @@ def _defer_unstarted_active(
     message = monitor.active_entry_message(entry)
     url = str(entry.get("url") or "")
 
+    import wheel_event_runtime
     import wheel_lifecycle_v2
 
+    wheel_event_runtime.record_generation_observation(
+        state,
+        key,
+        inspection.action_id,
+        inspection.server_start_at,
+        current=current,
+        status="not_started",
+    )
     wheel_lifecycle_v2.cleanup_event_records(state, key)
     state.setdefault("wheel_action_history", {}).pop(key, None)
     state.setdefault("activation_alerts", {}).pop(key, None)
