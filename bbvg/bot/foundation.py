@@ -1,17 +1,41 @@
 from __future__ import annotations
 
 import html
-from types import SimpleNamespace
+import json
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import quote
 
-from admin_panel_runtime_v5 import CANDIDATES_PER_PAGE
-from admin_panel_runtime_v9 import (
-    ADMIN_KEYBOARD_V9,
-    BTN_APP,
-    TelegramPanelRuntimeV9,
-    USER_KEYBOARD_V9,
-)
+from admin_panel_v2 import TelegramPanelV2
+
+CANDIDATES_PER_PAGE = 5
+BTN_APP = "📱 Приложение"
+BTN_NIGHTLY = "🌙 Ночное наблюдение"
+BTN_INTELLIGENCE = "🛰️ Разведка источников"
+
+ADMIN_KEYBOARD_V9 = {
+    "keyboard": [
+        [{"text": "📊 Статистика"}, {"text": "🔥 Активные колёса"}],
+        [{"text": "📡 Источники"}, {"text": "🏆 Рейтинг каналов"}],
+        [{"text": "📅 Отчёты"}, {"text": BTN_NIGHTLY}],
+        [{"text": BTN_INTELLIGENCE}, {"text": "⚙️ Настройки"}],
+        [{"text": BTN_APP}],
+    ],
+    "resize_keyboard": True,
+    "is_persistent": True,
+    "input_field_placeholder": "Панель BetBoom Monitor",
+}
+
+USER_KEYBOARD_V9 = {
+    "keyboard": [
+        [{"text": "📊 Статистика"}, {"text": "🔥 Активные колёса"}],
+        [{"text": "📡 Источники"}, {"text": "🏆 Рейтинг каналов"}],
+        [{"text": "📅 Отчёты"}, {"text": BTN_APP}],
+    ],
+    "resize_keyboard": True,
+    "is_persistent": True,
+    "input_field_placeholder": "BetBoom Monitor",
+}
 
 BRAND_NAME = "BB V.G."
 MINIAPP_RELEASE = "5.11.0"
@@ -21,15 +45,192 @@ MINIMAL_COMMANDS = [
     {"command": "myid", "description": "Показать мой Telegram ID"},
 ]
 DEPLOYMENT_PATH = "miniapp_deployment.json"
+MODERATION_PATH = "candidate_moderation.json"
+INTELLIGENCE_PATH = "intelligence_state.json"
+UTC = timezone.utc
 
 
 class PanelFoundationMixin:
-    """Foundational Telegram panel behavior formerly spread across v10-v13.
+    """Foundational Telegram panel behavior owned by the consolidated package.
 
     The mixin expects the storage, Telegram API, navigation stack and candidate
-    helpers supplied by ``TelegramPanelRuntimeV9``. It is cooperative: handlers
-    pass unmatched messages and callbacks to ``super()``.
+    helpers supplied by the final runtime. It is cooperative: handlers pass
+    unmatched messages and callbacks to ``super()``.
     """
+
+    def load_moderation(self) -> dict[str, Any]:
+        try:
+            value = self.get_json_file(MODERATION_PATH, {"version": 1, "ignored": {}})
+        except Exception:
+            value = {"version": 1, "ignored": {}}
+        if not isinstance(value, dict):
+            value = {}
+        ignored = value.get("ignored")
+        if not isinstance(ignored, dict):
+            ignored = {}
+        return {
+            "version": 1,
+            "ignored": {
+                str(source).casefold(): dict(entry) if isinstance(entry, dict) else {}
+                for source, entry in ignored.items()
+                if str(source)
+            },
+        }
+
+    def save_moderation(self, value: dict[str, Any], message: str) -> None:
+        normalized = {"version": 1, "ignored": value.get("ignored", {})}
+        self.update_file(
+            MODERATION_PATH,
+            json.dumps(normalized, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            message,
+        )
+
+    @staticmethod
+    def candidate_score(entry: dict[str, Any]) -> int:
+        found = max(0, int(entry.get("wheel_links_found", 0) or 0))
+        recent = max(0, int(entry.get("recent_wheel_links", 0) or 0))
+        active = max(0, int(entry.get("active_wheel_links", 0) or 0))
+        status = str(entry.get("status") or "")
+        score = min(50, found * 6) + min(20, recent * 10) + min(15, active * 15)
+        latest = TelegramPanelV2.parse_dt(entry.get("latest_wheel_at"))
+        if latest:
+            age_days = max(
+                0,
+                int((datetime.now(UTC) - latest.astimezone(UTC)).total_seconds() // 86400),
+            )
+            if age_days <= 2:
+                score += 15
+            elif age_days <= 7:
+                score += 10
+            elif age_days <= 30:
+                score += 5
+        if status in {"error", "empty", "quarantined"}:
+            score -= 20
+        return max(0, min(100, score))
+
+    @staticmethod
+    def score_label(score: int) -> str:
+        if score >= 70:
+            return "🟢 сильный"
+        if score >= 40:
+            return "🟡 перспективный"
+        return "⚪ слабый"
+
+    @staticmethod
+    def recommendation(score: int) -> str:
+        if score >= 70:
+            return "рекомендуется основная проверка"
+        if score >= 40:
+            return "рекомендуется ночное наблюдение"
+        return "нужно дополнительное наблюдение"
+
+    def candidate_rows(self) -> list[dict[str, Any]]:
+        snap = self.snapshot()
+        ignored = self.load_moderation()["ignored"]
+        fast = {source.casefold() for source in snap.fast}
+        nightly = {source.casefold() for source in snap.nightly}
+        rows: list[dict[str, Any]] = []
+        for source, raw in snap.discovery.get("sources", {}).items():
+            if not isinstance(raw, dict) or int(raw.get("wheel_links_found", 0) or 0) <= 0:
+                continue
+            key = str(source).casefold()
+            category = (
+                "primary"
+                if key in fast
+                else "ignored"
+                if key in ignored
+                else "nightly"
+                if key in nightly
+                else "new"
+            )
+            item = dict(raw)
+            item.update(source=str(source), category=category)
+            item["score"] = self.candidate_score(item)
+            rows.append(item)
+        rows.sort(
+            key=lambda item: (
+                {"new": 0, "nightly": 1, "ignored": 2, "primary": 3}.get(
+                    str(item["category"]), 9
+                ),
+                -int(item["score"]),
+                -int(item.get("wheel_links_found", 0) or 0),
+                str(item["source"]).casefold(),
+            )
+        )
+        return rows
+
+    def _candidate_filter(self, category: str) -> list[dict[str, Any]]:
+        rows = self.candidate_rows()
+        if category == "all":
+            return [row for row in rows if row["category"] != "primary"]
+        return [row for row in rows if row["category"] == category]
+
+    def _recent_candidate_wheels(self, source: str) -> list[dict[str, Any]]:
+        result = [
+            dict(entry)
+            for entry in self.snapshot().discovery.get("notified_wheels", {}).values()
+            if isinstance(entry, dict)
+            and str(entry.get("source") or "").casefold() == source.casefold()
+        ]
+        result.sort(key=lambda item: str(item.get("notified_at") or ""), reverse=True)
+        return result[:5]
+
+    def intelligence_state(self) -> dict[str, Any]:
+        value = self.get_json_file(
+            INTELLIGENCE_PATH,
+            {"version": 1, "candidates": {}, "edges": {}, "runs": []},
+        )
+        return value if isinstance(value, dict) else {}
+
+    def intelligence_rows(self) -> list[dict[str, Any]]:
+        state = self.intelligence_state()
+        ignored = self.load_moderation().get("ignored", {})
+        snap = self.snapshot()
+        known = {source.casefold() for source in [*snap.fast, *snap.nightly]}
+        rows: list[dict[str, Any]] = []
+        for key, raw in state.get("candidates", {}).items():
+            if not isinstance(raw, dict):
+                continue
+            source = str(raw.get("source") or key)
+            item = dict(raw)
+            item["source"] = source
+            folded = source.casefold()
+            item["decision"] = (
+                "known" if folded in known else "ignored" if folded in ignored else "new"
+            )
+            rows.append(item)
+        rows.sort(
+            key=lambda item: (
+                {"new": 0, "ignored": 1, "known": 2}.get(
+                    str(item.get("decision")), 9
+                ),
+                -int(item.get("score", 0) or 0),
+                -int(item.get("wheel_links_found", 0) or 0),
+                str(item.get("source") or "").casefold(),
+            )
+        )
+        return rows
+
+    @staticmethod
+    def intelligence_label(score: int, wheels: int) -> str:
+        if wheels > 0 and score >= 60:
+            return "🟢 подтверждённый"
+        if score >= 35:
+            return "🟡 связанный"
+        return "⚪ слабый сигнал"
+
+    def filtered_intelligence_rows(self, category: str) -> list[dict[str, Any]]:
+        rows = self.intelligence_rows()
+        if category == "wheels":
+            return [
+                row
+                for row in rows
+                if row.get("decision") == "new"
+                and int(row.get("wheel_links_found", 0) or 0) > 0
+            ]
+        if category in {"new", "ignored"}:
+            return [row for row in rows if row.get("decision") == category]
+        return rows
 
     def setup_bot(self) -> None:
         self.telegram_api("deleteWebhook", {"drop_pending_updates": False})
@@ -91,73 +292,46 @@ class PanelFoundationMixin:
         if not self.is_admin():
             self.send("Этот раздел доступен администраторам.", reply_markup=self.with_nav())
             return
-        snap = self.snapshot()
+        snap = self.snapshot(force=True)
         rows = self.candidate_rows()
         new_rows = [row for row in rows if row.get("category") == "new"]
         nightly_with_wheels = [row for row in rows if row.get("category") == "nightly"]
-        ignored_rows = [row for row in rows if row.get("category") == "ignored"]
-        strong_new = sum(int(row.get("score", 0) or 0) >= 70 for row in new_rows)
-
         try:
             run = self.workflow_run("nightly-discovery.yml")
         except Exception:
             run = {}
         status = str(run.get("status") or "")
         conclusion = str(run.get("conclusion") or "")
-        if status in {"queued", "waiting", "pending"}:
-            status_text = "🟡 ожидает запуска"
+        if not snap.nightly:
+            state_text = "⚪ не требуется — ночной список пуст"
         elif status == "in_progress":
-            status_text = "🔵 ночная проверка выполняется"
+            state_text = "🔵 ночная проверка выполняется"
+        elif status in {"queued", "waiting", "pending"}:
+            state_text = "🟡 ожидает запуска"
         elif status == "completed" and conclusion == "success":
-            status_text = "🟢 последняя ночная проверка завершена"
+            state_text = "🟢 последняя проверка завершена"
         elif conclusion:
-            status_text = f"🔴 завершена с результатом: {conclusion}"
+            state_text = "🔴 последняя проверка завершилась с ошибкой"
         else:
-            status_text = "⚪ данных о запуске нет"
-
-        discovery_keys = {
-            str(value).casefold() for value in snap.discovery.get("sources", {})
-        }
+            state_text = "⚪ данных о запуске нет"
+        discovery_keys = {str(value).casefold() for value in snap.discovery.get("sources", {})}
         checked = sum(1 for name in snap.nightly if name.casefold() in discovery_keys)
         text = (
             "🌙 <b>Ночное наблюдение</b>\n\n"
-            f"Состояние: {html.escape(status_text)}\n"
+            f"Состояние: {state_text}\n"
             f"Последнее завершение: {self.fmt_dt(snap.discovery.get('last_run_at'))}\n"
-            f"Проверено в последнем сохранённом запуске: {checked} из {len(snap.nightly)}\n\n"
-            f"🌙 Всего каналов в ночной базе: <b>{len(snap.nightly)}</b>\n"
-            f"🎡 Из них публиковали колёса: <b>{len(nightly_with_wheels)}</b>\n"
-            f"🆕 Новых каналов вне базы, требующих решения: <b>{len(new_rows)}</b>\n"
-            f"🟢 Сильных новых кандидатов: <b>{strong_new}</b>\n"
-            f"🙈 Игнорируются: <b>{len(ignored_rows)}</b>\n\n"
-            "Каналы из ночной базы остаются в ней. Новые неизвестные каналы "
-            "не добавляются никуда без решения администратора."
+            f"Проверено: <b>{checked} из {len(snap.nightly)}</b>\n\n"
+            f"Источников в ночном режиме: <b>{len(snap.nightly)}</b>\n"
+            f"С найденными колёсами: <b>{len(nightly_with_wheels)}</b>\n"
+            f"Новых кандидатов: <b>{len(new_rows)}</b>"
         )
         buttons = [
-            [
-                {
-                    "text": f"🆕 Требуют решения ({len(new_rows)})",
-                    "callback_data": "candidate:list:new:0",
-                }
-            ],
-            [
-                {
-                    "text": f"🎡 С колёсами в ночной базе ({len(nightly_with_wheels)})",
-                    "callback_data": "candidate:list:nightly:0",
-                }
-            ],
-            [
-                {
-                    "text": f"🙈 Игнорируемые ({len(ignored_rows)})",
-                    "callback_data": "candidate:list:ignored:0",
-                }
-            ],
-            [
-                {
-                    "text": "▶️ Запустить ночную проверку",
-                    "callback_data": "control:nightly",
-                }
-            ],
+            [{"text": f"🆕 Требуют решения ({len(new_rows)})", "callback_data": "candidate:list:new:0"}],
+            [{"text": f"🎡 С колёсами ({len(nightly_with_wheels)})", "callback_data": "candidate:list:nightly:0"}],
         ]
+        if snap.nightly:
+            buttons.append([{"text": "▶️ Запустить ночную проверку", "callback_data": "control:nightly"}])
+        buttons.append([{"text": "🔄 Обновить состояние", "callback_data": "page:discovery"}])
         self.send(text, reply_markup=self.with_nav(buttons))
 
     def show_candidate_list(self, category: str, page: int = 0) -> None:
@@ -351,7 +525,7 @@ class PanelFoundationMixin:
         )
 
 
-class _FoundationTestPanel(PanelFoundationMixin, TelegramPanelRuntimeV9):
+class _FoundationTestPanel(PanelFoundationMixin, TelegramPanelV2):
     def __init__(self) -> None:
         self.current_user_id = "1"
         self.current_chat_id = "1"
@@ -425,7 +599,7 @@ def self_test() -> None:
     assert "Приложение BB V.G." in app_text
     assert app_url == "https://example.com/app?release=5.11.0&bot=test_bot"
 
-    assert issubclass(_FoundationTestPanel, TelegramPanelRuntimeV9)
+    assert issubclass(_FoundationTestPanel, TelegramPanelV2)
     print("BB V.G. panel foundation self-test passed")
 
 
