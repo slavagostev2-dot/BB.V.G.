@@ -35,6 +35,29 @@ def should_notify_completion(*, manual_run: bool, catalog_size_at_start: int) ->
     return bool(manual_run and catalog_size_at_start > 0)
 
 
+def promotion_admin_message(promotions: list[dict[str, str]]) -> str:
+    """Describe automatic tier promotions without routing the text to users."""
+    lines = [
+        "🛰️ <b>Новый источник автоматически добавлен в основную проверку</b>",
+        "",
+        "Причина: ночная проверка подтвердила активное колесо.",
+    ]
+    for item in promotions:
+        source = html.escape(str(item.get("source") or "").lstrip("@"))
+        identifier = html.escape(str(item.get("identifier") or "неизвестен"))
+        message_url = html.escape(str(item.get("message_url") or ""), quote=True)
+        lines.extend(["", f"• <b>@{source}</b>", f"  ID: <code>{identifier}</code>"])
+        if message_url:
+            lines.append(f'  <a href="{message_url}">Публикация в Telegram</a>')
+    lines.extend(
+        [
+            "",
+            "Канал уже перенесён из ночного списка в основной.",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def fetch_public_channel_page(
     username: str,
     before: int | None = None,
@@ -268,6 +291,7 @@ def main() -> int:
     cutoff = monitor.now_utc() - timedelta(hours=LOOKBACK_HOURS)
 
     promoted: list[str] = []
+    promotion_details: list[dict[str, str]] = []
     notifications = 0
     duplicate_wheels = 0
     inactive_wheels = 0
@@ -405,6 +429,14 @@ def main() -> int:
             active.append(username)
             active_keys.add(username.casefold())
             promoted.append(username)
+            first_message, first_link, _ = qualified[0]
+            promotion_details.append(
+                {
+                    "source": username,
+                    "identifier": monitor.wheel_identifier(first_link),
+                    "message_url": first_message.message_url,
+                }
+            )
 
         for message, link, assessment in qualified:
             post_key = monitor.notification_key(message, link)
@@ -451,6 +483,15 @@ def main() -> int:
         "# Ночной мониторинг: утверждённые источники без колёс 7 дней.\n"
         "# При обнаружении нового активного колеса источник автоматически возвращается в основной режим.",
     )
+
+    if promotion_details:
+        try:
+            monitor.send_message(promotion_admin_message(promotion_details))
+        except Exception as exc:
+            errors.append(
+                "automatic promotion admin notification failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
 
     discovery["last_run_at"] = monitor.now_utc().isoformat()
     discovery["catalog_size"] = len(catalog)

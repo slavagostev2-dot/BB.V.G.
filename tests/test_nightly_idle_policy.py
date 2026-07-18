@@ -12,6 +12,7 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import nightly_discovery
+import notification_router
 import system_checks
 from admin_panel_runtime_v5 import TelegramPanelRuntimeV5
 from bbvg.bot.source_requests import SourceRequestRuntime
@@ -23,6 +24,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class NightlyIdlePolicyTests(unittest.TestCase):
+    def test_automatic_promotion_notice_is_admin_only_and_auditable(self) -> None:
+        text = nightly_discovery.promotion_admin_message(
+            [
+                {
+                    "source": "StreamSource",
+                    "identifier": "wheel-42",
+                    "message_url": "https://telegram.me/StreamSource/123",
+                }
+            ]
+        )
+
+        self.assertEqual("admin_system", notification_router.notification_kind(text))
+        self.assertIn("@StreamSource", text)
+        self.assertIn("wheel-42", text)
+        self.assertIn("https://telegram.me/StreamSource/123", text)
+        self.assertIn("уже перенесён", text)
+
     def test_only_verified_thematic_candidates_enter_nightly_scan(self) -> None:
         state = {
             "candidates": {
