@@ -148,6 +148,54 @@ class ButtonMatrixTests(unittest.TestCase):
             ]
             self.assertEqual(callback_rows, expected[admin])
 
+    def test_source_intelligence_overview_findings_and_detail_are_routable(self) -> None:
+        panel, calls = self.panel(admin=True)
+        candidate = {
+            "source": "candidate",
+            "decision": "new",
+            "score": 75,
+            "public": True,
+            "mention_count": 4,
+            "messages_checked": 20,
+            "wheel_links_found": 2,
+            "discovered_from": ["known"],
+            "last_verified_at": "2026-07-18T08:00:00+00:00",
+        }
+        panel.intelligence_state = lambda: {  # type: ignore[method-assign]
+            "last_run_at": "2026-07-18T08:00:00+00:00",
+            "last_run_summary": {"sources_scanned": 81},
+        }
+        panel.intelligence_rows = lambda: [candidate]  # type: ignore[method-assign]
+        panel.workflow_run = lambda name: {  # type: ignore[method-assign]
+            "status": "completed",
+            "conclusion": "success",
+        }
+
+        panel.handle_callback(self.query("page:intelligence"))
+        overview = [row for row in calls if row[0] == "send"][-1]
+        self.assertIn("Разведка новых источников", overview[1])
+        self.assertIn("Новых кандидатов: <b>1</b>", overview[1])
+        self.assertIn("intel:list:new:0", str(overview[3]["reply_markup"]))
+
+        panel.handle_callback(self.query("intel:list:new:0"))
+        findings = [row for row in calls if row[0] == "send"][-1]
+        self.assertIn("Новые источники из Telegram-сети", findings[1])
+        self.assertIn("@candidate", findings[1])
+        self.assertIn("intel:detail:candidate", str(findings[3]["reply_markup"]))
+
+        panel.handle_callback(self.query("intel:detail:candidate"))
+        detail = [row for row in calls if row[0] == "send"][-1]
+        self.assertIn("@candidate", detail[1])
+        self.assertIn("Найдено колёс: 2", detail[1])
+
+    def test_source_intelligence_is_role_safe_for_forged_page_callback(self) -> None:
+        panel, calls = self.panel(admin=False)
+        panel.handle_callback(self.query("page:intelligence", user_id=3))
+        sent = [row for row in calls if row[0] == "send"]
+        self.assertTrue(sent)
+        self.assertIn("доступен администраторам", sent[-1][1])
+        self.assertNotIn("Выберите раздел", sent[-1][1])
+
     def test_notification_button_role_matrix(self) -> None:
         source = {
             "inline_keyboard": [
