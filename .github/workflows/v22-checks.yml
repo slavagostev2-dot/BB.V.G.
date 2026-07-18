@@ -60,9 +60,6 @@ jobs:
           python -m bbvg.bot.storage
           python -m bbvg.bot.users
           python -m bbvg.bot.runtime --self-test
-          python admin_panel_runtime_v36.py --self-test
-          python admin_panel_runtime_v37.py --self-test
-          python admin_panel_runtime_v38.py --self-test
           python admin_panel_runtime_v41.py --self-test
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
@@ -86,12 +83,16 @@ jobs:
           from pathlib import Path
           import notification_router
           import telegram_ui
-          from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
+          from bbvg.bot.runtime import TelegramPanelRuntime
           from bbvg.bot.storage import PrivateStateRuntime
           from bbvg.bot.users import UserSettingsMixin, WHEEL_NOTIFICATION_OPTIONS
 
           workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
           assert 'run: python admin_panel_runtime_v41.py' in workflow
+          assert not any(
+              cls.__module__.startswith('admin_panel_runtime_v')
+              for cls in TelegramPanelRuntime.__mro__
+          )
           assert 'Role fingerprint' in workflow or 'role fingerprint' in workflow.lower()
           assert {'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'} == {
               key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
@@ -101,7 +102,7 @@ jobs:
           assert '_load_remote_bundle' in inspect.getsource(PrivateStateRuntime._save_bot_bundle)
           assert 'page:status' in {
               button['callback_data']
-              for row in TelegramPanelRuntimeV38.compact_menu_rows(False)
+              for row in TelegramPanelRuntime.compact_menu_rows(False)
               for button in row
           }
           assert notification_router._bbvg_notification_integrity_v2_installed is True
