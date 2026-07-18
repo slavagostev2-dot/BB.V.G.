@@ -67,7 +67,8 @@ class TelegramPanelRuntimeV29(TelegramPanelRuntimeV28):
             [{"text": "🔍 Почему не пришло колесо?", "callback_data": "page:diagnostic"}],
         ]
 
-    def show_analytics(self) -> None:
+    def show_analytics(self, days: int = 1) -> None:
+        del days
         self.send(
             "📊 <b>Аналитика</b>\n\n"
             "Статистика показывает текущие показатели по периодам. "
@@ -181,6 +182,13 @@ class TelegramPanelRuntimeV29(TelegramPanelRuntimeV28):
         if page == "analytics":
             self.show_analytics()
             return
+        if page.startswith("analytics:"):
+            try:
+                days = int(page.rsplit(":", 1)[1])
+            except (TypeError, ValueError):
+                days = 1
+            self.show_analytics(days if days in {1, 7, 30} else 1)
+            return
         if page == "reports":
             self.show_reports()
             return
@@ -256,6 +264,11 @@ def self_test() -> None:
     }
 
     panel = TelegramPanelRuntimeV29()
+    routed_periods: list[int] = []
+    panel.show_analytics = lambda days=1: routed_periods.append(days)  # type: ignore[method-assign]
+    panel.render_page("analytics:7")
+    panel.render_page("analytics:99")
+    assert routed_periods == [7, 1]
     assert panel._json_text('{"ok": true}', {}) == {"ok": True}
     assert panel._serialize_json({"ok": True}).strip() == '{\n  "ok": true\n}'
     print("admin_panel_runtime_v29 grouped role menu self-test passed")
