@@ -1,18 +1,23 @@
 from __future__ import annotations
 
 import html
-from datetime import datetime, timezone
+import math
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import Any
 
-from admin_panel_runtime_v9 import TelegramPanelRuntimeV9
+from admin_panel_v2 import TelegramPanelV2
+from admin_bot import DISPLAY_TZ
 from bbvg.bot.foundation import PanelFoundationMixin
-from admin_panel_runtime_v6 import INTELLIGENCE_PER_PAGE
+import telegram_ui
+
+INTELLIGENCE_PER_PAGE = 6
+INACTIVE_PAGE_SIZE = 10
 
 UTC = timezone.utc
 
 
-class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelRuntimeV9):
+class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
     """Current compact panel interface formerly distributed across v14-v16."""
 
     def __init__(self) -> None:
@@ -22,40 +27,258 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelRuntimeV9):
 
     @staticmethod
     def compact_menu_rows(admin: bool) -> list[list[dict[str, Any]]]:
-        if admin:
-            return [
-                [
-                    {"text": "📊 Статистика", "callback_data": "page:stats:1"},
-                    {"text": "🔥 Активные колёса", "callback_data": "page:active"},
-                ],
-                [
-                    {"text": "📡 Источники", "callback_data": "page:sources"},
-                    {"text": "🌙 Ночное наблюдение", "callback_data": "page:discovery"},
-                ],
-                [
-                    {
-                        "text": "🛰️ Разведка источников",
-                        "callback_data": "page:intelligence",
-                    },
-                    {"text": "🏆 Рейтинг каналов", "callback_data": "page:ranking"},
-                ],
-                [
-                    {"text": "⚙️ Настройки", "callback_data": "page:settings"},
-                    {"text": "✅ Состояние системы", "callback_data": "page:status"},
-                ],
-                [{"text": "📱 Приложение", "callback_data": "page:app"}],
-            ]
-        return [
+        rows = [
             [
-                {"text": "📊 Статистика", "callback_data": "page:stats:1"},
                 {"text": "🔥 Активные колёса", "callback_data": "page:active"},
+                {"text": "📊 Аналитика", "callback_data": "page:analytics"},
             ],
             [
                 {"text": "📡 Источники", "callback_data": "page:sources"},
-                {"text": "🏆 Рейтинг каналов", "callback_data": "page:ranking"},
+                {"text": "⚙️ Настройки", "callback_data": "page:settings"},
             ],
-            [{"text": "📱 Приложение", "callback_data": "page:app"}],
         ]
+        rows.append(
+            [{
+                "text": "🛠 Управление" if admin else "✅ Работа системы",
+                "callback_data": "page:control" if admin else "page:status",
+            }]
+        )
+        return rows
+
+    @staticmethod
+    def period_title(days: int) -> str:
+        if days == 1:
+            return "сегодня"
+        if days == 7:
+            return "за 7 дней"
+        if days == 30:
+            return "за 30 дней"
+        return f"за {days} дней"
+
+    @staticmethod
+    def _period_buttons(days: int) -> list[dict[str, str]]:
+        values = ((1, "Сегодня"), (7, "7 дней"), (30, "30 дней"))
+        return [
+            {
+                "text": ("✓ " if value == days else "") + label,
+                "callback_data": f"page:analytics:{value}",
+            }
+            for value, label in values
+        ]
+
+    @staticmethod
+    def analytics_menu_rows(admin: bool) -> list[list[dict[str, Any]]]:
+        first = [{"text": "📊 Статистика", "callback_data": "page:stats:1"}]
+        if admin:
+            first.append({"text": "📅 Сводки", "callback_data": "page:reports"})
+        return [
+            first,
+            [{"text": "📭 Давно без колёс", "callback_data": "page:report:inactive"}],
+        ]
+
+    @staticmethod
+    def control_menu_rows() -> list[list[dict[str, Any]]]:
+        return [
+            [{"text": "▶️ Проверить источники сейчас", "callback_data": "control:monitor"}],
+            [{"text": "✅ Состояние системы", "callback_data": "page:status"}],
+            [{"text": "🔍 Почему не пришло колесо?", "callback_data": "page:diagnostic"}],
+        ]
+
+    @staticmethod
+    def summary_send_rows() -> list[list[dict[str, Any]]]:
+        return [
+            [{"text": "За день", "callback_data": "summary:send:daily"}],
+            [{"text": "За неделю", "callback_data": "summary:send:weekly"}],
+            [{"text": "За месяц", "callback_data": "summary:send:monthly"}],
+        ]
+
+    def show_send_summary_menu(self) -> None:
+        if not self.is_admin():
+            self.send(
+                "Отправка сводок доступна только администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        self.send(
+            "📨 <b>Отправить сводку</b>\n\nВыберите период:",
+            reply_markup=self.with_nav(self.summary_send_rows()),
+        )
+
+    def _monitor_status(self) -> dict[str, Any]:
+        try:
+            return self.get_json_file("monitor_status.json", {})
+        except Exception:
+            return {}
+
+    @staticmethod
+    def _normalize_page(page: str) -> str:
+        value = str(page or "menu")
+        if value in {"analytics", "reports"}:
+            return "analytics:1"
+        if value.startswith("stats:"):
+            period = value.split(":", 1)[1]
+            return f"analytics:{period}" if period.isdigit() else "analytics:1"
+        if value.startswith("report:"):
+            period = value.split(":", 1)[1]
+            if period.isdigit():
+                return f"analytics:{period}"
+        if value == "active":
+            return "active:0"
+        if value == "access":
+            return "access:0"
+        if value == "recipients":
+            return "recipients:0"
+        return value
+
+    @classmethod
+    def _page_family(cls, page: str) -> str:
+        value = cls._normalize_page(page)
+        for prefix in ("analytics:", "active:", "access:", "recipients:"):
+            if value.startswith(prefix):
+                return prefix.rstrip(":")
+        for prefix in ("source_list:", "candidate_list:", "intel_list:"):
+            if value.startswith(prefix):
+                return ":".join(value.split(":")[:2])
+        if value == "report:inactive" or value.startswith("report:inactive:"):
+            return "report:inactive"
+        return value
+
+    def open_page(self, page: str, *, push: bool = True) -> None:
+        normalized = self._normalize_page(page)
+        stack = self.stack()
+        if push:
+            if stack and self._page_family(stack[-1]) == self._page_family(normalized):
+                stack[-1] = normalized
+            elif not stack or stack[-1] != normalized:
+                stack.append(normalized)
+        self.render_page(normalized)
+
+    def period_overview(self, snap: Any, days: int) -> dict[str, Any]:
+        totals = self.period_totals(snap.stats, days)
+        today = datetime.now(DISPLAY_TZ).date()
+        allowed = {today.isoformat()}
+        if days > 1:
+            allowed = {
+                today.fromordinal(today.toordinal() - offset).isoformat()
+                for offset in range(days)
+            }
+        source_counts: dict[str, int] = {}
+        day_counts: dict[str, int] = {}
+        for day, entry in snap.stats.get("daily", {}).items():
+            if day not in allowed or not isinstance(entry, dict):
+                continue
+            day_counts[day] = int((entry.get("totals") or {}).get("wheel_posts", 0) or 0)
+            for source, source_entry in (entry.get("sources") or {}).items():
+                if not isinstance(source_entry, dict):
+                    continue
+                count = int(source_entry.get("wheel_posts", 0) or 0)
+                if count > 0:
+                    source_counts[str(source)] = source_counts.get(str(source), 0) + count
+        active_rows = [
+            (str(key), entry)
+            for key, entry in snap.state.get("active_wheels", {}).items()
+            if isinstance(entry, dict)
+        ]
+        active_keys = {
+            str(entry.get("identifier") or key).casefold()
+            for key, entry in active_rows
+        } | {key.casefold() for key, _ in active_rows}
+        participating = {
+            str(key).casefold()
+            for key, entry in snap.state.get("participating_wheels", {}).items()
+            if isinstance(entry, dict)
+        }
+        totals_notifications = int(totals.get("preliminary_sent", 0) or 0) + int(
+            totals.get("activation_sent", 0) or 0
+        )
+        return {
+            "wheel_posts": int(totals.get("wheel_posts", 0) or 0),
+            "notifications": totals_notifications,
+            "sources_with_wheels": len(source_counts),
+            "top_sources": sorted(
+                source_counts.items(), key=lambda item: (-item[1], item[0].casefold())
+            ),
+            "best_day": max(day_counts.items(), key=lambda item: item[1], default=("", 0)),
+            "active": len(active_rows),
+            "active_with_time": sum(
+                1
+                for _, entry in active_rows
+                if self.parse_dt(entry.get("deadline")) is not None
+            ),
+            "participating": len(active_keys & participating),
+        }
+
+    def show_inactive_report(self, page: int = 0) -> None:
+        if not self.is_admin():
+            self.send("Раздел доступен только администраторам.", reply_markup=self.with_nav())
+            return
+        snap = self.snapshot(force=True)
+        rows = self.source_sets(snap)["inactive"]
+        pages = max(1, math.ceil(len(rows) / INACTIVE_PAGE_SIZE))
+        page = max(0, min(int(page), pages - 1))
+        part = rows[page * INACTIVE_PAGE_SIZE : (page + 1) * INACTIVE_PAGE_SIZE]
+        stats = snap.stats.get("sources", {})
+        lines = [f"📭 <b>Давно без колёс: {len(rows)}</b>"]
+        if pages > 1:
+            lines.append(f"Страница: <b>{page + 1} из {pages}</b>")
+        lines.append("")
+        now = datetime.now(UTC)
+        for source in part:
+            entry = stats.get(source, {}) if isinstance(stats.get(source), dict) else {}
+            reference = self.parse_dt(
+                entry.get("last_wheel_post_at") or entry.get("first_checked_at")
+            )
+            days = max(0, (now - reference.astimezone(UTC)).days) if reference else None
+            lines.append(
+                f"• @{html.escape(source)} — "
+                f"{f'{days} дн.' if days is not None else 'нет истории'}"
+            )
+        if not part:
+            lines.append(
+                "Все основные источники недавно публиковали колёса или ещё проходят наблюдение."
+            )
+        buttons: list[list[dict[str, str]]] = []
+        pager: list[dict[str, str]] = []
+        if page > 0:
+            pager.append({"text": "◀️ Назад", "callback_data": f"page:report:inactive:{page - 1}"})
+        if page < pages - 1:
+            pager.append({"text": "Вперёд ▶️", "callback_data": f"page:report:inactive:{page + 1}"})
+        if pager:
+            buttons.append(pager)
+        buttons.append([{"text": "🔄 Обновить", "callback_data": f"page:report:inactive:{page}"}])
+        self.send("\n".join(lines), reply_markup=self.with_nav(buttons))
+
+    def show_status(self) -> None:
+        snap = self.snapshot(force=True)
+        status = self._monitor_status()
+        registry = self.load_source_registry()
+        summary = registry.get("summary") if isinstance(registry.get("summary"), dict) else {}
+        configured = int(summary.get("total", 0) or 0) or len(snap.fast) + len(snap.nightly)
+        checked = int(status.get("checked_sources", 0) or 0)
+        reachable = int(status.get("reachable_sources", 0) or 0)
+        errors = int(status.get("source_errors", 0) or 0)
+        last = status.get("last_successful_iteration_at")
+        fresh = self.parse_dt(last)
+        working = bool(fresh and datetime.now(UTC) - fresh < timedelta(minutes=20))
+        lines = [
+            "✅ <b>Проверка работы системы</b>",
+            "",
+            f"Состояние: {'🟢 каналы проверяются по расписанию' if working else '🟡 данные проверки задерживаются'}",
+            f"Последняя проверка каналов: <b>{self.fmt_dt(last)}</b> ({self.age_text(last)})",
+            "",
+            f"Настроено каналов: <b>{configured}</b>",
+            f"Проверено в последнем цикле: <b>{checked}</b>",
+            f"Доступно: <b>{reachable}</b>",
+        ]
+        if errors:
+            lines.append(f"Требуют внимания: <b>{errors}</b>")
+        lines.append(f"Активных колёс: <b>{len(self._collect_current_wheels())}</b>")
+        buttons: list[list[dict[str, str]]] = [
+            [{"text": "🔄 Обновить", "callback_data": "refresh:status"}]
+        ]
+        if self.is_admin():
+            buttons.append([{"text": "▶️ Проверить сейчас", "callback_data": "control:monitor"}])
+        self.send("\n".join(lines), reply_markup=self.with_nav(buttons))
 
     def _hide_reply_keyboard(self) -> None:
         target = str(self.current_chat_id or "")
@@ -95,6 +318,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelRuntimeV9):
         reply_markup: dict[str, Any] | None = None,
         chat_id: str | None = None,
     ) -> dict:
+        text = telegram_ui.truncate_telegram_html(text)
         target = str(chat_id or self.current_chat_id or "")
         if self._remove_reply_keyboard_before_send and self._edit_message_id is None:
             self._remove_reply_keyboard_before_send = False
@@ -734,15 +958,11 @@ def self_test() -> None:
     admin_rows = PanelInterfaceRuntime.compact_menu_rows(True)
     callbacks = [button.get("callback_data") for row in admin_rows for button in row]
     expected = {
-        "page:stats:1",
         "page:active",
+        "page:analytics",
         "page:sources",
-        "page:discovery",
-        "page:intelligence",
-        "page:ranking",
         "page:settings",
-        "page:status",
-        "page:app",
+        "page:control",
     }
     assert set(callbacks) == expected
     assert "page:more" not in callbacks
