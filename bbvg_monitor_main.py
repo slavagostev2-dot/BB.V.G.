@@ -12,6 +12,7 @@ import notification_preferences_v2
 import notification_router
 import personal_reminder_filter
 import personal_wheel_voting
+import json
 import rating_policy
 import recurring_wheel_events
 import restart_duplicate_guard
@@ -47,6 +48,7 @@ _original_process_active = monitor.process_active_wheels
 _original_send_message = monitor.send_message
 _original_load_stats = monitor.data_store.load_stats
 _original_record_admin_wheel_decision = monitor.data_store.record_admin_wheel_decision
+_original_save_stats = monitor.data_store.save_stats
 
 SOURCE_RATING_RESET_DAY = "2026-07-17"
 SOURCE_RATING_RESET_VERSION = 2
@@ -156,6 +158,50 @@ def record_admin_wheel_decision_additive(
         at=at,
         recorder=_original_record_admin_wheel_decision,
     )
+
+
+
+def reconcile_multisource_votes(data: dict[str, Any], state: dict[str, Any]) -> int:
+    keys: set[str] = set()
+    for name in ("active_wheels", "wheel_action_history"):
+        rows = state.get(name)
+        if isinstance(rows, dict):
+            keys.update(str(key).casefold() for key in rows)
+    keys.update(str(key).casefold() for key in runtime.base_runtime._WHEEL_PUBLICATIONS)
+
+    changed = 0
+    for key in sorted(keys):
+        active = state.get("active_wheels", {}).get(key)
+        history = state.get("wheel_action_history", {}).get(key)
+        identity = active if isinstance(active, dict) else history if isinstance(history, dict) else {}
+        event_key = personal_wheel_voting.wheel_event_key(key, identity)
+        sources = wheel_publications_v2.publication_sources(
+            state, key, active if isinstance(active, dict) else None
+        )
+        incoming = runtime.base_runtime._WHEEL_PUBLICATIONS.get(key, [])
+        if isinstance(incoming, list):
+            sources.extend(
+                str(row.get("source") or "").strip().lstrip("@")
+                for row in incoming
+                if isinstance(row, dict)
+            )
+        changed += personal_wheel_voting.reconcile_personal_vote_sources(
+            data, event_key=event_key, sources=sources, at=monitor.now_utc()
+        )
+    return changed
+
+
+def save_stats_with_multisource_reconciliation(data: dict[str, Any]) -> None:
+    try:
+        state = json.loads(monitor.STATE_PATH.read_text(encoding="utf-8"))
+        if not isinstance(state, dict):
+            state = {}
+        changed = reconcile_multisource_votes(data, state)
+        if changed:
+            print(f"Reconciled multi-source rating pairs: {changed}")
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+        print(f"WARNING multi-source rating reconciliation: {type(exc).__name__}: {exc}")
+    _original_save_stats(data)
 
 
 def recover_deadline_manual_first(state: dict, key: str, entry: dict):
@@ -281,6 +327,7 @@ def process_active_without_unknown_time_spam(state: dict, stats: dict):
 runtime.base_runtime._recover_deadline = recover_deadline_manual_first
 monitor.data_store.load_stats = load_stats_additive
 monitor.data_store.record_admin_wheel_decision = record_admin_wheel_decision_additive
+monitor.data_store.save_stats = save_stats_with_multisource_reconciliation
 monitor.wheel_reply_markup = wheel_markup_with_direct_key
 monitor.process_active_wheels = process_active_without_unknown_time_spam
 monitor.send_message = branded_send_message

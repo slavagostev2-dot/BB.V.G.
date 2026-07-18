@@ -271,3 +271,42 @@ def test_rating_reset_removes_scores_but_preserves_operations() -> None:
         assert field not in stats["daily"]["2026-07-16"]["totals"]
         assert field not in stats["daily"]["2026-07-16"]["sources"]["source"]
     assert bbvg_monitor_main.reset_source_rating_epoch(stats) is False
+
+
+def test_late_second_source_expands_existing_vote_without_duplication() -> None:
+    stats = {"version": 1, "sources": {}, "daily": {}}
+    actor = personal_wheel_voting.actor_vote_token("100", secret="test-secret")
+    event = "zonertg8#action:693"
+    at = datetime(2026, 7, 17, 10, 0, tzinfo=UTC)
+    assert personal_wheel_voting.record_personal_vote(
+        stats, event_key=event, sources=["mechanogun"], actor=actor,
+        role="owner", weight=5, at=at,
+    )
+    assert personal_wheel_voting.reconcile_personal_vote_sources(
+        stats, event_key=event, sources=["mechanogun", "kolesaBB"], at=at,
+    ) == 1
+    assert personal_wheel_voting.reconcile_personal_vote_sources(
+        stats, event_key=event, sources=["mechanogun", "kolesaBB"], at=at,
+    ) == 0
+    assert stats["sources"]["mechanogun"]["quality_score"] == 5
+    assert stats["sources"]["kolesaBB"]["quality_score"] == 5
+    assert stats["daily"]["2026-07-17"]["totals"]["personal_votes"] == 1
+    assert stats["daily"]["2026-07-17"]["totals"]["personal_vote_points"] == 10
+
+
+def test_three_votes_credit_both_channels_equally() -> None:
+    stats = {"version": 1, "sources": {}, "daily": {}}
+    event = "zonertg8#action:693"
+    for user_id, role, weight in (("1", "owner", 5), ("2", "admin", 5), ("3", "user", 1)):
+        assert personal_wheel_voting.record_personal_vote(
+            stats, event_key=event, sources=["mechanogun"],
+            actor=personal_wheel_voting.actor_vote_token(user_id, secret="test-secret"),
+            role=role, weight=weight, at=datetime(2026, 7, 17, 10, 0, tzinfo=UTC),
+        )
+    assert personal_wheel_voting.reconcile_personal_vote_sources(
+        stats, event_key=event, sources=["mechanogun", "kolesaBB"]
+    ) == 3
+    assert stats["sources"]["mechanogun"]["quality_score"] == 11
+    assert stats["sources"]["kolesaBB"]["quality_score"] == 11
+    assert len(stats["personal_wheel_votes"]) == 3
+

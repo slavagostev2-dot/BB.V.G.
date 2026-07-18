@@ -15,6 +15,7 @@ install_optional_dependency_stubs()
 import admin_action_queue
 import incident_manager
 import monitor
+import monitor_entry
 import monitor_data
 import rating_policy
 import recurring_wheel_events
@@ -654,6 +655,25 @@ class WheelNotStartedRuntimeTests(unittest.TestCase):
         self.assertEqual(state["pending_posts"][post_key]["status"], "not_started")
         self.assertEqual(state["pending_posts"][post_key]["action_id"], 878)
 
+
+
+class MultiSourceDiscoveryTests(unittest.TestCase):
+    def test_source_streams_keep_original_publications(self) -> None:
+        current = datetime(2026, 7, 17, 10, 30, tzinfo=UTC)
+        link = "https://betboom.ru/freestream/zonertg8"
+        first = monitor.Message(
+            "mechanogun", 500, current, link, "https://telegram.me/mechanogun/500"
+        )
+        second = monitor.Message(
+            "kolesaBB", 131, current + timedelta(minutes=1), link,
+            "https://telegram.me/kolesaBB/131",
+        )
+        messages = monitor_entry._preserve_source_messages(
+            {"mechanogun": [first], "kolesaBB": [second, second]}
+        )
+        self.assertEqual(messages["mechanogun"][0].source, "mechanogun")
+        self.assertEqual(messages["kolesaBB"][0].source, "kolesaBB")
+        self.assertEqual(len(messages["kolesaBB"]), 1)
 
 
 if __name__ == "__main__":

@@ -124,6 +124,86 @@ def _activate_personal_rating_policy(data: dict[str, Any]) -> None:
                 entry.pop("admin_rejected_wheels", None)
 
 
+
+def reconcile_personal_vote_sources(
+    data: dict[str, Any],
+    *,
+    event_key: str,
+    sources: list[str],
+    at: datetime | None = None,
+) -> int:
+    """Credit newly discovered sources for existing votes on one event."""
+
+    targets: list[str] = []
+    seen: set[str] = set()
+    for source in sources:
+        cleaned = _clean_source(source)
+        folded = cleaned.casefold()
+        if cleaned and folded not in seen:
+            seen.add(folded)
+            targets.append(cleaned)
+    votes = data.get("personal_wheel_votes")
+    if not targets or not isinstance(votes, dict):
+        return 0
+
+    current = (at or datetime.now(UTC)).astimezone(UTC)
+    changed_pairs = 0
+    for vote_id, raw_vote in votes.items():
+        if not isinstance(raw_vote, dict):
+            continue
+        try:
+            payload = normalize_vote_payload(raw_vote)
+        except (TypeError, ValueError):
+            continue
+        if payload["event_key"] != _clean_wheel_key(event_key):
+            continue
+        known = {source.casefold() for source in payload["sources"]}
+        missing = [source for source in targets if source.casefold() not in known]
+        if not missing:
+            continue
+
+        raw_vote["sources"] = payload["sources"] + missing
+        try:
+            voted = datetime.fromisoformat(
+                str(raw_vote.get("voted_at") or "").replace("Z", "+00:00")
+            )
+            voted = voted.astimezone(UTC) if voted.tzinfo else voted.replace(tzinfo=UTC)
+        except ValueError:
+            voted = current
+        day = voted.date().isoformat()
+        daily = data.setdefault("daily", {}).setdefault(
+            day, {"sources": {}, "totals": {}}
+        )
+        totals = daily.setdefault("totals", {})
+        metric = "admin_votes" if payload["role"] in {"admin", "owner"} else "user_votes"
+
+        for source in missing:
+            entry = data.setdefault("sources", {}).setdefault(source, {})
+            points = entry.setdefault("personal_vote_points", {})
+            if str(vote_id) in points:
+                continue
+            points[str(vote_id)] = payload["weight"]
+            score = sum(max(0, int(value or 0)) for value in points.values())
+            entry["personal_vote_score"] = score
+            entry["quality_score"] = score
+            entry["personal_votes"] = int(entry.get("personal_votes", 0) or 0) + 1
+            entry[metric] = int(entry.get(metric, 0) or 0) + 1
+            entry["last_vote_at"] = voted.isoformat()
+            entry["last_updated_at"] = current.isoformat()
+
+            source_day = daily.setdefault("sources", {}).setdefault(source, {})
+            source_day["personal_votes"] = int(source_day.get("personal_votes", 0) or 0) + 1
+            source_day["personal_vote_points"] = int(
+                source_day.get("personal_vote_points", 0) or 0
+            ) + payload["weight"]
+            source_day[metric] = int(source_day.get(metric, 0) or 0) + 1
+            totals["personal_vote_points"] = int(
+                totals.get("personal_vote_points", 0) or 0
+            ) + payload["weight"]
+            changed_pairs += 1
+    return changed_pairs
+
+
 def record_personal_vote(
     data: dict[str, Any],
     *,

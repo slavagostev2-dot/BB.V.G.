@@ -55,6 +55,25 @@ def _message_rank(message: monitor.Message, identifier: str) -> tuple:
     )
 
 
+def _preserve_source_messages(
+    messages_by_source: dict[str, list[monitor.Message]],
+) -> dict[str, list[monitor.Message]]:
+    """Keep each Telegram post attributed to the channel that published it."""
+
+    result: dict[str, list[monitor.Message]] = {}
+    for source, messages in messages_by_source.items():
+        rewritten: list[monitor.Message] = []
+        seen_messages: set[tuple[str, int]] = set()
+        for message in messages:
+            marker = (message.source.casefold(), message.message_id)
+            if marker in seen_messages:
+                continue
+            seen_messages.add(marker)
+            rewritten.append(message)
+        result[source] = rewritten
+    return result
+
+
 def fetch_all_sources_with_originals(sources):
     """Use the mapped creator or earliest non-collector post as wheel origin."""
     messages_by_source, source_errors, empty_sources = _original_fetch_all_sources(sources)
@@ -96,29 +115,7 @@ def fetch_all_sources_with_originals(sources):
             key=lambda item: (str(item.get("message_date") or ""), str(item.get("source") or "").casefold()),
         )
 
-    # Most wheel posts contain one identifier. Replacing reposts with the
-    # canonical message makes deadline inference, source attribution and
-    # duplicate keys consistently use the original publication.
-    for source, messages in list(messages_by_source.items()):
-        rewritten: list[monitor.Message] = []
-        seen_messages: set[tuple[str, int]] = set()
-        for message in messages:
-            wheel_keys = {
-                monitor.wheel_key(link)
-                for link in monitor.extract_links(message.text)
-            }
-            canonical = (
-                _CANONICAL_MESSAGES.get(next(iter(wheel_keys)))
-                if len(wheel_keys) == 1
-                else None
-            )
-            selected = canonical or message
-            marker = (selected.source.casefold(), selected.message_id)
-            if marker in seen_messages:
-                continue
-            seen_messages.add(marker)
-            rewritten.append(selected)
-        messages_by_source[source] = rewritten
+    messages_by_source = _preserve_source_messages(messages_by_source)
 
     return messages_by_source, source_errors, empty_sources
 

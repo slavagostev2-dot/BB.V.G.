@@ -12,7 +12,7 @@ from bbvg.bot.foundation import (
 from bbvg.bot.users import UserManagementRuntime
 
 SOURCE_REGISTRY_PATH = "source_registry.json"
-_EMPTY_REGISTRY = {"version": 2, "summary": {}, "sources": []}
+_EMPTY_REGISTRY = {"version": 2, "generated_at": None, "summary": {}, "sources": []}
 
 
 class SourceRegistryRuntime(UserManagementRuntime):
@@ -50,11 +50,14 @@ class SourceRegistryRuntime(UserManagementRuntime):
         if not isinstance(value, dict):
             return dict(_EMPTY_REGISTRY)
         summary = value.get("summary")
-        sources = value.get("sources")
+        rows = value.get("sources")
+        summary = summary if isinstance(summary, dict) else {}
+        rows = rows if isinstance(rows, list) else []
         return {
             "version": max(2, int(value.get("version", 2) or 2)),
-            "summary": summary if isinstance(summary, dict) else {},
-            "sources": sources if isinstance(sources, list) else [],
+            "generated_at": str(value.get("generated_at") or "").strip() or None,
+            "summary": dict(summary),
+            "sources": [dict(row) for row in rows if isinstance(row, dict)],
         }
 
     def source_registry_fallback(self) -> dict[str, Any]:
@@ -101,8 +104,13 @@ class SourceRegistryRuntime(UserManagementRuntime):
                 }
             )
 
+        generated = max(
+            (str(row.get("last_checked_at") or "") for row in rows),
+            default=None,
+        )
         return {
             "version": 2,
+            "generated_at": generated or None,
             "summary": {
                 "total": len(rows),
                 "primary": sum(row["tier"] == "primary" for row in rows),
@@ -197,6 +205,7 @@ def self_test() -> None:
         "unavailable": 1,
         "pending": 0,
     }
+    assert fallback["generated_at"] == "2026-07-16T00:00:00Z"
     assert panel.load_source_registry() == _EMPTY_REGISTRY
     assert SOURCE_REGISTRY_PATH == "source_registry.json"
     assert callable(source_registry.build_registry)
