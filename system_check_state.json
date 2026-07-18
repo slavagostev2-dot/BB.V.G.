@@ -1,9 +1,9 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-07-18T11:24:45.085779+00:00",
-    "started_at": "2026-07-18T09:53:17.022350+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-18T12:14:53.996537+00:00",
+    "started_at": "2026-07-18T11:29:08.949216+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -40,7 +40,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-18T11:29:13.157322+00:00",
+  "checked_at": "2026-07-18T12:15:24.919956+00:00",
   "discovery": {
     "active_size": 78,
     "candidate_count": 245,
@@ -81,7 +81,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-18T11:24:45.085779+00:00",
+    "bot_panel_heartbeat": "2026-07-18T12:14:53.996537+00:00",
     "checked_sources": 78,
     "configured_sources": 81,
     "domain": "telegram.me",
@@ -91,9 +91,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-18T11:27:47.692702+00:00",
+      "last_checked_at": "2026-07-18T12:14:45.543615+00:00",
       "last_failure_at": null,
-      "last_success_at": "2026-07-18T11:27:47.692702+00:00",
+      "last_success_at": "2026-07-18T12:14:45.543615+00:00",
       "status": "ok"
     }
   },
@@ -127,35 +127,35 @@
     "brand": "BB V.G.",
     "checked_sources": 78,
     "checks_delta": 78,
-    "checks_total": 146073,
+    "checks_total": 147321,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "7664d42ba43c85f2a1c624d6c975bb2d20eb1c8d",
-    "iteration": 75,
+    "head_sha": "294c8f3139d5a8a6a186eb31adf65fc6174f4960",
+    "iteration": 16,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-18T11:27:47.800031+00:00",
-    "last_iteration_duration_seconds": 6,
+    "last_iteration_at": "2026-07-18T12:14:45.646937+00:00",
+    "last_iteration_duration_seconds": 8,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-18T11:27:47.800031+00:00",
-    "last_successful_checks_total": 146073,
-    "last_successful_iteration_at": "2026-07-18T11:27:47.800031+00:00",
+    "last_process_heartbeat_at": "2026-07-18T12:14:45.646937+00:00",
+    "last_successful_checks_total": 147321,
+    "last_successful_iteration_at": "2026-07-18T12:14:45.646937+00:00",
     "pending_wheels": 0,
     "reachable_sources": 78,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29636234832",
-    "run_started_at": "2026-07-18T07:43:53.942002+00:00",
+    "run_id": "29642631599",
+    "run_started_at": "2026-07-18T11:29:12.551625+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "29636234832"
+    "workflow_run_id": "29642631599"
   },
-  "monitor_age_minutes": 1,
+  "monitor_age_minutes": 0,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 89,
+    "entry_count": 92,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -183,11 +183,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 24,
+    "personal_vote_records": 26,
     "policy": "personal_votes_v1",
     "rated_sources": 7,
     "score_mismatches": [],
-    "valid_personal_votes": 24
+    "valid_personal_votes": 26
   },
   "source_health_summary": {
     "configured_records": 78,
@@ -225,9 +225,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-18T11:27:47.692702+00:00",
+    "last_checked_at": "2026-07-18T12:14:45.543615+00:00",
     "last_failure_at": null,
-    "last_success_at": "2026-07-18T11:27:47.692702+00:00",
+    "last_success_at": "2026-07-18T12:14:45.543615+00:00",
     "status": "ok"
   }
 }
