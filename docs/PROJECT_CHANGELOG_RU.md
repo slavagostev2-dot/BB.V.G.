@@ -60,8 +60,34 @@ security audit и preflight на первом этапе из 107 источни
 production heartbeat подтвердил полный проход 104/104 за 7 секунд без ошибок;
 итоговый inventory 157 + 3 и его heartbeat фиксируются после второй публикации.
 
-**Откат:** вернуть commit целиком либо перейти на pre-update backup; миграции
-состояния нет, исторические intelligence-записи не удаляются.
+**Production:** изменение развёрнуто последовательными зелёными PR #74–#79:
+`f347cfd5c0e5bc165bebd1eac3836b3240126754`,
+`511cbb9a1653bea470873934a05ee3a3ec3d8116`,
+`077f0922183d17386bea76695677e0fdc3fd8b0a`,
+`35afeaeb299e39a50e61ba3687b0e21b3394e711`,
+`57cf9502d4c7cc21e7aaf3737bfc422a8daefb61` и
+`cd05ba6c4047aa8823cb62b138844e9802dc01df`.
+
+Финальная живая проверка подтвердила:
+
+- основной монитор — 157/157, 0 ошибок, полный проход 12 секунд;
+- intelligence — 160/160 известных на старте, 0 ошибок, 184 тематических
+  кандидата, 150 проверенных страниц;
+- nightly discovery — 59 источников, из них 56 добавлены автоматически,
+  0 ошибок и 0 повышений без активного колеса;
+- transport smoke — 216/216 доступных, 0 ошибок;
+- source registry — 216 available, 0 pending, 0 unavailable;
+- system health — `ok`, findings отсутствуют; панель — `running`.
+
+**Post-update backup:**
+`backup/after-relevant-source-intelligence-expansion-2026-07-18` →
+`4c7cc2b440b69afb9a9b17697e3e9b9a4ca2ec69`. Ref идентичен подтверждённому
+production main на момент создания. Ротация оставила ровно три ветки: этот
+post-backup, `backup/before-relevant-source-intelligence-expansion-2026-07-18`
+и `backup/after-participation-reminder-active-cleanup-2026-07-18`.
+
+**Откат:** вернуть commits изменения целиком либо перейти на pre-update backup;
+миграции состояния нет, исторические intelligence-записи не удаляются.
 
 ## 2026-07-18 — Устранены ложные напоминания и зависшие завершённые колёса
 
