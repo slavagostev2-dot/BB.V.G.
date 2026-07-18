@@ -13,7 +13,6 @@ from bbvg.bot.foundation import BRAND_NAME
 
 UTC = legacy.UTC
 HIDDEN_WHEEL_DAYS = 30
-DEADLINE_GRACE_MINUTES = 30
 _SAFE_CALLBACK_TOKEN_RE = re.compile(r"^[A-Za-z0-9_.~-]+$")
 
 
@@ -205,10 +204,17 @@ class WheelInteractionRuntime(SourceRequestRuntime):
                 continue
             if normalized in inactive or identifier in inactive:
                 continue
+            if str(raw.get("status") or "").casefold() in {
+                "closed",
+                "finished",
+                "inactive",
+            } or str(raw.get("lifecycle_state") or "").casefold() in {
+                "finished",
+                "inactive",
+            }:
+                continue
             deadline = self.parse_dt(raw.get("deadline"))
-            if deadline and deadline.astimezone(UTC) < now - timedelta(
-                minutes=DEADLINE_GRACE_MINUTES
-            ):
+            if deadline and deadline.astimezone(UTC) <= now:
                 continue
             item = dict(raw)
             item["_key"] = str(key)
