@@ -155,6 +155,12 @@ docs/
 - основной монитор не вызывает Telegram `getUpdates`: единственным consumer входящих updates является production-панель; этот контракт проверяется запуском обоих путей с fake Telegram API, а не поиском текста в исходниках.
 - двухчасовое окно колеса без автоматического или ручного таймера является фиксированным доменным контрактом и не переопределяется переменной workflow.
 - каждая команда `admin_action_queue` идемпотентна по `command_id`; повтор любого поддержанного action не меняет state, health или rating.
+- `state.json.wheel_generation_observations` хранит не более 1000
+  обезличенных API-идентичностей за 14 дней: wheel key,
+  `action_id`, `start_dttm`, первое/последнее наблюдение и счётчик.
+  Журнал не содержит Telegram ID и не меняет решение о
+  дедупликации. Отчёт: `python wheel_event_runtime.py
+  --observation-report state.json`.
 
 ### Достоверный health и inventory источников
 
