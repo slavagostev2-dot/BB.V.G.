@@ -428,6 +428,7 @@ def _availability_message(
     *,
     action_id: int | None = None,
     verification_status: str = "",
+    server_start_at: datetime | None = None,
 ) -> None:
     current = monitor_module.now_utc()
     future = available_at > current
@@ -489,6 +490,7 @@ def _availability_message(
         action_id=action_id,
         available_at=available_at,
         verification_status=verification_status,
+        server_start_at=server_start_at,
     )
     _tag_availability(
         monitor_module,
