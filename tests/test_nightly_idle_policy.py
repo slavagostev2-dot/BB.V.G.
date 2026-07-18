@@ -15,7 +15,7 @@ import nightly_discovery
 import system_checks
 from admin_panel_runtime_v5 import TelegramPanelRuntimeV5
 from bbvg.bot.source_requests import SourceRequestRuntime
-from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
+from bbvg.bot.runtime import TelegramPanelRuntime
 from bbvg.bot.interface import PanelInterfaceRuntime
 
 
@@ -58,7 +58,7 @@ class NightlyIdlePolicyTests(unittest.TestCase):
         self.assertNotIn('"public_sources.txt"', push_paths)
 
     def test_empty_nightly_list_is_shown_as_idle_without_start_button(self) -> None:
-        panel = TelegramPanelRuntimeV38()
+        panel = TelegramPanelRuntime()
         captured: list[tuple[str, dict]] = []
         panel.current_user_id = "1"
         panel.current_chat_id = "1"
