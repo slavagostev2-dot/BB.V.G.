@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - agent/wheel-server-generation-current
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   verify:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/wheel-server-generation-current'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
