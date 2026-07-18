@@ -26,8 +26,8 @@ import wheel_lifecycle_v2
 import wheel_link_lifecycle
 import wheel_publications_v2
 import wheel_scenario_suite
-from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
 from admin_panel_runtime_v41 import TelegramPanelRuntimeV41, self_test as panel_self_test
+from bbvg.bot.runtime import TelegramPanelRuntime
 
 
 def text(path: str) -> str:
@@ -83,7 +83,7 @@ def stability_acceptance() -> None:
     assert "check_admin_panel_runtime(details, findings)" in system_checks
     assert '"bot_panel"' in system_checks
 
-    panel_dispatch = inspect.getsource(TelegramPanelRuntimeV38.dispatch_admin_action)
+    panel_dispatch = inspect.getsource(TelegramPanelRuntime.dispatch_admin_action)
     assert "enqueue_remote" in panel_dispatch
     assert "_apply_admin_action_direct" not in panel_dispatch
     remote_enqueue = inspect.getsource(admin_action_queue.enqueue_remote)
