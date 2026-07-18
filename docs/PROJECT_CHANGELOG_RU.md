@@ -41,11 +41,32 @@
 `29638871568` проверил ref и оставил ровно три обычных
 backup-ветки.
 
-**Проверки до PR:** baseline — `123 passed, 9 subtests`; после
+**Проверки:** baseline — `123 passed, 9 subtests`; после
 рефакторинга — `125 passed, 9 subtests`; production acceptance — `all`;
-самопроверки storage, users, runtime и v41 adapter прошли. CI run IDs,
-точный result SHA, live heartbeat и post-deploy backup фиксируются
-после deploy.
+самопроверки foundation, storage, users, runtime и v41 adapter,
+security audit, preflight `78 primary + 3 nightly` и YAML parse прошли.
+Первый CI выявил скрытый side effect v36: импорт устанавливал
+HMAC notification policy. Установка перенесена в стабильный
+runtime; повторно успешны все пять checks: runs `29639865583`,
+`29639865630`, `29639865610`, `29639865585`, `29639865598`.
+PR #66 слит squash-коммитом
+`1c73abcd2b77f9f8b9b993d1b35de11fb7bf4142`.
+
+**Production cutover:** control-center run `29639903231` успешно выполнил
+validation, сверку role fingerprint, проверку encrypted state и запись
+статуса. Свежий heartbeat `2026-07-18T09:53:18.984133+00:00`
+подтверждает `status=running`, version 41, dedicated state key и один
+consumer `getUpdates`; checkout SHA `3be20e46...` является прямым
+потомком result SHA и отличается только diagnostic state.
+System health — `ok`, findings `0`, active incidents `0`; монитор
+остался `running`, `78/78` primary, `3` nightly, source errors `0`.
+
+**Post-deploy backup:**
+`backup/after-chapter5-panel-architecture-2026-07-18` →
+`ccd8a8fd44f5f15b16659acb3e665ef724c38669`. Ротация оставила
+ровно три проверенные ветки: post-update, pre-update и
+`backup/after-chapter4-state-concurrency-2026-07-18`; прежний pre-chapter4
+backup удалён после ancestry-проверки.
 
 **Откат:** вернуть merge commit главы 5 целиком либо перейти на
 `backup/before-chapter5-panel-architecture-2026-07-18`; state migration не требуется.
