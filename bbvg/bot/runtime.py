@@ -187,13 +187,7 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
             f"Требуют внимания: <b>{problems}</b>",
             f"Реестр обновлён: <b>{html.escape(updated)}</b>",
         ]
-        rows: list[list[dict[str, str]]] = [
-            [{"text": f"⚡ Основная проверка ({len(primary)})", "callback_data": "source_list:primary:0"}],
-            [{"text": f"🌙 Ночное наблюдение ({len(reserve)})", "callback_data": "source_list:reserve:0"}],
-            [{"text": f"⏸ Приостановлены ({len(paused)})", "callback_data": "source_list:paused:0"}],
-        ]
-        if self.is_admin():
-            rows.append([{"text": "➕ Добавить источник", "callback_data": "source:add"}])
+        rows = self.source_menu_rows(self.is_admin())
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
 
     def show_analytics(self, days: int = 1) -> None:
@@ -298,17 +292,7 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
         if registry.get("generated_at"):
             lines.append(f"🗂 Реестр обновлён: <b>{self.fmt_dt(registry['generated_at'])}</b>")
 
-        rows: list[list[dict[str, str]]] = [
-            [
-                {"text": "Сегодня", "callback_data": "page:analytics:1"},
-                {"text": "7 дней", "callback_data": "page:analytics:7"},
-                {"text": "30 дней", "callback_data": "page:analytics:30"},
-            ],
-            [
-                {"text": "🏆 Рейтинг", "callback_data": "page:ranking"},
-                {"text": "📡 Источники", "callback_data": "page:sources"},
-            ],
-        ]
+        rows: list[list[dict[str, str]]] = [self._period_buttons(days)]
         if self.is_admin():
             rows.append([{"text": "📭 Давно без колёс", "callback_data": "page:report:inactive"}])
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
