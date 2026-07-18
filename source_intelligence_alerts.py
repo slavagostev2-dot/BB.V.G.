@@ -15,7 +15,12 @@ def wheel_candidate_rows(
         if not isinstance(raw, dict):
             continue
         source = str(raw.get("source") or key).strip().lstrip("@")
-        if not source or source.casefold() in known or raw.get("admin_alerted_at"):
+        if (
+            not source
+            or source.casefold().endswith("bot")
+            or source.casefold() in known
+            or raw.get("admin_alerted_at")
+        ):
             continue
         if not raw.get("public"):
             continue
