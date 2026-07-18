@@ -22,6 +22,63 @@ from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
 
 
 class Chapter3BehavioralContractTests(unittest.TestCase):
+    def test_health_accepts_candidates_added_after_intelligence_scan(self) -> None:
+        now = datetime.now(timezone.utc)
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            primary = root / "public_sources.txt"
+            nightly = root / "source_catalog.txt"
+            discovery = root / "discovery_state.json"
+            intelligence = root / "intelligence_state.json"
+            primary.write_text("alpha\nbeta\n", encoding="utf-8")
+            nightly.write_text("gamma\ndelta\n", encoding="utf-8")
+            discovery.write_text(
+                json.dumps({
+                    "telegram_domain": "telegram.me",
+                    "active_size": 2,
+                    "catalog_size": 2,
+                    "intelligence_candidates_added": 2,
+                    "error_count": 0,
+                    "last_run_at": now.isoformat(),
+                }),
+                encoding="utf-8",
+            )
+            intelligence.write_text(
+                json.dumps({
+                    "telegram_domain": "telegram.me",
+                    "last_run_at": now.isoformat(),
+                    "last_run_summary": {
+                        "known_sources": 2,
+                        "sources_scanned": 2,
+                        "errors": 0,
+                    },
+                }),
+                encoding="utf-8",
+            )
+            original = (
+                system_checks.PUBLIC_SOURCES_PATH,
+                system_checks.NIGHTLY_SOURCES_PATH,
+                system_checks.DISCOVERY_PATH,
+                system_checks.INTELLIGENCE_PATH,
+            )
+            try:
+                system_checks.PUBLIC_SOURCES_PATH = primary
+                system_checks.NIGHTLY_SOURCES_PATH = nightly
+                system_checks.DISCOVERY_PATH = discovery
+                system_checks.INTELLIGENCE_PATH = intelligence
+                findings: list[dict] = []
+                system_checks.check_discovery_runtime({}, findings)
+            finally:
+                (
+                    system_checks.PUBLIC_SOURCES_PATH,
+                    system_checks.NIGHTLY_SOURCES_PATH,
+                    system_checks.DISCOVERY_PATH,
+                    system_checks.INTELLIGENCE_PATH,
+                ) = original
+            self.assertFalse(
+                any(row["kind"] == "discovery_scan_failure" for row in findings)
+            )
+
     def test_single_getupdates_consumer_by_behavior(self) -> None:
         monitor_calls: list[str] = []
         original_api = bbvg_monitor_main.monitor.telegram_api
