@@ -38,13 +38,20 @@ jobs:
           python generation_patch_part4.py
           python generation_patch_part5.py
 
-      - name: Verify generation model
-        run: |
-          python -m py_compile monitor.py monitor_entry.py wheel_event_runtime.py wheel_link_lifecycle.py bbvg_monitor_runtime.py wheel_lifecycle_v2.py personal_wheel_voting.py
-          python -m pytest -q tests/test_recurring_event_hotfix.py tests/test_personal_wheel_voting.py tests/test_lifecycle.py
-          python -m pytest -q
-          python -m bbvg.bot.runtime --self-test
-          python tests/production_acceptance.py --section all
+      - name: Compile generation model
+        run: python -m py_compile monitor.py monitor_entry.py wheel_event_runtime.py wheel_link_lifecycle.py bbvg_monitor_runtime.py wheel_lifecycle_v2.py personal_wheel_voting.py
+
+      - name: Run targeted generation tests
+        run: python -m pytest -q tests/test_recurring_event_hotfix.py tests/test_personal_wheel_voting.py tests/test_lifecycle.py
+
+      - name: Run full pytest
+        run: python -m pytest -q
+
+      - name: Run runtime self-test
+        run: python -m bbvg.bot.runtime --self-test
+
+      - name: Run production acceptance
+        run: python tests/production_acceptance.py --section all
 
       - name: Commit verified generation model
         run: |
