@@ -194,7 +194,10 @@ jobs:
           assert 'access_signature' not in panel().normalize_access({'owner_id': '1'})
 
           ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
-          assert ledger.get('format') == 'bbvg-notification-delivery-v2'
+          assert ledger.get('format') in {
+              'bbvg-notification-delivery-v2',
+              'bbvg-notification-delivery-v3',
+          }
           assert isinstance(ledger.get('entries'), dict)
           primary = [
               line.split('#', 1)[0].strip().lstrip('@')

@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+import monitor_data as data_store
+
 ROOT = Path(__file__).resolve().parent
 STATUS_PATH = ROOT / "monitor_status.json"
 STATE_PATH = ROOT / "state.json"
@@ -42,12 +44,7 @@ def load_json(path: Path, default: dict[str, Any] | None = None) -> dict[str, An
 
 
 def save_json(path: Path, value: dict[str, Any]) -> None:
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(path)
+    data_store.atomic_write_json(path, value)
 
 
 def _latest(*values: object) -> datetime | None:

@@ -128,7 +128,10 @@ jobs:
           assert not {'users', 'owner_id', 'chat_id', 'username'} & set(encrypted)
 
           ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
-          assert ledger.get('format') == 'bbvg-notification-delivery-v2'
+          assert ledger.get('format') in {
+              'bbvg-notification-delivery-v2',
+              'bbvg-notification-delivery-v3',
+          }
           assert ledger.get('algorithm') == 'HMAC-SHA256'
           assert isinstance(ledger.get('entries'), dict)
           serialized_ledger = json.dumps(ledger, ensure_ascii=False)

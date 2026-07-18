@@ -174,6 +174,57 @@ docs/
 - Не заменяйте `BOT_STATE_KEY` токеном бота.
 - Не удаляйте runtime JSON без миграционного анализа.
 - Формат состояния должен быть обратимо мигрируемым.
+- Любая запись локального authoritative/diagnostic state выполняется через
+  атомарную замену файла в том же каталоге: flush, `fsync`, `os.replace`.
+- `monitor_data.JSON_STATE_CONTRACTS` является машинно-проверяемым inventory
+  всех 28 JSON. Новый JSON нельзя добавить без категории, владельца и schema
+  contract либо явной отметки frozen archive.
+- Один authoritative файл не коммитится автоматическими workflow из разных
+  concurrency-групп. `public_sources.txt` и `source_catalog.txt` имеют двух
+  предметных производителей, поэтому оба сериализованы общей группой
+  `bb-vg-source-catalog-writer`.
+- Encrypted bundle сохраняется remote CAS + three-way merge; локальная копия
+  после remote success заменяется атомарно. Обычный panel writer и ручная
+  ротация ключа используют одну группу `bb-vg-telegram-admin-panel`.
+- `notification_delivery_state.json` принимает legacy v2 и мигрируется в v3
+  без потери `entries`. V3 содержит только HMAC digest, delivery timestamp и
+  expiring interprocess claim; claim автоматически освобождается по TTL после
+  аварии процесса.
+- `admin_action_queue.json` изменяется только Contents API CAS с повтором 409 и
+  422; `command_id` идемпотентен, а очередь и журналы результатов ограничены.
+
+### Ownership matrix всех JSON
+
+| Файл | Категория | Единственный владелец записи |
+|---|---|---|
+| `activation_runtime_state.json` | archive | frozen Mini App |
+| `admin_action_queue.json` | authoritative | `admin_action_queue` CAS |
+| `admin_panel_status.json` | diagnostic | control-center workflow |
+| `bot_access.json` | compatibility | encrypted private state |
+| `bot_private_state.enc.json` | authoritative | control center CAS / exclusive key rotation |
+| `candidate_moderation.json` | authoritative | control center moderation |
+| `discovery_state.json` | authoritative | nightly discovery |
+| `identifier_sources.json` | config | source catalog |
+| `incident_state.json` | diagnostic | system health |
+| `intelligence_state.json` | authoritative | source intelligence |
+| `miniapp_deploy_runtime.json` | archive | frozen Mini App |
+| `miniapp_deployment.json` | archive | frozen Mini App |
+| `monitor_recovery_status.json` | diagnostic | monitor recovery |
+| `monitor_status.json` | diagnostic | monitor |
+| `notification_delivery_state.json` | authoritative | notification ledger; remote commit by monitor |
+| `partners_catalog.json` | config | source catalog |
+| `private_state_deployment.json` | archive | frozen Mini App |
+| `source_health.json` | authoritative | monitor |
+| `source_registry.json` | cache | source registry workflow |
+| `source_requests.json` | compatibility | encrypted private state |
+| `source_stats.json` | authoritative | monitor |
+| `source_tier_state.json` | diagnostic | source-tier maintenance |
+| `source_transport_state.json` | diagnostic | transport smoke |
+| `state.json` | authoritative | monitor |
+| `state_api/package.json` | archive config | frozen state API |
+| `state_api_runtime.json` | archive | frozen state API |
+| `system_check_state.json` | diagnostic | system health |
+| `unknown_timer_samples.json` | authoritative | monitor |
 
 ## 10. Эксплуатационные действия
 

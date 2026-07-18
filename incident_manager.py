@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+import monitor_data as data_store
+
 ROOT = Path(__file__).resolve().parent
 STATE_PATH = ROOT / "incident_state.json"
 UTC = timezone.utc
@@ -49,12 +51,7 @@ def save_state(value: dict[str, Any]) -> None:
         1 for entry in kept.values() if isinstance(entry, dict) and entry.get("status") == "active"
     )
     value["updated_at"] = now_utc().isoformat()
-    temporary = STATE_PATH.with_suffix(".json.tmp")
-    temporary.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(STATE_PATH)
+    data_store.atomic_write_json(STATE_PATH, value)
 
 
 def parse_datetime(value: object) -> datetime | None:

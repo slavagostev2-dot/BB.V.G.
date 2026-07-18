@@ -119,7 +119,10 @@ def main() -> int:
     ledger = json.loads(
         (ROOT / "notification_delivery_state.json").read_text(encoding="utf-8")
     )
-    assert ledger.get("format") == "bbvg-notification-delivery-v2"
+    assert ledger.get("format") in {
+        "bbvg-notification-delivery-v2",
+        "bbvg-notification-delivery-v3",
+    }
     assert not {"chat_id", "user_id", "text", "url", "username"} & set(ledger)
     print("BB V.G. monitor v41 validation passed")
     return 0

@@ -113,6 +113,7 @@ jobs:
           python notification_preferences_v2.py
           python notification_navigation.py
           python notification_integrity_v2.py --self-test
+          python notification_integrity_v2.py --prune
           python chapter2_unified_logic.py
           python admin_action_queue.py
           python telegram_transport.py
@@ -177,7 +178,10 @@ jobs:
           assert operational_union == configured_union
           assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
           ledger = json.load(open("notification_delivery_state.json", encoding="utf-8"))
-          assert ledger.get("format") == "bbvg-notification-delivery-v2"
+          assert ledger.get("format") in {
+              "bbvg-notification-delivery-v2",
+              "bbvg-notification-delivery-v3",
+          }
           assert not {"chat_id", "user_id", "text", "url", "username"} & set(ledger)
           print("BB V.G. monitor lifecycle, persistent notifications and multi-source validation passed")
           PY

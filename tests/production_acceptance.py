@@ -298,6 +298,9 @@ def ci_acceptance() -> None:
         "test_reused_freestream_identifier_selects_current_event",
         "test_registration_and_personal_action_merge_without_data_loss",
         "test_remote_queue_retries_conflict_with_same_command",
+        "test_atomic_json_failure_preserves_last_valid_revision",
+        "test_interprocess_delivery_claim_has_one_winner",
+        "test_all_tracked_json_has_an_owner_and_compatible_schema",
         "test_wrong_checkout_is_rejected",
     ):
         assert required in combined

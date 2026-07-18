@@ -10,16 +10,19 @@ import threading
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from tempfile import TemporaryDirectory
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Any, Callable, Iterator
 
 ROOT = Path(__file__).resolve().parent
 STATE_PATH = ROOT / "notification_delivery_state.json"
-FORMAT = "bbvg-notification-delivery-v2"
+FORMAT_V2 = "bbvg-notification-delivery-v2"
+FORMAT = "bbvg-notification-delivery-v3"
 UTC = timezone.utc
 HEX_DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 RETENTION_SECONDS = max(300, int(os.getenv("NOTIFICATION_DEDUP_SECONDS", "86400")))
 MAX_ENTRIES = max(1000, int(os.getenv("NOTIFICATION_DEDUP_MAX_ENTRIES", "20000")))
+CLAIM_TTL_SECONDS = max(30, int(os.getenv("NOTIFICATION_CLAIM_TTL_SECONDS", "300")))
+MAX_CLAIMS = max(100, int(os.getenv("NOTIFICATION_CLAIM_MAX_ENTRIES", "2000")))
 
 _lock = threading.RLock()
 _volatile_entries: dict[str, datetime] = {}
@@ -56,9 +59,11 @@ def _parse_datetime(value: Any) -> datetime | None:
 def default_state() -> dict[str, Any]:
     return {
         "format": FORMAT,
+        "version": 3,
         "algorithm": "HMAC-SHA256",
         "retention_seconds": RETENTION_SECONDS,
         "entries": {},
+        "claims": {},
     }
 
 
@@ -76,7 +81,10 @@ def load_state(path: Path | None = None) -> dict[str, Any]:
         raise NotificationIntegrityError(
             f"Unable to read notification delivery state: {type(exc).__name__}"
         ) from exc
-    if not isinstance(raw, dict) or str(raw.get("format") or "") != FORMAT:
+    if not isinstance(raw, dict) or str(raw.get("format") or "") not in {
+        FORMAT_V2,
+        FORMAT,
+    }:
         raise NotificationIntegrityError("Unsupported notification delivery state format")
     entries = raw.get("entries")
     if not isinstance(entries, dict):
@@ -87,11 +95,14 @@ def load_state(path: Path | None = None) -> dict[str, Any]:
         timestamp = _parse_datetime(delivered_at)
         if HEX_DIGEST_RE.fullmatch(key) and timestamp is not None:
             normalized[key] = timestamp.isoformat()
+    claims = raw.get("claims") if isinstance(raw.get("claims"), dict) else {}
     return {
         "format": FORMAT,
+        "version": 3,
         "algorithm": "HMAC-SHA256",
         "retention_seconds": RETENTION_SECONDS,
         "entries": normalized,
+        "claims": _pruned_claims(claims),
     }
 
 
@@ -106,6 +117,19 @@ def _pruned_entries(entries: dict[str, Any], current: datetime | None = None) ->
             rows.append((key, timestamp))
     rows.sort(key=lambda item: item[1], reverse=True)
     return {digest: timestamp.isoformat() for digest, timestamp in rows[:MAX_ENTRIES]}
+
+
+def _pruned_claims(claims: dict[str, Any], current: datetime | None = None) -> dict[str, str]:
+    current = current or now_utc()
+    threshold = current - timedelta(seconds=CLAIM_TTL_SECONDS)
+    rows: list[tuple[str, datetime]] = []
+    for digest, claimed_at in claims.items():
+        key = str(digest).casefold()
+        timestamp = _parse_datetime(claimed_at)
+        if HEX_DIGEST_RE.fullmatch(key) and timestamp is not None and timestamp >= threshold:
+            rows.append((key, timestamp))
+    rows.sort(key=lambda item: item[1], reverse=True)
+    return {digest: timestamp.isoformat() for digest, timestamp in rows[:MAX_CLAIMS]}
 
 
 @contextmanager
@@ -134,14 +158,43 @@ def save_state(value: dict[str, Any], path: Path | None = None) -> dict[str, Any
     target = _state_path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     entries = value.get("entries") if isinstance(value, dict) else {}
+    claims = value.get("claims") if isinstance(value, dict) else {}
     normalized = default_state()
     normalized["entries"] = _pruned_entries(entries if isinstance(entries, dict) else {})
-    temporary = target.with_name(f"{target.name}.{os.getpid()}.tmp")
-    temporary.write_text(
-        json.dumps(normalized, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(target)
+    normalized["claims"] = _pruned_claims(claims if isinstance(claims, dict) else {})
+    for digest in normalized["entries"]:
+        normalized["claims"].pop(digest, None)
+    temporary_path: Path | None = None
+    try:
+        with NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=target.parent,
+            prefix=f".{target.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary_path = Path(stream.name)
+            stream.write(
+                json.dumps(normalized, ensure_ascii=False, indent=2, sort_keys=True)
+                + "\n"
+            )
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_path, target)
+        temporary_path = None
+        try:
+            directory_fd = os.open(target.parent, os.O_RDONLY)
+        except OSError:
+            directory_fd = -1
+        if directory_fd >= 0:
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
     return normalized
 
 
@@ -170,11 +223,17 @@ def duplicate_delivery(digest: str, path: Path | None = None) -> bool:
         volatile = _volatile_entries.get(key)
         if volatile is not None and current - volatile <= timedelta(seconds=RETENTION_SECONDS):
             return True
-        state = load_state(path)
+        target = _state_path(path)
+        with _file_lock(target):
+            state = load_state(target)
         delivered_at = _parse_datetime(state["entries"].get(key))
+        claimed_at = _parse_datetime(state["claims"].get(key))
         return bool(
             delivered_at is not None
             and current - delivered_at <= timedelta(seconds=RETENTION_SECONDS)
+        ) or bool(
+            claimed_at is not None
+            and current - claimed_at <= timedelta(seconds=CLAIM_TTL_SECONDS)
         )
 
 
@@ -184,12 +243,11 @@ def remember_delivery(digest: str, path: Path | None = None) -> None:
         return
     current = now_utc()
     with _lock:
-        _pending_entries.discard(key)
-        _volatile_entries[key] = current
         target = _state_path(path)
         try:
             with _file_lock(target):
                 state = load_state(target)
+                state["claims"].pop(key, None)
                 state["entries"][key] = current.isoformat()
                 save_state(state, target)
         except Exception as exc:
@@ -199,15 +257,13 @@ def remember_delivery(digest: str, path: Path | None = None) -> None:
                 "WARNING notification delivery ledger was not persisted: "
                 f"{type(exc).__name__}: {exc}"
             )
+        finally:
+            _pending_entries.discard(key)
+            _volatile_entries[key] = current
 
 
 def claim_delivery(digest: str, path: Path | None = None) -> bool:
-    """Reserve a delivery without leaving failed Telegram sends in the ledger.
-
-    BB V.G. has one production monitor after chapter 1, so an in-process claim
-    closes the only legitimate concurrent send window.  Completed deliveries
-    are still persisted with an HMAC key by :func:`remember_delivery`.
-    """
+    """Reserve a delivery with an expiring interprocess lease."""
 
     key = str(digest).casefold()
     if not HEX_DIGEST_RE.fullmatch(key):
@@ -221,21 +277,39 @@ def claim_delivery(digest: str, path: Path | None = None) -> bool:
             seconds=RETENTION_SECONDS
         ):
             return False
-        state = load_state(path)
-        delivered_at = _parse_datetime(state["entries"].get(key))
-        if delivered_at is not None and current - delivered_at <= timedelta(
-            seconds=RETENTION_SECONDS
-        ):
-            return False
+        target = _state_path(path)
+        with _file_lock(target):
+            state = load_state(target)
+            delivered_at = _parse_datetime(state["entries"].get(key))
+            if delivered_at is not None and current - delivered_at <= timedelta(
+                seconds=RETENTION_SECONDS
+            ):
+                return False
+            claimed_at = _parse_datetime(state["claims"].get(key))
+            if claimed_at is not None and current - claimed_at <= timedelta(
+                seconds=CLAIM_TTL_SECONDS
+            ):
+                return False
+            state["claims"][key] = current.isoformat()
+            save_state(state, target)
         _pending_entries.add(key)
         return True
 
 
-def release_delivery(digest: str) -> None:
+def release_delivery(digest: str, path: Path | None = None) -> None:
     """Allow retry after Telegram rejected or failed to send the message."""
 
+    key = str(digest).casefold()
+    if not HEX_DIGEST_RE.fullmatch(key):
+        return
     with _lock:
-        _pending_entries.discard(str(digest).casefold())
+        target = _state_path(path)
+        with _file_lock(target):
+            state = load_state(target)
+            if key in state["claims"]:
+                state["claims"].pop(key, None)
+                save_state(state, target)
+        _pending_entries.discard(key)
 
 
 def complete_delivery(digest: str, path: Path | None = None) -> None:
@@ -247,19 +321,32 @@ def complete_delivery(digest: str, path: Path | None = None) -> None:
 def merge_states(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
     merged = default_state()
     entries: dict[str, Any] = {}
+    claims: dict[str, Any] = {}
     for value in (left, right):
         raw = value.get("entries") if isinstance(value, dict) else None
-        if not isinstance(raw, dict):
-            continue
-        for digest, delivered_at in raw.items():
-            key = str(digest).casefold()
-            incoming = _parse_datetime(delivered_at)
-            previous = _parse_datetime(entries.get(key))
-            if HEX_DIGEST_RE.fullmatch(key) and incoming is not None and (
-                previous is None or incoming > previous
-            ):
-                entries[key] = incoming.isoformat()
+        if isinstance(raw, dict):
+            for digest, delivered_at in raw.items():
+                key = str(digest).casefold()
+                incoming = _parse_datetime(delivered_at)
+                previous = _parse_datetime(entries.get(key))
+                if HEX_DIGEST_RE.fullmatch(key) and incoming is not None and (
+                    previous is None or incoming > previous
+                ):
+                    entries[key] = incoming.isoformat()
+        raw_claims = value.get("claims") if isinstance(value, dict) else None
+        if isinstance(raw_claims, dict):
+            for digest, claimed_at in raw_claims.items():
+                key = str(digest).casefold()
+                incoming = _parse_datetime(claimed_at)
+                previous = _parse_datetime(claims.get(key))
+                if HEX_DIGEST_RE.fullmatch(key) and incoming is not None and (
+                    previous is None or incoming > previous
+                ):
+                    claims[key] = incoming.isoformat()
     merged["entries"] = _pruned_entries(entries)
+    merged["claims"] = _pruned_claims(claims)
+    for digest in merged["entries"]:
+        merged["claims"].pop(digest, None)
     return merged
 
 

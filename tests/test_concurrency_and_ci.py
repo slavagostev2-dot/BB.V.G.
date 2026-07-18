@@ -2,23 +2,39 @@ from __future__ import annotations
 
 import base64
 import json
+import multiprocessing
 import os
 import subprocess
 import unittest
 from copy import deepcopy
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
+from unittest.mock import patch
 
 from tests._bootstrap import install_optional_dependency_stubs
 
 install_optional_dependency_stubs()
 
 import admin_action_queue
+import bot_private_state
+import monitor_data
+import notification_integrity_v2
 from bbvg.bot.storage import PrivateStateRuntime, _merge_value
 from ci_verify_current_commit import verify_current_commit
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _claim_in_process(
+    path: str,
+    digest: str,
+    start: Any,
+    results: Any,
+) -> None:
+    start.wait(5)
+    results.put(notification_integrity_v2.claim_delivery(digest, Path(path)))
 
 
 class ConcurrentStateTests(unittest.TestCase):
@@ -70,6 +86,19 @@ class ConcurrentStateTests(unittest.TestCase):
         merged = _merge_value(base, local, remote)
         self.assertEqual(set(merged["requests"]), {"local", "remote"})
 
+    def test_source_request_deletion_and_remote_addition_both_survive(self) -> None:
+        base = {"version": 1, "requests": {"old": {"source": "old"}}}
+        local = {"version": 1, "requests": {}}
+        remote = {
+            "version": 1,
+            "requests": {
+                "old": {"source": "old"},
+                "new": {"source": "new"},
+            },
+        }
+        merged = _merge_value(base, local, remote)
+        self.assertEqual(merged["requests"], {"new": {"source": "new"}})
+
     def test_remote_queue_retries_conflict_with_same_command(self) -> None:
         original_get = admin_action_queue.requests.get
         original_put = admin_action_queue.requests.put
@@ -97,7 +126,7 @@ class ConcurrentStateTests(unittest.TestCase):
 
         def put(*args: Any, **kwargs: Any) -> Response:
             puts.append(deepcopy(kwargs["json"]))
-            return Response(409 if len(puts) == 1 else 200)
+            return Response({1: 409, 2: 422}.get(len(puts), 200))
 
         admin_action_queue.requests.put = put
         os.environ.update(
@@ -118,12 +147,120 @@ class ConcurrentStateTests(unittest.TestCase):
                 else:
                     os.environ[name] = value
 
-        self.assertEqual(len(puts), 2)
+        self.assertEqual(len(puts), 3)
         queued_ids = []
         for request in puts:
             decoded = json.loads(base64.b64decode(request["content"]))
             queued_ids.extend(decoded["commands"])
         self.assertEqual(set(queued_ids), {command_id})
+
+    def test_queue_cleanup_is_bounded_and_keeps_latest_commands(self) -> None:
+        original = admin_action_queue.MAX_COMMANDS
+        admin_action_queue.MAX_COMMANDS = 3
+        try:
+            queue = admin_action_queue.default_queue()
+            for index in range(5):
+                queue, _ = admin_action_queue.append_command(
+                    queue,
+                    "recheck_wheel",
+                    f"wheel-{index}",
+                    command_id=f"command-{index}",
+                )
+        finally:
+            admin_action_queue.MAX_COMMANDS = original
+        self.assertEqual(list(queue["commands"]), ["command-2", "command-3", "command-4"])
+        self.assertEqual(queue["sequence"], 5)
+
+    def test_atomic_json_failure_preserves_last_valid_revision(self) -> None:
+        with TemporaryDirectory() as temporary:
+            path = Path(temporary) / "state.json"
+            monitor_data.atomic_write_json(path, {"version": 1, "value": "stable"})
+            with patch("monitor_data.os.replace", side_effect=OSError("crash before replace")):
+                with self.assertRaises(OSError):
+                    monitor_data.atomic_write_json(path, {"version": 1, "value": "new"})
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["value"], "stable")
+            self.assertEqual(list(path.parent.glob(".state.json.*.tmp")), [])
+
+    def test_encrypted_state_failure_and_wrong_key_preserve_valid_bundle(self) -> None:
+        original_path = bot_private_state.STATE_PATH
+        try:
+            with TemporaryDirectory() as temporary:
+                bot_private_state.STATE_PATH = Path(temporary) / "state.enc.json"
+                stable = {
+                    "version": 2,
+                    "access": {"owner_id": "1", "users": {"1": {"chat_id": "10"}}},
+                    "source_requests": {"version": 1, "requests": {}},
+                }
+                bot_private_state.save_file(stable, secret="correct-key")
+                with patch(
+                    "bot_private_state.os.replace",
+                    side_effect=OSError("crash before replace"),
+                ):
+                    with self.assertRaises(OSError):
+                        bot_private_state.save_file(
+                            {**stable, "access": {"owner_id": "2", "users": {}}},
+                            secret="correct-key",
+                        )
+                restored = bot_private_state.load_file(secret="correct-key")
+                self.assertEqual(restored["access"]["owner_id"], "1")
+                with self.assertRaises(bot_private_state.BotStateIntegrityError):
+                    bot_private_state.load_file(secret="wrong-key")
+        finally:
+            bot_private_state.STATE_PATH = original_path
+
+    def test_interprocess_delivery_claim_has_one_winner(self) -> None:
+        with TemporaryDirectory() as temporary:
+            path = Path(temporary) / "notification_delivery_state.json"
+            digest = "a" * 64
+            context = multiprocessing.get_context("spawn")
+            start = context.Event()
+            results = context.Queue()
+            processes = [
+                context.Process(
+                    target=_claim_in_process,
+                    args=(str(path), digest, start, results),
+                )
+                for _ in range(2)
+            ]
+            for process in processes:
+                process.start()
+            start.set()
+            values = sorted(results.get(timeout=10) for _ in processes)
+            for process in processes:
+                process.join(10)
+                self.assertEqual(process.exitcode, 0)
+            self.assertEqual(values, [False, True])
+            state = notification_integrity_v2.load_state(path)
+            self.assertIn(digest, state["claims"])
+            notification_integrity_v2.release_delivery(digest, path)
+            self.assertTrue(notification_integrity_v2.claim_delivery(digest, path))
+            notification_integrity_v2.release_delivery(digest, path)
+
+    def test_all_tracked_json_has_an_owner_and_compatible_schema(self) -> None:
+        self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 28)
+        self.assertEqual(monitor_data.validate_json_state_contracts(ROOT), [])
+
+    def test_source_catalog_writers_share_one_concurrency_group(self) -> None:
+        discovery = (ROOT / ".github/workflows/nightly-discovery.yml").read_text(
+            encoding="utf-8"
+        )
+        tier = (ROOT / ".github/workflows/source-tier-maintenance.yml").read_text(
+            encoding="utf-8"
+        )
+        for workflow in (discovery, tier):
+            self.assertIn("group: bb-vg-source-catalog-writer", workflow)
+            self.assertIn("public_sources.txt source_catalog.txt", workflow)
+        panel = (ROOT / ".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
+        self.assertIn("files=(bot_private_state.enc.json)", panel)
+        self.assertNotIn(
+            "files=(bot_private_state.enc.json notification_delivery_state.json)",
+            panel,
+        )
+        rotation = (ROOT / ".github/workflows/rotate-bot-state-key.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("group: bb-vg-telegram-admin-panel", panel)
+        self.assertIn("group: bb-vg-telegram-admin-panel", rotation)
 
 
 class CurrentCommitTests(unittest.TestCase):

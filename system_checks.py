@@ -69,12 +69,7 @@ def load_json(path: Path, default: Any) -> Any:
 
 
 def save_json(path: Path, value: dict[str, Any]) -> None:
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(path)
+    data_store.atomic_write_json(path, value)
 
 
 def unique_sources(path: Path) -> list[str]:

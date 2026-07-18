@@ -7,6 +7,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
+import monitor_data as data_store
+
 ROOT = Path(__file__).resolve().parent
 REGISTRY_PATH = ROOT / "source_registry.json"
 
@@ -149,12 +151,7 @@ def write_registry(root: Path = ROOT) -> dict[str, Any]:
         previous_generated_at = str(existing.get("generated_at") or "").strip()
         if previous_generated_at:
             value["generated_at"] = previous_generated_at
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(path)
+    data_store.atomic_write_json(path, value)
     return value
 
 

@@ -35,10 +35,7 @@ def main() -> int:
             "expected_sources": EXPECTED,
             "error": "source inventory mismatch",
         }
-        OUTPUT_PATH.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        data_store.atomic_write_json(OUTPUT_PATH, payload)
         print(json.dumps(payload, ensure_ascii=False))
         return 1
 
@@ -69,10 +66,7 @@ def main() -> int:
         "message_count": sum(len(messages) for messages in messages_by_source.values()),
         "errors": transport_errors,
     }
-    OUTPUT_PATH.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    data_store.atomic_write_json(OUTPUT_PATH, payload)
     print(json.dumps(payload, ensure_ascii=False))
     return 0 if payload["status"] == "success" else 1
 

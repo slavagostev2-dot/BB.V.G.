@@ -6,6 +6,66 @@
 
 ---
 
+## 2026-07-18 — Глава 4: состояние, атомарность и параллельные записи
+
+**Причина:** authoritative JSON сохранялись разными локальными реализациями,
+`source_intelligence`, discovery и source tier использовали обычный
+`write_text`, два workflow могли одновременно менять оба tier-файла, локальная
+копия encrypted bundle после успешного remote CAS писалась неатомарно, а
+notification claim защищал только потоки одного процесса.
+
+**Что изменено:**
+
+- все 28 отслеживаемых JSON получили машинно-проверяемые category, owner и
+  schema contract в существующем `monitor_data.py`; полная ownership matrix
+  закреплена в `AGENTS.md`;
+- добавлена единая durable atomic replacement для monitor, health, incident,
+  registry, transport, intelligence, discovery и tier state: временный файл в
+  том же каталоге, flush, `fsync`, `os.replace`, очистка temp после сбоя;
+- encrypted bundle после remote Contents API CAS теперь сохраняется локально
+  через атомарную замену; three-way merge сохраняет роли, удаление пользователя,
+  concurrent registration и независимые заявки;
+- `notification_delivery_state` читает legacy v2 и мигрируется в v3 без потери
+  delivery entries; v3 хранит ограниченные expiring claims под межпроцессным
+  file lock, поэтому два процесса не отправляют одно сообщение, а аварийная
+  claim автоматически освобождается по TTL;
+- admin panel больше не коммитит delivery ledger при startup migration: remote
+  commit принадлежит монитору; key rotation и encrypted panel writer используют
+  одну concurrency-группу;
+- nightly discovery и source-tier maintenance сериализованы общей группой
+  `bb-vg-source-catalog-writer`, потому что оба владеют
+  `public_sources.txt`/`source_catalog.txt`;
+- сохранены Contents API CAS/retry очереди на HTTP 409/422, идемпотентный
+  `command_id` и bounded cleanup queue/applied/results;
+- добавлены behavioral tests для crash-before-replace, truncated temp, wrong
+  key, deletion+addition three-way merge, 409+422 CAS, bounded queue,
+  interprocess claim и полного inventory JSON.
+
+**Изменённые файлы:** существующие storage/runtime-модули,
+`tests/test_concurrency_and_ci.py`, `tests/test_notifications.py`, связанные
+validation и state-writing workflow, `AGENTS.md`, этот журнал. Новые постоянные
+файлы не создавались; callback и wheel event identity не менялись.
+
+**Schema migration:** `notification_delivery_state.json` v2 → v3 и
+`discovery_state.json` v1 → v2 выполняются повторяемо действующими owners; старые
+версии читаются до первой успешной записи. Wheel state v6, encrypted bundle v2,
+пользователи, роли, заявки, статистика и delivery entries сохраняются.
+
+**Pre-update backup:**
+`backup/before-chapter4-state-concurrency-2026-07-18` →
+`ab0bdf47259d680dcd8696108c993b97b54fe67e`; ref проверен как предок `main`.
+Ротация оставила ровно три ветки и удалила прежнюю
+`backup/after-analytics-multisource-routing-2026-07-18` только после ancestry
+проверки.
+
+**Проверки до PR:** baseline `114 passed`; профильный compile и
+concurrency/notification suite — `23 passed`. Финальные CI run ID, production
+heartbeat и post-deploy backup фиксируются после deploy.
+
+**Откат:** вернуть merge commit главы 4 либо перейти на pre-update backup.
+Если cutover ledger уже выполнен, v3 обратно совместим по delivery entries, но
+предпочтителен полный откат к backup вместо ручной замены отдельных JSON.
+
 ## 2026-07-18 — Восстановлены кнопки панели после обновления аналитики
 
 **Причина:** расширение аналитики заменило целиком клавиатуры экранов аналитики и источников. Из-за этого прежние действия изменили порядок, а на экране источников исчезли обновление реестра, рейтинг, ночное наблюдение, разведка и предложение источника.

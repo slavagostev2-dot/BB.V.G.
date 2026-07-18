@@ -9,7 +9,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: betboom-source-tier-maintenance
+  # Shared with nightly discovery because both own the two tier files.
+  group: bb-vg-source-catalog-writer
   cancel-in-progress: false
 
 jobs:

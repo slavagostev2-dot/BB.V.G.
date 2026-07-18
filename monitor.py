@@ -352,12 +352,7 @@ def save_state(state: dict) -> None:
         )
     }
 
-    temp = STATE_PATH.with_suffix(".json.tmp")
-    temp.write_text(
-        json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    temp.replace(STATE_PATH)
+    data_store.atomic_write_json(STATE_PATH, state)
 
 
 def normalize_url(raw_url: str) -> str:

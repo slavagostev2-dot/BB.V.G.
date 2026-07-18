@@ -8,8 +8,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: bb-vg-bot-state-key-rotation
-  cancel-in-progress: false
+  # Key rotation is the exclusive maintenance mode of the same encrypted-state
+  # writer as the control center. Starting it stops the running panel shift.
+  group: bb-vg-telegram-admin-panel
+  cancel-in-progress: true
 
 jobs:
   rotate:

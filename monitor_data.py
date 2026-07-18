@@ -4,10 +4,12 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent
 UTC = timezone.utc
@@ -17,6 +19,131 @@ SOURCE_STATS_PATH = ROOT / "source_stats.json"
 UNKNOWN_TIMER_PATH = ROOT / "unknown_timer_samples.json"
 PUBLIC_SOURCES_PATH = ROOT / "public_sources.txt"
 NIGHTLY_SOURCES_PATH = ROOT / "source_catalog.txt"
+
+# Every tracked JSON file has one declared owner and one operational role.  The
+# contract deliberately includes frozen Mini App files and package.json so a
+# newly added state file cannot silently bypass the ownership review.
+JSON_STATE_CONTRACTS: dict[str, dict[str, Any]] = {
+    "activation_runtime_state.json": {"category": "archive", "owner": "frozen-miniapp"},
+    "admin_action_queue.json": {
+        "category": "authoritative",
+        "owner": "admin-action-cas",
+        "schema": ("format", ("bbvg-admin-action-queue-v1",)),
+    },
+    "admin_panel_status.json": {
+        "category": "diagnostic",
+        "owner": "control-center-status",
+        "schema": ("heartbeat_version", (1,)),
+    },
+    "bot_access.json": {
+        "category": "compatibility",
+        "owner": "encrypted-private-state",
+        "schema": ("version", (3,)),
+    },
+    "bot_private_state.enc.json": {
+        "category": "authoritative",
+        "owner": "encrypted-private-state-cas",
+        "schema": ("format", ("bbvg-bot-state-v2",)),
+    },
+    "candidate_moderation.json": {
+        "category": "authoritative",
+        "owner": "control-center-moderation",
+        "schema": ("version", (1,)),
+    },
+    "discovery_state.json": {
+        "category": "authoritative",
+        "owner": "nightly-discovery",
+        "schema": ("version", (1, 2)),
+    },
+    "identifier_sources.json": {
+        "category": "config",
+        "owner": "source-catalog",
+        "schema": ("version", (1,)),
+    },
+    "incident_state.json": {
+        "category": "diagnostic",
+        "owner": "system-health",
+        "schema": ("version", (1,)),
+    },
+    "intelligence_state.json": {
+        "category": "authoritative",
+        "owner": "source-intelligence",
+        "schema": ("version", (1,)),
+    },
+    "miniapp_deploy_runtime.json": {"category": "archive", "owner": "frozen-miniapp"},
+    "miniapp_deployment.json": {"category": "archive", "owner": "frozen-miniapp"},
+    "monitor_recovery_status.json": {
+        "category": "diagnostic",
+        "owner": "monitor-recovery",
+        "schema": ("version", (41,)),
+    },
+    "monitor_status.json": {
+        "category": "diagnostic",
+        "owner": "monitor",
+        "schema": ("version", (3,)),
+    },
+    "notification_delivery_state.json": {
+        "category": "authoritative",
+        "owner": "notification-ledger",
+        "schema": (
+            "format",
+            ("bbvg-notification-delivery-v2", "bbvg-notification-delivery-v3"),
+        ),
+    },
+    "partners_catalog.json": {
+        "category": "config",
+        "owner": "source-catalog",
+        "schema": ("version", (2,)),
+    },
+    "private_state_deployment.json": {"category": "archive", "owner": "frozen-miniapp"},
+    "source_health.json": {
+        "category": "authoritative",
+        "owner": "monitor",
+        "schema": ("version", (1,)),
+    },
+    "source_registry.json": {
+        "category": "cache",
+        "owner": "source-registry",
+        "schema": ("version", (2,)),
+    },
+    "source_requests.json": {
+        "category": "compatibility",
+        "owner": "encrypted-private-state",
+        "schema": ("version", (1,)),
+    },
+    "source_stats.json": {
+        "category": "authoritative",
+        "owner": "monitor",
+        "schema": ("version", (1,)),
+    },
+    "source_tier_state.json": {
+        "category": "diagnostic",
+        "owner": "source-tier-maintenance",
+        "schema": ("version", (1,)),
+    },
+    "source_transport_state.json": {
+        "category": "diagnostic",
+        "owner": "source-transport",
+        "schema": ("version", (1,)),
+    },
+    "state.json": {
+        "category": "authoritative",
+        "owner": "monitor",
+        "schema": ("version", (6,)),
+    },
+    "state_api/package.json": {"category": "archive", "owner": "frozen-miniapp"},
+    "state_api_runtime.json": {"category": "archive", "owner": "frozen-miniapp"},
+    "system_check_state.json": {
+        "category": "diagnostic",
+        "owner": "system-health",
+        "schema": ("version", (1,)),
+    },
+    "unknown_timer_samples.json": {
+        "category": "authoritative",
+        "owner": "monitor",
+        "schema": ("version", (1,)),
+    },
+}
 
 QUARANTINE_FAILURE_THRESHOLD = max(
     1, int(os.getenv("QUARANTINE_FAILURE_THRESHOLD", "3"))
@@ -66,13 +193,87 @@ def load_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
     return value if isinstance(value, dict) else dict(default)
 
 
-def save_json(path: Path, value: dict[str, Any]) -> None:
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(
+def atomic_write_text(path: Path, text: str) -> None:
+    """Durably replace one file without exposing a truncated destination."""
+
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path: Path | None = None
+    try:
+        with NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=target.parent,
+            prefix=f".{target.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary_path = Path(stream.name)
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_path, target)
+        temporary_path = None
+        try:
+            directory_fd = os.open(target.parent, os.O_RDONLY)
+        except OSError:
+            directory_fd = -1
+        if directory_fd >= 0:
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+
+
+def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
+    atomic_write_text(
+        path,
         json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
     )
-    temp.replace(path)
+
+
+def save_json(path: Path, value: dict[str, Any]) -> None:
+    atomic_write_json(path, value)
+
+
+def validate_json_state_contracts(root: Path = ROOT) -> list[str]:
+    """Return ownership/schema violations for the complete tracked inventory."""
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "--", "*.json"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if tracked.returncode == 0:
+        actual = {name for name in tracked.stdout.splitlines() if name}
+    else:
+        actual = {
+            path.relative_to(root).as_posix()
+            for path in root.rglob("*.json")
+            if ".git" not in path.parts
+        }
+    expected = set(JSON_STATE_CONTRACTS)
+    errors = [f"unowned:{name}" for name in sorted(actual - expected)]
+    errors.extend(f"missing:{name}" for name in sorted(expected - actual))
+    for name, contract in JSON_STATE_CONTRACTS.items():
+        schema = contract.get("schema")
+        path = root / name
+        if not schema or not path.exists():
+            continue
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            errors.append(f"invalid:{name}:{type(exc).__name__}")
+            continue
+        field, accepted = schema
+        if not isinstance(value, dict) or value.get(field) not in accepted:
+            errors.append(f"schema:{name}:{field}")
+    return errors
 
 
 def clean_username(value: object) -> str:

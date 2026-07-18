@@ -121,7 +121,10 @@ def load_discovery_state() -> dict:
         state = json.loads(DISCOVERY_STATE_PATH.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         state = {}
-    state.setdefault("version", 2)
+    try:
+        state["version"] = max(2, int(state.get("version", 2) or 2))
+    except (TypeError, ValueError):
+        state["version"] = 2
     state.setdefault("sources", {})
     state.setdefault("notified_wheels", {})
     return state
@@ -136,10 +139,11 @@ def save_discovery_state(state: dict) -> None:
         or (parsed := monitor.parse_datetime(value.get("notified_at"))) is None
         or parsed >= cutoff
     }
-    DISCOVERY_STATE_PATH.write_text(
-        json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        state["version"] = max(2, int(state.get("version", 2) or 2))
+    except (TypeError, ValueError):
+        state["version"] = 2
+    data_store.atomic_write_json(DISCOVERY_STATE_PATH, state)
 
 
 def unique(values: list[str]) -> list[str]:
@@ -156,9 +160,9 @@ def unique(values: list[str]) -> list[str]:
 
 def write_sources(path: Path, values: list[str], header: str) -> None:
     body = "\n".join(unique(values))
-    path.write_text(
+    data_store.atomic_write_text(
+        path,
         header.rstrip() + ("\n\n" + body if body else "") + "\n",
-        encoding="utf-8",
     )
 
 

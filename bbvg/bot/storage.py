@@ -286,7 +286,7 @@ class PrivateStateRuntime(SourceRegistryRuntime):
             json_body=body,
             expected=(200, 201),
         )
-        bot_private_state.STATE_PATH.write_text(text, encoding="utf-8")
+        bot_private_state.save_text(text)
         return text
 
     def _save_bot_bundle(self, message: str) -> bool:

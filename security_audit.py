@@ -131,11 +131,14 @@ def _delivery_state_findings(path: Path) -> list[Finding]:
     value, findings = _load_object(path, "invalid_delivery_state")
     if value is None:
         return findings
-    if value.get("format") != "bbvg-notification-delivery-v2":
+    if value.get("format") not in {
+        "bbvg-notification-delivery-v2",
+        "bbvg-notification-delivery-v3",
+    }:
         findings.append(Finding("invalid_delivery_state", path.name, "unsupported format"))
     if value.get("algorithm") != "HMAC-SHA256":
         findings.append(Finding("invalid_delivery_state", path.name, "unsupported algorithm"))
-    allowed = {"format", "algorithm", "retention_seconds", "entries"}
+    allowed = {"format", "version", "algorithm", "retention_seconds", "entries", "claims"}
     unexpected = sorted(set(value) - allowed)
     if unexpected:
         findings.append(
@@ -156,6 +159,21 @@ def _delivery_state_findings(path: Path) -> list[Finding]:
         )
     if any(not isinstance(timestamp, str) for timestamp in entries.values()):
         findings.append(Finding("invalid_delivery_state", path.name, "non-string timestamps"))
+    claims = value.get("claims", {})
+    if not isinstance(claims, dict):
+        findings.append(Finding("invalid_delivery_state", path.name, "claims is not an object"))
+    else:
+        invalid_claims = [str(key) for key in claims if not HEX_DIGEST_RE.fullmatch(str(key))]
+        if invalid_claims:
+            findings.append(
+                Finding(
+                    "public_personal_data",
+                    path.name,
+                    f"non-HMAC claim keys: {len(invalid_claims)}",
+                )
+            )
+        if any(not isinstance(timestamp, str) for timestamp in claims.values()):
+            findings.append(Finding("invalid_delivery_state", path.name, "non-string claim timestamps"))
     return findings
 
 

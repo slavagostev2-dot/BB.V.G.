@@ -8,6 +8,8 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+import monitor_data as data_store
+
 ROOT = Path(__file__).resolve().parent
 PRIMARY_PATH = ROOT / "public_sources.txt"
 NIGHTLY_PATH = ROOT / "source_catalog.txt"
@@ -64,9 +66,9 @@ def write_list(path: Path, values: list[str], header: str) -> None:
             unique.append(clean)
             seen.add(key)
     body = "\n".join(unique)
-    path.write_text(
+    data_store.atomic_write_text(
+        path,
         header.rstrip() + ("\n\n" + body if body else "") + "\n",
-        encoding="utf-8",
     )
 
 
@@ -223,7 +225,7 @@ def main() -> int:
         "moved_to_nightly": candidates,
         "reasons": reasons,
     }
-    STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    data_store.atomic_write_json(STATE_PATH, state)
     print(
         f"Primary sources: {len(primary_after)}; nightly sources: {len(nightly_after)}; "
         f"moved after {INACTIVITY_DAYS} days: {len(candidates)}"

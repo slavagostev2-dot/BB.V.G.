@@ -236,6 +236,47 @@ class NotificationTestCase(unittest.TestCase):
         with self.assertRaises(notification_integrity_v2.NotificationIntegrityError):
             notification_integrity_v2.claim_delivery(digest)
 
+    def test_v2_ledger_migrates_without_losing_deliveries(self) -> None:
+        digest = notification_integrity_v2.delivery_digest(
+            "101", "wheels", "legacy", None, secret="chapter-4-test-key"
+        )
+        delivered_at = datetime.now(UTC).isoformat()
+        notification_integrity_v2.STATE_PATH.write_text(
+            json.dumps(
+                {
+                    "format": notification_integrity_v2.FORMAT_V2,
+                    "algorithm": "HMAC-SHA256",
+                    "retention_seconds": notification_integrity_v2.RETENTION_SECONDS,
+                    "entries": {digest: delivered_at},
+                }
+            ),
+            encoding="utf-8",
+        )
+        migrated = notification_integrity_v2.load_state()
+        self.assertEqual(migrated["format"], notification_integrity_v2.FORMAT)
+        self.assertEqual(migrated["version"], 3)
+        self.assertEqual(migrated["entries"][digest], delivered_at)
+        notification_integrity_v2.save_state(migrated)
+        persisted = json.loads(
+            notification_integrity_v2.STATE_PATH.read_text(encoding="utf-8")
+        )
+        self.assertEqual(persisted["format"], notification_integrity_v2.FORMAT)
+        self.assertEqual(persisted["claims"], {})
+
+    def test_expired_interprocess_claim_is_recoverable(self) -> None:
+        digest = "b" * 64
+        expired = datetime.now(UTC) - timedelta(
+            seconds=notification_integrity_v2.CLAIM_TTL_SECONDS + 1
+        )
+        notification_integrity_v2.save_state(
+            {
+                **notification_integrity_v2.default_state(),
+                "claims": {digest: expired.isoformat()},
+            }
+        )
+        self.assertTrue(notification_integrity_v2.claim_delivery(digest))
+        notification_integrity_v2.release_delivery(digest)
+
     def test_old_same_identifier_event_can_be_delivered_again(self) -> None:
         digest = notification_integrity_v2.delivery_digest(
             "101",

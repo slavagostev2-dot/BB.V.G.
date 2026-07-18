@@ -22,7 +22,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: betboom-wheel-candidate-discovery
+  # Shared with source-tier maintenance because both own the two tier files.
+  group: bb-vg-source-catalog-writer
   cancel-in-progress: false
 
 jobs:

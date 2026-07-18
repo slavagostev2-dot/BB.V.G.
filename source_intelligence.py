@@ -65,10 +65,7 @@ def save_state(value: dict[str, Any]) -> None:
     value["version"] = 1
     value["updated_at"] = now_iso()
     value["runs"] = list(value.get("runs", []))[-30:]
-    STATE_PATH.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    data_store.atomic_write_json(STATE_PATH, value)
 
 
 def known_sources() -> tuple[list[str], set[str]]:

@@ -7,6 +7,7 @@ import json
 import os
 import secrets
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any
 
 from cryptography.exceptions import InvalidTag
@@ -315,12 +316,46 @@ def load_file(
     )
 
 
+def save_text(text: str) -> None:
+    """Atomically persist an already sealed bundle in the repository checkout."""
+
+    if state_format(text) not in {FORMAT_V1, FORMAT_V2}:
+        raise BotStateIntegrityError("Unsupported encrypted state format")
+    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path: Path | None = None
+    try:
+        with NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=STATE_PATH.parent,
+            prefix=f".{STATE_PATH.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary_path = Path(stream.name)
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_path, STATE_PATH)
+        temporary_path = None
+        try:
+            directory_fd = os.open(STATE_PATH.parent, os.O_RDONLY)
+        except OSError:
+            directory_fd = -1
+        if directory_fd >= 0:
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+
+
 def save_file(value: dict[str, Any], secret: str | None = None) -> str:
     privacy_retention.prune_bundle(value)
     text = seal(value, secret)
-    temporary = STATE_PATH.with_suffix(STATE_PATH.suffix + ".tmp")
-    temporary.write_text(text, encoding="utf-8")
-    temporary.replace(STATE_PATH)
+    save_text(text)
     return text
 
 
