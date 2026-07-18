@@ -671,6 +671,64 @@ class RecurringWheelHotfixTests(unittest.TestCase):
         self.assertNotIn("token", state["button_contexts"])
         self.assertEqual(state["wheel_action_history"]["papa"]["action_id"], 852)
 
+    def test_expired_wheel_is_removed_immediately_by_production_composition(self) -> None:
+        runtime = bbvg_monitor_main.runtime
+        current = datetime(2026, 7, 18, 13, 0, tzinfo=UTC)
+        deadline = current - timedelta(seconds=1)
+        state = {
+            "active_wheels": {
+                "papa": {
+                    "identifier": "papa",
+                    "url": "https://betboom.ru/freestream/papa",
+                    "source": "official",
+                    "message_id": 10,
+                    "message_date": (current - timedelta(hours=1)).isoformat(),
+                    "message_url": "https://telegram.me/official/10",
+                    "message_text": "wheel",
+                    "deadline": deadline.isoformat(),
+                    "expires_at": (current + timedelta(hours=2)).isoformat(),
+                    "action_id": 852,
+                }
+            },
+            "participating_wheels": {},
+            "pending_posts": {},
+            "button_contexts": {"token": {"wheel_key": "papa"}},
+            "completed_wheel_alerts": {},
+            "manual_deadlines": {},
+            "manual_overrides": {},
+            "wheel_publications": {"papa": [{"source": "official"}]},
+            "recently_completed_wheels": {},
+            "wheel_action_history": {},
+            "wheel_generation_history": {},
+            "inactive_wheels": {},
+        }
+        stats = {"version": 1, "sources": {}, "daily": {}}
+        original_now = runtime.monitor.now_utc
+        original_revalidate = runtime.revalidate_active_wheels
+        try:
+            runtime.monitor.now_utc = lambda: current
+            runtime.revalidate_active_wheels = lambda value, at=None: {
+                "changed": False,
+                "checked": 0,
+                "confirmed": 0,
+                "failed": 0,
+                "removed": 0,
+                "deferred": 0,
+            }
+            result = runtime.monitor.process_active_wheels(state, stats)
+        finally:
+            runtime.monitor.now_utc = original_now
+            runtime.revalidate_active_wheels = original_revalidate
+
+        self.assertEqual(result["removed"], 1)
+        self.assertNotIn("papa", state["active_wheels"])
+        self.assertNotIn("token", state["button_contexts"])
+        self.assertNotIn("papa", state["wheel_publications"])
+        self.assertEqual(
+            state["recently_completed_wheels"]["papa"]["completion_reason"],
+            "deadline_reached",
+        )
+
     def test_active_revalidation_updates_identity_but_keeps_manual_time(self) -> None:
         runtime = bbvg_monitor_main.runtime
         current = datetime(2026, 7, 16, 17, 23, tzinfo=UTC)
