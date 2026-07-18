@@ -22,7 +22,7 @@ NIGHTLY_PATH = ROOT / "source_catalog.txt"
 MODERATION_PATH = ROOT / "candidate_moderation.json"
 
 UTC = timezone.utc
-SOURCE_LIMIT = max(5, int(os.getenv("INTELLIGENCE_SOURCE_LIMIT", "70")))
+SOURCE_LIMIT = max(5, int(os.getenv("INTELLIGENCE_SOURCE_LIMIT", "150")))
 CANDIDATE_LIMIT = max(10, int(os.getenv("INTELLIGENCE_CANDIDATE_LIMIT", "100")))
 VERIFY_LIMIT = max(5, int(os.getenv("INTELLIGENCE_VERIFY_LIMIT", "40")))
 INTELLIGENCE_WORKERS = max(2, min(16, int(os.getenv("INTELLIGENCE_WORKERS", "12"))))
@@ -36,6 +36,40 @@ TME_RE = re.compile(
 RESERVED = {
     "share", "joinchat", "addstickers", "proxy", "socks", "login", "iv",
     "telegram", "telegramtips", "durov", "betboom", "freestream",
+}
+
+# A reference is a source candidate only when the surrounding publication or
+# the username itself contains a wheel-adjacent signal.  A bare @mention is
+# usually a person, a support account or a bot and must not enter discovery.
+CONTEXT_RADIUS = 260
+THEME_PATTERNS: dict[str, re.Pattern[str]] = {
+    "колёса и акции": re.compile(
+        r"(?:betboom|free\s*stream|freestream|кол[её]с|wheel|freebet|фрибет|"
+        r"розыгрыш|giveaway|промокод|бонус)",
+        re.IGNORECASE,
+    ),
+    "ставки": re.compile(
+        r"(?:ставк|betting|wager|bookmaker|букмекер|fonbet)",
+        re.IGNORECASE,
+    ),
+    "стримы": re.compile(
+        r"(?:стрим|stream|twitch|трансляц|прямой\s+эфир)",
+        re.IGNORECASE,
+    ),
+    "киберспорт и игры": re.compile(
+        r"(?:киберспорт|esports?|dota|cs[ _-]?2|counter[ _-]?strike|pubg|"
+        r"valorant|mobile\s+legends|mlbb|world\s+of\s+tanks|\bwot\b|"
+        r"покер|poker|турнир)",
+        re.IGNORECASE,
+    ),
+}
+USERNAME_THEME_PATTERNS: dict[str, re.Pattern[str]] = {
+    "ставки": re.compile(r"(?:bet|wager|stavka|fonbet)", re.IGNORECASE),
+    "стримы": re.compile(r"(?:stream|twitch|cast)", re.IGNORECASE),
+    "киберспорт и игры": re.compile(
+        r"(?:esport|gaming|dota|cs2|poker|pubg|valorant|mlbb|wot)",
+        re.IGNORECASE,
+    ),
 }
 
 
@@ -87,14 +121,72 @@ def ignored_sources() -> set[str]:
     return {str(source).casefold() for source in ignored if str(source)} if isinstance(ignored, dict) else set()
 
 
-def extract_references(text: str) -> set[str]:
-    found = {match.group(1) for match in USERNAME_RE.finditer(text)}
-    found.update(match.group(1) for match in TME_RE.finditer(text))
+def is_bot_username(username: str) -> bool:
+    """Telegram bot usernames are required to end in ``bot``."""
+    return username.strip().lstrip("@").casefold().endswith("bot")
+
+
+def thematic_signals(text: str) -> set[str]:
     return {
-        value
-        for value in found
-        if value.casefold() not in RESERVED and not value.isdigit()
+        label for label, pattern in THEME_PATTERNS.items() if pattern.search(text)
     }
+
+
+def username_signals(username: str) -> set[str]:
+    return {
+        label
+        for label, pattern in USERNAME_THEME_PATTERNS.items()
+        if pattern.search(username)
+    }
+
+
+def reference_candidates(text: str) -> dict[str, set[str]]:
+    """Return only thematic, non-bot Telegram references from a publication."""
+    matches = [*USERNAME_RE.finditer(text), *TME_RE.finditer(text)]
+    found: dict[str, tuple[str, set[str]]] = {}
+    for match in matches:
+        source = match.group(1)
+        key = source.casefold()
+        if key in RESERVED or source.isdigit() or is_bot_username(source):
+            continue
+        start = max(0, match.start() - CONTEXT_RADIUS)
+        end = min(len(text), match.end() + CONTEXT_RADIUS)
+        context = text[start:end]
+        # Keywords inside another @username are not publication context.
+        context = USERNAME_RE.sub(" ", context)
+        context = TME_RE.sub(" ", context)
+        signals = thematic_signals(context) | username_signals(source)
+        if not signals:
+            continue
+        previous = found.get(key)
+        if previous is None:
+            found[key] = (source, signals)
+        else:
+            previous[1].update(signals)
+    return {source: signals for source, signals in found.values()}
+
+
+def extract_references(text: str) -> set[str]:
+    return set(reference_candidates(text))
+
+
+def candidate_is_relevant(entry: dict[str, Any]) -> bool:
+    if is_bot_username(str(entry.get("source") or "")):
+        return False
+    if int(entry.get("wheel_links_found", 0) or 0) > 0:
+        return True
+    if int(entry.get("relevant_messages_found", 0) or 0) > 0:
+        return True
+    return bool(entry.get("context_signals") or entry.get("username_signals"))
+
+
+def candidate_is_nightly_eligible(entry: dict[str, Any]) -> bool:
+    return bool(
+        entry.get("public") is True
+        and entry.get("status") == "ok"
+        and entry.get("relevance_status") == "relevant"
+        and candidate_is_relevant(entry)
+    )
 
 
 def verify_candidate(username: str) -> dict[str, Any]:
@@ -105,7 +197,13 @@ def verify_candidate(username: str) -> dict[str, Any]:
         "latest_wheel_at": None,
         "sample_wheels": [],
         "status": "unknown",
+        "relevant_messages_found": 0,
+        "candidate_signals": [],
     }
+    if is_bot_username(username):
+        result["status"] = "bot"
+        result["relevance_status"] = "irrelevant"
+        return result
     try:
         messages = monitor.fetch_public_channel(username)
     except Exception as exc:
@@ -124,9 +222,17 @@ def verify_candidate(username: str) -> dict[str, Any]:
     result["status"] = "ok"
     result["messages_checked"] = len(messages)
     wheels: list[tuple[monitor.Message, str]] = []
+    own_signals: set[str] = set()
+    relevant_messages = 0
     for message in messages:
+        message_signals = thematic_signals(message.text)
+        if message_signals:
+            relevant_messages += 1
+            own_signals.update(message_signals)
         for link in monitor.extract_links(message.text):
             wheels.append((message, link))
+    result["relevant_messages_found"] = relevant_messages
+    result["candidate_signals"] = sorted(own_signals)
     result["wheel_links_found"] = len(wheels)
     if wheels:
         latest = max(wheels, key=lambda item: item[0].date)
@@ -144,10 +250,21 @@ def verify_candidate(username: str) -> dict[str, Any]:
 
 
 def score_candidate(entry: dict[str, Any]) -> int:
+    if is_bot_username(str(entry.get("source") or "")):
+        return 0
     refs = len(entry.get("discovered_from", []))
     mentions = int(entry.get("mention_count", 0) or 0)
     wheels = int(entry.get("wheel_links_found", 0) or 0)
-    score = min(30, refs * 10) + min(20, mentions * 3) + min(45, wheels * 15)
+    relevant_messages = int(entry.get("relevant_messages_found", 0) or 0)
+    context_signals = len(entry.get("context_signals", []) or [])
+    own_signals = len(entry.get("candidate_signals", []) or [])
+    score = (
+        min(15, refs * 5)
+        + min(10, mentions * 2)
+        + min(45, wheels * 15)
+        + min(20, relevant_messages * 4)
+        + min(10, (context_signals + own_signals) * 3)
+    )
     if entry.get("public"):
         score += 5
     if entry.get("status") in {"error", "empty"}:
@@ -160,7 +277,12 @@ def main() -> int:
     ignored = ignored_sources()
     state = load_state()
     discovered: dict[str, dict[str, Any]] = defaultdict(
-        lambda: {"mention_count": 0, "discovered_from": set(), "evidence": []}
+        lambda: {
+            "mention_count": 0,
+            "discovered_from": set(),
+            "context_signals": set(),
+            "evidence": [],
+        }
     )
     scanned = 0
     errors: list[str] = []
@@ -169,7 +291,7 @@ def main() -> int:
     selected_sources = sources[:SOURCE_LIMIT]
     # Reuse the permanent monitor's resilient batch transport. A systemic
     # telegram.me outage is retried as one transport incident instead of
-    # degrading 66 channels independently.
+    # degrading every configured channel independently.
     scan_results, scan_errors, empty_sources = monitor.fetch_all_sources(selected_sources)
     for source in empty_sources:
         scan_results[source] = []
@@ -186,7 +308,7 @@ def main() -> int:
             continue
         scanned += 1
         for message in messages:
-            for candidate in extract_references(message.text):
+            for candidate, signals in reference_candidates(message.text).items():
                 key = candidate.casefold()
                 if key in known or key in ignored or key == source.casefold():
                     continue
@@ -194,12 +316,14 @@ def main() -> int:
                 item["source"] = candidate
                 item["mention_count"] += 1
                 item["discovered_from"].add(source)
+                item["context_signals"].update(signals)
                 if len(item["evidence"]) < 8:
                     item["evidence"].append({
                         "from": source,
                         "message_url": message.message_url,
                         "published_at": message.date.astimezone(UTC).isoformat(),
-                        "method": "упоминание или ссылка Telegram",
+                        "method": "тематическое упоминание или ссылка Telegram",
+                        "signals": sorted(signals),
                     })
                 edge_key = f"{source.casefold()}->{key}"
                 edge = state["edges"].setdefault(edge_key, {
@@ -235,6 +359,17 @@ def main() -> int:
 
     verified = len(verification_results)
     strong = 0
+    current_keys = {str(raw["source"]).casefold() for raw in ordered}
+    for key, raw in list(state["candidates"].items()):
+        if not isinstance(raw, dict):
+            continue
+        if is_bot_username(str(raw.get("source") or key)):
+            raw["relevance_status"] = "irrelevant"
+            raw["score"] = 0
+        elif key not in current_keys and "relevance_status" not in raw:
+            # Old broad-regex results remain auditable in state but disappear
+            # from the actionable queue until found again by the new filter.
+            raw["relevance_status"] = "legacy_unclassified"
     for raw in ordered:
         source = str(raw["source"])
         key = source.casefold()
@@ -244,6 +379,8 @@ def main() -> int:
             "source": source,
             "mention_count": int(raw["mention_count"]),
             "discovered_from": sorted(raw["discovered_from"], key=str.casefold),
+            "context_signals": sorted(raw["context_signals"]),
+            "username_signals": sorted(username_signals(source)),
             "evidence": raw["evidence"],
             "last_discovered_at": now_iso(),
         })
@@ -251,6 +388,9 @@ def main() -> int:
         if key in verification_results:
             entry.update(verification_results[key])
             entry["last_verified_at"] = now_iso()
+        entry["relevance_status"] = (
+            "relevant" if candidate_is_relevant(entry) else "irrelevant"
+        )
         entry["score"] = score_candidate(entry)
         if int(entry["score"]) >= 60:
             strong += 1
@@ -263,6 +403,14 @@ def main() -> int:
         "sources_scanned": scanned,
         "references_found": sum(int(item["mention_count"]) for item in ordered),
         "unique_candidates": len(ordered),
+        "relevant_candidates": sum(
+            1
+            for item in ordered
+            if state["candidates"].get(str(item["source"]).casefold(), {}).get(
+                "relevance_status"
+            )
+            == "relevant"
+        ),
         "verified_candidates": verified,
         "strong_candidates": strong,
         "errors": len(errors),
