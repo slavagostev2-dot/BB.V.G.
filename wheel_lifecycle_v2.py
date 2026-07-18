@@ -355,6 +355,7 @@ def install(monitor_module: Any) -> None:
     original_process: Callable = monitor_module.process_active_wheels
 
     def process_active_with_final_reminder(state: dict, stats: dict):
+        personal_reminder_filter.set_current_stats(stats)
         current = monitor_module.now_utc()
         changed = False
         final_sent = 0
