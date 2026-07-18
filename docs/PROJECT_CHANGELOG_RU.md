@@ -6,6 +6,50 @@
 
 ---
 
+## 2026-07-18 — Глава 5: production-панель освобождена от versioned MRO
+
+**Причина:** фактическое поведение Telegram-панели зависело от
+точного порядка 32 классов, включая 18 versioned runtime-слоёв.
+Одинаковые `handle_callback`, `render_page` и UI-методы многократно
+переопределялись, а CI проверял исторические классы вместо
+реального production runtime.
+
+**Что изменено:**
+
+- эффективные экраны, матрица меню, role checks, callback routing,
+  callback-token до 64 байт, пагинация, notification policy, heartbeat и
+  очередь admin actions перенесены в устойчивые `bbvg/bot/*.py`;
+- `bbvg.bot.runtime.TelegramPanelRuntime` сокращён с 32 до 14 классов
+  MRO; в production MRO больше нет ни одного `admin_panel_runtime_v*`;
+- `admin_panel_runtime_v41.py` сохранён как тонкий production-переходник;
+  остальные versioned-файлы не удалялись и ждут доказанного
+  удаления в главе 9;
+- validation workflow, full pytest и production acceptance теперь проверяют
+  финальный `bbvg.bot.runtime`, его реальных владельцев методов
+  и отсутствие versioned MRO;
+- callback strings, encrypted state format, роли, порядок кнопок и
+  функционал монитора не изменены.
+
+**Файлы:** изменены только существующие `bbvg/bot/*.py`, тесты,
+действующие validation workflow, `AGENTS.md` и этот журнал. Новые
+постоянные файлы не создавались, файлы не удалялись, схема
+состояния и миграции не затрагивались.
+
+**Pre-update backup:**
+`backup/before-chapter5-panel-architecture-2026-07-18` →
+`81b3299847ea6677b9bda2585bca141dc6517ed1`; rotation workflow
+`29638871568` проверил ref и оставил ровно три обычных
+backup-ветки.
+
+**Проверки до PR:** baseline — `123 passed, 9 subtests`; после
+рефакторинга — `125 passed, 9 subtests`; production acceptance — `all`;
+самопроверки storage, users, runtime и v41 adapter прошли. CI run IDs,
+точный result SHA, live heartbeat и post-deploy backup фиксируются
+после deploy.
+
+**Откат:** вернуть merge commit главы 5 целиком либо перейти на
+`backup/before-chapter5-panel-architecture-2026-07-18`; state migration не требуется.
+
 ## 2026-07-18 — Глава 4: состояние, атомарность и параллельные записи
 
 **Причина:** authoritative JSON сохранялись разными локальными реализациями,
