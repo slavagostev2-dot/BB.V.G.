@@ -304,7 +304,7 @@ def main() -> None:
         "admin_wheel_decisions": {"old-wheel": {"decision": "confirmed"}},
     }
     assert data_store.apply_source_rating_epoch(legacy_ratings)
-    assert legacy_ratings["source_rating_epoch_day"] == "2026-07-14"
+    assert legacy_ratings["source_rating_epoch_day"] == "2026-07-17"
     assert "wheel_posts" not in legacy_ratings["sources"]["test"]
     assert "quality_score" not in legacy_ratings["sources"]["test"]
     assert "last_wheel_post_at" in legacy_ratings["sources"]["test"]
