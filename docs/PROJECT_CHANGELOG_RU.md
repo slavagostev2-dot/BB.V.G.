@@ -34,6 +34,19 @@
 subtests, panel/self-test, production acceptance, security audit и preflight
 81 источника (78 primary, 3 nightly).
 
+**Production:** PR #72 слит squash-коммитом
+`6b6e33f275a92acf2db7983197ba0d55575133f8`. Панель и монитор запущены на
+его descendant `75ce8c0bc3fef7300c0aa8136c2662d28a06d821`; первая итерация проверила
+78 из 78 primary-источников без ошибок. Завершённое `ewc1` исчезло из
+`active_wheels`, в списке осталось только событие с будущим deadline.
+
+**Post-update backup:**
+`backup/after-participation-reminder-active-cleanup-2026-07-18` →
+`e965ddc60240f802b2d1ac56aed58952c13367be`. Автоматическая ротация оставила
+ровно три обычные backup-ветки: этот post-backup,
+`backup/before-participation-reminder-active-cleanup-2026-07-18` и
+`backup/after-analytics-intelligence-repair-2026-07-18`.
+
 **Откат:** вернуть commit исправления целиком либо перейти на pre-update backup;
 миграция состояния не требуется.
 
