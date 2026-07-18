@@ -16,7 +16,7 @@ import admin_bot as legacy
 import bot_notification_state  # noqa: F401  # installs notification delivery policies
 import personal_wheel_voting
 import telegram_ui
-from bbvg.bot.storage import PrivateStateRuntime
+from bbvg.bot.storage import INTERVAL_OPTIONS, PrivateStateRuntime
 from bbvg.bot.users import UserSettingsMixin
 
 SUMMARY_PERIODS = {
@@ -179,6 +179,39 @@ class TelegramPanelRuntime(
     def handle_callback(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
         query_id = str(query.get("id") or "")
+
+        if data == "bb:l:active":
+            message = query.get("message") or {}
+            previous_edit_message_id = getattr(self, "_edit_message_id", None)
+            self._edit_message_id = int(message.get("message_id") or 0) or None
+            try:
+                self._prepare_callback_user(query)
+                self.answer(query_id, "Открываю активные колёса")
+                self.open_page("active")
+            finally:
+                self._edit_message_id = previous_edit_message_id
+            return
+
+        if data.startswith("interval:"):
+            message = query.get("message") or {}
+            previous_edit_message_id = getattr(self, "_edit_message_id", None)
+            self._edit_message_id = int(message.get("message_id") or 0) or None
+            try:
+                self._prepare_callback_user(query)
+                if not self.is_admin():
+                    self.answer(query_id, "Недостаточно прав")
+                    return
+                try:
+                    minutes = int(data.split(":", 1)[1])
+                    self.set_interval(minutes)
+                except (PermissionError, ValueError):
+                    self.answer(query_id, "Недоступное значение")
+                    return
+                self.answer(query_id, f"Интервал: {minutes} мин.")
+                self.show_interval()
+            finally:
+                self._edit_message_id = previous_edit_message_id
+            return
 
         if data.startswith(("bb:p:", "wheel:part:")):
             message = query.get("message") or {}
@@ -530,6 +563,47 @@ class TelegramPanelRuntime(
             rows.append([{"text": "🗑 Удалить мои данные", "callback_data": "privacy:delete:ask"}])
         self.send("\n".join(lines), reply_markup=self.with_nav(rows))
 
+    def show_interval(self) -> None:
+        if not self.is_admin():
+            self.send("Недоступно.", reply_markup=self.with_nav())
+            return
+        current = int(
+            self.load_access().get("settings", {}).get("monitor_interval_minutes", 5)
+        )
+        buttons: list[list[dict[str, str]]] = []
+        for offset in range(0, len(INTERVAL_OPTIONS), 2):
+            row: list[dict[str, str]] = []
+            for minutes in INTERVAL_OPTIONS[offset : offset + 2]:
+                row.append(
+                    {
+                        "text": f"{'✅ ' if minutes == current else ''}{minutes} мин.",
+                        "callback_data": f"interval:{minutes}",
+                    }
+                )
+            buttons.append(row)
+        self.send(
+            "⏱ <b>Интервал проверки</b>\n\n"
+            "Выберите, как часто проверять все основные источники. "
+            "Изменение сохраняется сразу и перезапускает непрерывный монитор.",
+            reply_markup=self.with_nav(buttons),
+        )
+
+    def set_interval(self, minutes: int) -> None:
+        if not self.is_admin() or minutes not in INTERVAL_OPTIONS:
+            raise PermissionError("Недоступное значение")
+        access = self.load_access()
+        access.setdefault("settings", {})["monitor_interval_minutes"] = minutes
+        self.save_access("Update monitor interval via Telegram [skip ci]")
+        try:
+            self.dispatch(
+                "monitor.yml",
+                {"continuous": "true", "replace": "true"},
+            )
+        except Exception as exc:
+            # The saved setting is authoritative and will still be read by the
+            # running monitor on its next cycle.
+            print(f"WARNING monitor interval restart: {type(exc).__name__}: {exc}")
+
     def show_disabled_features(self) -> None:
         text = (
             "⛔ <b>Отключённый функционал</b>\n\n"
@@ -557,6 +631,9 @@ class TelegramPanelRuntime(
                 "Рабочий контур BB V.G. сейчас находится только в Telegram-боте.",
                 reply_markup=self.with_nav(),
             )
+            return
+        if normalized == "interval":
+            self.show_interval()
             return
         if normalized.startswith("active:"):
             value = normalized.split(":", 1)[1]
