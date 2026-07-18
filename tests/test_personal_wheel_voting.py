@@ -8,6 +8,7 @@ import pytest
 
 import admin_action_queue
 import bbvg_monitor_main
+import monitor_data
 import personal_wheel_voting
 from bbvg.bot import runtime as bot_runtime
 
@@ -297,6 +298,62 @@ def test_rating_reset_removes_scores_but_preserves_operations() -> None:
     assert bbvg_monitor_main.reset_source_rating_epoch(stats) is False
 
 
+def test_current_rating_epoch_does_not_erase_live_findings() -> None:
+    stats = {
+        "source_rating_epoch_day": "2026-07-17",
+        "sources": {"source": {"wheel_posts": 3}},
+        "daily": {
+            "2026-07-18": {
+                "totals": {"wheel_posts": 3},
+                "sources": {"source": {"wheel_posts": 3}},
+            }
+        },
+    }
+
+    assert monitor_data.apply_source_rating_epoch(stats) is False
+    assert stats["sources"]["source"]["wheel_posts"] == 3
+    assert stats["daily"]["2026-07-18"]["totals"]["wheel_posts"] == 3
+
+
+def test_recent_post_keys_restore_erased_findings_once() -> None:
+    stats = {
+        "source_rating_epoch_day": "2026-07-17",
+        "source_rating_counting_from": "2026-07-17T00:00:00+07:00",
+        "sources": {
+            "first": {
+                "wheel_posts": 99,
+                "recent_post_keys": {
+                    "old": {"seen_at": "2026-07-16T16:00:00+00:00"},
+                    "day-one": {"seen_at": "2026-07-16T18:00:00+00:00"},
+                    "day-two": {"seen_at": "2026-07-17T18:30:00+00:00"},
+                },
+            },
+            "second": {
+                "recent_post_keys": {
+                    "day-two": {"seen_at": "2026-07-18T08:00:00+00:00"}
+                }
+            },
+        },
+        "daily": {
+            "2026-07-18": {
+                "totals": {"wheel_posts": 99, "checks": 5},
+                "sources": {"first": {"wheel_posts": 99, "checks": 5}},
+            }
+        },
+    }
+
+    assert monitor_data.recover_wheel_post_stats_from_recent_keys(stats) is True
+    assert stats["sources"]["first"]["wheel_posts"] == 2
+    assert stats["sources"]["second"]["wheel_posts"] == 1
+    assert stats["daily"]["2026-07-17"]["totals"]["wheel_posts"] == 1
+    assert stats["daily"]["2026-07-18"]["totals"]["wheel_posts"] == 2
+    assert stats["daily"]["2026-07-18"]["totals"]["checks"] == 5
+    assert stats["wheel_post_recovered_records"] == 3
+
+    assert monitor_data.recover_wheel_post_stats_from_recent_keys(stats) is False
+    assert stats["sources"]["first"]["wheel_posts"] == 2
+
+
 def test_late_second_source_expands_existing_vote_without_duplication() -> None:
     stats = {"version": 1, "sources": {}, "daily": {}}
     actor = personal_wheel_voting.actor_vote_token("100", secret="test-secret")
@@ -333,4 +390,3 @@ def test_three_votes_credit_both_channels_equally() -> None:
     assert stats["sources"]["mechanogun"]["quality_score"] == 11
     assert stats["sources"]["kolesaBB"]["quality_score"] == 11
     assert len(stats["personal_wheel_votes"]) == 3
-

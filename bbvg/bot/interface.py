@@ -543,7 +543,80 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
         public_rows = [row for row in rows if row.get("public") is True]
         return public_rows, max(0, len(rows) - len(public_rows))
 
+    def show_intelligence(self) -> None:
+        if not self.is_admin():
+            self.send(
+                "Этот раздел доступен администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        state = self.intelligence_state()
+        summary = (
+            state.get("last_run_summary")
+            if isinstance(state.get("last_run_summary"), dict)
+            else {}
+        )
+        rows = self.intelligence_rows()
+        new_rows = [row for row in rows if row.get("decision") == "new"]
+        wheel_rows = [
+            row
+            for row in new_rows
+            if int(row.get("wheel_links_found", 0) or 0) > 0
+        ]
+        try:
+            run = self.workflow_run("source-intelligence.yml")
+        except Exception:
+            run = {}
+        status = str(run.get("status") or "")
+        conclusion = str(run.get("conclusion") or "")
+        if status == "in_progress":
+            state_text = "🔵 разведка выполняется"
+        elif status in {"queued", "waiting", "pending"}:
+            state_text = "🟡 ожидает запуска"
+        elif status == "completed" and conclusion == "success":
+            state_text = "🟢 последний запуск завершён"
+        elif conclusion:
+            state_text = "🔴 последний запуск завершился с ошибкой"
+        else:
+            state_text = "⚪ ещё не запускалась"
+        text = (
+            "🛰️ <b>Разведка новых источников</b>\n\n"
+            f"Состояние: {state_text}\n"
+            f"Последний запуск: {self.fmt_dt(state.get('last_run_at'))}\n\n"
+            f"Просканировано каналов: "
+            f"<b>{int(summary.get('sources_scanned', 0) or 0)}</b>\n"
+            f"Новых кандидатов: <b>{len(new_rows)}</b>\n"
+            f"С найденными колёсами: <b>{len(wheel_rows)}</b>\n\n"
+            "Разведка ищет ссылки и упоминания telegram.me внутри известных "
+            "источников."
+        )
+        buttons = [
+            [{
+                "text": f"🆕 Новые находки ({len(new_rows)})",
+                "callback_data": "intel:list:new:0",
+            }],
+            [{
+                "text": f"🎡 С колёсами ({len(wheel_rows)})",
+                "callback_data": "intel:list:wheels:0",
+            }],
+            [{
+                "text": "▶️ Запустить разведку",
+                "callback_data": "control:intelligence",
+            }],
+            [{
+                "text": "🔄 Обновить состояние",
+                "callback_data": "page:intelligence",
+            }],
+        ]
+        self.send(text, reply_markup=self.with_nav(buttons))
+
     def show_intelligence_list(self, category: str, page: int = 0) -> None:
+        if not self.is_admin():
+            self.send(
+                "Этот раздел доступен администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
         rows = self.filtered_intelligence_rows(category)
         max_page = max(0, (len(rows) - 1) // INTELLIGENCE_PER_PAGE)
         page = max(0, min(page, max_page))
@@ -633,6 +706,152 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
                     f"действие: {skipped}."
                 )
         self.send("\n".join(lines).rstrip(), reply_markup=self.with_nav(buttons))
+
+    def show_intelligence_detail(self, source: str) -> None:
+        if not self.is_admin():
+            self.send(
+                "Этот раздел доступен администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        source = self.safe_source(source)
+        item = next(
+            (
+                row
+                for row in self.intelligence_rows()
+                if str(row.get("source") or "").casefold() == source.casefold()
+            ),
+            None,
+        )
+        if item is None:
+            self.send(
+                "Результат разведки больше не найден.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        score = int(item.get("score", 0) or 0)
+        wheels = int(item.get("wheel_links_found", 0) or 0)
+        discovered_from = (
+            item.get("discovered_from", [])
+            if isinstance(item.get("discovered_from"), list)
+            else []
+        )
+        lines = [
+            f"🛰️ <b>@{html.escape(source)}</b>",
+            "",
+            f"Оценка: <b>{score}/100</b> — {self.intelligence_label(score, wheels)}",
+            f"Публичный канал: {'✅ да' if item.get('public') else '❌ не подтверждён'}",
+            f"Найдено упоминаний: {int(item.get('mention_count', 0) or 0)}",
+            f"Найдено колёс: {wheels}",
+            f"Просмотрено сообщений при проверке: "
+            f"{int(item.get('messages_checked', 0) or 0)}",
+            f"Последнее найденное колесо: {self.fmt_dt(item.get('latest_wheel_at'))}",
+            f"Последняя проверка: {self.fmt_dt(item.get('last_verified_at'))}",
+            "",
+            "<b>Откуда найден</b>",
+        ]
+        lines.extend(f"• @{html.escape(str(name))}" for name in discovered_from[:12])
+        if not discovered_from:
+            lines.append("• источник связи не сохранён")
+        samples = (
+            item.get("sample_wheels", [])
+            if isinstance(item.get("sample_wheels"), list)
+            else []
+        )
+        if samples:
+            lines.extend(["", "<b>Примеры колёс</b>"])
+            for sample in samples[:5]:
+                if not isinstance(sample, dict):
+                    continue
+                identifier = html.escape(str(sample.get("identifier") or "колесо"))
+                lines.append(
+                    f"• <code>{identifier}</code> — "
+                    f"{self.fmt_dt(sample.get('published_at'))}"
+                )
+        buttons: list[list[dict[str, str]]] = [
+            [{"text": "📨 Открыть канал", "url": f"https://telegram.me/{source}"}]
+        ]
+        if item.get("decision") != "known":
+            buttons.extend(
+                [
+                    [{
+                        "text": "⚡ В основную проверку",
+                        "callback_data": f"intel:mode:fast:{source}",
+                    }],
+                    [{
+                        "text": "🌙 В ночное наблюдение",
+                        "callback_data": f"intel:mode:nightly:{source}",
+                    }],
+                ]
+            )
+        if item.get("decision") == "ignored":
+            buttons.append([{
+                "text": "↩️ Вернуть в ночное наблюдение",
+                "callback_data": f"intel:restore:{source}",
+            }])
+        elif item.get("decision") != "known":
+            buttons.append([{
+                "text": "🙈 Игнорировать",
+                "callback_data": f"intel:ignoreask:{source}",
+            }])
+        buttons.append(
+            [{"text": "🛰️ К результатам", "callback_data": "page:intelligence"}]
+        )
+        self.send("\n".join(lines), reply_markup=self.with_nav(buttons))
+
+    def set_candidate_mode(self, source: str, mode: str) -> str:
+        if not self.is_admin():
+            raise PermissionError("Недостаточно прав")
+        source = self.safe_source(source)
+        available, detail = self.verify_public_source(source)
+        if not available:
+            raise ValueError(detail)
+        moderation = self.load_moderation()
+        moderation["ignored"].pop(source.casefold(), None)
+        self.save_moderation(
+            moderation,
+            f"Approve @{source} discovery candidate via Telegram [skip ci]",
+        )
+        self.set_source_mode(source, mode)
+        if mode == "nightly":
+            return (
+                f"@{source} добавлен в ночную проверку. "
+                "Первая проверка пройдёт по ночному расписанию."
+            )
+        return f"@{source} добавлен в основную проверку."
+
+    def ignore_candidate(self, source: str) -> str:
+        if not self.is_admin():
+            raise PermissionError("Недостаточно прав")
+        source = self.safe_source(source)
+        self.set_source_mode(source, "remove")
+        moderation = self.load_moderation()
+        moderation["ignored"][source.casefold()] = {
+            "source": source,
+            "ignored_at": datetime.now(UTC).isoformat(),
+            "ignored_by": "admin",
+        }
+        self.save_moderation(
+            moderation,
+            f"Ignore @{source} discovery candidate via Telegram [skip ci]",
+        )
+        return f"@{source} исключён из поиска и скрыт из очереди."
+
+    def restore_candidate(self, source: str) -> str:
+        if not self.is_admin():
+            raise PermissionError("Недостаточно прав")
+        source = self.safe_source(source)
+        moderation = self.load_moderation()
+        moderation["ignored"].pop(source.casefold(), None)
+        self.save_moderation(
+            moderation,
+            f"Restore @{source} discovery candidate via Telegram [skip ci]",
+        )
+        self.set_source_mode(source, "nightly")
+        return (
+            f"@{source} возвращён в ночную проверку. "
+            "Следующая проверка пройдёт по ночному расписанию."
+        )
 
     @staticmethod
     def _write_source_list(header: str, values: list[str]) -> str:
@@ -835,6 +1054,16 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
         self.send(text, reply_markup=self.with_nav(rows))
 
     def render_page(self, page: str) -> None:
+        if page == "intelligence":
+            self.show_intelligence()
+            return
+        if page.startswith("intel_list:"):
+            _, category, page_no = page.split(":", 2)
+            self.show_intelligence_list(category, int(page_no))
+            return
+        if page.startswith("intel_detail:"):
+            self.show_intelligence_detail(page.split(":", 1)[1])
+            return
         if page == "more":
             self.show_menu(clear_stack=True)
             return
@@ -879,6 +1108,67 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
         sender = query.get("from") or {}
         self.set_context(chat.get("id"), sender.get("id"))
         try:
+            if data.startswith("intel:list:"):
+                if not self.is_admin():
+                    raise PermissionError
+                _, _, category, page_no = data.split(":", 3)
+                self.answer(query_id, "Открываю")
+                self.open_page(f"intel_list:{category}:{page_no}")
+                return
+            if data.startswith("intel:detail:"):
+                if not self.is_admin():
+                    raise PermissionError
+                source = data.split(":", 2)[2]
+                self.answer(query_id, "Открываю")
+                self.open_page(f"intel_detail:{source}")
+                return
+            if data.startswith("intel:mode:"):
+                if not self.is_admin():
+                    raise PermissionError
+                _, _, mode, source = data.split(":", 3)
+                result = self.set_candidate_mode(source, mode)
+                self.answer(query_id, "Добавлено")
+                self.refresh_snapshot()
+                self.send(f"✅ {html.escape(result)}", reply_markup=self.with_nav())
+                return
+            if data.startswith("intel:ignoreask:"):
+                if not self.is_admin():
+                    raise PermissionError
+                source = data.split(":", 2)[2]
+                self.answer(query_id, "Подтвердите")
+                self.send(
+                    f"Игнорировать @{html.escape(source)}? Канал будет исключён "
+                    "из дальнейшей разведки.",
+                    reply_markup=self.with_nav(
+                        [[
+                            {
+                                "text": "Да, игнорировать",
+                                "callback_data": f"intel:ignore:{source}",
+                            },
+                            {
+                                "text": "Отмена",
+                                "callback_data": f"intel:detail:{source}",
+                            },
+                        ]]
+                    ),
+                )
+                return
+            if data.startswith("intel:ignore:"):
+                if not self.is_admin():
+                    raise PermissionError
+                source = data.split(":", 2)[2]
+                result = self.ignore_candidate(source)
+                self.answer(query_id, "Скрыто")
+                self.send(f"✅ {html.escape(result)}", reply_markup=self.with_nav())
+                return
+            if data.startswith("intel:restore:"):
+                if not self.is_admin():
+                    raise PermissionError
+                source = data.split(":", 2)[2]
+                result = self.restore_candidate(source)
+                self.answer(query_id, "Возвращено")
+                self.send(f"✅ {html.escape(result)}", reply_markup=self.with_nav())
+                return
             if data.startswith("intel:bulkask:"):
                 _, _, mode, category = data.split(":", 3)
                 if not self.is_admin():

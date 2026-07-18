@@ -133,7 +133,11 @@ def reset_source_rating_epoch(
 
 def load_stats_additive() -> dict[str, Any]:
     data = _original_load_stats()
-    if reset_source_rating_epoch(data):
+    changed = reset_source_rating_epoch(data)
+    changed = (
+        monitor.data_store.recover_wheel_post_stats_from_recent_keys(data) or changed
+    )
+    if changed:
         monitor.data_store.save_stats(data)
     if data.get("source_rating_policy") != personal_wheel_voting.PERSONAL_RATING_POLICY:
         rating_policy.normalize_additive_rating(data)
