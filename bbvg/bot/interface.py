@@ -213,7 +213,8 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             self.send("Раздел доступен только администраторам.", reply_markup=self.with_nav())
             return
         snap = self.snapshot(force=True)
-        rows = self.source_sets(snap)["inactive"]
+        groups = self.source_sets(snap)
+        rows = groups.get("quiet", groups.get("inactive", []))
         pages = max(1, math.ceil(len(rows) / INACTIVE_PAGE_SIZE))
         page = max(0, min(int(page), pages - 1))
         part = rows[page * INACTIVE_PAGE_SIZE : (page + 1) * INACTIVE_PAGE_SIZE]
