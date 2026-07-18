@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:admin_panel_stale:9278d429b1e1ee67": {
       "detail": "Последний живой сигнал был 149 минут назад.",
@@ -48,18 +48,21 @@
       "first_seen_at": "2026-07-14T04:04:11.018046+00:00",
       "key": "system_checks:discovery_scan_failure:763d64204869a56e",
       "kind": "discovery_scan_failure",
-      "last_seen_at": "2026-07-18T15:33:42.673967+00:00",
+      "last_seen_at": "2026-07-18T15:36:33.204722+00:00",
       "metadata": {},
+      "notification_skipped_because_resolved_before_delivery": "2026-07-18T15:36:33.204722+00:00",
       "occurrences": 6,
       "open_notification_pending": false,
       "opened_sequence": 42,
       "reopen_notification_suppressed_at": "2026-07-18T15:32:04.735808+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
+      "resolution_notification_pending": false,
       "resolution_notified_at": "2026-07-14T04:09:29.532413+00:00",
-      "resolved_sequence": 41,
+      "resolved_at": "2026-07-18T15:36:33.204722+00:00",
+      "resolved_sequence": 46,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Поиск новых источников не смог просканировать базу"
     },
@@ -234,17 +237,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-18T15:33:42.673967+00:00",
-  "last_reconcile_at": "2026-07-18T15:33:42.673967+00:00",
+  "last_change_at": "2026-07-18T15:36:33.204722+00:00",
+  "last_reconcile_at": "2026-07-18T15:36:33.204722+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 0,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 45,
+  "sequence": 46,
   "status": "initializing",
-  "updated_at": "2026-07-18T15:33:42.674047+00:00",
+  "updated_at": "2026-07-18T15:36:33.204772+00:00",
   "version": 1
 }
