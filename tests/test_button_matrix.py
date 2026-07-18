@@ -71,6 +71,83 @@ class ButtonMatrixTests(unittest.TestCase):
         self.assertEqual(len(user), sum(len(row) for row in TelegramPanelRuntime.compact_menu_rows(False)))
         self.assertEqual(len(admin), sum(len(row) for row in TelegramPanelRuntime.compact_menu_rows(True)))
 
+    def test_analytics_buttons_keep_pre_update_order(self) -> None:
+        for admin in (False, True):
+            panel, calls = self.panel(admin=admin)
+            panel.snapshot = lambda force=False: SimpleNamespace(  # type: ignore[method-assign]
+                stats={"sources": {}}
+            )
+            panel.period_overview = lambda snap, days: {  # type: ignore[method-assign]
+                "wheel_posts": 0,
+                "sources_with_wheels": 0,
+                "notifications": 0,
+                "top_sources": [],
+                "best_day": None,
+                "active": 0,
+                "active_with_time": 0,
+                "participating": 0,
+            }
+            panel.period_totals = lambda stats, days: {}  # type: ignore[method-assign]
+            panel._collect_current_wheels = lambda: []  # type: ignore[method-assign]
+            panel._registry_snapshot = lambda snap: {"summary": {}}  # type: ignore[method-assign]
+
+            panel.show_analytics(7)
+
+            rows = calls[-1][3]["reply_markup"]["inline_keyboard"]
+            callback_rows = [
+                [str(button.get("callback_data") or "") for button in row]
+                for row in rows
+            ]
+            expected = [[
+                "page:analytics:1",
+                "page:analytics:7",
+                "page:analytics:30",
+            ]]
+            if admin:
+                expected.append(["page:report:inactive"])
+            self.assertEqual(callback_rows, expected)
+
+    def test_source_buttons_keep_pre_update_order_and_actions(self) -> None:
+        expected = {
+            False: [
+                ["page:sources", "page:ranking"],
+                ["source_list:primary:0", "source:request"],
+            ],
+            True: [
+                ["page:sources", "page:ranking"],
+                ["source_list:primary:0", "page:discovery"],
+                ["page:intelligence", "source:add"],
+            ],
+        }
+        for admin in (False, True):
+            panel, calls = self.panel(admin=admin)
+            panel.snapshot = lambda force=False: SimpleNamespace()  # type: ignore[method-assign]
+            panel._registry_snapshot = lambda snap: {  # type: ignore[method-assign]
+                "summary": {
+                    "total": 3,
+                    "primary": 1,
+                    "nightly": 1,
+                    "checked": 2,
+                    "available": 2,
+                    "unavailable": 0,
+                    "pending": 0,
+                }
+            }
+            panel.source_sets = lambda snap: {  # type: ignore[method-assign]
+                "primary": ["main"],
+                "reserve": ["nightly"],
+                "paused": ["paused"],
+            }
+
+            panel.show_sources()
+
+            rows = calls[-1][3]["reply_markup"]["inline_keyboard"]
+            callback_rows = [
+                [str(button.get("callback_data") or "") for button in row]
+                for row in rows
+            ]
+            self.assertEqual(callback_rows, expected[admin])
+
     def test_notification_button_role_matrix(self) -> None:
         source = {
             "inline_keyboard": [
