@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -241,11 +242,21 @@ def save_json(path: Path, value: dict[str, Any]) -> None:
 def validate_json_state_contracts(root: Path = ROOT) -> list[str]:
     """Return ownership/schema violations for the complete tracked inventory."""
 
-    actual = {
-        path.relative_to(root).as_posix()
-        for path in root.rglob("*.json")
-        if ".git" not in path.parts
-    }
+    tracked = subprocess.run(
+        ["git", "ls-files", "--", "*.json"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if tracked.returncode == 0:
+        actual = {name for name in tracked.stdout.splitlines() if name}
+    else:
+        actual = {
+            path.relative_to(root).as_posix()
+            for path in root.rglob("*.json")
+            if ".git" not in path.parts
+        }
     expected = set(JSON_STATE_CONTRACTS)
     errors = [f"unowned:{name}" for name in sorted(actual - expected)]
     errors.extend(f"missing:{name}" for name in sorted(expected - actual))
