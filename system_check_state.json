@@ -1,7 +1,7 @@
 {
-  "active_incidents": 3,
+  "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 3,
+    "age_minutes": 4,
     "last_heartbeat_at": "2026-07-18T15:18:15.489964+00:00",
     "started_at": "2026-07-18T15:12:53.534830+00:00",
     "status": "running",
@@ -13,13 +13,13 @@
     "expected_primary_sources": 157,
     "expected_total_sources": 160,
     "missing_sources": 0,
-    "recorded_configured_sources": 81,
+    "recorded_configured_sources": 160,
     "recorded_nightly_sources": 3,
-    "recorded_primary_sources": 78,
+    "recorded_primary_sources": 157,
     "source_tier_last_run_at": "2026-07-17T23:37:54.060195+00:00",
     "source_tier_policy": "seven_day_dynamic_primary_and_nightly",
-    "transport_accounted_sources": 81,
-    "transport_checked_at": "2026-07-18T07:43:35.740841+00:00",
+    "transport_accounted_sources": 160,
+    "transport_checked_at": "2026-07-18T15:21:59.588249+00:00",
     "transport_domain": "telegram.me",
     "transport_status": "success"
   },
@@ -28,7 +28,7 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "failed",
+    "automations": "ok",
     "bot_panel": "ok",
     "discovery": "failed",
     "inventory": "ok",
@@ -40,7 +40,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-18T15:22:01.122194+00:00",
+  "checked_at": "2026-07-18T15:22:34.943402+00:00",
   "discovery": {
     "active_size": 104,
     "candidate_count": 300,
@@ -78,7 +78,7 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 3,
+  "finding_count": 2,
   "findings": [
     {
       "detail": "В состоянии поиска записано 107, текущий inventory содержит 160.",
@@ -93,17 +93,10 @@
       "severity": "critical",
       "subject": "",
       "title": "Поиск новых источников не смог просканировать базу"
-    },
-    {
-      "detail": "status=success; domain=telegram.me; primary=78/157; nightly=3/3; accounted=81/160; missing=0.",
-      "kind": "source_transport_smoke",
-      "severity": "critical",
-      "subject": "",
-      "title": "Транспортная проверка текущего inventory не подтверждена"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 3,
+    "active_incidents": 2,
     "bot_panel_heartbeat": "2026-07-18T15:18:15.489964+00:00",
     "checked_sources": 157,
     "configured_sources": 160,
@@ -126,7 +119,7 @@
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 39,
+  "incident_sequence": 40,
   "inventory": {
     "configured": 157,
     "configured_total": 160,

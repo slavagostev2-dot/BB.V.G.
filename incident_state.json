@@ -1,5 +1,5 @@
 {
-  "active_count": 3,
+  "active_count": 2,
   "incidents": {
     "system_checks:admin_panel_stale:9278d429b1e1ee67": {
       "detail": "Последний живой сигнал был 149 минут назад.",
@@ -27,9 +27,9 @@
       "first_seen_at": "2026-07-18T15:16:53.876444+00:00",
       "key": "system_checks:discovery_inventory:423683e1cdf4ab6e",
       "kind": "discovery_inventory",
-      "last_seen_at": "2026-07-18T15:22:02.373045+00:00",
+      "last_seen_at": "2026-07-18T15:22:36.128331+00:00",
       "metadata": {},
-      "occurrences": 2,
+      "occurrences": 3,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-18T15:16:54.984258+00:00",
       "opened_sequence": 35,
@@ -44,9 +44,9 @@
       "first_seen_at": "2026-07-14T04:04:11.018046+00:00",
       "key": "system_checks:discovery_scan_failure:763d64204869a56e",
       "kind": "discovery_scan_failure",
-      "last_seen_at": "2026-07-18T15:22:02.373045+00:00",
+      "last_seen_at": "2026-07-18T15:22:36.128331+00:00",
       "metadata": {},
-      "occurrences": 3,
+      "occurrences": 4,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-18T15:16:54.984258+00:00",
       "opened_sequence": 36,
@@ -189,17 +189,19 @@
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
       "kind": "source_transport_smoke",
-      "last_seen_at": "2026-07-18T15:22:02.373045+00:00",
+      "last_seen_at": "2026-07-18T15:22:36.128331+00:00",
       "metadata": {},
       "occurrences": 30,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-18T15:16:54.984258+00:00",
       "opened_sequence": 37,
+      "resolution_notification_pending": true,
       "resolution_notified_at": "2026-07-17T16:24:16.925887+00:00",
-      "resolved_sequence": 29,
+      "resolved_at": "2026-07-18T15:22:36.128331+00:00",
+      "resolved_sequence": 40,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Транспортная проверка текущего inventory не подтверждена"
     },
@@ -225,17 +227,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-18T15:22:02.373045+00:00",
-  "last_reconcile_at": "2026-07-18T15:22:02.373045+00:00",
+  "last_change_at": "2026-07-18T15:22:36.128331+00:00",
+  "last_reconcile_at": "2026-07-18T15:22:36.128331+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 3,
+    "active": 2,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 39,
+  "sequence": 40,
   "status": "initializing",
-  "updated_at": "2026-07-18T15:22:02.373149+00:00",
+  "updated_at": "2026-07-18T15:22:36.128446+00:00",
   "version": 1
 }
