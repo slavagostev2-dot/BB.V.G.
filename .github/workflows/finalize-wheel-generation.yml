@@ -1,0 +1,86 @@
+name: Finalize wheel generation model
+
+on:
+  push:
+    branches:
+      - agent/wheel-server-generation-current
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: agent/wheel-server-generation-current
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+      - name: Update changelog without losing newer entries
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('docs/PROJECT_CHANGELOG_RU.md')
+          text = path.read_text(encoding='utf-8')
+          heading = '## 2026-07-18 — Повторные серверные старты разделены на поколения\n'
+          if heading not in text:
+              entry = '''## 2026-07-18 — Повторные серверные старты разделены на поколения
+
+**Причина:** BetBoom может повторно запустить прежнюю freestream-ссылку с тем же `action_id`. Старый контракт считал один `action_id` вечной идентичностью и подавлял такой запуск как дубль, поэтому новое колесо могло не получить отдельное участие и рейтинг.
+
+**Что изменено:**
+
+- авторитетная идентичность поколения строится по паре `action_id` + `start_dttm`;
+- одинаковые `action_id` и серверное время старта остаются дублем, но более поздний подтверждённый `start_dttm` открывает чистое новое поколение даже при том же `action_id`;
+- при смене поколения очищается только изменяемое состояние старого события: участие, публикации, suppression, таймерные overrides и кнопочные контексты;
+- завершение по API, дедлайну или административному совместимому пути помечает текущее поколение закрытым и сохраняет `server_start_at`/`generation_id` в истории;
+- личное участие и рейтинг предпочитают `generation_id`, поэтому один пользователь может отдельно участвовать и голосовать в двух серверных запусках с одинаковым `action_id`;
+- если BetBoom не вернул `start_dttm`, сохраняется консервативная совместимость: прежний `action_id` остаётся дублем, а без API-идентичности действуют правила ссылки и таймера.
+
+**Изменённые файлы:** `monitor.py`, `monitor_entry.py`, `wheel_event_runtime.py`, `wheel_link_lifecycle.py`, `bbvg_monitor_runtime.py`, `wheel_lifecycle_v2.py`, `personal_wheel_voting.py`, `tests/test_recurring_event_hotfix.py`, `tests/test_personal_wheel_voting.py`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`. Новых постоянных файлов нет; формат состояния расширен только необязательными полями `server_start_at` и `generation_id`.
+
+**Pre-update backup:** `backup/before-wheel-generation-2026-07-18` → `250d878ed028c93f6afe48810d464d8b9c1c1b82`; ref проверен как точное совпадение baseline `main`.
+
+**Откат:** вернуть merge commit целиком либо перейти на pre-update backup; отдельная миграция состояния не требуется, старые записи без `generation_id` читаются совместимо.
+
+'''
+              marker = '---\n\n'
+              if marker not in text:
+                  raise RuntimeError('changelog insertion marker missing')
+              path.write_text(text.replace(marker, marker + entry, 1), encoding='utf-8')
+          PY
+      - name: Compile generation code
+        run: python -m py_compile monitor.py monitor_entry.py wheel_event_runtime.py wheel_link_lifecycle.py bbvg_monitor_runtime.py wheel_lifecycle_v2.py personal_wheel_voting.py
+      - name: Targeted generation tests
+        run: python -m pytest -q tests/test_recurring_event_hotfix.py tests/test_personal_wheel_voting.py tests/test_lifecycle.py
+      - name: Hide temporary workflow
+        run: mv .github/workflows/finalize-wheel-generation.yml /tmp/finalize-wheel-generation.yml
+      - name: Full pytest
+        run: python -m pytest -q
+      - name: Runtime self-test
+        run: python -m bbvg.bot.runtime --self-test
+      - name: Production acceptance
+        run: python tests/production_acceptance.py --section all
+      - name: Restore temporary workflow
+        if: always()
+        run: mv /tmp/finalize-wheel-generation.yml .github/workflows/finalize-wheel-generation.yml
+      - name: Commit verified changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PROJECT_CHANGELOG_RU.md
+          if git diff --cached --quiet; then
+            echo "Changelog already current"
+            exit 0
+          fi
+          git commit -m "Документировать поколения повторных стартов"
+          git push origin HEAD:agent/wheel-server-generation-current
