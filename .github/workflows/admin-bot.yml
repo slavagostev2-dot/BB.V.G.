@@ -188,7 +188,6 @@ jobs:
           )
           PY
           python migrate_bot_private_state.py
-          python notification_integrity_v2.py --prune
           python - <<'PY'
           import json
           from pathlib import Path

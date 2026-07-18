@@ -252,6 +252,7 @@ class ConcurrentStateTests(unittest.TestCase):
             self.assertIn("public_sources.txt source_catalog.txt", workflow)
         panel = (ROOT / ".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
         self.assertIn("files=(bot_private_state.enc.json)", panel)
+        self.assertNotIn("notification_integrity_v2.py --prune", panel)
         self.assertNotIn(
             "files=(bot_private_state.enc.json notification_delivery_state.json)",
             panel,
