@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import Any
 
@@ -106,6 +107,30 @@ class ButtonMatrixTests(unittest.TestCase):
             if admin:
                 expected.append(["page:report:inactive"])
             self.assertEqual(callback_rows, expected)
+
+    def test_finished_wheel_is_not_rendered_during_monitor_refresh_delay(self) -> None:
+        panel, _ = self.panel(admin=False)
+        now = datetime.now(timezone.utc)
+        panel.snapshot = lambda force=False: SimpleNamespace(  # type: ignore[method-assign]
+            state={
+                "active_wheels": {
+                    "finished": {
+                        "identifier": "finished",
+                        "deadline": (now - timedelta(seconds=1)).isoformat(),
+                    },
+                    "future": {
+                        "identifier": "future",
+                        "deadline": (now + timedelta(minutes=5)).isoformat(),
+                    },
+                },
+                "inactive_wheels": {},
+            }
+        )
+        panel._hidden_wheels = lambda user_id=None: {}  # type: ignore[method-assign]
+
+        items = panel._collect_current_wheels()
+
+        self.assertEqual([item["_key"] for item in items], ["future"])
 
     def test_source_buttons_keep_pre_update_order_and_actions(self) -> None:
         expected = {
