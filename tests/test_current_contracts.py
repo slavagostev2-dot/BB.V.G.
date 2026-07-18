@@ -70,7 +70,7 @@ class CurrentProductionContractTests(unittest.TestCase):
             "xdzachq",
         }
         self.assertTrue(expected.issubset(primary))
-        self.assertEqual(len(primary), 104)
+        self.assertEqual(len(primary), 157)
 
     def test_administrator_decisions(self) -> None:
         admin_action_v2.self_test()
