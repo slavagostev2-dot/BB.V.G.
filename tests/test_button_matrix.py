@@ -247,6 +247,108 @@ class ButtonMatrixTests(unittest.TestCase):
         deferred = [row for row in calls if row[0] == "send" and "кандидатов" in row[1]]
         self.assertEqual(2, len(deferred))
 
+    def test_interval_screen_and_every_supported_choice_are_routable(self) -> None:
+        panel, calls = self.panel(admin=True)
+        access = {"settings": {"monitor_interval_minutes": 5}}
+        saved: list[str] = []
+        dispatched: list[tuple[str, dict[str, str] | None]] = []
+        panel.load_access = lambda force=False: access  # type: ignore[method-assign]
+        panel.save_access = lambda message="": saved.append(message)  # type: ignore[method-assign]
+        panel.dispatch = lambda workflow, inputs=None: dispatched.append(  # type: ignore[method-assign]
+            (workflow, inputs)
+        )
+
+        panel.handle_callback(self.query("page:interval"))
+
+        screen = [row for row in calls if row[0] == "send"][-1]
+        self.assertIn("Интервал проверки", screen[1])
+        interval_callbacks = callbacks(screen[3]["reply_markup"]["inline_keyboard"])
+        self.assertEqual(
+            {"interval:1", "interval:3", "interval:5", "interval:10", "interval:15", "interval:30"},
+            interval_callbacks,
+        )
+
+        for value in (1, 3, 5, 10, 15, 30):
+            panel.handle_callback(self.query(f"interval:{value}"))
+            self.assertEqual(value, access["settings"]["monitor_interval_minutes"])
+        self.assertEqual(6, len(saved))
+        self.assertEqual(
+            [("monitor.yml", {"continuous": "true", "replace": "true"})] * 6,
+            dispatched,
+        )
+        self.assertFalse(
+            any(row[0] == "answer" and row[1] == "Неизвестная команда" for row in calls)
+        )
+
+    def test_interval_change_is_admin_only(self) -> None:
+        panel, calls = self.panel(admin=False)
+        panel.save_access = lambda message="": self.fail("must not save")  # type: ignore[method-assign]
+        panel.dispatch = lambda workflow, inputs=None: self.fail("must not dispatch")  # type: ignore[method-assign]
+
+        panel.handle_callback(self.query("interval:1", user_id=3))
+
+        self.assertIn(("answer", "Недостаточно прав"), calls)
+
+    def test_settings_secondary_pages_open_their_real_screens(self) -> None:
+        panel, calls = self.panel(admin=True)
+        for callback, expected in (
+            ("page:wheelmode", "API — активный production-режим"),
+            ("page:disabled_features", "Ручное указание времени"),
+        ):
+            panel.handle_callback(self.query(callback))
+            sent = [row for row in calls if row[0] == "send"][-1]
+            self.assertIn(expected, sent[1])
+            self.assertNotIn("Выберите раздел", sent[1])
+
+    def test_active_list_button_from_notifications_is_routable(self) -> None:
+        for admin, user_id in ((False, 3), (True, 1)):
+            panel, calls = self.panel(admin=admin)
+
+            panel.handle_callback(self.query("bb:l:active", user_id=user_id))
+
+            self.assertIn(("show_active", 0), calls)
+            self.assertIn(("answer", "Открываю активные колёса"), calls)
+            self.assertFalse(
+                any(row[0] == "answer" and row[1] == "Неизвестная команда" for row in calls)
+            )
+
+    def test_nightly_candidate_lists_details_and_legacy_actions_are_routable(self) -> None:
+        panel, calls = self.panel(admin=True)
+        candidate = {
+            "source": "candidate",
+            "category": "new",
+            "score": 72,
+            "wheel_links_found": 2,
+            "recent_wheel_links": 1,
+            "active_wheel_links": 1,
+            "unconfirmed_wheel_links": 1,
+            "messages_checked": 20,
+            "status": "available",
+            "latest_wheel_at": "2026-07-18T08:00:00+00:00",
+            "checked_at": "2026-07-18T08:05:00+00:00",
+        }
+        panel.candidate_rows = lambda: [candidate]  # type: ignore[method-assign]
+        panel._recent_candidate_wheels = lambda source: []  # type: ignore[method-assign]
+
+        panel.handle_callback(self.query("candidate:list:new:0"))
+        listing = [row for row in calls if row[0] == "send"][-1]
+        self.assertIn("Кандидаты, требующие решения", listing[1])
+        self.assertIn("candidate:detail:candidate", str(listing[3]["reply_markup"]))
+
+        panel.handle_callback(self.query("candidate:detail:candidate"))
+        detail = [row for row in calls if row[0] == "send"][-1]
+        self.assertIn("@candidate", detail[1])
+        self.assertIn("candidate:mode:fast:candidate", str(detail[3]["reply_markup"]))
+        self.assertIn("candidate:ignoreask:candidate", str(detail[3]["reply_markup"]))
+
+        panel.handle_callback(self.query("candidate:ignoreask:candidate"))
+        confirmation = [row for row in calls if row[0] == "send"][-1]
+        self.assertIn("Игнорировать @candidate", confirmation[1])
+        self.assertIn("intel:ignore:candidate", str(confirmation[3]["reply_markup"]))
+        self.assertFalse(
+            any(row[0] == "answer" and row[1] == "Неизвестная команда" for row in calls)
+        )
+
     def test_notification_button_role_matrix(self) -> None:
         source = {
             "inline_keyboard": [
