@@ -108,10 +108,6 @@ jobs:
           python -m bbvg.bot.users
           python wheel_link_lifecycle.py
           python wheel_scenario_suite.py
-          python admin_panel_runtime_v32.py --self-test
-          python admin_panel_runtime_v36.py --self-test
-          python admin_panel_runtime_v37.py --self-test
-          python admin_panel_runtime_v38.py --self-test
           python -m bbvg.bot.runtime --self-test
           python admin_panel_runtime_v41.py --self-test
           python chapter4_acceptance.py
@@ -121,7 +117,6 @@ jobs:
           import inspect
           import notification_router
           import telegram_ui
-          from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
           from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
           from bbvg.bot.runtime import TelegramPanelRuntime
           from bbvg.bot.storage import PrivateStateRuntime
@@ -129,13 +124,17 @@ jobs:
 
           handler = inspect.getsource(UserSettingsMixin.handle_callback)
           persistence = inspect.getsource(PrivateStateRuntime._save_bot_bundle)
-          detail = inspect.getsource(TelegramPanelRuntimeV38.show_user_detail)
+          detail = inspect.getsource(TelegramPanelRuntime.show_user_detail)
           normalization = inspect.getsource(PrivateStateRuntime.normalize_access)
-          safe_send = inspect.getsource(TelegramPanelRuntimeV38.safe_text_for_role)
+          safe_send = inspect.getsource(TelegramPanelRuntime.safe_text_for_role)
           summary_handler = inspect.getsource(TelegramPanelRuntime.handle_callback)
           colorizer = inspect.getsource(TelegramPanelRuntime._color_active_payload)
           home = inspect.getsource(TelegramPanelRuntime.show_menu)
           assert TelegramPanelRuntimeV41.RUNTIME_VERSION == 41
+          assert not any(
+              cls.__module__.startswith("admin_panel_runtime_v")
+              for cls in TelegramPanelRuntime.__mro__
+          )
           assert "usernotify:" in handler
           assert "usernotifyall:" in handler
           assert "_load_remote_bundle" in persistence
@@ -152,13 +151,13 @@ jobs:
           assert notification_router._bbvg_notification_integrity_v2_installed is True
           ranking = [
             button["text"]
-            for row in TelegramPanelRuntimeV41.source_menu_rows(False)
+            for row in TelegramPanelRuntime.source_menu_rows(False)
             for button in row
             if button.get("callback_data") == "page:ranking"
           ]
           assert ranking == ["🏆 Рейтинг источников"]
-          assert "summary:send" not in inspect.getsource(TelegramPanelRuntimeV38.show_analytics)
-          assert "подтвержд.)" not in inspect.getsource(TelegramPanelRuntimeV38.show_ranking)
+          assert "summary:send" not in inspect.getsource(TelegramPanelRuntime.show_analytics)
+          assert "подтвержд.)" not in inspect.getsource(TelegramPanelRuntime.show_ranking)
           assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
           print("BB V.G. v41 final staged bundle validated")
           PY
