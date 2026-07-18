@@ -34,6 +34,19 @@
 `backup/before-analytics-intelligence-repair-2026-07-18` →
 `32fa6fb1f3212ef0facf3a2310e0236b8f06b393`.
 
+**Production:** PR #70 слит commit
+`f84a53e7a1bfd012a76d87f12f1c43c49f4ea62d`. На четвёртом непрерывном
+цикле монитор остался `running`, проверил 78 из 78 primary-источников без
+ошибок и не повторил восстановление. Счётчик находок сохранился и вырос с 22
+до 23: 16 за `2026-07-17` и 7 за `2026-07-18`; health остался `ok`.
+
+**Post-update backup:**
+`backup/after-analytics-intelligence-repair-2026-07-18` →
+`3a66cd56d74c4977db1cbffc758fa94c572cf8b4`. Автоматическая ротация оставила
+ровно три обычные backup-ветки: этот post-backup,
+`backup/after-wheel-generation-observations-2026-07-18` и
+`backup/before-analytics-intelligence-repair-2026-07-18`.
+
 **Откат:** вернуть commit исправления целиком либо перейти на pre-update
 backup. Восстановленные `wheel_posts` получены из уже существующих уникальных
 ключей публикаций и остаются валидными данными.
