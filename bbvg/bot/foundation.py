@@ -352,9 +352,6 @@ class PanelFoundationMixin:
         self.send(text, reply_markup=self.with_nav(buttons))
 
     def show_candidate_list(self, category: str, page: int = 0) -> None:
-        if category != "nightly":
-            super().show_candidate_list(category, page)
-            return
         if not self.is_admin():
             self.send("Недоступно.", reply_markup=self.with_nav())
             return
@@ -364,8 +361,14 @@ class PanelFoundationMixin:
         part = rows[
             page * CANDIDATES_PER_PAGE : (page + 1) * CANDIDATES_PER_PAGE
         ]
+        title = {
+            "new": "Кандидаты, требующие решения",
+            "nightly": "Каналы ночной базы, где находились колёса",
+            "ignored": "Игнорируемые кандидаты",
+            "all": "Все кандидаты",
+        }.get(category, "Кандидаты")
         lines = [
-            "🎡 <b>Каналы ночной базы, где находились колёса</b>",
+            f"🔎 <b>{html.escape(title)}</b>",
             f"Страница {page + 1} из {max_page + 1}",
             "",
         ]
@@ -386,26 +389,27 @@ class PanelFoundationMixin:
             buttons.append(
                 [
                     {
-                        "text": f"@{source[:24]} · колёс {found}",
+                        "text": f"{self.score_label(score).split()[0]} "
+                        f"@{source[:24]} · {score}",
                         "callback_data": f"candidate:detail:{source}",
                     }
                 ]
             )
         if not part:
-            lines.append("В ночной базе пока нет каналов с найденными колёсами.")
+            lines.append("Список пуст.")
         nav: list[dict[str, str]] = []
         if page > 0:
             nav.append(
                 {
                     "text": "◀️",
-                    "callback_data": f"candidate:list:nightly:{page - 1}",
+                    "callback_data": f"candidate:list:{category}:{page - 1}",
                 }
             )
         if page < max_page:
             nav.append(
                 {
                     "text": "▶️",
-                    "callback_data": f"candidate:list:nightly:{page + 1}",
+                    "callback_data": f"candidate:list:{category}:{page + 1}",
                 }
             )
         if nav:
@@ -419,6 +423,95 @@ class PanelFoundationMixin:
             ]
         )
         self.send("\n".join(lines).rstrip(), reply_markup=self.with_nav(buttons))
+
+    def show_candidate_detail(self, source: str) -> None:
+        if not self.is_admin():
+            self.send("Недоступно.", reply_markup=self.with_nav())
+            return
+        source = self.safe_source(source)
+        item = next(
+            (
+                row
+                for row in self.candidate_rows()
+                if str(row.get("source") or "").casefold() == source.casefold()
+            ),
+            None,
+        )
+        if item is None:
+            self.send(
+                f"Кандидат @{html.escape(source)} больше не находится в очереди.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        score = int(item.get("score", 0) or 0)
+        category = str(item.get("category") or "new")
+        category_text = {
+            "new": "требует решения",
+            "nightly": "наблюдается ночью",
+            "ignored": "игнорируется",
+            "primary": "добавлен в основную проверку",
+        }.get(category, category)
+        lines = [
+            f"📡 <b>@{html.escape(source)}</b>",
+            "",
+            f"Статус решения: <b>{html.escape(category_text)}</b>",
+            f"Оценка: <b>{score}/100</b> — {self.score_label(score)}",
+            f"Рекомендация: {html.escape(self.recommendation(score))}",
+            "",
+            f"Всего найдено ссылок: {int(item.get('wheel_links_found', 0) or 0)}",
+            f"За последние 48 часов: {int(item.get('recent_wheel_links', 0) or 0)}",
+            f"Подтверждено активных: {int(item.get('active_wheel_links', 0) or 0)}",
+            f"Не подтверждено: {int(item.get('unconfirmed_wheel_links', 0) or 0)}",
+            f"Просмотрено сообщений: {int(item.get('messages_checked', 0) or 0)}",
+            "Состояние канала: "
+            f"{html.escape(str(item.get('status') or 'нет данных'))}",
+            f"Последнее колесо: {self.fmt_dt(item.get('latest_wheel_at'))}",
+            f"Последняя проверка: {self.fmt_dt(item.get('checked_at'))}",
+        ]
+        recent_wheels = self._recent_candidate_wheels(source)
+        if recent_wheels:
+            lines.extend(["", "<b>Последние найденные колёса</b>"])
+            for wheel in recent_wheels:
+                identifier = str(wheel.get("identifier") or "колесо")
+                lines.append(
+                    f"• <code>{html.escape(identifier)}</code> — "
+                    f"{self.fmt_dt(wheel.get('notified_at'))}"
+                )
+        buttons: list[list[dict[str, str]]] = [
+            [{"text": "📨 Открыть канал", "url": f"https://telegram.me/{source}"}]
+        ]
+        if category != "primary":
+            buttons.append(
+                [{
+                    "text": "⚡ Добавить в основную",
+                    "callback_data": f"candidate:mode:fast:{source}",
+                }]
+            )
+        if category != "nightly":
+            buttons.append(
+                [{
+                    "text": "🌙 Добавить в ночную",
+                    "callback_data": f"candidate:mode:nightly:{source}",
+                }]
+            )
+        if category == "ignored":
+            buttons.append(
+                [{
+                    "text": "↩️ Вернуть в ночную проверку",
+                    "callback_data": f"candidate:restore:{source}",
+                }]
+            )
+        elif category != "primary":
+            buttons.append(
+                [{
+                    "text": "🙈 Игнорировать",
+                    "callback_data": f"candidate:ignoreask:{source}",
+                }]
+            )
+        buttons.append(
+            [{"text": "🔎 К списку кандидатов", "callback_data": "page:discovery"}]
+        )
+        self.send("\n".join(lines), reply_markup=self.with_nav(buttons))
 
     @staticmethod
     def _callback_page(data: str) -> str | None:
