@@ -58,9 +58,38 @@ validation и state-writing workflow, `AGENTS.md`, этот журнал. Нов
 `backup/after-analytics-multisource-routing-2026-07-18` только после ancestry
 проверки.
 
-**Проверки до PR:** baseline `114 passed`; профильный compile и
-concurrency/notification suite — `23 passed`. Финальные CI run ID, production
-heartbeat и post-deploy backup фиксируются после deploy.
+**Проверки:** baseline `114 passed`; профильный compile и
+concurrency/notification suite — `23 passed`; финальный локальный pytest —
+`123 passed`, production acceptance, security audit и preflight (`81 approved:
+78 primary, 3 nightly`) успешны. PR #63 прошёл шесть обязательных checks
+(runs `29636198716`, `29636198689`, `29636198694`, `29636198687`,
+`29636198691`, `29636198699`) и слит как
+`6229e088899c0fa3d77d0267fbffd2c80623ba46`.
+
+**Production cutover:** monitor run `29636234832` подтвердил `78/78` доступных
+primary-источников, `0` ошибок и свежий heartbeat. Ledger повторяемо мигрировал
+из v2 в v3: сохранены все 75 неистёкших delivery entries, две записи старше
+окна retention штатно удалены, активных claims после cutover нет. Discovery
+state мигрировал v1 → v2. Encrypted bundle имеет тот же Git blob
+`2aa1875527a6e0ad50f5ba941f8084b0aeb2e0f0`; размеры всех коллекций wheel
+state v6, source stats, admin queue и moderation до/после совпали.
+
+Первый production run панели обнаружил ещё один ownership-конфликт: panel
+выполняла `notification_integrity_v2.py --prune`, оставляла ledger
+незакоммиченным и не могла сделать rebase при конкурентной записи статуса.
+Hotfix оставил monitor единственным writer ledger, закрепил это тестом, прошёл
+пять checks (runs `29636373900`, `29636373879`, `29636373863`, `29636373864`,
+`29636373874`) и слит как
+`700951a7acc428c603d4966701bf79a9411f0f80`. Panel run `29636395542`
+возобновлён с точным production SHA и свежим heartbeat; system health — `ok`,
+findings `0`.
+
+**Post-deploy backup:**
+`backup/after-chapter4-state-concurrency-2026-07-18` →
+`d31ed72926381972e5d9374d4fda2f84c83e6ae3`. Автоматическая rotation оставила
+ровно три backup-ветки: post-update, pre-update и
+`backup/after-wheel-generation-2026-07-18`; самая старая
+`backup/before-wheel-generation-2026-07-18` удалена.
 
 **Откат:** вернуть merge commit главы 4 либо перейти на pre-update backup.
 Если cutover ledger уже выполнен, v3 обратно совместим по delivery entries, но
