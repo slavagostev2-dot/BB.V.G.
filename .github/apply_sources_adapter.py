@@ -51,12 +51,15 @@ sources.write_text(text, encoding="utf-8")
 
 entry = Path("monitor_entry.py")
 text = entry.read_text(encoding="utf-8")
-start = text.find("    # Most wheel posts contain one identifier.")
-end = text.find("\n    return messages_by_source, source_errors, empty_sources", start)
-replacement = '''    # Preserve original messages in each source stream. Assessment wrappers
-    # still use the canonical publication for API/deadline semantics, while
-    # statistics and wheel_publications retain every posting channel.
-    for source, messages in list(messages_by_source.items()):
+helper = '''
+
+def _preserve_source_messages(
+    messages_by_source: dict[str, list[monitor.Message]],
+) -> dict[str, list[monitor.Message]]:
+    """Keep each Telegram post attributed to the channel that published it."""
+
+    result: dict[str, list[monitor.Message]] = {}
+    for source, messages in messages_by_source.items():
         rewritten: list[monitor.Message] = []
         seen_messages: set[tuple[str, int]] = set()
         for message in messages:
@@ -65,10 +68,23 @@ replacement = '''    # Preserve original messages in each source stream. Assessm
                 continue
             seen_messages.add(marker)
             rewritten.append(message)
-        messages_by_source[source] = rewritten
+        result[source] = rewritten
+    return result
+'''
+if "def _preserve_source_messages(" not in text:
+    marker = "\n\ndef fetch_all_sources_with_originals(sources):\n"
+    if marker not in text:
+        raise RuntimeError("fetch_all_sources_with_originals marker missing")
+    text = text.replace(marker, helper + marker, 1)
+
+start = text.find("    # Most wheel posts contain one identifier.")
+if start < 0:
+    start = text.find("    # Preserve original messages in each source stream.")
+end = text.find("\n    return messages_by_source, source_errors, empty_sources", start)
+replacement = '''    messages_by_source = _preserve_source_messages(messages_by_source)
 '''
 if start < 0 or end < 0:
-    raise RuntimeError("monitor_entry canonical rewrite marker missing")
+    raise RuntimeError("monitor_entry source rewrite marker missing")
 text = text[:start] + replacement + text[end:]
 entry.write_text(text, encoding="utf-8")
 
@@ -82,6 +98,58 @@ start = text.find('replace_once(\n    "bbvg/bot/sources.py",')
 end = text.find('replace_once("tests/test_lifecycle.py"', start)
 if start >= 0 and end > start:
     text = text[:start] + text[end:]
+old_test = '''class MultiSourceDiscoveryTests(unittest.TestCase):
+    def test_source_streams_keep_original_publications(self) -> None:
+        current = datetime(2026, 7, 17, 10, 30, tzinfo=UTC)
+        link = "https://betboom.ru/freestream/zonertg8"
+        first = monitor.Message(
+            "mechanogun", 500, current, link, "https://telegram.me/mechanogun/500"
+        )
+        second = monitor.Message(
+            "kolesaBB", 131, current + timedelta(minutes=1), link,
+            "https://telegram.me/kolesaBB/131",
+        )
+        original = monitor_entry._original_fetch_all_sources
+        try:
+            monitor_entry._original_fetch_all_sources = lambda sources: (
+                {"mechanogun": [first], "kolesaBB": [second]}, {}, []
+            )
+            messages, _, _ = monitor_entry.fetch_all_sources_with_originals(
+                ["mechanogun", "kolesaBB"]
+            )
+        finally:
+            monitor_entry._original_fetch_all_sources = original
+
+        self.assertEqual(messages["mechanogun"][0].source, "mechanogun")
+        self.assertEqual(messages["kolesaBB"][0].source, "kolesaBB")
+        self.assertEqual(
+            [row["source"] for row in monitor_entry._WHEEL_PUBLICATIONS["zonertg8"]],
+            ["mechanogun", "kolesaBB"],
+        )
+        self.assertEqual(monitor_entry._CANONICAL_MESSAGES["zonertg8"].source, "mechanogun")
+'''
+new_test = '''class MultiSourceDiscoveryTests(unittest.TestCase):
+    def test_source_streams_keep_original_publications(self) -> None:
+        current = datetime(2026, 7, 17, 10, 30, tzinfo=UTC)
+        link = "https://betboom.ru/freestream/zonertg8"
+        first = monitor.Message(
+            "mechanogun", 500, current, link, "https://telegram.me/mechanogun/500"
+        )
+        second = monitor.Message(
+            "kolesaBB", 131, current + timedelta(minutes=1), link,
+            "https://telegram.me/kolesaBB/131",
+        )
+        messages = monitor_entry._preserve_source_messages(
+            {"mechanogun": [first], "kolesaBB": [second, second]}
+        )
+        self.assertEqual(messages["mechanogun"][0].source, "mechanogun")
+        self.assertEqual(messages["kolesaBB"][0].source, "kolesaBB")
+        self.assertEqual(len(messages["kolesaBB"]), 1)
+'''
+if old_test in text:
+    text = text.replace(old_test, new_test, 1)
+elif new_test not in text:
+    raise RuntimeError("multi-source lifecycle test marker missing")
 core.write_text(text, encoding="utf-8")
 
 ui = Path(".github/apply_analytics_ui.py")
