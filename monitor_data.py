@@ -160,7 +160,8 @@ UNAVAILABLE_REPORT_DAYS = max(
 UNKNOWN_TIMER_LIMIT = max(20, int(os.getenv("UNKNOWN_TIMER_LIMIT", "250")))
 STATS_RETENTION_DAYS = max(30, int(os.getenv("STATS_RETENTION_DAYS", "120")))
 STATS_TIMEZONE = ZoneInfo(os.getenv("DISPLAY_TIMEZONE", "Asia/Barnaul"))
-SOURCE_RATING_EPOCH_DAY = os.getenv("SOURCE_RATING_EPOCH_DAY", "2026-07-14")
+SOURCE_RATING_EPOCH_DAY = os.getenv("SOURCE_RATING_EPOCH_DAY", "2026-07-17")
+WHEEL_POST_RECOVERY_VERSION = 1
 SOURCE_RATING_RESET_FIELDS = (
     "wheel_posts",
     "admin_confirmed_wheels",
@@ -627,6 +628,74 @@ def apply_source_rating_epoch(data: dict[str, Any]) -> bool:
                 source_entry.pop(field, None)
     data["source_rating_epoch_day"] = SOURCE_RATING_EPOCH_DAY
     data["source_rating_reset_at"] = f"{SOURCE_RATING_EPOCH_DAY}T00:00:00+07:00"
+    return True
+
+
+def recover_wheel_post_stats_from_recent_keys(data: dict[str, Any]) -> bool:
+    """Restore wheel finding counters erased by the conflicting rating epochs."""
+
+    if int(data.get("wheel_post_recovery_version", 0) or 0) >= WHEEL_POST_RECOVERY_VERSION:
+        return False
+
+    counting_from = parse_datetime(
+        data.get("source_rating_counting_from") or data.get("source_rating_reset_at")
+    )
+    if counting_from is None:
+        counting_from = datetime.fromisoformat(
+            f"{SOURCE_RATING_EPOCH_DAY}T00:00:00+07:00"
+        )
+
+    source_counts: dict[str, int] = {}
+    daily_counts: dict[str, dict[str, int]] = {}
+    recovered_records = 0
+    sources = data.setdefault("sources", {})
+    for source, entry in sources.items():
+        if not isinstance(entry, dict):
+            continue
+        recent = entry.get("recent_post_keys")
+        if not isinstance(recent, dict):
+            continue
+        for raw in recent.values():
+            if not isinstance(raw, dict):
+                continue
+            observed_at = parse_datetime(raw.get("seen_at"))
+            if observed_at is None or observed_at < counting_from:
+                continue
+            day = observed_at.astimezone(STATS_TIMEZONE).date().isoformat()
+            source_counts[str(source)] = source_counts.get(str(source), 0) + 1
+            by_source = daily_counts.setdefault(day, {})
+            by_source[str(source)] = by_source.get(str(source), 0) + 1
+            recovered_records += 1
+
+    for entry in sources.values():
+        if isinstance(entry, dict):
+            entry.pop("wheel_posts", None)
+    for daily_entry in data.setdefault("daily", {}).values():
+        if not isinstance(daily_entry, dict):
+            continue
+        totals = daily_entry.setdefault("totals", {})
+        if isinstance(totals, dict):
+            totals.pop("wheel_posts", None)
+        for source_entry in daily_entry.setdefault("sources", {}).values():
+            if isinstance(source_entry, dict):
+                source_entry.pop("wheel_posts", None)
+
+    for source, count in source_counts.items():
+        sources.setdefault(source, {})["wheel_posts"] = count
+    for day, rows in daily_counts.items():
+        daily_entry = data.setdefault("daily", {}).setdefault(
+            day, {"sources": {}, "totals": {}}
+        )
+        daily_entry.setdefault("totals", {})["wheel_posts"] = sum(rows.values())
+        for source, count in rows.items():
+            daily_entry.setdefault("sources", {}).setdefault(source, {})[
+                "wheel_posts"
+            ] = count
+
+    data["wheel_post_recovery_version"] = WHEEL_POST_RECOVERY_VERSION
+    data["wheel_post_recovered_at"] = now_utc().isoformat()
+    data["wheel_post_recovered_records"] = recovered_records
+    data["wheel_post_recovered_from"] = counting_from.isoformat()
     return True
 
 
