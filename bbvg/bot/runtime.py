@@ -3,16 +3,26 @@ from __future__ import annotations
 import argparse
 import copy
 import html
+import json
 import os
 import re
+import time
+from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
-from datetime import datetime
 
+import admin_action_queue
+import admin_bot as legacy
 import personal_wheel_voting
 import telegram_ui
-from admin_panel_runtime_v31 import SUMMARY_PERIODS
-from admin_panel_runtime_v38 import TelegramPanelRuntimeV38
+from bbvg.bot.storage import PrivateStateRuntime
+from bbvg.bot.users import UserSettingsMixin
+
+SUMMARY_PERIODS = {
+    "daily": (1, "Ежедневная"),
+    "weekly": (7, "Еженедельная"),
+    "monthly": (30, "Ежемесячная"),
+}
 
 
 def _install_dedicated_vote_key_contract() -> None:
@@ -44,12 +54,126 @@ _BUTTON_COLOR_RE = re.compile(
     rf"^{_DOT_GROUP}\s+(?=(?:🎡|✅|🏁|🚫|⏱|🔄|🏠|\d))"
 )
 _BUTTON_INDEX_RE = re.compile(r"(?<!\d)(\d+)\s*·")
+TECHNICAL_ERROR_RE = re.compile(
+    r"(?:Не удалось выполнить команду:\s*<code>[^<]+</code>|"
+    r"Диагностика не выполнена:\s*(?:<code>)?[^<.\n]+(?:</code>)?|"
+    r"(?:ошибка|не удалось)[^\n]{0,180}<code>[^<]{1,120}</code>|"
+    r"Traceback \(most recent call last\))",
+    re.IGNORECASE | re.DOTALL,
+)
+USER_ACTION_ERROR = (
+    "⚠️ <b>Не удалось выполнить действие.</b>\n\n"
+    "Попробуйте ещё раз или вернитесь в главное меню."
+)
 
 
-class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
+class TelegramPanelRuntime(
+    PersonalWheelVotingMixin,
+    UserSettingsMixin,
+    PrivateStateRuntime,
+):
     """Current Telegram control center without version-layer inheritance."""
 
     RUNTIME_VERSION = 41
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._last_panel_heartbeat = 0.0
+        self._panel_heartbeat_busy = False
+
+    @staticmethod
+    def safe_text_for_role(text: str, role: str) -> str:
+        value = str(text or "")
+        if role not in {"owner", "admin"} and TECHNICAL_ERROR_RE.search(value):
+            return USER_ACTION_ERROR
+        return value
+
+    def send(
+        self,
+        text: str,
+        *,
+        reply_markup: dict[str, Any] | None = None,
+        chat_id: str | None = None,
+    ) -> dict:
+        value = self.safe_text_for_role(text, self.current_role)
+        return super().send(value, reply_markup=reply_markup, chat_id=chat_id)
+
+    def setup_bot(self) -> None:
+        super().setup_bot()
+        commands = [dict(item) for item in legacy.COMMANDS]
+        for item in commands:
+            if item.get("command") == "ranking":
+                item["description"] = "Рейтинг источников"
+            elif item.get("command") == "reports":
+                item["description"] = "Аналитика по периодам"
+        self.telegram_api("setMyCommands", {"commands": commands})
+        try:
+            changed = self._apply_notification_policy_once()
+        except Exception as exc:
+            print(f"WARNING notification policy migration: {type(exc).__name__}: {exc}")
+            return
+        if changed:
+            try:
+                self.dispatch("monitor.yml", {"continuous": "true", "replace": "true"})
+            except Exception as exc:
+                print(f"WARNING preference refresh dispatch: {type(exc).__name__}: {exc}")
+
+    def dispatch_admin_action(self, action: str, value: str) -> dict[str, Any]:
+        command_id = admin_action_queue.enqueue_remote(action, value)
+        return {
+            "action": action,
+            "queued": True,
+            "command_id": command_id,
+            "state_changed": False,
+            "health_changed": False,
+            "stats_changed": False,
+            "detail": "Действие будет применено основной проверкой в ближайшем цикле.",
+        }
+
+    def record_runtime_heartbeat(self, *, force: bool = False) -> None:
+        current_monotonic = time.monotonic()
+        if (
+            not force
+            and self._last_panel_heartbeat
+            and current_monotonic - self._last_panel_heartbeat < 300
+        ):
+            return
+        if self._panel_heartbeat_busy:
+            return
+        self._panel_heartbeat_busy = True
+        try:
+            for attempt in range(1, 4):
+                status = self.get_json_file("admin_panel_status.json", {})
+                now_text = datetime.now(legacy.UTC).isoformat()
+                status.update(
+                    {
+                        "status": "running",
+                        "brand": "BB V.G.",
+                        "last_heartbeat_at": now_text,
+                        "version": self.RUNTIME_VERSION,
+                        "heartbeat_version": 1,
+                        "runtime_owner": "telegram_control_center",
+                        "update_consumer": "single_getUpdates_owner",
+                    }
+                )
+                status.setdefault("started_at", now_text)
+                try:
+                    self.update_file(
+                        "admin_panel_status.json",
+                        json.dumps(status, ensure_ascii=False, indent=2, sort_keys=True)
+                        + "\n",
+                        "Update BB V.G. control center heartbeat [skip ci]",
+                    )
+                except RuntimeError as exc:
+                    if attempt < 3 and any(code in str(exc) for code in (" 409 ", " 422 ")):
+                        continue
+                    raise
+                self._last_panel_heartbeat = current_monotonic
+                return
+        except Exception as exc:
+            print(f"WARNING panel heartbeat: {type(exc).__name__}: {exc}")
+        finally:
+            self._panel_heartbeat_busy = False
 
     def handle_callback(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
@@ -70,7 +194,7 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
                 self._edit_message_id = previous_edit_message_id
             return
 
-        if data.startswith(("bb:t:", "wheel:time:")):
+        if data.startswith(("bb:t:", "wheel:time:", "wheel:timequick:")):
             message = query.get("message") or {}
             previous_edit_message_id = getattr(self, "_edit_message_id", None)
             self._edit_message_id = int(message.get("message_id") or 0) or None
@@ -166,7 +290,6 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
         groups = self.source_sets(snap)
         primary = groups.get("primary", [])
         reserve = groups.get("reserve", [])
-        paused = groups.get("paused", [])
         generated_at = registry.get("generated_at")
         updated = (
             f"{self.fmt_dt(generated_at)} ({self.age_text(generated_at)})"
@@ -423,15 +546,48 @@ class TelegramPanelRuntime(PersonalWheelVotingMixin, TelegramPanelRuntimeV38):
         self.send(text, reply_markup=self.with_nav())
 
     def render_page(self, page: str) -> None:
-        normalized = str(page or "")
+        normalized = self._normalize_page(page)
         if normalized in {"wheelmode", "disabled_features"} and not self.is_admin():
             self.show_settings()
             return
-        super().render_page(page)
+        if normalized == "app":
+            self.send(
+                "📦 <b>Приложение временно отключено</b>\n\n"
+                "Рабочий контур BB V.G. сейчас находится только в Telegram-боте.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        if normalized.startswith("active:"):
+            value = normalized.split(":", 1)[1]
+            self.show_active(int(value) if value.isdigit() else 0)
+            return
+        if normalized.startswith("analytics:"):
+            value = normalized.split(":", 1)[1]
+            self.show_analytics(int(value) if value.isdigit() else 1)
+            return
+        if normalized.startswith("access:"):
+            value = normalized.split(":", 1)[1]
+            self.show_access(int(value) if value.isdigit() else 0)
+            return
+        if normalized.startswith("recipients:"):
+            value = normalized.split(":", 1)[1]
+            self.show_recipients(int(value) if value.isdigit() else 0)
+            return
+        if normalized == "report:inactive":
+            self.show_inactive_report(0)
+            return
+        if normalized.startswith("report:inactive:"):
+            value = normalized.rsplit(":", 1)[1]
+            self.show_inactive_report(int(value) if value.isdigit() else 0)
+            return
+        if normalized == "status":
+            self.show_status()
+            return
+        super().render_page(normalized)
 
 
 def _configured_panel(
-    panel: TelegramPanelRuntimeV38,
+    panel: TelegramPanelRuntime,
     captured: list[tuple[str, dict[str, Any]]],
 ) -> None:
     panel.current_user_id = "1"
@@ -466,8 +622,11 @@ def _configured_panel(
 
 def self_test() -> None:
     assert TelegramPanelRuntime.RUNTIME_VERSION == 41
-    assert issubclass(TelegramPanelRuntime, TelegramPanelRuntimeV38)
     assert issubclass(TelegramPanelRuntime, PersonalWheelVotingMixin)
+    assert not any(
+        cls.__module__.startswith("admin_panel_runtime_v")
+        for cls in TelegramPanelRuntime.__mro__
+    )
     assert SUMMARY_PERIODS["daily"][0] == 1
     assert SUMMARY_PERIODS["weekly"][0] == 7
     assert SUMMARY_PERIODS["monthly"][0] == 30
