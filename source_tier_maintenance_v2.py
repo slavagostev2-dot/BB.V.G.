@@ -4,11 +4,8 @@ import argparse
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import bot_notification_state
 import bot_private_state
 import source_tier_maintenance as legacy
-
-legacy.notification_recipients = bot_notification_state.admin_recipients
 
 
 def self_test() -> None:
@@ -17,11 +14,11 @@ def self_test() -> None:
         with TemporaryDirectory() as temporary:
             # A self-test must not decrypt the production bundle with a CI key.
             bot_private_state.STATE_PATH = Path(temporary) / "missing-state.enc.json"
-            recipients = legacy.notification_recipients()
-            assert isinstance(recipients, list)
+            assert not hasattr(legacy, "send_notification")
+            assert "manual_nightly_only" in legacy.main.__code__.co_consts
     finally:
         bot_private_state.STATE_PATH = original
-    print("BB V.G. source tier bot-only notification self-test passed")
+    print("BB V.G. manual-only source tier self-test passed")
 
 
 def main() -> int:
