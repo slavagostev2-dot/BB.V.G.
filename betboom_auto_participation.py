@@ -4,7 +4,6 @@ import json
 import os
 import re
 from dataclasses import dataclass
-from datetime import timedelta
 from typing import Any
 
 
@@ -17,6 +16,7 @@ _BUTTON_RE = re.compile(
     r"^\s*(?:участвую|участвовать|принять\s+участие)\s*$",
     re.IGNORECASE,
 )
+_DEFAULT_ALERT_USER = "Вячеслав"
 
 
 @dataclass(frozen=True)
@@ -40,10 +40,6 @@ def _storage_state_raw() -> str:
     if direct:
         return direct
 
-    # GitHub Actions repository secrets are size-limited. Large Playwright
-    # storage-state JSON can therefore be stored in two secrets and joined
-    # byte-for-byte at runtime. Do not strip either part: a split may occur
-    # inside a JSON string where whitespace is significant.
     part1 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART1", "")
     part2 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART2", "")
     if not part1 and not part2:
@@ -74,12 +70,7 @@ def _body_text(page: Any) -> str:
 
 
 def participate(url: str) -> ParticipationResult:
-    """Open one BetBoom wheel in an authenticated browser and click participation.
-
-    The function is deliberately fail-closed: it reports success only when the
-    resulting page contains an explicit participation confirmation. A click by
-    itself is never enough to mark a wheel as participated in the monitor.
-    """
+    """Open one BetBoom wheel and make exactly one participation attempt."""
 
     if not enabled():
         return ParticipationResult(False, "disabled", "автоучастие отключено")
@@ -137,7 +128,7 @@ def participate(url: str) -> ParticipationResult:
             buttons.first.click(timeout=timeout_ms)
             try:
                 page.wait_for_function(
-                    """() => /участие\s+(принято|подтверждено|зарегистрировано)|вы\s+(уже\s+)?участвуете|уже\s+участвуете|участие\s+отмечено/i.test(document.body?.innerText || '')""",
+                    """() => /участие\\s+(принято|подтверждено|зарегистрировано)|вы\\s+(уже\\s+)?участвуете|уже\\s+участвуете|участие\\s+отмечено/i.test(document.body?.innerText || '')""",
                     timeout=timeout_ms,
                 )
             except PlaywrightTimeoutError:
@@ -234,15 +225,90 @@ def _mark_confirmed_participation(
     entry["auto_participation_confirmed_at"] = current.isoformat()
 
 
+def _normalized_names(user_id: str, record: dict[str, Any]) -> set[str]:
+    first = str(record.get("first_name") or "").strip()
+    last = str(record.get("last_name") or "").strip()
+    full = " ".join(value for value in (first, last) if value)
+    values = {
+        first,
+        full,
+        str(record.get("name") or "").strip(),
+        str(record.get("display_name") or "").strip(),
+        str(record.get("username") or "").strip().lstrip("@"),
+        str(user_id or "").strip(),
+    }
+    return {value.casefold() for value in values if value}
+
+
+def _target_chat_id() -> tuple[str, str]:
+    target = os.getenv("BETBOOM_PARTICIPATION_ALERT_USER", _DEFAULT_ALERT_USER).strip()
+    normalized_target = target.casefold()
+    try:
+        import bot_notification_state
+
+        config, exists = bot_notification_state.load_config()
+    except Exception as exc:
+        return "", f"config_error:{type(exc).__name__}"
+    if not exists:
+        return "", "config_missing"
+
+    users = config.get("users") if isinstance(config.get("users"), dict) else {}
+    for user_id, raw in users.items():
+        if not isinstance(raw, dict):
+            continue
+        names = _normalized_names(str(user_id), raw)
+        exact = normalized_target in names
+        first_name_match = any(
+            value == normalized_target or value.startswith(normalized_target + " ")
+            for value in names
+        )
+        if exact or first_name_match:
+            chat_id = str(raw.get("chat_id") or user_id).strip()
+            if chat_id:
+                return chat_id, str(user_id)
+    return "", "recipient_not_found"
+
+
+def _notify_manual_participation(
+    monitor: Any,
+    entry: dict[str, Any],
+    result: ParticipationResult,
+) -> tuple[bool, str]:
+    chat_id, recipient = _target_chat_id()
+    if not chat_id:
+        return False, recipient
+
+    identifier = str(entry.get("identifier") or entry.get("wheel_key") or "колесо")
+    url = str(entry.get("url") or "").strip()
+    text = (
+        "⚠️ <b>Автоучастие в колесе BetBoom не сработало</b>\n\n"
+        f"Вячеслав, не удалось автоматически принять участие в колесе <code>{identifier}</code>.\n"
+        "Повторной автоматической попытки не будет. Пожалуйста, откройте колесо и нажмите «Участвовать» вручную."
+    )
+    payload: dict[str, Any] = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+    if url:
+        payload["reply_markup"] = {
+            "inline_keyboard": [[{"text": "🎡 Открыть колесо", "url": url}]]
+        }
+
+    try:
+        response = monitor.telegram_api("sendMessage", payload)
+    except Exception as exc:
+        return False, f"send_error:{type(exc).__name__}:{exc}"[:300]
+    if isinstance(response, dict) and response.get("ok"):
+        return True, recipient
+    return False, f"telegram_rejected:{str(response)[:220]}"
+
+
 def process_new_wheel_events(
     state: dict[str, Any], monitor: Any
 ) -> dict[str, int | bool]:
-    """Attempt BetBoom participation once when a new wheel event becomes active.
-
-    This method performs no periodic page polling. Each unique event identity is
-    handled at most once. A wheel discovered before participation opens remains
-    unrecorded until it becomes eligible, then receives its single attempt.
-    """
+    """Attempt each new wheel event exactly once; failures require manual action."""
 
     if not configured():
         return {"changed": False, "attempted": 0, "succeeded": 0, "failed": 0}
@@ -252,9 +318,8 @@ def process_new_wheel_events(
     events = state.setdefault("auto_participation_events", {})
     changed = False
 
-    # On the first deployment in event mode, treat the currently active set as a
-    # baseline. This prevents the new integration from opening a backlog of old
-    # wheels. Only events appearing after this initialization are auto-processed.
+    # First event-mode deployment establishes a baseline so historical active
+    # wheels are never opened by the participation browser.
     if not state.get("auto_participation_event_mode_initialized_at"):
         for key, entry in list(active.items()):
             if not isinstance(entry, dict):
@@ -296,19 +361,37 @@ def process_new_wheel_events(
 
         attempted += 1
         result = participate(str(entry.get("url") or ""))
-        events[token] = {
+
+        # Record the event immediately. This is the hard no-retry boundary:
+        # success or failure, the same event token is never attempted again.
+        event_record: dict[str, Any] = {
             "wheel_key": normalized,
             "attempted_at": current.isoformat(),
             "status": result.status,
             "detail": result.detail[:300],
+            "retry_allowed": False,
         }
+        events[token] = event_record
         entry["auto_participation_status"] = result.status
         entry["auto_participation_checked_at"] = current.isoformat()
+        entry["auto_participation_retry_allowed"] = False
         changed = True
 
         if not result.success:
             failed += 1
             entry["auto_participation_error"] = result.detail[:300]
+            notified, notification_detail = _notify_manual_participation(
+                monitor, entry, result
+            )
+            event_record["manual_notification_sent"] = notified
+            event_record["manual_notification_detail"] = notification_detail[:300]
+            if notified:
+                event_record["manual_notification_at"] = current.isoformat()
+                entry["auto_participation_manual_notification_at"] = current.isoformat()
+            else:
+                entry["auto_participation_manual_notification_error"] = (
+                    notification_detail[:300]
+                )
             continue
 
         _mark_confirmed_participation(state, monitor, normalized, entry, result, current)
@@ -323,60 +406,6 @@ def process_new_wheel_events(
 
 
 def process_active_wheels(state: dict[str, Any], monitor: Any) -> dict[str, int | bool]:
-    """Manual fallback: retry active wheels when this worker is explicitly run."""
+    """Compatibility entry point; intentionally uses the same one-attempt policy."""
 
-    if not configured():
-        return {"changed": False, "attempted": 0, "succeeded": 0, "failed": 0}
-
-    current = monitor.now_utc()
-    retry_minutes = max(
-        1,
-        min(1440, int(os.getenv("BETBOOM_PARTICIPATION_RETRY_MINUTES", "10"))),
-    )
-    retry_delta = timedelta(minutes=retry_minutes)
-    attempts = state.setdefault("auto_participation_attempts", {})
-    changed = False
-    attempted = 0
-    succeeded = 0
-    failed = 0
-
-    for key, entry in list(state.setdefault("active_wheels", {}).items()):
-        if not isinstance(entry, dict):
-            continue
-        normalized = str(key).casefold()
-        if monitor.is_participating(state, normalized):
-            continue
-        if not _eligible_for_event_attempt(entry, monitor, current):
-            continue
-
-        previous = attempts.get(normalized)
-        if isinstance(previous, dict):
-            previous_at = monitor.parse_datetime(previous.get("attempted_at"))
-            if previous_at is not None and current - previous_at < retry_delta:
-                continue
-
-        attempted += 1
-        result = participate(str(entry.get("url") or ""))
-        attempts[normalized] = {
-            "attempted_at": current.isoformat(),
-            "status": result.status,
-            "detail": result.detail[:300],
-        }
-        entry["auto_participation_status"] = result.status
-        entry["auto_participation_checked_at"] = current.isoformat()
-        changed = True
-
-        if not result.success:
-            failed += 1
-            entry["auto_participation_error"] = result.detail[:300]
-            continue
-
-        _mark_confirmed_participation(state, monitor, normalized, entry, result, current)
-        succeeded += 1
-
-    return {
-        "changed": changed,
-        "attempted": attempted,
-        "succeeded": succeeded,
-        "failed": failed,
-    }
+    return process_new_wheel_events(state, monitor)
