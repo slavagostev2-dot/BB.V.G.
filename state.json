@@ -181,9 +181,9 @@
       "first_notified_at": "2026-07-19T11:04:24.139072+00:00",
       "generation_id": "4624e3ac9ebe9ca3e88e",
       "identifier": "neret",
-      "last_checked_at": "2026-07-19T12:52:16.990043+00:00",
+      "last_checked_at": "2026-07-19T12:55:18.613999+00:00",
       "last_notification_at": "2026-07-19T11:04:24.139072+00:00",
-      "last_verification_at": "2026-07-19T12:52:16.058345+00:00",
+      "last_verification_at": "2026-07-19T12:55:17.823318+00:00",
       "lifecycle_changed_at": "2026-07-19T11:06:58.296827+00:00",
       "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-19T11:03:35+00:00",
@@ -212,9 +212,9 @@
       "first_notified_at": "2026-07-19T10:55:03.388997+00:00",
       "generation_id": "87cace99c097471fd48e",
       "identifier": "papa",
-      "last_checked_at": "2026-07-19T12:52:16.990043+00:00",
+      "last_checked_at": "2026-07-19T12:55:18.613999+00:00",
       "last_notification_at": "2026-07-19T10:55:03.388997+00:00",
-      "last_verification_at": "2026-07-19T12:52:16.058345+00:00",
+      "last_verification_at": "2026-07-19T12:55:17.823318+00:00",
       "lifecycle_changed_at": "2026-07-19T10:57:54.434251+00:00",
       "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-19T10:52:08+00:00",
@@ -234,24 +234,32 @@
     },
     "smurf6": {
       "action_id": 858,
+      "availability_status": "available",
       "button_token": "a9dc8ece0d034e",
       "deadline": "2026-07-19T13:11:15.102000+00:00",
-      "expires_at": "2026-07-19T14:52:27.556916+00:00",
+      "deadline_source": "api",
+      "event_id": "510f5d5e7fb4ec5fc264",
+      "expires_at": "2026-07-19T14:55:17.823318+00:00",
       "first_notified_at": "2026-07-19T12:52:27.556916+00:00",
       "generation_id": "510f5d5e7fb4ec5fc264",
       "identifier": "smurf6",
-      "last_checked_at": "2026-07-19T12:52:27.556916+00:00",
+      "last_checked_at": "2026-07-19T12:55:18.613999+00:00",
       "last_notification_at": "2026-07-19T12:52:27.556916+00:00",
+      "last_verification_at": "2026-07-19T12:55:17.823318+00:00",
+      "lifecycle_changed_at": "2026-07-19T12:55:17.823255+00:00",
+      "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-19T12:51:33+00:00",
       "message_id": 2129,
       "message_text": "GRAND FINAL EWC вот-вот начнётся! Запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf6\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2129\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf6",
       "message_url": "https://telegram.me/smurf_gigachad/2129",
-      "method": "активность и таймер подтверждены BetBoom",
+      "method": "состояние определяется пользователями BB V.G.",
+      "needs_manual_time": false,
       "page_excerpt": "",
+      "page_status": "active",
       "participating": false,
       "server_start_at": "2026-07-19T12:51:15.102000+00:00",
       "source": "smurf_gigachad",
-      "status": "preliminary",
+      "status": "unknown",
       "url": "https://betboom.ru/freestream/smurf6",
       "verification_status": "confirmed"
     },
@@ -266,9 +274,9 @@
       "first_notified_at": "2026-07-19T08:15:07.698791+00:00",
       "generation_id": "221ef4ffd15b304f6a03",
       "identifier": "zonertg10",
-      "last_checked_at": "2026-07-19T12:52:16.990043+00:00",
+      "last_checked_at": "2026-07-19T12:55:18.613999+00:00",
       "last_notification_at": "2026-07-19T08:15:07.698791+00:00",
-      "last_verification_at": "2026-07-19T12:52:16.058345+00:00",
+      "last_verification_at": "2026-07-19T12:55:17.823318+00:00",
       "lifecycle_changed_at": "2026-07-19T08:17:57.681594+00:00",
       "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-19T08:12:01+00:00",
@@ -897,6 +905,14 @@
       "stats_changed": false,
       "status": "applied"
     },
+    "a6c2e41783694a83b7b0abe9485cf960": {
+      "action": "record_personal_vote",
+      "applied_at": "2026-07-19T12:55:17.823201+00:00",
+      "health_changed": false,
+      "state_changed": false,
+      "stats_changed": true,
+      "status": "applied"
+    },
     "ae340eb5dc3b45b0a2954c73ceefe8e0": {
       "action": "record_personal_vote",
       "applied_at": "2026-07-18T22:37:43.685579+00:00",
@@ -1199,6 +1215,7 @@
     "989957455bc6415c896dfbfc21bad68e": "2026-07-15T11:21:35.145659+00:00",
     "a0211095f70a415c9ea477e2872f4d6f": "2026-07-16T14:34:42.097541+00:00",
     "a59d74aad1724a2db158caeb89b14cca": "2026-07-16T12:42:11.105592+00:00",
+    "a6c2e41783694a83b7b0abe9485cf960": "2026-07-19T12:55:17.823201+00:00",
     "ae340eb5dc3b45b0a2954c73ceefe8e0": "2026-07-18T22:37:43.685579+00:00",
     "af1ec52c23b24b2cbb85a3aebab69522": "2026-07-16T14:28:37.989778+00:00",
     "b00550e0991e401b82b02d266ebe198c": "2026-07-16T02:13:17.424571+00:00",
@@ -1594,7 +1611,7 @@
     "wonderbelkaML",
     "zortelad"
   ],
-  "last_admin_action_applied_at": "2026-07-19T12:46:13.289499+00:00",
+  "last_admin_action_applied_at": "2026-07-19T12:55:17.823233+00:00",
   "last_automatic_status_at": "2026-07-17T06:35:52.571822+00:00",
   "last_heartbeat_at": "2026-07-19T09:27:19.256292+00:00",
   "last_run_kind": "schedule",
@@ -1779,7 +1796,7 @@
     "2e6f7ae94c98de3088eebe520f3e71243fd7e1aca29b4c0592d87ba890e0a0e0": "2026-07-18T20:04:25.255419+00:00",
     "2f52fc4a44639bbb464c4ca1062cf5ad5096f8bbee6ff393eb58964b78fed703": "2026-07-12T17:14:34.959937+00:00",
     "31b6f832ef9a7936f0f42b3d244f67fe056122171dba41c0aa4fe0a6e4dfe7c6": "2026-07-15T14:58:34.803315+00:00",
-    "337730427c31a977e25a704dfc987299ae086e8eea2f74de9a4a05fc2ad083c7": "2026-07-19T12:40:26.862470+00:00",
+    "337730427c31a977e25a704dfc987299ae086e8eea2f74de9a4a05fc2ad083c7": "2026-07-19T12:55:28.203251+00:00",
     "337d5e32a531ec783b47cc1558196264e2cb6f1d253e04b675ab2f7d447d416a": "2026-07-18T18:22:09.018077+00:00",
     "368f3194050806b90009f9066c96ee020906036e08a45d56b4c92053fd206cea": "2026-07-12T19:22:25.149620+00:00",
     "36f561eb489538365b9f8e9e20688d6913ca8930cfb3aead41ed3ce6da754545": "2026-07-12T18:26:16.728123+00:00",
@@ -1794,7 +1811,7 @@
     "3d77a7f5fec3bdd2c14a5079048f1bc6e784d170552a866fd6606edc15132fa2": "2026-07-12T19:22:25.149620+00:00",
     "3ddbc93b73f7446d4a83187cbc999ca64961140faead7aad7a4b87329d59fc6f": "2026-07-14T12:59:56.774245+00:00",
     "3fa237ebea84c75d45600bc50568920eea0f8d83553d4b06435f973ebd4e12d7": "2026-07-14T18:32:15.194369+00:00",
-    "438b7b6d0748af90ee374afef170e9a2f69f2dd153851758e79c97a9f5e932b0": "2026-07-19T12:52:27.707396+00:00",
+    "438b7b6d0748af90ee374afef170e9a2f69f2dd153851758e79c97a9f5e932b0": "2026-07-19T12:55:28.047113+00:00",
     "44d4bb427649c3b9d83143b13be90cc0010d829b90b78ae197a2ecdb941fbfb3": "2026-07-15T14:44:08.658604+00:00",
     "453c6dba9d529bbeff63b25cd39b50697c18e649655891b527f001a77b994131": "2026-07-12T18:26:20.387317+00:00",
     "45a3454e4d3c7808108ca4d6a008584b696edf48972c7b5a8b779fe1c2814725": "2026-07-18T18:37:10.658228+00:00",
@@ -2374,7 +2391,7 @@
     "neret": {
       "action_id": 919,
       "generation_id": "4624e3ac9ebe9ca3e88e",
-      "seen_at": "2026-07-19T12:52:16.058345+00:00",
+      "seen_at": "2026-07-19T12:55:17.823318+00:00",
       "server_start_at": "2026-07-19T11:01:22.086000+00:00",
       "state": "active"
     },
@@ -2389,7 +2406,7 @@
     "papa": {
       "action_id": 920,
       "generation_id": "87cace99c097471fd48e",
-      "seen_at": "2026-07-19T12:52:16.058345+00:00",
+      "seen_at": "2026-07-19T12:55:17.823318+00:00",
       "server_start_at": "2026-07-19T10:52:00.674000+00:00",
       "state": "active"
     },
@@ -2424,7 +2441,7 @@
     "smurf6": {
       "action_id": 858,
       "generation_id": "510f5d5e7fb4ec5fc264",
-      "seen_at": "2026-07-19T12:52:27.557258+00:00",
+      "seen_at": "2026-07-19T12:55:17.823318+00:00",
       "server_start_at": "2026-07-19T12:51:15.102000+00:00",
       "state": "active"
     },
@@ -2483,7 +2500,7 @@
     "zonertg10": {
       "action_id": 695,
       "generation_id": "221ef4ffd15b304f6a03",
-      "seen_at": "2026-07-19T12:52:16.058345+00:00",
+      "seen_at": "2026-07-19T12:55:17.823318+00:00",
       "server_start_at": "2026-07-19T08:06:47.078000+00:00",
       "state": "active"
     },
@@ -2523,8 +2540,8 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-19T12:52:27.707226+00:00",
-    "last_success_at": "2026-07-19T12:52:27.707226+00:00",
+    "last_checked_at": "2026-07-19T12:55:28.203037+00:00",
+    "last_success_at": "2026-07-19T12:55:28.203037+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -2613,11 +2630,11 @@
       "action_id": 695,
       "first_seen_at": "2026-07-19T08:15:07.698890+00:00",
       "generation_id": "221ef4ffd15b304f6a03",
-      "last_seen_at": "2026-07-19T12:52:16.058345+00:00",
-      "observations": 187,
+      "last_seen_at": "2026-07-19T12:55:17.823318+00:00",
+      "observations": 189,
       "server_start_at": "2026-07-19T08:06:47.078000+00:00",
       "statuses": {
-        "active": 187
+        "active": 189
       },
       "wheel_key": "zonertg10"
     },
@@ -2653,12 +2670,13 @@
       "action_id": 914,
       "first_seen_at": "2026-07-19T12:40:26.862334+00:00",
       "generation_id": "3f25bb4f67ef91ddd74a",
-      "last_seen_at": "2026-07-19T12:52:16.058345+00:00",
-      "observations": 8,
+      "last_seen_at": "2026-07-19T12:55:28.203104+00:00",
+      "observations": 9,
       "server_start_at": "2026-07-19T11:51:32.211000+00:00",
       "statuses": {
         "active": 7,
-        "closed": 1
+        "closed": 1,
+        "inactive": 1
       },
       "wheel_key": "betnews"
     },
@@ -2680,11 +2698,11 @@
       "action_id": 919,
       "first_seen_at": "2026-07-19T11:04:24.139200+00:00",
       "generation_id": "4624e3ac9ebe9ca3e88e",
-      "last_seen_at": "2026-07-19T12:52:16.058345+00:00",
-      "observations": 73,
+      "last_seen_at": "2026-07-19T12:55:17.823318+00:00",
+      "observations": 75,
       "server_start_at": "2026-07-19T11:01:22.086000+00:00",
       "statuses": {
-        "active": 73
+        "active": 75
       },
       "wheel_key": "neret"
     },
@@ -2706,11 +2724,11 @@
       "action_id": 858,
       "first_seen_at": "2026-07-19T12:52:27.557258+00:00",
       "generation_id": "510f5d5e7fb4ec5fc264",
-      "last_seen_at": "2026-07-19T12:52:27.557258+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-19T12:55:17.823318+00:00",
+      "observations": 3,
       "server_start_at": "2026-07-19T12:51:15.102000+00:00",
       "statuses": {
-        "active": 1
+        "active": 3
       },
       "wheel_key": "smurf6"
     },
@@ -2718,13 +2736,13 @@
       "action_id": 879,
       "first_seen_at": "2026-07-19T11:01:06.363415+00:00",
       "generation_id": "596c86c51cd42ce3e4a3",
-      "last_seen_at": "2026-07-19T12:52:27.707291+00:00",
-      "observations": 47,
+      "last_seen_at": "2026-07-19T12:55:28.047011+00:00",
+      "observations": 48,
       "server_start_at": "2026-07-19T11:00:01.156000+00:00",
       "statuses": {
         "active": 19,
         "closed": 1,
-        "inactive": 27
+        "inactive": 28
       },
       "wheel_key": "zzone"
     },
@@ -2802,11 +2820,11 @@
       "action_id": 920,
       "first_seen_at": "2026-07-19T10:55:03.389149+00:00",
       "generation_id": "87cace99c097471fd48e",
-      "last_seen_at": "2026-07-19T12:52:16.058345+00:00",
-      "observations": 79,
+      "last_seen_at": "2026-07-19T12:55:17.823318+00:00",
+      "observations": 81,
       "server_start_at": "2026-07-19T10:52:00.674000+00:00",
       "statuses": {
-        "active": 79
+        "active": 81
       },
       "wheel_key": "papa"
     },
