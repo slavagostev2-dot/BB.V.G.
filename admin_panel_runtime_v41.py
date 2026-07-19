@@ -50,6 +50,37 @@ class TelegramPanelRuntimeV41(TelegramPanelRuntime):
 def self_test() -> None:
     _runtime_self_test()
 
+    original_handle_callback = TelegramPanelRuntime.handle_callback
+    try:
+        events: list[tuple[str, str]] = []
+        panel = TelegramPanelRuntimeV41.__new__(TelegramPanelRuntimeV41)
+        panel.answer = (  # type: ignore[method-assign]
+            lambda query_id, text: events.append(("answer", str(text)))
+        )
+        panel._delete_callback_message = (  # type: ignore[method-assign]
+            lambda query: events.append(("delete", str(query.get("data") or "")))
+        )
+
+        def successful_participation(self: TelegramPanelRuntime, query: dict[str, Any]) -> None:
+            self.answer(str(query.get("id") or ""), "Ваше участие отмечено")
+
+        TelegramPanelRuntime.handle_callback = successful_participation  # type: ignore[method-assign]
+        panel.handle_callback({"id": "q1", "data": "bb:p:token"})
+        assert ("delete", "bb:p:token") in events
+
+        events.clear()
+
+        def failed_participation(self: TelegramPanelRuntime, query: dict[str, Any]) -> None:
+            self.answer(str(query.get("id") or ""), "Не удалось выполнить действие")
+
+        TelegramPanelRuntime.handle_callback = failed_participation  # type: ignore[method-assign]
+        panel.handle_callback({"id": "q2", "data": "bb:p:token"})
+        assert not any(kind == "delete" for kind, _ in events)
+    finally:
+        TelegramPanelRuntime.handle_callback = original_handle_callback  # type: ignore[method-assign]
+
+    print("BB V.G. v41 participation notification cleanup self-test passed")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
