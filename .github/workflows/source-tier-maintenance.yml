@@ -1,6 +1,12 @@
 name: Maintain dynamic source tiers
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "source_tier_maintenance.py"
+      - "source_tier_maintenance_v2.py"
+      - ".github/workflows/source-tier-maintenance.yml"
   workflow_dispatch:
   schedule:
     - cron: "47 20 * * *"
@@ -9,15 +15,13 @@ permissions:
   contents: read
 
 concurrency:
-  # Shared with nightly discovery because both own the two tier files.
-  group: bb-vg-source-catalog-writer
+  group: bb-vg-source-tier-audit
   cancel-in-progress: false
 
 jobs:
   maintain:
     permissions:
       contents: write
-      actions: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -45,7 +49,7 @@ jobs:
           python -m py_compile source_tier_maintenance.py source_tier_maintenance_v2.py bot_private_state.py bot_notification_state.py privacy_retention.py
           python source_tier_maintenance_v2.py --self-test
 
-      - name: Move seven-day inactive sources to nightly monitoring
+      - name: Audit sources eligible for manual nightly review
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -56,12 +60,12 @@ jobs:
           SOURCE_AUTO_DEMOTION_MAX_CHECK_AGE_HOURS: "2"
         run: python source_tier_maintenance_v2.py
 
-      - name: Save source tier changes
+      - name: Save source tier audit
         id: save
         shell: bash
         run: |
           set -euo pipefail
-          files=(public_sources.txt source_catalog.txt source_tier_state.json)
+          files=(source_tier_state.json)
           if git diff --quiet -- "${files[@]}"; then
             echo "Source tiers did not change."
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -70,7 +74,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${files[@]}"
-          git commit -m "Maintain dynamic BB V.G. source tiers [skip ci]"
+          git commit -m "Audit BB V.G. source tiers [skip ci]"
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
               echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -82,10 +86,3 @@ jobs:
             fi
           done
           exit 1
-
-      - name: Restart primary monitor after tier changes
-        if: steps.save.outputs.changed == 'true'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run monitor.yml --ref main -f continuous=true
