@@ -15,10 +15,6 @@ on:
       - "privacy_retention.py"
       - ".github/workflows/nightly-discovery.yml"
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Telegram source intelligence"]
-    types: [completed]
-    branches: [main]
   schedule:
     - cron: "27 20 * * *"
 
@@ -26,13 +22,12 @@ permissions:
   contents: read
 
 concurrency:
-  # Shared with source-tier maintenance because both own the two tier files.
+  # The only automatic writer of the two tier files.
   group: bb-vg-source-catalog-writer
   cancel-in-progress: false
 
 jobs:
   discovery:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       actions: write
