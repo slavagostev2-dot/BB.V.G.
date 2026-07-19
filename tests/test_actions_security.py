@@ -31,6 +31,7 @@ CONTENTS_WRITE_WORKFLOWS = {
     "activate-66-sources.yml",
     "admin-action.yml",
     "admin-bot.yml",
+    "auto-participation.yml",
     "bot-state-backup.yml",
     "monitor-v41-recovery.yml",
     "monitor.yml",
