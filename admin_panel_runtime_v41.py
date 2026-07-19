@@ -18,6 +18,24 @@ class TelegramPanelRuntimeV41(TelegramPanelRuntime):
 
     RUNTIME_VERSION = 41
 
+    def show_control(self) -> None:
+        if not self.is_admin():
+            self.send(
+                "Управление доступно только администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        rows = [
+            [{"text": "▶️ Проверить источники сейчас", "callback_data": "control:monitor"}],
+            [{"text": "📨 Отправить ежедневный отчёт", "callback_data": "control:daily"}],
+            [{"text": "✅ Проверить работу системы", "callback_data": "page:status"}],
+            [{"text": "🔍 Почему не пришло колесо?", "callback_data": "page:diagnostic"}],
+        ]
+        self.send(
+            "🛠 <b>Управление</b>\n\nВыберите действие.",
+            reply_markup=self.with_nav(rows),
+        )
+
     def handle_callback(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
         if not data.startswith("bb:p:"):
@@ -78,6 +96,23 @@ def self_test() -> None:
         assert not any(kind == "delete" for kind, _ in events)
     finally:
         TelegramPanelRuntime.handle_callback = original_handle_callback  # type: ignore[method-assign]
+
+    captured: list[tuple[str, dict[str, Any]]] = []
+    panel = TelegramPanelRuntimeV41.__new__(TelegramPanelRuntimeV41)
+    panel.is_admin = lambda: True  # type: ignore[method-assign]
+    panel.with_nav = lambda rows=None: {"inline_keyboard": rows or []}  # type: ignore[method-assign]
+    panel.send = lambda text, **kwargs: captured.append((text, kwargs)) or {}  # type: ignore[method-assign]
+    panel.show_control()
+    markup = captured[-1][1]["reply_markup"]
+    callbacks = [
+        str(button.get("callback_data") or "")
+        for row in markup.get("inline_keyboard", [])
+        for button in row
+        if isinstance(button, dict)
+    ]
+    assert "control:intelligence" not in callbacks
+    assert "control:nightly" not in callbacks
+    assert "control:monitor" in callbacks
 
     print("BB V.G. v41 participation notification cleanup self-test passed")
 
