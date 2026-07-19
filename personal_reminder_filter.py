@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 from typing import Any, Callable
 
+import betboom_auto_participation
 import personal_wheel_voting
 
 
@@ -108,11 +109,12 @@ def participating_for_chat(
 
 
 def install(monitor_module: Any, router_module: Any) -> None:
-    """Filter final reminders by each recipient's exact wheel-event participation."""
+    """Filter reminders and trigger one auto-participation attempt per new event."""
 
     if getattr(monitor_module, "_bbvg_personal_reminder_filter_installed", False):
         return
     original_api: Callable = monitor_module.telegram_api
+    original_process_active: Callable = monitor_module.process_active_wheels
 
     def telegram_api_filtered(method: str, payload: dict) -> dict:
         if method == "sendMessage" and isinstance(payload, dict):
@@ -159,8 +161,26 @@ def install(monitor_module: Any, router_module: Any) -> None:
                     }
         return original_api(method, payload)
 
+    def process_active_with_event_participation(state: dict, stats: dict):
+        result = original_process_active(state, stats)
+        auto = betboom_auto_participation.process_new_wheel_events(
+            state, monitor_module
+        )
+        if bool(auto.get("changed")):
+            result["changed"] = True
+        result["auto_participation_attempted"] = int(auto.get("attempted", 0) or 0)
+        result["auto_participation_succeeded"] = int(auto.get("succeeded", 0) or 0)
+        result["auto_participation_failed"] = int(auto.get("failed", 0) or 0)
+        return result
+
+    # Preserve the lifecycle integration identity expected by existing CI while
+    # keeping this wrapper outermost in the production runtime.
+    process_active_with_event_participation.__module__ = original_process_active.__module__
+
     monitor_module.telegram_api = telegram_api_filtered
+    monitor_module.process_active_wheels = process_active_with_event_participation
     monitor_module._bbvg_personal_reminder_filter_installed = True
+    monitor_module._bbvg_event_auto_participation_installed = True
 
 
 def self_test() -> None:
