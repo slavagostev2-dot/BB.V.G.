@@ -8,7 +8,6 @@ on:
       - "source_intelligence.py"
       - "source_intelligence_entry.py"
       - "source_intelligence_alerts.py"
-      - "promote_betboom_candidates.py"
       - "nightly_discovery.py"
       - "telegram_transport.py"
       - "notification_integrity_v2.py"
@@ -58,16 +57,11 @@ jobs:
           BOT_STATE_KEY: "test-state-key"
           BOT_CHAT_ID: "1"
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py promote_betboom_candidates.py telegram_transport.py notification_router.py notification_integrity_v2.py bot_notification_state.py bot_private_state.py privacy_retention.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py telegram_transport.py notification_router.py notification_integrity_v2.py bot_notification_state.py bot_private_state.py privacy_retention.py
           python telegram_transport.py
           python notification_integrity_v2.py --self-test
           python bot_notification_state.py
           python source_intelligence_alerts.py
-          python promote_betboom_candidates.py --help >/dev/null 2>&1 || true
-          python - <<'PY'
-          import promote_betboom_candidates
-          promote_betboom_candidates.self_test()
-          PY
           python -m json.tool notification_delivery_state.json >/dev/null
           python self_test.py
 
@@ -84,23 +78,19 @@ jobs:
           INTELLIGENCE_VERIFY_LIMIT: "150"
         run: python source_intelligence_entry.py
 
-      - name: Promote verified BetBoom candidates
-        run: python promote_betboom_candidates.py
-
-      - name: Save intelligence state and promoted sources
+      - name: Save intelligence state
         shell: bash
         run: |
           set -euo pipefail
-          files=(intelligence_state.json public_sources.txt)
-          if git diff --quiet -- "${files[@]}"; then
-            echo "Intelligence data and primary source list did not change."
+          if [[ -z "$(git status --porcelain -- intelligence_state.json)" ]]; then
+            echo "Intelligence data did not change."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${files[@]}"
-          git commit -m "Update Telegram source intelligence and BetBoom candidates [skip ci]"
+          git add intelligence_state.json
+          git commit -m "Update Telegram source intelligence [skip ci]"
 
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
