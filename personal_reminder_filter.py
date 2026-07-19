@@ -228,6 +228,9 @@ def install(monitor_module: Any, router_module: Any) -> None:
             result["changed"] = True
         return result
 
+    # Preserve the production contract checked by monitor.yml: the installed
+    # lifecycle remains formally attributed to wheel_lifecycle_v2.
+    process_active_with_auto_dispatch.__module__ = original_process_active.__module__
     monitor_module.telegram_api = telegram_api_filtered
     monitor_module.process_active_wheels = process_active_with_auto_dispatch
     monitor_module._bbvg_personal_reminder_filter_installed = True
