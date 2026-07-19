@@ -98,6 +98,9 @@ def publication_sources(state: dict[str, Any], key: str, fallback: Any = None) -
             if isinstance(row, dict)
         )
     if isinstance(fallback, dict):
+        raw_sources = fallback.get("sources")
+        if isinstance(raw_sources, list):
+            result.extend(_clean_source(source) for source in raw_sources)
         result.append(_clean_source(fallback.get("source")))
     seen: set[str] = set()
     unique: list[str] = []
@@ -195,7 +198,6 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         normalized = str(key or "").casefold()
         collection = state.setdefault("wheel_publications", {})
         previous = collection.get(normalized, [])
-        reset_event = normalized not in state.setdefault("active_wheels", {})
 
         incoming_rows = base_runtime._WHEEL_PUBLICATIONS.get(normalized, [])
         if closed_event_blocks_publications(state, normalized, incoming_rows):
@@ -204,7 +206,12 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
 
         original(state, normalized, fallback)
         incoming = collection.get(normalized, [])
-        merged = merge_publications(previous, incoming, reset_event=reset_event)
+
+        # Never drop previously observed publications merely because active_wheels
+        # is temporarily rebuilt during one monitor cycle. Old event publications
+        # are already removed explicitly by prune_closed_publications(), so keeping
+        # the accumulated rows here is safe and preserves multi-source attribution.
+        merged = merge_publications(previous, incoming, reset_event=False)
         if merged:
             collection[normalized] = merged
         else:
@@ -258,6 +265,16 @@ def self_test() -> None:
     assert merge_publications(first, second, reset_event=True)[0]["source"] == "official"
     state = {"wheel_publications": {"wheel": merged}}
     assert publication_sources(state, "wheel") == ["official", "collector"]
+    assert publication_sources(
+        {"wheel_publications": {}},
+        "wheel",
+        {"source": "official", "sources": ["official", "collector"]},
+    ) == ["official", "collector"]
+
+    # A transient active_wheels rebuild must not erase a source already observed
+    # for the same still-open event.
+    transient_merge = merge_publications(merged, [dict(first[0])], reset_event=False)
+    assert [row["source"] for row in transient_merge] == ["official", "collector"]
 
     closed_state = {
         "active_wheels": {},
