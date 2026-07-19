@@ -240,16 +240,18 @@ class ConcurrentStateTests(unittest.TestCase):
         self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 28)
         self.assertEqual(monitor_data.validate_json_state_contracts(ROOT), [])
 
-    def test_source_catalog_writers_share_one_concurrency_group(self) -> None:
+    def test_only_discovery_is_an_automatic_source_catalog_writer(self) -> None:
         discovery = (ROOT / ".github/workflows/nightly-discovery.yml").read_text(
             encoding="utf-8"
         )
         tier = (ROOT / ".github/workflows/source-tier-maintenance.yml").read_text(
             encoding="utf-8"
         )
-        for workflow in (discovery, tier):
-            self.assertIn("group: bb-vg-source-catalog-writer", workflow)
-            self.assertIn("public_sources.txt source_catalog.txt", workflow)
+        self.assertIn("group: bb-vg-source-catalog-writer", discovery)
+        self.assertIn("public_sources.txt source_catalog.txt", discovery)
+        self.assertIn("group: bb-vg-source-tier-audit", tier)
+        self.assertIn("files=(source_tier_state.json)", tier)
+        self.assertNotIn("files=(public_sources.txt source_catalog.txt", tier)
         panel = (ROOT / ".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
         self.assertIn("files=(bot_private_state.enc.json)", panel)
         self.assertNotIn("notification_integrity_v2.py --prune", panel)
