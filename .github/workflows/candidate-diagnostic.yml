@@ -1,0 +1,38 @@
+name: Candidate diagnostic
+
+on:
+  push:
+    branches:
+      - fix/betboom-candidate-promotion-and-vote-idempotency
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Print BetBoom-linked candidates
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+          state=json.loads(Path('intelligence_state.json').read_text(encoding='utf-8'))
+          known={x.strip().lstrip('@').casefold() for x in Path('public_sources.txt').read_text(encoding='utf-8').splitlines() if x.strip() and not x.lstrip().startswith('#')}
+          competitors=re.compile(r'(fonbet|betcity|pari|ligastavok|liga_stavok|winline|leon|melbet|xbet|1xbet|olimp|marathon)',re.I)
+          rows=[]
+          for key,raw in state.get('candidates',{}).items():
+              if not isinstance(raw,dict): continue
+              source=str(raw.get('source') or key).strip().lstrip('@')
+              if not source or source.casefold() in known or competitors.search(source) or not raw.get('public'): continue
+              samples=raw.get('sample_wheels') if isinstance(raw.get('sample_wheels'),list) else []
+              if int(raw.get('wheel_links_found',0) or 0)<=0: continue
+              if not any(isinstance(x,dict) and 'betboom.ru/freestream/' in str(x.get('url') or '').casefold() for x in samples): continue
+              rows.append((source,int(raw.get('score',0) or 0),int(raw.get('wheel_links_found',0) or 0)))
+          for source,score,wheels in sorted(rows,key=lambda x:(-x[1],-x[2],x[0].casefold())):
+              print(f'CANDIDATE @{source} score={score} wheels={wheels}')
+          print(f'TOTAL={len(rows)}')
+          PY
