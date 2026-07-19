@@ -7,6 +7,11 @@ import admin_bot
 
 
 BLOCKED_SOURCES = {"frixa_betboom", "gazazor"}
+SOURCE_REFRESH_WORKFLOWS: tuple[tuple[str, dict[str, str] | None], ...] = (
+    ("monitor.yml", {"continuous": "true", "replace": "true"}),
+    ("activate-66-sources.yml", None),
+    ("source-registry.yml", None),
+)
 
 
 class RuntimeAdminBot(admin_bot.AdminBot):
@@ -23,9 +28,22 @@ class RuntimeAdminBot(admin_bot.AdminBot):
             )
         result = super().set_source_mode(username, mode)
         # Commits made with GITHUB_TOKEN do not start push workflows, therefore
-        # restart the continuous monitor explicitly after every source-list change.
-        self.dispatch("monitor.yml", {"continuous": "true"})
+        # refresh every source consumer explicitly after a source-list change.
+        self.refresh_source_runtime()
         return result
+
+    def refresh_source_runtime(self) -> list[str]:
+        failures: list[str] = []
+        for workflow, inputs in SOURCE_REFRESH_WORKFLOWS:
+            try:
+                self.dispatch(workflow, inputs)
+            except Exception as exc:
+                failures.append(workflow)
+                print(
+                    f"WARNING source refresh {workflow}: "
+                    f"{type(exc).__name__}: {exc}"
+                )
+        return failures
 
     def handle_callback(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
@@ -56,6 +74,10 @@ def self_test() -> None:
     assert not available
     assert "gazazor" in BLOCKED_SOURCES
     assert "frixa_betboom" in BLOCKED_SOURCES
+    calls: list[tuple[str, dict[str, str] | None]] = []
+    bot.dispatch = lambda workflow, inputs=None: calls.append((workflow, inputs))  # type: ignore[method-assign]
+    assert bot.refresh_source_runtime() == []
+    assert calls == list(SOURCE_REFRESH_WORKFLOWS)
     print("admin_runtime self-test passed")
 
 

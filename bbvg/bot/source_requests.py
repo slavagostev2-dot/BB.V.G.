@@ -352,13 +352,6 @@ class SourceRequestRuntime(PanelInterfaceRuntime):
                 if action == "fast"
                 else "добавлен в ночное наблюдение"
             )
-            try:
-                self.dispatch("monitor.yml", {"continuous": "true"})
-            except Exception as exc:
-                print(
-                    f"WARNING restart after source request: "
-                    f"{type(exc).__name__}: {exc}"
-                )
         elif action == "reject":
             request["status"] = "rejected"
             request["destination"] = ""

@@ -13,6 +13,7 @@ import admin_action_v2
 import admin_action_v3
 import admin_action_queue
 import admin_panel_runtime_v41
+import admin_runtime
 import bot_private_state
 import incident_manager
 import monitor_health
@@ -91,6 +92,37 @@ class CurrentProductionContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn(
             'workflows: ["Telegram candidate discovery"]', registry_workflow
+        )
+
+    def test_source_change_refreshes_every_runtime_consumer(self) -> None:
+        bot = admin_runtime.RuntimeAdminBot()
+        calls: list[tuple[str, dict[str, str] | None]] = []
+        bot.dispatch = lambda workflow, inputs=None: calls.append(  # type: ignore[method-assign]
+            (workflow, inputs)
+        )
+
+        self.assertEqual(bot.refresh_source_runtime(), [])
+
+        self.assertEqual(calls, list(admin_runtime.SOURCE_REFRESH_WORKFLOWS))
+        self.assertIn(
+            ("monitor.yml", {"continuous": "true", "replace": "true"}),
+            calls,
+        )
+        self.assertIn(("activate-66-sources.yml", None), calls)
+        self.assertIn(("source-registry.yml", None), calls)
+
+    def test_source_refresh_failure_does_not_hide_saved_source_change(self) -> None:
+        bot = admin_runtime.RuntimeAdminBot()
+
+        def dispatch(workflow: str, inputs: dict[str, str] | None = None) -> None:
+            if workflow == "activate-66-sources.yml":
+                raise RuntimeError("temporary GitHub failure")
+
+        bot.dispatch = dispatch  # type: ignore[method-assign]
+
+        self.assertEqual(
+            bot.refresh_source_runtime(),
+            ["activate-66-sources.yml"],
         )
 
     def test_administrator_decisions(self) -> None:
