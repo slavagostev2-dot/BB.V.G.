@@ -10,6 +10,9 @@ def main() -> int:
     monitor = runtime.monitor
     state = runtime.load_state_without_pending()
     result = betboom_auto_participation.process_new_wheel_events(state, monitor)
+    result["debug_active_wheels"] = len(state.get("active_wheels", {}))
+    result["debug_events"] = len(state.get("auto_participation_events", {}))
+    result["debug_configured"] = betboom_auto_participation.configured()
     if bool(result.get("changed")):
         monitor.save_state(state)
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
