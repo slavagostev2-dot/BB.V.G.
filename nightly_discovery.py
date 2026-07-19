@@ -9,7 +9,6 @@ from pathlib import Path
 
 import monitor
 import monitor_data as data_store
-import source_intelligence
 import telegram_transport
 
 
@@ -17,8 +16,6 @@ ROOT = Path(__file__).resolve().parent
 ACTIVE_PATH = ROOT / "public_sources.txt"
 CATALOG_PATH = ROOT / "source_catalog.txt"
 DISCOVERY_STATE_PATH = ROOT / "discovery_state.json"
-INTELLIGENCE_STATE_PATH = ROOT / "intelligence_state.json"
-CANDIDATE_MODERATION_PATH = ROOT / "candidate_moderation.json"
 
 LOOKBACK_HOURS = max(12, int(os.getenv("DISCOVERY_LOOKBACK_HOURS", "48")))
 HISTORY_PAGES = max(1, min(8, int(os.getenv("DISCOVERY_PAGES", "4"))))
@@ -192,57 +189,6 @@ def write_sources(path: Path, values: list[str], header: str) -> None:
     )
 
 
-def intelligence_candidates_for_nightly(
-    state: dict,
-    *,
-    known: set[str],
-    ignored: set[str],
-) -> list[str]:
-    """Select verified thematic candidates for the conservative night tier."""
-    candidates = (
-        state.get("candidates")
-        if isinstance(state.get("candidates"), dict)
-        else {}
-    )
-    rows: list[tuple[int, str]] = []
-    for key, raw in candidates.items():
-        if not isinstance(raw, dict):
-            continue
-        source = str(raw.get("source") or key).strip().lstrip("@")
-        folded = source.casefold()
-        entry = dict(raw)
-        entry["source"] = source
-        if (
-            not source
-            or folded in known
-            or folded in ignored
-            or not source_intelligence.candidate_is_nightly_eligible(entry)
-        ):
-            continue
-        rows.append((int(raw.get("score", 0) or 0), source))
-    rows.sort(key=lambda item: (-item[0], item[1].casefold()))
-    return [source for _, source in rows]
-
-
-def load_intelligence_nightly_candidates(
-    active: list[str], catalog: list[str]
-) -> list[str]:
-    state = source_intelligence.read_json(INTELLIGENCE_STATE_PATH, {})
-    moderation = source_intelligence.read_json(CANDIDATE_MODERATION_PATH, {})
-    ignored_raw = (
-        moderation.get("ignored")
-        if isinstance(moderation, dict)
-        and isinstance(moderation.get("ignored"), dict)
-        else {}
-    )
-    known = {item.casefold() for item in [*active, *catalog]}
-    return intelligence_candidates_for_nightly(
-        state if isinstance(state, dict) else {},
-        known=known,
-        ignored={str(item).casefold() for item in ignored_raw},
-    )
-
-
 def main() -> int:
     try:
         monitor.validate_environment()
@@ -254,8 +200,6 @@ def main() -> int:
     active_keys = {item.casefold() for item in active}
     catalog = unique(data_store.operational_sources(monitor.read_list(CATALOG_PATH), "nightly"))
     catalog = [item for item in catalog if item.casefold() not in active_keys]
-    intelligence_added = load_intelligence_nightly_candidates(active, catalog)
-    catalog = unique([*catalog, *intelligence_added])
     catalog_size_at_start = len(catalog)
 
     discovery = load_discovery_state()
@@ -480,8 +424,8 @@ def main() -> int:
     write_sources(
         CATALOG_PATH,
         catalog,
-        "# Ночной мониторинг: утверждённые источники без колёс 7 дней.\n"
-        "# При обнаружении нового активного колеса источник автоматически возвращается в основной режим.",
+        "# Ночной мониторинг: источники, вручную одобренные администратором.\n"
+        "# Автоматическое пополнение отключено; активное колесо переносит источник в основной режим.",
     )
 
     if promotion_details:
@@ -497,7 +441,7 @@ def main() -> int:
     discovery["catalog_size"] = len(catalog)
     discovery["active_size"] = len(active)
     discovery["promoted"] = promoted
-    discovery["intelligence_candidates_added"] = len(intelligence_added)
+    discovery["intelligence_candidates_added"] = 0
     discovery["notifications"] = notifications
     discovery["duplicate_wheels"] = duplicate_wheels
     discovery["inactive_wheels"] = inactive_wheels
@@ -514,7 +458,7 @@ def main() -> int:
 
     print(
         f"Catalog: {len(catalog)}; active: {len(active)}; "
-        f"intelligence added: {len(intelligence_added)}; "
+        "intelligence added: 0 (manual-only policy); "
         f"promoted: {len(promoted)}; notifications: {notifications}; "
         f"inactive: {inactive_wheels}; unconfirmed: {unconfirmed_wheels}; "
         f"quarantined: {quarantined_skipped}; unknown samples: {unknown_samples_added}; "
