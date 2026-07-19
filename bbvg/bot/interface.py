@@ -938,7 +938,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
                 f"Bulk move intelligence candidates to {mode} via Telegram",
             )
         self.cache = None
-        self.dispatch("monitor.yml", {"continuous": "true"})
+        self.refresh_source_runtime()
         return len(targets), skipped
 
     def pending_rows(self, snap: Any) -> list[tuple[str, dict[str, Any]]]:
