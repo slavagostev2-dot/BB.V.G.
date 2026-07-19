@@ -260,6 +260,11 @@
   "active_wheels": {
     "aunkere": {
       "action_id": 937,
+      "auto_participation_checked_at": "2026-07-19T17:59:34.399275+00:00",
+      "auto_participation_error": "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
+      "auto_participation_manual_notification_at": "2026-07-19T17:59:34.399275+00:00",
+      "auto_participation_retry_allowed": false,
+      "auto_participation_status": "button_not_found",
       "availability_status": "available",
       "button_token": "6b00b172b98917",
       "deadline": "2026-07-19T18:27:17.279000+00:00",
@@ -1868,6 +1873,16 @@
   },
   "auto_participation_event_mode_initialized_at": "2026-07-19T17:14:18.523241+00:00",
   "auto_participation_events": {
+    "aunkere#event:ef82ebd7b7f693e7388b": {
+      "attempted_at": "2026-07-19T17:59:34.399275+00:00",
+      "detail": "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
+      "manual_notification_at": "2026-07-19T17:59:34.399275+00:00",
+      "manual_notification_detail": "801600922",
+      "manual_notification_sent": true,
+      "retry_allowed": false,
+      "status": "button_not_found",
+      "wheel_key": "aunkere"
+    },
     "dyrachyo#event:29763481e1d505cf5829": {
       "attempted_at": "2026-07-19T17:51:27.703921+00:00",
       "detail": "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
