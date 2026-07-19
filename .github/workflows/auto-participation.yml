@@ -6,7 +6,7 @@ on:
     - cron: "*/5 * * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: bb-vg-auto-participation
@@ -14,6 +14,8 @@ concurrency:
 
 jobs:
   participate:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
