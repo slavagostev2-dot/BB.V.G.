@@ -13,6 +13,7 @@ install_optional_dependency_stubs()
 
 import nightly_discovery
 import notification_router
+import source_tier_maintenance
 import system_checks
 from admin_panel_runtime_v5 import TelegramPanelRuntimeV5
 from bbvg.bot.source_requests import SourceRequestRuntime
@@ -41,58 +42,11 @@ class NightlyIdlePolicyTests(unittest.TestCase):
         self.assertIn("https://telegram.me/StreamSource/123", text)
         self.assertIn("уже перенесён", text)
 
-    def test_only_verified_thematic_candidates_enter_nightly_scan(self) -> None:
-        state = {
-            "candidates": {
-                "good": {
-                    "source": "GoodStream",
-                    "public": True,
-                    "status": "ok",
-                    "relevance_status": "relevant",
-                    "context_signals": ["стримы"],
-                    "score": 35,
-                },
-                "bot": {
-                    "source": "wheel_helper_bot",
-                    "public": True,
-                    "status": "ok",
-                    "relevance_status": "relevant",
-                    "context_signals": ["колёса и акции"],
-                    "score": 90,
-                },
-                "noise": {
-                    "source": "OrdinaryPerson",
-                    "public": True,
-                    "status": "ok",
-                    "relevance_status": "irrelevant",
-                    "score": 10,
-                },
-                "private": {
-                    "source": "PrivateStream",
-                    "public": False,
-                    "status": "empty",
-                    "relevance_status": "relevant",
-                    "context_signals": ["стримы"],
-                    "score": 40,
-                },
-            }
-        }
-        self.assertEqual(
-            nightly_discovery.intelligence_candidates_for_nightly(
-                state,
-                known=set(),
-                ignored=set(),
-            ),
-            ["GoodStream"],
-        )
-        self.assertEqual(
-            nightly_discovery.intelligence_candidates_for_nightly(
-                state,
-                known={"goodstream"},
-                ignored=set(),
-            ),
-            [],
-        )
+    def test_intelligence_cannot_automatically_populate_nightly_scan(self) -> None:
+        module_source = inspect.getsource(nightly_discovery)
+        self.assertFalse(hasattr(nightly_discovery, "load_intelligence_nightly_candidates"))
+        self.assertFalse(hasattr(nightly_discovery, "intelligence_candidates_for_nightly"))
+        self.assertNotIn("candidate_is_nightly_eligible", module_source)
 
     def test_completion_notice_requires_a_real_manual_scan(self) -> None:
         self.assertFalse(
@@ -128,12 +82,65 @@ class NightlyIdlePolicyTests(unittest.TestCase):
         self.assertNotIn('"source_catalog.txt"', push_paths)
         self.assertNotIn('"public_sources.txt"', push_paths)
 
-    def test_successful_intelligence_run_feeds_nightly_discovery(self) -> None:
+    def test_intelligence_run_does_not_feed_nightly_discovery(self) -> None:
         workflow = (ROOT / ".github/workflows/nightly-discovery.yml").read_text(
             encoding="utf-8"
         )
-        self.assertIn('workflows: ["Telegram source intelligence"]', workflow)
-        self.assertIn("github.event.workflow_run.conclusion == 'success'", workflow)
+        self.assertNotIn('workflows: ["Telegram source intelligence"]', workflow)
+        self.assertNotIn("github.event.workflow_run", workflow)
+
+    def test_tier_audit_never_moves_sources_to_nightly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            primary = root / "public_sources.txt"
+            nightly = root / "source_catalog.txt"
+            stats = root / "source_stats.json"
+            state = root / "source_tier_state.json"
+            primary.write_text("eligible_channel\n", encoding="utf-8")
+            nightly.write_text("manual_channel\n", encoding="utf-8")
+            now = source_tier_maintenance.datetime.now(source_tier_maintenance.UTC)
+            old = (now - source_tier_maintenance.timedelta(days=10)).isoformat()
+            recent = (now - source_tier_maintenance.timedelta(minutes=5)).isoformat()
+            daily = {}
+            for offset in range(source_tier_maintenance.INACTIVITY_DAYS):
+                day = (now.date() - source_tier_maintenance.timedelta(days=offset)).isoformat()
+                daily[day] = {"sources": {"eligible_channel": {"successful_checks": 20}}}
+            stats.write_text(
+                json.dumps({
+                    "sources": {"eligible_channel": {
+                        "first_checked_at": old,
+                        "last_checked_at": recent,
+                        "successful_checks": 200,
+                    }},
+                    "daily": daily,
+                }),
+                encoding="utf-8",
+            )
+            original = (
+                source_tier_maintenance.PRIMARY_PATH,
+                source_tier_maintenance.NIGHTLY_PATH,
+                source_tier_maintenance.STATS_PATH,
+                source_tier_maintenance.STATE_PATH,
+            )
+            try:
+                source_tier_maintenance.PRIMARY_PATH = primary
+                source_tier_maintenance.NIGHTLY_PATH = nightly
+                source_tier_maintenance.STATS_PATH = stats
+                source_tier_maintenance.STATE_PATH = state
+                self.assertEqual(source_tier_maintenance.main(), 0)
+            finally:
+                (
+                    source_tier_maintenance.PRIMARY_PATH,
+                    source_tier_maintenance.NIGHTLY_PATH,
+                    source_tier_maintenance.STATS_PATH,
+                    source_tier_maintenance.STATE_PATH,
+                ) = original
+            audit = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(primary.read_text(encoding="utf-8"), "eligible_channel\n")
+            self.assertEqual(nightly.read_text(encoding="utf-8"), "manual_channel\n")
+            self.assertEqual(audit["policy"], "manual_nightly_only")
+            self.assertEqual(audit["moved_to_nightly"], [])
+            self.assertEqual(audit["would_move_to_nightly"], ["eligible_channel"])
 
     def test_empty_nightly_list_is_shown_as_idle_without_start_button(self) -> None:
         panel = TelegramPanelRuntime()
