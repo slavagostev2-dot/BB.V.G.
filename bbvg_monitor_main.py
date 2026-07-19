@@ -18,6 +18,7 @@ import recurring_wheel_events
 import restart_duplicate_guard
 import telegram_post_links_v2
 import telegram_transport
+import vk_wheel_notifications
 import wheel_lifecycle_v2
 import wheel_event_runtime
 import wheel_link_lifecycle
@@ -338,6 +339,7 @@ monitor.send_message = branded_send_message
 notification_navigation.install(monitor)
 wheel_lifecycle_v2.install(monitor)
 personal_reminder_filter.install(monitor, notification_router)
+vk_wheel_notifications.install(monitor, notification_router)
 
 # Production refresh: personal event-scoped voting, strict API cleanup and
 # multi-source credit.
