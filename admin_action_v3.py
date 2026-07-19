@@ -80,6 +80,27 @@ def confirm_finished_global(
     }
 
 
+def _canonical_personal_vote_event_key(
+    state: dict[str, Any],
+    payload: dict[str, Any],
+    context: dict[str, Any] | None,
+) -> str:
+    """Resolve all participation buttons for one live API event to one key."""
+
+    wheel_key = str(payload.get("wheel_key") or "").casefold()
+    active = state.get("active_wheels", {}).get(wheel_key)
+    for event_entry in (active, context):
+        if not isinstance(event_entry, dict):
+            continue
+        # Only override the button-supplied event key when runtime has a strong
+        # API identity. This keeps legacy/event-only records backwards-compatible.
+        if event_entry.get("generation_id") or event_entry.get("action_id"):
+            canonical = personal_wheel_voting.wheel_event_key(wheel_key, event_entry)
+            if canonical:
+                return canonical
+    return str(payload.get("event_key") or wheel_key).casefold()
+
+
 def record_personal_vote_action(
     state: dict[str, Any],
     stats: dict[str, Any],
@@ -91,6 +112,7 @@ def record_personal_vote_action(
         raise ValueError("Некорректный JSON личного голоса") from exc
     payload = personal_wheel_voting.normalize_vote_payload(raw)
     context = legacy.wheel_context(state, payload["wheel_key"])
+    event_key = _canonical_personal_vote_event_key(state, payload, context)
     sources = list(payload["sources"])
     if context is not None:
         for source in legacy.wheel_sources(state, payload["wheel_key"], context):
@@ -98,7 +120,7 @@ def record_personal_vote_action(
                 sources.append(source)
     changed = personal_wheel_voting.record_personal_vote(
         stats,
-        event_key=payload["event_key"],
+        event_key=event_key,
         sources=sources,
         actor=payload["actor"],
         role=payload["role"],
@@ -107,7 +129,7 @@ def record_personal_vote_action(
     )
     return {
         "action": "record_personal_vote",
-        "value": payload["event_key"],
+        "value": event_key,
         "state_changed": False,
         "health_changed": False,
         "stats_changed": changed,
@@ -151,6 +173,7 @@ def self_test() -> None:
                 "url": "https://betboom.ru/freestream/wheel-a",
                 "source": "official",
                 "message_date": "2026-07-16T10:00:00+00:00",
+                "action_id": 10,
                 "event_id": "event-a",
             }
         },
@@ -164,22 +187,27 @@ def self_test() -> None:
     health = {"sources": {}}
     stats: dict[str, Any] = {"version": 1, "sources": {}, "daily": {}}
     actor = personal_wheel_voting.actor_vote_token("42", secret="test-secret")
-    payload = {
+    first_payload = {
         "wheel_key": "wheel-a",
-        "event_key": "wheel-a#action:10",
+        "event_key": "wheel-a",
         "actor": actor,
         "role": "user",
         "weight": 1,
         "sources": ["official"],
     }
+    second_payload = {
+        **first_payload,
+        "event_key": "wheel-a#action:10",
+    }
     first_vote = apply_action_v3(
-        state, health, stats, "record_personal_vote", json.dumps(payload)
+        state, health, stats, "record_personal_vote", json.dumps(first_payload)
     )
     second_vote = apply_action_v3(
-        state, health, stats, "record_personal_vote", json.dumps(payload)
+        state, health, stats, "record_personal_vote", json.dumps(second_payload)
     )
     assert first_vote["stats_changed"] is True
     assert second_vote["stats_changed"] is False
+    assert first_vote["value"] == second_vote["value"] == "wheel-a#action:10"
     assert stats["sources"]["official"]["quality_score"] == 1
     assert stats["sources"]["collector"]["quality_score"] == 1
 
@@ -197,7 +225,7 @@ def self_test() -> None:
     assert len(decisions) == 1
     assert next(iter(decisions.values()))["actor"] == "admin"
     assert state["recently_completed_wheels"]["wheel-a"]["confirmed_finished_by"] == "admin"
-    print("admin action v3 personal and legacy rating self-test passed")
+    print("admin action v3 personal vote idempotency self-test passed")
 
 
 def main() -> int:
