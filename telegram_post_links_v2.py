@@ -100,6 +100,18 @@ def install(monitor_module: Any) -> None:
     )
     monitor_module._bbvg_telegram_button_links_installed = True
 
+    # Suspicious-post analysis belongs to the Telegram post ingestion boundary.
+    # It wraps the final multi-source fetch result but never changes wheel state.
+    try:
+        from bbvg.monitor import suspicious_posts
+
+        suspicious_posts.install(monitor_module)
+    except Exception as exc:
+        print(
+            "WARNING suspicious-post analysis integration failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
+
 
 def self_test() -> None:
     import monitor
@@ -128,6 +140,7 @@ def self_test() -> None:
     assert monitor.extract_links(messages[1].text) == []
     install(monitor)
     assert monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
+    assert monitor._bbvg_ai_suspicious_post_analysis_installed is True
     print("telegram_post_links_v2 segment parser self-test passed")
 
 
