@@ -126,6 +126,10 @@ def reconcile(findings: Iterable[dict[str, Any]], *, scope: str) -> dict[str, An
                     previous_notice + timedelta(hours=REOPEN_COOLDOWN_HOURS)
                 ).isoformat()
             entry.pop("open_notified_at", None)
+            # A new incident lifecycle must be allowed to emit its own recovery.
+            # Keeping the timestamp from an older resolved occurrence made
+            # pending_resolved() incorrectly treat the new recovery as delivered.
+            entry.pop("resolution_notified_at", None)
             changed = True
         elif any(previous.get(name) != entry.get(name) for name in ("severity", "title", "detail", "metadata")):
             changed = True
