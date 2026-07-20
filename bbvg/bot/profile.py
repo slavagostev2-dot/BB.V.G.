@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 import os
 from collections import Counter
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
@@ -182,7 +182,9 @@ def _best_month(events: list[dict[str, Any]]) -> tuple[str, int]:
     return month, count
 
 
-def _active_event_keys(state: dict[str, Any], event_key_fn: Callable[[str, dict[str, Any]], str]) -> set[str]:
+def _active_event_keys(
+    state: dict[str, Any], event_key_fn: Callable[[str, dict[str, Any]], str]
+) -> set[str]:
     active = state.get("active_wheels")
     active = active if isinstance(active, dict) else {}
     result: set[str] = set()
@@ -255,7 +257,9 @@ def build_profile(
     event_key_fn: Callable[[str, dict[str, Any]], str],
     current: datetime | None = None,
 ) -> dict[str, Any]:
-    events = collect_participation_events(stats, state, actor=actor, include_auto=include_auto)
+    events = collect_participation_events(
+        stats, state, actor=actor, include_auto=include_auto
+    )
     auto_count = sum(row.get("method") == "auto" for row in events)
     manual_count = len(events) - auto_count
     current_streak, best_streak = participation_day_streaks(events, current=current)
@@ -292,7 +296,9 @@ def format_profile(profile: dict[str, Any], *, include_auto: bool) -> str:
         f"✋ Отмечено вручную: <b>{int(profile.get('manual', 0) or 0)}</b>",
     ]
     if include_auto:
-        lines.append(f"🤖 Подтверждённых автоучастий: <b>{int(profile.get('auto', 0) or 0)}</b>")
+        lines.append(
+            f"🤖 Подтверждённых автоучастий: <b>{int(profile.get('auto', 0) or 0)}</b>"
+        )
     lines.extend(
         [
             f"🔥 Сейчас активных с участием: <b>{int(profile.get('active', 0) or 0)}</b>",
@@ -310,7 +316,11 @@ def format_profile(profile: dict[str, Any], *, include_auto: bool) -> str:
     if profile.get("days_in_bot") is not None:
         lines.append(f"⏳ В боте: <b>{int(profile['days_in_bot'])}</b> дн.")
 
-    badges = profile.get("achievements") if isinstance(profile.get("achievements"), list) else []
+    badges = (
+        profile.get("achievements")
+        if isinstance(profile.get("achievements"), list)
+        else []
+    )
     lines.extend(["", "<b>Достижения</b>"])
     lines.extend(f"• {html.escape(str(value))}" for value in badges)
     if not badges:
@@ -328,12 +338,13 @@ def install(mixin_cls: type) -> None:
     if getattr(mixin_cls, "_bbvg_hunter_profile_installed", False):
         return
 
-    original_menu = getattr(mixin_cls, "compact_menu_rows")
-    original_handle_callback = getattr(mixin_cls, "handle_callback")
-
-    @staticmethod
-    def compact_menu_rows_with_profile(admin: bool) -> list[list[dict[str, Any]]]:
-        rows = [list(row) for row in original_menu(admin)]
+    def compact_menu_rows_with_profile(
+        self, admin: bool
+    ) -> list[list[dict[str, Any]]]:
+        rows = [
+            list(row)
+            for row in super(mixin_cls, self).compact_menu_rows(admin)
+        ]
         rows.append([{"text": "👤 Мой профиль", "callback_data": "page:profile"}])
         return rows
 
@@ -364,7 +375,12 @@ def install(mixin_cls: type) -> None:
             reply_markup=self.with_nav(
                 [
                     [{"text": "🔥 Активные колёса", "callback_data": "page:active"}],
-                    [{"text": "🔄 Обновить профиль", "callback_data": "profile:refresh"}],
+                    [
+                        {
+                            "text": "🔄 Обновить профиль",
+                            "callback_data": "profile:refresh",
+                        }
+                    ],
                 ]
             ),
         )
@@ -376,7 +392,7 @@ def install(mixin_cls: type) -> None:
             self.answer(str(query.get("id") or ""), "Обновляю профиль")
             self.show_profile()
             return
-        original_handle_callback(self, query)
+        super(mixin_cls, self).handle_callback(query)
 
     mixin_cls.compact_menu_rows = compact_menu_rows_with_profile
     mixin_cls.show_profile = show_profile
