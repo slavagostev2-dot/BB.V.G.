@@ -33,7 +33,6 @@ CONTENTS_WRITE_WORKFLOWS = {
     "admin-bot.yml",
     "auto-participation.yml",
     "bot-state-backup.yml",
-    "monitor-v41-recovery.yml",
     "monitor.yml",
     "nightly-discovery.yml",
     "rotate-bot-state-key.yml",
@@ -44,7 +43,6 @@ CONTENTS_WRITE_WORKFLOWS = {
 }
 ACTIONS_WRITE_WORKFLOWS = {
     "admin-bot.yml",
-    "monitor-v41-recovery.yml",
     "monitor-watchdog.yml",
     "monitor.yml",
     "nightly-discovery.yml",
