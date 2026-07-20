@@ -47,21 +47,19 @@ docs/
 - `docs/PROJECT_CHANGELOG_RU.md`
 - `docs/RUNTIME_METHOD_INVENTORY_RU.md`
 
+Этап 1 глобальной ревизии завершён 20.07.2026. До следующего крупного refactor-блока используйте `docs/CODE_INVENTORY_RU.md` и `docs/RUNTIME_METHOD_INVENTORY_RU.md` как актуальную карту зависимостей. По решению пользователя следующий непосредственный результат после этапа 1 — новый самодостаточный PDF; крупный refactor до его подготовки не начинать.
+
 ## 3. Действующие точки входа
 
-- Telegram-панель: `bbvg/bot/runtime.py`.
-- Совместимая production-команда: `python admin_panel_runtime_v41.py`.
-- `admin_panel_runtime_v41.py` — только тонкий переходник на `bbvg.bot.runtime`, а не отдельная реализация.
-- Предметные владельцы панели: `bbvg/bot/interface.py` (экраны и
-  навигация), `users.py` (пользователи, роли и настройки),
-  `sources.py` (источники), `wheels.py` (колёса и callback), `storage.py`
-  (зашифрованное состояние), `runtime.py` (финальная композиция,
-  lifecycle и очередь admin actions).
-- Production MRO `bbvg.bot.runtime.TelegramPanelRuntime` не содержит
-  классов из `admin_panel_runtime_v*`. Versioned-файлы остаются только
-  как временная совместимость до главы 9 и не являются
-  владельцами production-поведения.
-- Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические модули.
+- Стабильный владелец Telegram-панели: `bbvg/bot/runtime.py`.
+- Фактическая production-команда workflow: `python admin_panel_runtime_v41.py`.
+- `admin_panel_runtime_v41.py` пока **не является полностью тонким переходником**: этап 1 подтвердил, что в нём остаются уникальные production-методы UI, аналитики, удаления/стирания пользователей и callback личного участия. До их переноса в стабильные `bbvg/bot/*` файл является одновременно production entrypoint и compatibility-слоем.
+- Предметные владельцы панели: `bbvg/bot/interface.py` (экраны и навигация), `users.py` (пользователи, роли и настройки), `sources.py` (источники), `wheels.py` (колёса и callback), `storage.py` (зашифрованное состояние), `runtime.py` (финальная композиция, lifecycle и очередь admin actions).
+- Production MRO `bbvg.bot.runtime.TelegramPanelRuntime` не содержит классов из `admin_panel_runtime_v*`.
+- Historical Mini App-era runtime как минимум `admin_panel_runtime_v16–v24` классифицирован как legacy и не является владельцем текущего production-поведения.
+- Bot-only chain `v25→v26→v28→v29→v30→v31→v32→v36→v37→v38` больше не входит в production MRO, но пока удерживается validation/recovery workflows; удалять её можно только после переноса оставшихся recovery-контрактов и удаления всех входящих ссылок.
+- Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические install/runtime-модули.
+- System Health production entrypoint: `system_checks_v3.py`, который сейчас строится поверх `system_checks_v2.py` и `system_checks.py`; эта chain является кандидатом на отдельную консолидацию, а не прямое удаление.
 
 Не добавляйте параллельный runtime или второго consumer Telegram `getUpdates`.
 
@@ -96,6 +94,7 @@ docs/
 - Read-only checkout всегда использует `persist-credentials: false`.
 - `contents: write` выдаётся только job, который действительно записывает state или очередь; `actions: write` - только job, который dispatch/restart другой workflow.
 - `admin_panel_status.json` и `monitor_status.json` обязаны содержать `head_sha`, `workflow_run_id` и `run_attempt`, сохраняя совместимое поле `run_id`.
+- Frozen Mini App archive guard защищает static Mini App assets, State API и архивные deployment/migration-файлы. Технические Markdown-документы `docs/*.md` и вложенные Markdown-документы не являются частью frozen application и не должны блокироваться этим guard.
 
 ## 5. Обязательные бэкапы крупных обновлений
 
