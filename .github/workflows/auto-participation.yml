@@ -2,6 +2,10 @@ name: BB V.G. auto participation
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "auto_participation_probe.trigger"
 
 permissions:
   contents: read
@@ -24,6 +28,7 @@ jobs:
           fetch-depth: 0
 
       - name: Wait for monitor state persistence
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           sleep 20
           git fetch origin main
@@ -38,7 +43,28 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Run isolated participation probe
+        if: ${{ github.event_name == 'push' }}
+        env:
+          BETBOOM_PROBE_URL: "https://betboom.ru/freestream/zonertg11"
+          BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
+          BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
+          BETBOOM_BROWSER_CHANNEL: chrome
+        run: python auto_participation_probe.py
+
+      - name: Persist probe result
+        if: ${{ always() && github.event_name == 'push' }}
+        run: |
+          test -f auto_participation_probe_result.json || echo '{"status":"result_missing"}' > auto_participation_probe_result.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add auto_participation_probe_result.json
+          git commit -m "Record auto participation probe result [skip ci]" || exit 0
+          git pull --rebase origin main
+          git push origin HEAD:main
+
       - name: Validate auto participation
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
           BETBOOM_AUTO_PARTICIPATE: "true"
           BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
@@ -63,6 +89,7 @@ jobs:
           PY
 
       - name: Run auto participation
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -75,6 +102,7 @@ jobs:
         run: python auto_participation_worker.py
 
       - name: Persist participation state
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           if git diff --quiet -- state.json; then
             exit 0
