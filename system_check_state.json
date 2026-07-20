@@ -1,8 +1,8 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-07-20T10:22:31.162331+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-20T10:32:37.277816+00:00",
     "started_at": "2026-07-20T09:36:58.868764+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -18,7 +18,7 @@
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-20T10:25:23.791681+00:00",
+    "generated_at": "2026-07-20T10:33:20.082250+00:00",
     "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
     "mode": "rules",
     "model": "",
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-20T10:25:22.809086+00:00",
+  "checked_at": "2026-07-20T10:33:18.719633+00:00",
   "discovery": {
     "active_size": 164,
     "candidate_count": 462,
@@ -107,7 +107,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последняя итерация была 20 минут назад.",
+      "detail": "Последняя итерация была 27 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -116,7 +116,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-20T10:22:31.162331+00:00",
+    "bot_panel_heartbeat": "2026-07-20T10:32:37.277816+00:00",
     "checked_sources": 165,
     "configured_sources": 167,
     "domain": "telegram.me",
@@ -133,11 +133,11 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "rules",
     "health_inspector_status": "not_configured",
-    "messages_attempted": 1,
-    "opened": 1,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 63,
@@ -188,7 +188,7 @@
     "version": 3,
     "workflow_run_id": "29731646626"
   },
-  "monitor_age_minutes": 20,
+  "monitor_age_minutes": 27,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
