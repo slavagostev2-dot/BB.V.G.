@@ -1,9 +1,9 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 0,
-    "last_heartbeat_at": "2026-07-20T10:32:37.277816+00:00",
-    "started_at": "2026-07-20T09:36:58.868764+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-07-20T10:33:34.197343+00:00",
+    "started_at": "2026-07-20T10:33:34.197332+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -18,7 +18,7 @@
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-20T10:33:20.082250+00:00",
+    "generated_at": "2026-07-20T10:34:51.134895+00:00",
     "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
     "mode": "rules",
     "model": "",
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-20T10:33:18.719633+00:00",
+  "checked_at": "2026-07-20T10:34:50.174975+00:00",
   "discovery": {
     "active_size": 164,
     "candidate_count": 462,
@@ -107,7 +107,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последняя итерация была 27 минут назад.",
+      "detail": "Последняя итерация была 29 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -116,7 +116,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-20T10:32:37.277816+00:00",
+    "bot_panel_heartbeat": "2026-07-20T10:33:34.197343+00:00",
     "checked_sources": 165,
     "configured_sources": 167,
     "domain": "telegram.me",
@@ -188,7 +188,7 @@
     "version": 3,
     "workflow_run_id": "29731646626"
   },
-  "monitor_age_minutes": 27,
+  "monitor_age_minutes": 29,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
