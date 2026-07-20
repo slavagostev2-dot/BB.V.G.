@@ -33,11 +33,20 @@ ALLOWED_INTENTS = READ_ONLY_INTENTS | WRITE_INTENTS | BLOCKED_INTENTS | {"unknow
 ALLOWED_INTERVALS = frozenset({1, 3, 5, 10, 15, 30})
 ALLOWED_SOURCE_MODES = frozenset({"fast", "nightly", "remove"})
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_]{5,32}$")
+SOURCE_IN_TEXT_RE = re.compile(
+    r"(?:@|https?://(?:www\.)?(?:t\.me|telegram\.me)/(?:s/)?)?([A-Za-z0-9_]{5,32})",
+    re.I,
+)
 
 
 def _clean_source(value: object) -> str:
     source = str(value or "").strip()
-    source = re.sub(r"^https?://(?:www\.)?(?:t\.me|telegram\.me)/(?:s/)?", "", source, flags=re.I)
+    source = re.sub(
+        r"^https?://(?:www\.)?(?:t\.me|telegram\.me)/(?:s/)?",
+        "",
+        source,
+        flags=re.I,
+    )
     source = source.split("?", 1)[0].split("/", 1)[0].strip().lstrip("@")
     return source if USERNAME_RE.fullmatch(source) else ""
 
@@ -60,7 +69,114 @@ def _normalize_result(data: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
+def _extract_source(text: str) -> str:
+    explicit = re.search(
+        r"(?:@|https?://(?:www\.)?(?:t\.me|telegram\.me)/(?:s/)?)"
+        r"([A-Za-z0-9_]{5,32})",
+        text,
+        flags=re.I,
+    )
+    if explicit:
+        return _clean_source(explicit.group(1))
+    words = re.findall(r"[A-Za-z0-9_]{5,32}", text)
+    stop = {
+        "betboom",
+        "telegram",
+        "source",
+        "sources",
+        "fast",
+        "nightly",
+        "monitor",
+    }
+    for word in reversed(words):
+        if word.casefold() not in stop:
+            cleaned = _clean_source(word)
+            if cleaned:
+                return cleaned
+    return ""
+
+
+def _rule_parse(text: str) -> dict[str, Any] | None:
+    lowered = " ".join(str(text or "").casefold().replace("ё", "е").split())
+    if not lowered:
+        return None
+
+    critical_patterns = (
+        ("перепиш", "истори", "git", "rewrite_git_history"),
+        ("удал", "бэкап", "delete_backups"),
+        ("удал", "backup", "delete_backups"),
+        ("секрет", "manage_secrets", "manage_secrets", "manage_secrets"),
+        ("переда", "владель", "transfer_owner", "transfer_owner"),
+    )
+    for first, second, _, intent in critical_patterns:
+        if first in lowered and second in lowered:
+            return {
+                "status": "rules",
+                "intent": intent,
+                "arguments": {},
+                "confidence": 1.0,
+                "reason": "blocked by deterministic policy",
+            }
+
+    interval = re.search(
+        r"(?:интервал|провер(?:к|я)|кажд\w*|раз\s+в)\D{0,24}(1|3|5|10|15|30)\s*(?:мин|минут)",
+        lowered,
+    )
+    if interval:
+        return {
+            "status": "rules",
+            "intent": "set_monitor_interval",
+            "arguments": {"minutes": int(interval.group(1))},
+            "confidence": 1.0,
+            "reason": "deterministic interval command",
+        }
+
+    source = _extract_source(text)
+    if source and any(word in lowered for word in ("добав", "перенес", "перевед", "постав", "убер", "удал")):
+        if any(word in lowered for word in ("основн", "fast", "быстр")):
+            mode = "fast"
+        elif any(word in lowered for word in ("ночн", "nightly")):
+            mode = "nightly"
+        elif any(word in lowered for word in ("убер", "удал", "исключ")):
+            mode = "remove"
+        else:
+            mode = ""
+        if mode:
+            return {
+                "status": "rules",
+                "intent": "set_source_mode",
+                "arguments": {"source": source, "mode": mode},
+                "confidence": 1.0,
+                "reason": "deterministic source command",
+            }
+
+    if any(phrase in lowered for phrase in ("активные колеса", "активных колес", "что сейчас активно")):
+        return {"status": "rules", "intent": "show_active_wheels", "arguments": {}, "confidence": 1.0}
+    if any(phrase in lowered for phrase in ("статус системы", "работа системы", "как работает бот", "состояние системы")):
+        return {"status": "rules", "intent": "show_system_status", "arguments": {}, "confidence": 1.0}
+    if any(phrase in lowered for phrase in ("рейтинг источников", "лучшие источники", "лучший источник", "кто лучший")):
+        return {"status": "rules", "intent": "show_source_ranking", "arguments": {}, "confidence": 1.0}
+    if any(phrase in lowered for phrase in ("давно без колес", "неактивные источники", "источники без колес")):
+        return {"status": "rules", "intent": "show_inactive_sources", "arguments": {}, "confidence": 1.0}
+    if any(phrase in lowered for phrase in ("мой профиль", "покажи профиль", "моя статистика")):
+        return {"status": "rules", "intent": "show_profile", "arguments": {}, "confidence": 1.0}
+    if source and any(phrase in lowered for phrase in ("покажи источник", "что с источником", "информация об источнике", "почему источник")):
+        return {
+            "status": "rules",
+            "intent": "show_source_detail",
+            "arguments": {"source": source},
+            "confidence": 1.0,
+        }
+    if any(phrase in lowered for phrase in ("покажи источники", "список источников", "все источники")):
+        return {"status": "rules", "intent": "show_sources", "arguments": {}, "confidence": 1.0}
+    return None
+
+
 def parse_request(text: str, *, client: AIClient | None = None) -> dict[str, Any]:
+    deterministic = _rule_parse(text)
+    if deterministic is not None:
+        return deterministic
+
     ai = client or client_from_env()
     if not ai.feature_enabled(FEATURE_NATURAL_LANGUAGE_ADMIN):
         return {"status": "disabled", "intent": "unknown", "arguments": {}, "confidence": 0.0}
@@ -155,7 +271,7 @@ def handle_text(runtime: Any, message: dict[str, Any], *, client: AIClient | Non
         return False
 
     parsed = parse_request(text, client=client)
-    if parsed.get("status") != "ok" or float(parsed.get("confidence", 0.0) or 0.0) < 0.72:
+    if parsed.get("status") not in {"ok", "rules"} or float(parsed.get("confidence", 0.0) or 0.0) < 0.72:
         return False
 
     intent = str(parsed.get("intent") or "unknown")
@@ -196,7 +312,11 @@ def handle_text(runtime: Any, message: dict[str, Any], *, client: AIClient | Non
                 reply_markup=runtime.with_nav(),
             )
             return True
-        label = {"fast": "основной мониторинг", "nightly": "ночной мониторинг", "remove": "удаление из мониторинга"}[mode]
+        label = {
+            "fast": "основной мониторинг",
+            "nightly": "ночной мониторинг",
+            "remove": "удаление из мониторинга",
+        }[mode]
         runtime.send(
             f"Подтвердить для <b>@{html.escape(source)}</b>: {label}?",
             reply_markup=_reply_markup(f"nladmin:source:{mode}:{source}", f"sd:{source}"),
@@ -223,7 +343,10 @@ def handle_callback(runtime: Any, query: dict[str, Any]) -> bool:
                 raise ValueError("Недопустимый интервал")
             runtime.set_interval(minutes)
             runtime.answer(query_id, "Настройка сохранена")
-            runtime.send(f"✅ Интервал проверки установлен: {minutes} мин.", reply_markup=runtime.with_nav())
+            runtime.send(
+                f"✅ Интервал проверки установлен: {minutes} мин.",
+                reply_markup=runtime.with_nav(),
+            )
             return True
 
         if data.startswith("nladmin:source:"):
