@@ -6,8 +6,14 @@ from datetime import datetime, timedelta
 
 import monitor
 import notification_router
+import vk_start_welcome
 
 notification_router.install(monitor)
+
+try:
+    vk_start_welcome.dispatch_start_welcome_workflow()
+except Exception as exc:
+    print(f"WARNING VK Start workflow dispatch: {type(exc).__name__}: {exc}")
 
 _original_assess_new = monitor.assess_new_wheel
 _original_assess_pending = monitor.assess_pending_wheel

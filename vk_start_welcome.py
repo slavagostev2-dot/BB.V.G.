@@ -11,12 +11,50 @@ from urllib.request import Request, urlopen
 VK_API_BASE = "https://api.vk.com/method"
 VK_API_VERSION = os.getenv("VK_API_VERSION", "5.199").strip() or "5.199"
 VK_REQUEST_TIMEOUT_SECONDS = 15.0
+VK_START_WORKFLOW_FILE = "vk-start-welcome.yml"
 WELCOME_TEXT = (
     "👋 Привет! BB V.G. работает и готов присылать уведомления о новых колёсах BetBoom.\n\n"
     "Бот отслеживает появление новых колёс и отправляет сюда уведомление со ссылкой, как только колесо будет найдено.\n\n"
     "Дополнительных команд использовать не нужно — после начала диалога уведомления будут приходить автоматически."
 )
 START_WORDS = {"старт", "start", "/start", "начать"}
+
+
+def dispatch_start_welcome_workflow() -> bool:
+    """Ask the existing VK welcome workflow to process current community dialogs."""
+
+    token = str(os.getenv("GITHUB_TOKEN") or "").strip()
+    repository = str(os.getenv("GITHUB_REPOSITORY") or "").strip()
+    branch = str(os.getenv("GITHUB_BRANCH") or "main").strip() or "main"
+    if not token or not repository:
+        return False
+
+    endpoint = (
+        f"https://api.github.com/repos/{repository}/actions/workflows/"
+        f"{VK_START_WORKFLOW_FILE}/dispatches"
+    )
+    request = Request(
+        endpoint,
+        data=json.dumps({"ref": branch}).encode("utf-8"),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "Content-Type": "application/json; charset=utf-8",
+            "User-Agent": "BB-VG-VK-Start-Dispatcher",
+        },
+    )
+    try:
+        with urlopen(request, timeout=VK_REQUEST_TIMEOUT_SECONDS) as response:
+            status = int(getattr(response, "status", response.getcode()))
+    except (HTTPError, URLError, OSError) as exc:
+        raise RuntimeError(
+            f"GitHub VK Start workflow dispatch failed: {type(exc).__name__}: {exc}"
+        ) from exc
+    if status != 204:
+        raise RuntimeError(f"GitHub VK Start workflow dispatch returned HTTP {status}")
+    return True
 
 
 def _api_call(method: str, *, token: str, **params: Any) -> dict[str, Any]:
@@ -72,8 +110,8 @@ def welcome_random_id(peer_id: int, message_id: int) -> int:
 
 def process_start_messages(*, token: str) -> dict[str, int]:
     # Do not restrict the scan to VK's unread flag. A user message can be marked
-    # read by the community UI before this scheduled worker runs. In that case
-    # it is still the latest incoming message and must receive the welcome reply.
+    # read by the community UI before this worker runs. In that case it is still
+    # the latest incoming message and must receive the welcome reply.
     conversations = _api_call(
         "messages.getConversations",
         token=token,
