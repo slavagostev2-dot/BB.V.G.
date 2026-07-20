@@ -1,24 +1,22 @@
 {
-  "active_count": 0,
+  "active_count": 1,
   "incidents": {
     "system_checks:admin_panel_stale:9278d429b1e1ee67": {
-      "detail": "Последний живой сигнал был 149 минут назад.",
+      "detail": "Последний живой сигнал был 21 минут назад.",
       "first_seen_at": "2026-07-15T23:43:26.915265+00:00",
       "key": "system_checks:admin_panel_stale:9278d429b1e1ee67",
       "kind": "admin_panel_stale",
-      "last_seen_at": "2026-07-16T01:22:09.478187+00:00",
+      "last_seen_at": "2026-07-20T10:55:23.211284+00:00",
       "metadata": {},
-      "occurrences": 5,
+      "occurrences": 6,
       "open_notification_pending": false,
-      "open_notified_at": "2026-07-15T23:43:27.530677+00:00",
-      "opened_sequence": 20,
-      "resolution_notification_pending": false,
+      "open_notified_at": "2026-07-20T10:55:23.959316+00:00",
+      "opened_sequence": 65,
       "resolution_notified_at": "2026-07-16T01:22:10.465645+00:00",
-      "resolved_at": "2026-07-16T01:22:09.478187+00:00",
       "resolved_sequence": 21,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "resolved",
+      "status": "active",
       "subject": "",
       "title": "Бот давно не принимает команды пользователей"
     },
@@ -248,17 +246,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-20T10:45:01.860643+00:00",
-  "last_reconcile_at": "2026-07-20T10:50:42.169154+00:00",
+  "last_change_at": "2026-07-20T10:55:23.211284+00:00",
+  "last_reconcile_at": "2026-07-20T10:55:23.211284+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 0,
-    "new_notification_count": 0,
+    "active": 1,
+    "new_notification_count": 1,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 64,
+  "sequence": 65,
   "status": "initializing",
-  "updated_at": "2026-07-20T10:50:42.169201+00:00",
+  "updated_at": "2026-07-20T10:55:23.959347+00:00",
   "version": 1
 }
