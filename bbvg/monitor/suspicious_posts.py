@@ -6,15 +6,11 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Any, Iterable
 
 from bbvg.ai_core import AIClient, FEATURE_SUSPICIOUS_POST_ANALYSIS, client_from_env
 
 UTC = timezone.utc
-ROOT = Path(__file__).resolve().parents[2]
-STATE_PATH = ROOT / "ai_suspicious_posts_state.json"
-
 ALLOWED = frozenset({
     "active_wheel",
     "possible_wheel_announcement",
@@ -29,6 +25,8 @@ BRAND_WORDS = re.compile(r"\b(?:betboom|bet\s*boom|бетбум|бэтбум|bb)
 TIME_WORDS = re.compile(r"\b(?:скоро|сегодня|завтра|через|старт\w*|ссылк\w*|позже|стрим\w*)\b", re.I)
 DRAW_WORDS = re.compile(r"\b(?:розыгрыш\w*|приз\w*|участв\w*)\b", re.I)
 DIRECT_LINK = re.compile(r"(?:https?://)?(?:www\.)?betboom\.ru/freestream/[A-Za-z0-9._~-]+", re.I)
+
+_RUNTIME_STATE: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -106,27 +104,15 @@ def _normalize(data: dict[str, Any] | None) -> tuple[str, float, str]:
     return classification, confidence, reason
 
 
-def load_state() -> dict[str, Any]:
-    try:
-        value = json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    except (FileNotFoundError, OSError, json.JSONDecodeError):
-        value = {}
+def ensure_state(stats: dict[str, Any]) -> dict[str, Any]:
+    value = stats.setdefault("ai_post_analysis", {})
     if not isinstance(value, dict):
         value = {}
+        stats["ai_post_analysis"] = value
     value.setdefault("version", 1)
     value.setdefault("posts", {})
     value.setdefault("last_summary", {})
     return value
-
-
-def save_state(value: dict[str, Any]) -> None:
-    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    temp = STATE_PATH.with_suffix(STATE_PATH.suffix + ".tmp")
-    temp.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    temp.replace(STATE_PATH)
 
 
 def _prune(records: dict[str, Any], current: datetime) -> bool:
@@ -307,7 +293,18 @@ def format_admin_alert(alert: dict[str, Any]) -> str:
 
 
 def run_for_messages(monitor_module: Any, messages_by_source: dict[str, list[Any]]) -> dict[str, Any]:
-    state = load_state()
+    state = _RUNTIME_STATE
+    if not isinstance(state, dict):
+        return {
+            "status": "state_unavailable",
+            "candidates": 0,
+            "analyzed": 0,
+            "alerts": [],
+            "alerts_sent": 0,
+            "provider_failures": 0,
+            "changed": False,
+        }
+
     posts: list[SuspiciousPost] = []
     for messages in messages_by_source.values():
         for message in messages:
@@ -339,26 +336,35 @@ def run_for_messages(monitor_module: Any, messages_by_source: dict[str, list[Any
                 summary["changed"] = True
             sent += 1
 
-    state["last_summary"] = {
-        "checked_at": datetime.now(UTC).isoformat(),
+    compact = {
         "status": str(summary.get("status") or "unknown"),
         "candidates": int(summary.get("candidates", 0) or 0),
         "analyzed": int(summary.get("analyzed", 0) or 0),
         "alerts_sent": sent,
         "provider_failures": int(summary.get("provider_failures", 0) or 0),
     }
-    if summary.get("changed") or sent:
-        save_state(state)
+    if state.get("last_summary") != compact:
+        state["last_summary"] = compact
+        summary["changed"] = True
     return {**summary, "alerts_sent": sent}
 
 
 def install(monitor_module: Any) -> None:
+    global _RUNTIME_STATE
     if getattr(monitor_module, "_bbvg_ai_suspicious_post_analysis_installed", False):
         return
-    original = monitor_module.fetch_all_sources
+
+    original_load_stats = monitor_module.data_store.load_stats
+    original_fetch_all_sources = monitor_module.fetch_all_sources
+
+    def load_stats_with_ai_state():
+        global _RUNTIME_STATE
+        stats = original_load_stats()
+        _RUNTIME_STATE = ensure_state(stats)
+        return stats
 
     def fetch_all_sources_with_ai(sources):
-        result = original(sources)
+        result = original_fetch_all_sources(sources)
         try:
             run_for_messages(monitor_module, result[0])
         except Exception as exc:
@@ -368,5 +374,6 @@ def install(monitor_module: Any) -> None:
             )
         return result
 
+    monitor_module.data_store.load_stats = load_stats_with_ai_state
     monitor_module.fetch_all_sources = fetch_all_sources_with_ai
     monitor_module._bbvg_ai_suspicious_post_analysis_installed = True
