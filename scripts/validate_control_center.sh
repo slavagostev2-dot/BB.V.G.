@@ -22,10 +22,7 @@ echo "Validating exact Control Center release SHA: ${validated_sha}"
 python -m compileall -q bbvg
 python -m py_compile \
   admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_action_queue.py chapter1_stability.py admin_runtime.py \
-  admin_panel_v2.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-  admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-  admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-  admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py admin_panel_runtime_v41.py \
+  admin_panel_v2.py admin_panel_runtime_v41.py \
   telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
   bot_private_state.py bot_notification_state.py \
   notification_integrity_v2.py notification_router.py wheel_publications_v2.py \
@@ -71,6 +68,7 @@ colorizer = inspect.getsource(TelegramPanelRuntime._color_active_payload)
 home = inspect.getsource(TelegramPanelRuntime.show_menu)
 
 assert TelegramPanelRuntimeV41.RUNTIME_VERSION == 41
+assert TelegramPanelRuntimeV41.__module__ == 'bbvg.bot.control_center'
 assert not any(cls.__module__.startswith("admin_panel_runtime_v") for cls in TelegramPanelRuntime.__mro__)
 assert "usernotify:" in handler
 assert "usernotifyall:" in handler
