@@ -236,24 +236,32 @@
   "active_wheels": {
     "lent": {
       "action_id": 511,
+      "availability_status": "available",
       "button_token": "f323384956adab",
       "deadline": "2026-07-20T04:17:49.191000+00:00",
-      "expires_at": "2026-07-20T06:01:05.455332+00:00",
+      "deadline_source": "api",
+      "event_id": "0bfab1be3ee2a251b3e6",
+      "expires_at": "2026-07-20T06:02:53.005508+00:00",
       "first_notified_at": "2026-07-20T04:01:05.455332+00:00",
       "generation_id": "0bfab1be3ee2a251b3e6",
       "identifier": "lent",
-      "last_checked_at": "2026-07-20T04:01:05.455332+00:00",
+      "last_checked_at": "2026-07-20T04:02:53.427073+00:00",
       "last_notification_at": "2026-07-20T04:01:05.455332+00:00",
+      "last_verification_at": "2026-07-20T04:02:53.005508+00:00",
+      "lifecycle_changed_at": "2026-07-20T04:01:53.051174+00:00",
+      "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-20T03:47:46+00:00",
       "message_id": 34518,
       "message_text": "Колесо на 10.000 Фрибетов\n❤️\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nЧерез 30 минут после публикации — колесо сделает прокрут и раздаст победителям фрибеты разных номиналов\n🪙\n❤️\nЗабирай до 10к фрибетов по промокоду LENT\n❤️\nhttps://telegram.me/zont1x\nhttps://telegram.me/zont1x/34518\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&utm_source=freestream\nhttps://bbsport.su/link/5ouCEj/?erid=KW2aPRYdr5QoPXHUFSBHvZSemE3g6FLnvz2VVtD4DAbaB2YBtcVqqwztKNenqC18t\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&amp;utm_source=freestream",
       "message_url": "https://telegram.me/zont1x/34518",
-      "method": "активность и таймер подтверждены BetBoom",
+      "method": "состояние определяется пользователями BB V.G.",
+      "needs_manual_time": false,
       "page_excerpt": "",
+      "page_status": "active",
       "participating": false,
       "server_start_at": "2026-07-20T03:47:49.191000+00:00",
       "source": "zont1x",
-      "status": "preliminary",
+      "status": "unknown",
       "url": "https://betboom.ru/freestream/lent",
       "verification_status": "confirmed"
     }
@@ -1268,6 +1276,14 @@
       "stats_changed": false,
       "status": "applied"
     },
+    "c08bbef103a549fb936bdf9a001f6f6c": {
+      "action": "record_personal_vote",
+      "applied_at": "2026-07-20T04:02:53.005416+00:00",
+      "health_changed": false,
+      "state_changed": false,
+      "stats_changed": true,
+      "status": "applied"
+    },
     "c1fb664742804f8b99ded10887499baf": {
       "action": "mark_inactive_global",
       "applied_at": "2026-07-15T16:56:12.212580+00:00",
@@ -1620,6 +1636,7 @@
     "bd8a81dbb9d14a34a62c0ca7a9f4000a": "2026-07-16T13:52:28.721727+00:00",
     "becd4ea8ee4c4070a7ac8682ce7896ab": "2026-07-19T13:18:17.751127+00:00",
     "c001899c62094e269c6c32ff73757f66": "2026-07-16T14:37:44.218390+00:00",
+    "c08bbef103a549fb936bdf9a001f6f6c": "2026-07-20T04:02:53.005416+00:00",
     "c1fb664742804f8b99ded10887499baf": "2026-07-15T16:56:12.212580+00:00",
     "c50fdc0da08c4a55b333a0bce21faf51": "2026-07-16T13:52:28.722743+00:00",
     "c659e42f4fab43ca94464a8846759bba": "2026-07-16T14:37:44.218346+00:00",
@@ -1711,6 +1728,11 @@
       "scheduled_at": "2026-07-19T17:50:54.752755+00:00",
       "status": "workflow_dispatch_scheduled",
       "wheel_key": "dyrachyo"
+    },
+    "lent#event:0bfab1be3ee2a251b3e6": {
+      "scheduled_at": "2026-07-20T04:01:53.487028+00:00",
+      "status": "workflow_dispatch_scheduled",
+      "wheel_key": "lent"
     },
     "lolly12#event:0956b28d728ea096d8e9": {
       "scheduled_at": "2026-07-19T18:10:09.987365+00:00",
@@ -2113,7 +2135,7 @@
     "zont1x",
     "zortelad"
   ],
-  "last_admin_action_applied_at": "2026-07-19T19:04:24.076005+00:00",
+  "last_admin_action_applied_at": "2026-07-20T04:02:53.005453+00:00",
   "last_automatic_status_at": "2026-07-17T06:35:52.571822+00:00",
   "last_heartbeat_at": "2026-07-20T03:28:48.759918+00:00",
   "last_run_kind": "schedule",
@@ -2995,7 +3017,7 @@
     "lent": {
       "action_id": 511,
       "generation_id": "0bfab1be3ee2a251b3e6",
-      "seen_at": "2026-07-20T04:01:05.455454+00:00",
+      "seen_at": "2026-07-20T04:02:53.005508+00:00",
       "server_start_at": "2026-07-20T03:47:49.191000+00:00",
       "state": "active"
     },
@@ -3227,8 +3249,8 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-20T04:01:02.685943+00:00",
-    "last_success_at": "2026-07-20T04:01:02.685943+00:00",
+    "last_checked_at": "2026-07-20T04:02:53.005508+00:00",
+    "last_success_at": "2026-07-20T04:02:53.005508+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -3275,11 +3297,11 @@
       "action_id": 511,
       "first_seen_at": "2026-07-20T04:01:05.455454+00:00",
       "generation_id": "0bfab1be3ee2a251b3e6",
-      "last_seen_at": "2026-07-20T04:01:05.455454+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-20T04:02:53.005508+00:00",
+      "observations": 5,
       "server_start_at": "2026-07-20T03:47:49.191000+00:00",
       "statuses": {
-        "active": 1
+        "active": 5
       },
       "wheel_key": "lent"
     },
