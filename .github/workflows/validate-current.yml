@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: bb-vg-current-validation-${{ github.ref }}
@@ -36,76 +36,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 0
-
-      - name: Apply one-time Chapter 2A contract patch
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'cleanup/global-repository-audit-2026-07-20' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          HEAD_BRANCH: ${{ github.head_ref }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(path: str, old: str, new: str) -> bool:
-              target = Path(path)
-              text = target.read_text(encoding="utf-8")
-              if new in text:
-                  return False
-              if old not in text:
-                  raise SystemExit(f"Expected Chapter 2A patch anchor not found: {path}")
-              target.write_text(text.replace(old, new, 1), encoding="utf-8")
-              return True
-
-          changed = False
-          changed |= replace_once(
-              "monitor_data.py",
-              '    "activation_runtime_state.json": {"category": "archive", "owner": "frozen-miniapp"},\n    "admin_action_queue.json": {',
-              '    "activation_runtime_state.json": {"category": "archive", "owner": "frozen-miniapp"},\n    "ai_runtime_state.json": {\n        "category": "diagnostic",\n        "owner": "ai-core",\n        "schema": ("version", (1,)),\n    },\n    "admin_action_queue.json": {',
-          )
-          changed |= replace_once(
-              "tests/test_concurrency_and_ci.py",
-              "self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 28)",
-              "self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 29)",
-          )
-          changed |= replace_once(
-              "tests/test_concurrency_and_ci.py",
-              'self.assertIn("files=(bot_private_state.enc.json)", panel)',
-              'self.assertIn("git add bot_private_state.enc.json", panel)',
-          )
-          changed |= replace_once(
-              "tests/test_ui_chapter4.py",
-              '{"page:active", "page:analytics", "page:sources", "page:settings", "page:status"}',
-              '{"page:active", "page:analytics", "page:sources", "page:settings", "page:status", "page:profile"}',
-          )
-          changed |= replace_once(
-              "tests/test_ui_chapter4.py",
-              '{"page:active", "page:analytics", "page:sources", "page:settings", "page:control"}',
-              '{"page:active", "page:analytics", "page:sources", "page:settings", "page:control", "page:profile"}',
-          )
-          changed |= replace_once(
-              "AGENTS.md",
-              "всех 28 JSON",
-              "всех 29 JSON",
-          )
-          changed |= replace_once(
-              "AGENTS.md",
-              '| `activation_runtime_state.json` | archive | frozen Mini App |\n| `admin_action_queue.json` | authoritative | `admin_action_queue` CAS |',
-              '| `activation_runtime_state.json` | archive | frozen Mini App |\n| `ai_runtime_state.json` | diagnostic | `bbvg.ai_core` |\n| `admin_action_queue.json` | authoritative | `admin_action_queue` CAS |',
-          )
-          print(f"Chapter 2A patch changed files: {changed}")
-          PY
-          if git diff --quiet -- monitor_data.py tests/test_concurrency_and_ci.py tests/test_ui_chapter4.py AGENTS.md; then
-            echo "Chapter 2A contract patch is already applied."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add monitor_data.py tests/test_concurrency_and_ci.py tests/test_ui_chapter4.py AGENTS.md
-          git commit -m "fix: align Chapter 2A runtime and CI contracts"
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push origin "HEAD:${HEAD_BRANCH}"
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -140,10 +70,7 @@ jobs:
           python chapter5_acceptance.py
 
       - name: Run pytest and enforce critical-core coverage
-        id: pytest
-        shell: bash
         run: |
-          set +e
           python -m pytest \
             --cov=notification_router \
             --cov=notification_integrity_v2 \
@@ -151,21 +78,4 @@ jobs:
             --cov=rating_policy \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-fail-under=80 > pytest-output.txt 2>&1
-          status=$?
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-          tail -n 80 pytest-output.txt
-          exit 0
-
-      - name: Upload pytest diagnostics
-        if: ${{ steps.pytest.outputs.status != '0' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: chapter-2a-pytest-diagnostics
-          path: pytest-output.txt
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Fail when pytest failed
-        if: ${{ steps.pytest.outputs.status != '0' }}
-        run: exit 1
+            --cov-fail-under=80
