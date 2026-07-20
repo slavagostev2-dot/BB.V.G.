@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import html
 import os
+import subprocess
+import sys
 from datetime import timedelta
 from typing import Any, Callable
 
@@ -111,7 +113,7 @@ def participating_for_chat(
 
 
 def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module: Any) -> bool:
-    """Record dispatch requests; the monitor workflow sends them after state is pushed."""
+    """Persist new event requests and synchronously dispatch the isolated workflow."""
 
     if not os.getenv("GITHUB_TOKEN", "").strip() or not os.getenv(
         "GITHUB_REPOSITORY", ""
@@ -165,6 +167,38 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
                 else "workflow_dispatch_scheduled"
             ),
         }
+
+    # The dispatcher must see the same state that will be pushed to GitHub.
+    # Saving here is intentional: the child process commits state.json before
+    # requesting workflow_dispatch, so the worker cannot start from stale data.
+    monitor_module.save_state(state)
+    try:
+        completed = subprocess.run(
+            [sys.executable, "auto_participation_dispatch.py"],
+            cwd=str(monitor_module.STATE_PATH.parent),
+            env=os.environ.copy(),
+            capture_output=True,
+            text=True,
+            timeout=90,
+            check=False,
+        )
+    except Exception as exc:
+        print(
+            "WARNING synchronous auto participation dispatch failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return True
+
+    if completed.stdout.strip():
+        print(completed.stdout.strip())
+    if completed.stderr.strip():
+        print(completed.stderr.strip())
+    if completed.returncode != 0:
+        print(
+            "WARNING auto participation dispatcher returned "
+            f"exit code {completed.returncode}"
+        )
+
     print(
         f"Queued auto participation workflow for {len(candidates)} new wheel event(s)"
         + (f"; retries={retry_count}" if retry_count else "")
