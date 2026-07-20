@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: bb-vg-current-validation-${{ github.ref }}
@@ -36,112 +36,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 0
-
-      - name: Apply one-time Chapter 2B validation dependency cleanup
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'cleanup/global-repository-audit-2026-07-20' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          HEAD_BRANCH: ${{ github.head_ref }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import re
-          from pathlib import Path
-
-          versions = ("25", "26", "28", "29", "30", "31", "32", "36", "37", "38")
-          compile_targets = (
-              "scripts/validate_control_center.sh",
-              ".github/workflows/v22-checks.yml",
-              ".github/workflows/bot-recovery-smoke.yml",
-              ".github/workflows/validate-private-state.yml",
-          )
-          changed_paths: set[str] = set()
-
-          for path in compile_targets:
-              target = Path(path)
-              text = target.read_text(encoding="utf-8")
-              original = text
-              for version in versions:
-                  token = f"admin_panel_runtime_v{version}.py"
-                  text = text.replace(token + " ", "")
-                  text = text.replace(token, "")
-              text = re.sub(r"(?m)^[ \t]*\\\s*$\n?", "", text)
-              if text != original:
-                  target.write_text(text, encoding="utf-8")
-                  changed_paths.add(path)
-
-          private_path = Path(".github/workflows/validate-private-state.yml")
-          private = private_path.read_text(encoding="utf-8")
-          private_new = private.replace(
-              "from bbvg.bot.runtime import TelegramPanelRuntime",
-              "from bbvg.bot.control_center import TelegramPanelRuntimeV41 as TelegramControlCenterRuntime",
-          ).replace(
-              "TelegramPanelRuntime.show_user_detail",
-              "TelegramControlCenterRuntime.show_user_detail",
-          ).replace(
-              "TelegramPanelRuntime.compact_menu_rows(False)",
-              "TelegramControlCenterRuntime.compact_menu_rows(False)",
-          )
-          if private_new != private:
-              private_path.write_text(private_new, encoding="utf-8")
-              changed_paths.add(str(private_path))
-
-          health_path = Path(".github/workflows/system-health.yml")
-          health = health_path.read_text(encoding="utf-8")
-          health_new = health
-          for version in ("25", "36", "37", "38"):
-              token = f"admin_panel_runtime_v{version}.py"
-              health_new = health_new.replace(f'      - "{token}"\n', "")
-              health_new = health_new.replace(token + " ", "")
-              health_new = health_new.replace(token, "")
-          if health_new != health:
-              health_path.write_text(health_new, encoding="utf-8")
-              changed_paths.add(str(health_path))
-
-          preflight_path = Path("preflight.py")
-          preflight = preflight_path.read_text(encoding="utf-8")
-          start_marker = '    require_text(\n        "admin_panel_runtime_v31.py",'
-          end_marker = '    require_text("nightly_discovery.py",'
-          if start_marker in preflight:
-              start = preflight.index(start_marker)
-              end = preflight.index(end_marker, start)
-              replacement = '''    require_text(\n        "bbvg/bot/interface.py",\n        (\n            "📨 Отправить сводку",\n            "summary:send:monthly",\n            "📭 Давно без колёс",\n        ),\n    )\n    require_text(\n        "bbvg/bot/runtime.py",\n        ("self.show_period_report(days)",),\n    )\n'''
-              preflight = preflight[:start] + replacement + preflight[end:]
-              preflight_path.write_text(preflight, encoding="utf-8")
-              changed_paths.add(str(preflight_path))
-          elif '"admin_panel_runtime_v31.py"' in preflight:
-              raise SystemExit("Unexpected preflight v31 contract shape")
-
-          checked_paths = set(compile_targets) | {str(health_path), str(preflight_path)}
-          for path in checked_paths:
-              text = Path(path).read_text(encoding="utf-8")
-              for version in versions:
-                  token = f"admin_panel_runtime_v{version}.py"
-                  if token in text:
-                      raise SystemExit(f"Old Control Center validation reference remains: {path}: {token}")
-
-          print("Chapter 2B validation dependency cleanup changed:", sorted(changed_paths))
-          PY
-
-          files=(
-            scripts/validate_control_center.sh
-            .github/workflows/v22-checks.yml
-            .github/workflows/bot-recovery-smoke.yml
-            .github/workflows/validate-private-state.yml
-            .github/workflows/system-health.yml
-            preflight.py
-          )
-          if git diff --quiet -- "${files[@]}"; then
-            echo "Chapter 2B validation dependency cleanup already applied."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${files[@]}"
-          git commit -m "refactor: validate stable Control Center instead of old runtime chain"
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push origin "HEAD:${HEAD_BRANCH}"
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
