@@ -321,7 +321,9 @@ def interface_acceptance() -> None:
     assert "run: python admin_panel_runtime_v41.py" in workflow
     assert '"version": 41' in workflow
     assert "admin_panel_runtime_v41.py" in workflow
-    assert "telegram_ui.py" in workflow
+    validator = text("scripts/validate_control_center.sh")
+    assert "run: bash scripts/validate_control_center.sh" in workflow
+    assert "telegram_ui.py" in validator
     user_callbacks = {
         str(button.get("callback_data") or "")
         for row in TelegramPanelRuntimeV41.compact_menu_rows(False)
