@@ -1,0 +1,108 @@
+name: Chapter 2B one-time Control Center migration
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/chapter-2b-migrate-control-center.yml"
+      - "admin_panel_runtime_v41.py"
+      - "bbvg/bot/control_center.py"
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: ${{ github.head_ref == 'cleanup/global-repository-audit-2026-07-20' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Move v41 implementation into stable bbvg.bot namespace
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          source_path = Path("admin_panel_runtime_v41.py")
+          target_path = Path("bbvg/bot/control_center.py")
+          source = source_path.read_text(encoding="utf-8")
+
+          thin_marker = "from bbvg.bot.control_center import TelegramControlCenterRuntime, self_test"
+          if thin_marker in source and target_path.exists():
+              print("Chapter 2B stable Control Center migration already applied")
+              raise SystemExit(0)
+
+          required = [
+              "class TelegramPanelRuntimeV41(TelegramPanelRuntime):",
+              "super(TelegramPanelRuntimeV41, self).show_settings()",
+              "return TelegramPanelRuntimeV41().run()",
+          ]
+          missing = [value for value in required if value not in source]
+          if missing:
+              raise SystemExit(f"Unexpected v41 source; missing anchors: {missing}")
+          if target_path.exists():
+              raise SystemExit("bbvg/bot/control_center.py already exists but v41 is not thin")
+
+          stable = source.replace(
+              "class TelegramPanelRuntimeV41(TelegramPanelRuntime):",
+              "class TelegramControlCenterRuntime(TelegramPanelRuntime):",
+              1,
+          )
+          stable = stable.replace(
+              '"""Production v41 entrypoint with compact single-message navigation."""',
+              '"""Stable production Telegram Control Center behavior."""',
+              1,
+          )
+          stable = stable.replace("TelegramPanelRuntimeV41", "TelegramControlCenterRuntime")
+          target_path.write_text(stable, encoding="utf-8")
+
+          wrapper = '''from __future__ import annotations
+
+import argparse
+
+from bbvg.bot.control_center import TelegramControlCenterRuntime, self_test
+
+
+class TelegramPanelRuntimeV41(TelegramControlCenterRuntime):
+    """Compatibility entrypoint for the stable Telegram Control Center runtime."""
+
+    RUNTIME_VERSION = 41
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
+        self_test()
+        return 0
+    return TelegramPanelRuntimeV41().run()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+'''
+          source_path.write_text(wrapper, encoding="utf-8")
+          PY
+
+          if git diff --quiet -- admin_panel_runtime_v41.py bbvg/bot/control_center.py; then
+            echo "No migration changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add admin_panel_runtime_v41.py bbvg/bot/control_center.py
+          git commit -m "refactor: move v41 Control Center into stable runtime"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:${HEAD_BRANCH}"
