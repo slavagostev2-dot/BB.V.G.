@@ -8,6 +8,7 @@ on:
       - "source_intelligence.py"
       - "source_intelligence_entry.py"
       - "source_intelligence_alerts.py"
+      - "bbvg/monitor/source_discovery.py"
       - "nightly_discovery.py"
       - "telegram_transport.py"
       - "notification_integrity_v2.py"
@@ -57,7 +58,7 @@ jobs:
           BOT_STATE_KEY: "test-state-key"
           BOT_CHAT_ID: "1"
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py telegram_transport.py notification_router.py notification_integrity_v2.py bot_notification_state.py bot_private_state.py privacy_retention.py
+          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py bbvg/monitor/source_discovery.py telegram_transport.py notification_router.py notification_integrity_v2.py bot_notification_state.py bot_private_state.py privacy_retention.py
           python telegram_transport.py
           python notification_integrity_v2.py --self-test
           python bot_notification_state.py
