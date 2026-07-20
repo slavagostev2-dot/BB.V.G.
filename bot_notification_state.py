@@ -8,11 +8,17 @@ from typing import Any
 import bot_private_state
 import notification_integrity_v2
 import notification_router
+import personal_wheel_voting
+from bbvg.bot import profile as hunter_profile
 
 # Every production entry point imports bot_notification_state before sending.
 # Install the durable deduplication and strict role boundary in one place so
 # monitor, summaries, discovery, intelligence and system checks use one policy.
 notification_integrity_v2.install(notification_router)
+# The personal profile is a presentation layer over existing event ledgers.
+# Installing it here keeps one Telegram runtime and does not create a second
+# update consumer or a parallel state owner.
+hunter_profile.install(personal_wheel_voting.PersonalWheelVotingMixin)
 
 
 FAST_MONITOR_INTERVAL_MINUTES = 1
@@ -95,6 +101,7 @@ def self_test() -> None:
             assert isinstance(access, dict)
             assert isinstance(exists, bool)
             assert notification_router._bbvg_notification_integrity_v2_installed is True
+            assert personal_wheel_voting.PersonalWheelVotingMixin._bbvg_hunter_profile_installed is True
     finally:
         bot_private_state.STATE_PATH = original
     print("BB V.G. bot notification state self-test passed")
