@@ -64,15 +64,19 @@ def is_start_message(value: str) -> bool:
 
 
 def welcome_random_id(peer_id: int, message_id: int) -> int:
-    digest = hashlib.sha256(f"vk-start-welcome\x1f{peer_id}\x1f{message_id}".encode("utf-8")).digest()
+    digest = hashlib.sha256(
+        f"vk-start-welcome\x1f{peer_id}\x1f{message_id}".encode("utf-8")
+    ).digest()
     return (int.from_bytes(digest[:4], "big") & 0x7FFFFFFF) or 1
 
 
-def process_unread_start_messages(*, token: str) -> dict[str, int]:
+def process_start_messages(*, token: str) -> dict[str, int]:
+    # Do not restrict the scan to VK's unread flag. A user message can be marked
+    # read by the community UI before this scheduled worker runs. In that case
+    # it is still the latest incoming message and must receive the welcome reply.
     conversations = _api_call(
         "messages.getConversations",
         token=token,
-        filter="unread",
         count=200,
     )
     items = conversations.get("items") if isinstance(conversations, dict) else []
@@ -100,6 +104,8 @@ def process_unread_start_messages(*, token: str) -> dict[str, int]:
         from_id = int(last_message.get("from_id") or 0)
         text = str(last_message.get("text") or "")
         if peer_id <= 0 or from_id != peer_id:
+            # After the bot replies, its own message becomes the last message,
+            # so the same Start command will not be answered again next cycle.
             continue
         checked += 1
         if not is_start_message(text):
@@ -118,12 +124,16 @@ def process_unread_start_messages(*, token: str) -> dict[str, int]:
     return {"checked": checked, "welcomed": welcomed}
 
 
+# Backward-compatible alias for tests/imports created with the first version.
+process_unread_start_messages = process_start_messages
+
+
 def main() -> int:
     token = str(os.getenv("VK_GROUP_TOKEN") or "").strip()
     if not token:
         print("VK_GROUP_TOKEN is not configured; skipping VK Start welcome")
         return 0
-    result = process_unread_start_messages(token=token)
+    result = process_start_messages(token=token)
     print(f"VK Start welcome: checked={result['checked']}, welcomed={result['welcomed']}")
     return 0
 
