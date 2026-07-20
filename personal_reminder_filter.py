@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import html
 import os
-import subprocess
-import sys
 from datetime import timedelta
 from typing import Any, Callable
 
@@ -113,7 +111,7 @@ def participating_for_chat(
 
 
 def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module: Any) -> bool:
-    """Queue isolated participation workflow and retry stale dispatch requests."""
+    """Record dispatch requests; the monitor workflow sends them after state is pushed."""
 
     if not os.getenv("GITHUB_TOKEN", "").strip() or not os.getenv(
         "GITHUB_REPOSITORY", ""
@@ -154,23 +152,6 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
     if not candidates:
         return False
 
-    try:
-        subprocess.Popen(
-            [sys.executable, "auto_participation_dispatch.py"],
-            cwd=str(monitor_module.STATE_PATH.parent),
-            env=os.environ.copy(),
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            start_new_session=True,
-        )
-    except Exception as exc:
-        print(
-            "WARNING auto participation workflow dispatch scheduling failed: "
-            f"{type(exc).__name__}: {exc}"
-        )
-        return False
-
     retry_count = 0
     for token, normalized, is_retry in candidates:
         if is_retry:
@@ -185,7 +166,7 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
             ),
         }
     print(
-        f"Scheduled auto participation workflow for {len(candidates)} new wheel event(s)"
+        f"Queued auto participation workflow for {len(candidates)} new wheel event(s)"
         + (f"; retries={retry_count}" if retry_count else "")
     )
     return True
