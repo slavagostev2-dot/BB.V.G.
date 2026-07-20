@@ -73,11 +73,6 @@ jobs:
             bot_private_state.py bot_notification_state.py notification_integrity_v2.py \
             migrate_bot_private_state.py privacy_retention.py security_audit.py \
             test_bot_state_fixture.py notification_preferences_v2.py \
-            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
-            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
             admin_panel_runtime_v41.py telegram_ui.py chapter4_acceptance.py \
             bbvg_monitor_main.py recurring_wheel_events.py wheel_event_runtime.py \
             wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py \
@@ -106,7 +101,7 @@ jobs:
           import inspect
           import json
           from pathlib import Path
-          from bbvg.bot.runtime import TelegramPanelRuntime
+          from bbvg.bot.control_center import TelegramPanelRuntimeV41 as TelegramControlCenterRuntime
           from bbvg.bot.storage import PrivateStateRuntime
           from bbvg.bot.users import UserSettingsMixin
 
@@ -147,15 +142,16 @@ jobs:
           assert 'usernotifyall:' in users_source
           assert 'privacy:delete:' in users_source
           assert 'Управлять уведомлениями' in inspect.getsource(
-              TelegramPanelRuntime.show_user_detail
+              TelegramControlCenterRuntime.show_user_detail
           )
+          assert TelegramControlCenterRuntime.__module__ == 'bbvg.bot.control_center'
           assert 'run: python admin_panel_runtime_v41.py' in workflow
           assert 'notification_delivery_state.json' in monitor_workflow
           assert 'wheel_draw_alerts' in inspect.getsource(UserSettingsMixin)
 
           user_callbacks = {
               button['callback_data']
-              for row in TelegramPanelRuntime.compact_menu_rows(False)
+              for row in TelegramControlCenterRuntime.compact_menu_rows(False)
               for button in row
           }
           assert 'page:status' in user_callbacks
