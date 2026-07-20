@@ -103,8 +103,8 @@ def _rule_parse(text: str) -> dict[str, Any] | None:
 
     critical_patterns = (
         ("перепиш", "истори", "git", "rewrite_git_history"),
-        ("удал", "бэкап", "delete_backups"),
-        ("удал", "backup", "delete_backups"),
+        ("удал", "бэкап", "delete_backups", "delete_backups"),
+        ("удал", "backup", "delete_backups", "delete_backups"),
         ("секрет", "manage_secrets", "manage_secrets", "manage_secrets"),
         ("переда", "владель", "transfer_owner", "transfer_owner"),
     )
