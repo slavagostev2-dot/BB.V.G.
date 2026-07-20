@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+workflow_sha="${GITHUB_SHA:-}"
 release_sha="$(head -n 1 control_center_release.txt | tr -d '\r\n[:space:]')"
 if [[ ! "$release_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
   echo "control_center_release.txt must contain the exact 40-character release commit SHA" >&2
@@ -97,3 +98,7 @@ assert "подтвержд.)" not in inspect.getsource(TelegramPanelRuntime.show
 assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
 print("BB V.G. Control Center preflight validated")
 PY
+
+if [[ -n "$workflow_sha" ]] && git cat-file -e "${workflow_sha}^{commit}" 2>/dev/null; then
+  git checkout --detach "$workflow_sha"
+fi
