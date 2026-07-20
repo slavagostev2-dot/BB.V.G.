@@ -2,8 +2,6 @@ name: BB V.G. auto participation
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
@@ -34,6 +32,30 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Validate auto participation
+        env:
+          BETBOOM_AUTO_PARTICIPATE: "true"
+          BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
+          BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
+        run: |
+          python - <<'PY'
+          import betboom_auto_participation as auto
+
+          required = (
+              "_event_token",
+              "_eligible_for_event_attempt",
+              "process_new_wheel_events",
+          )
+          missing = [name for name in required if not hasattr(auto, name)]
+          if missing:
+              raise SystemExit(
+                  "Missing auto participation functions: " + ", ".join(missing)
+              )
+          if not auto.configured():
+              raise SystemExit("BetBoom auto participation session is not configured")
+          print("Auto participation preflight OK")
+          PY
+
       - name: Run auto participation
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -44,7 +66,6 @@ jobs:
           BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
           BETBOOM_BROWSER_CHANNEL: chrome
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
-          BETBOOM_PARTICIPATION_RETRY_MINUTES: "10"
         run: python auto_participation_worker.py
 
       - name: Persist participation state
