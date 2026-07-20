@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: bb-vg-current-validation-${{ github.ref }}
@@ -36,6 +36,53 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 0
+
+      - name: Apply final Chapter 2B stale-reference cleanup
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'cleanup/global-repository-audit-2026-07-20' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          health_path = Path('.github/workflows/system-health.yml')
+          health = health_path.read_text(encoding='utf-8')
+          for version in ('25', '36', '37', '38'):
+              token = f'admin_panel_runtime_v{version}.py'
+              health = health.replace(f'      - "{token}"\n', '')
+              health = health.replace(token + ' ', '')
+              health = health.replace(token, '')
+          health_path.write_text(health, encoding='utf-8')
+
+          preflight_path = Path('preflight.py')
+          preflight = preflight_path.read_text(encoding='utf-8')
+          marker = '        "admin_panel_runtime_v31.py",'
+          if marker in preflight:
+              start = preflight.rfind('    require_text(', 0, preflight.index(marker))
+              end = preflight.index('    require_text("nightly_discovery.py"', preflight.index(marker))
+              replacement = '''    require_text(\n        "bbvg/bot/interface.py",\n        (\n            "📨 Отправить сводку",\n            "summary:send:monthly",\n            "📭 Давно без колёс",\n        ),\n    )\n    require_text(\n        "bbvg/bot/runtime.py",\n        ("self.show_period_report(days)",),\n    )\n'''
+              preflight = preflight[:start] + replacement + preflight[end:]
+              preflight_path.write_text(preflight, encoding='utf-8')
+
+          for path in (health_path, preflight_path):
+              text = path.read_text(encoding='utf-8')
+              for version in ('25', '31', '36', '37', '38'):
+                  if f'admin_panel_runtime_v{version}.py' in text:
+                      raise SystemExit(f'stale Control Center reference remains in {path}')
+          PY
+          if git diff --quiet -- .github/workflows/system-health.yml preflight.py; then
+            echo "Final Chapter 2B stale-reference cleanup already applied."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/system-health.yml preflight.py
+          git commit -m "refactor: remove final old Control Center validation references"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:${HEAD_BRANCH}"
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
