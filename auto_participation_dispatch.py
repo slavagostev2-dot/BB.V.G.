@@ -17,9 +17,12 @@ def main() -> int:
         return 0
 
     try:
-        delay_seconds = max(0, min(60, int(os.getenv("BETBOOM_DISPATCH_DELAY_SECONDS", "20"))))
+        delay_seconds = max(
+            0,
+            min(180, int(os.getenv("BETBOOM_DISPATCH_DELAY_SECONDS", "75"))),
+        )
     except ValueError:
-        delay_seconds = 20
+        delay_seconds = 75
     if delay_seconds:
         time.sleep(delay_seconds)
 
@@ -38,12 +41,16 @@ def main() -> int:
         timeout=15,
     )
     if response.status_code == 204:
-        print("Auto participation workflow dispatched")
+        print(
+            "Auto participation workflow dispatched: "
+            f"repository={repository} ref={branch} workflow=auto-participation.yml"
+        )
         return 0
 
     print(
         "Auto participation dispatch failed: "
-        f"HTTP {response.status_code} {response.text[:300]}"
+        f"repository={repository} ref={branch} workflow=auto-participation.yml "
+        f"HTTP {response.status_code} {response.text[:500]}"
     )
     return 1
 
