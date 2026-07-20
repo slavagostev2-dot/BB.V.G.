@@ -230,7 +230,7 @@ docs/
 - Любая запись локального authoritative/diagnostic state выполняется через
   атомарную замену файла в том же каталоге: flush, `fsync`, `os.replace`.
 - `monitor_data.JSON_STATE_CONTRACTS` является машинно-проверяемым inventory
-  всех 28 JSON. Новый JSON нельзя добавить без категории, владельца и schema
+  всех 29 JSON. Новый JSON нельзя добавить без категории, владельца и schema
   contract либо явной отметки frozen archive.
 - Один authoritative файл не коммитится автоматическими workflow из разных
   concurrency-групп. `public_sources.txt` и `source_catalog.txt` автоматически
@@ -251,6 +251,7 @@ docs/
 | Файл | Категория | Единственный владелец записи |
 |---|---|---|
 | `activation_runtime_state.json` | archive | frozen Mini App |
+| `ai_runtime_state.json` | diagnostic | `bbvg.ai_core` |
 | `admin_action_queue.json` | authoritative | `admin_action_queue` CAS |
 | `admin_panel_status.json` | diagnostic | control-center workflow |
 | `bot_access.json` | compatibility | encrypted private state |

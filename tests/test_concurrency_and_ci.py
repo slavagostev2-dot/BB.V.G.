@@ -237,7 +237,7 @@ class ConcurrentStateTests(unittest.TestCase):
             notification_integrity_v2.release_delivery(digest, path)
 
     def test_all_tracked_json_has_an_owner_and_compatible_schema(self) -> None:
-        self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 28)
+        self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 29)
         self.assertEqual(monitor_data.validate_json_state_contracts(ROOT), [])
 
     def test_only_discovery_is_an_automatic_source_catalog_writer(self) -> None:
@@ -253,7 +253,7 @@ class ConcurrentStateTests(unittest.TestCase):
         self.assertIn("files=(source_tier_state.json)", tier)
         self.assertNotIn("files=(public_sources.txt source_catalog.txt", tier)
         panel = (ROOT / ".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
-        self.assertIn("files=(bot_private_state.enc.json)", panel)
+        self.assertIn("git add bot_private_state.enc.json", panel)
         self.assertNotIn("notification_integrity_v2.py --prune", panel)
         self.assertNotIn(
             "files=(bot_private_state.enc.json notification_delivery_state.json)",

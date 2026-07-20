@@ -25,6 +25,11 @@ NIGHTLY_SOURCES_PATH = ROOT / "source_catalog.txt"
 # newly added state file cannot silently bypass the ownership review.
 JSON_STATE_CONTRACTS: dict[str, dict[str, Any]] = {
     "activation_runtime_state.json": {"category": "archive", "owner": "frozen-miniapp"},
+    "ai_runtime_state.json": {
+        "category": "diagnostic",
+        "owner": "ai-core",
+        "schema": ("version", (1,)),
+    },
     "admin_action_queue.json": {
         "category": "authoritative",
         "owner": "admin-action-cas",
