@@ -6,6 +6,23 @@
 
 ---
 
+## 2026-07-21 — Этап 2A: baseline CI диагностирован и стабилизирован
+
+После завершения полной инвентаризации draft PR #108 имел красные проверки `Validate current`, `BB V.G. current checks` и `Validate bot-only recovery`. Диагностика по отдельным шагам и полному pytest-выводу показала, что проблемы не были следствием одной audit-документации.
+
+Исправлено:
+
+- Chapter 4 acceptance больше не требует случайного упоминания `telegram_ui.py` непосредственно в `admin-bot.yml`, а проверяет фактическую цепочку делегированной валидации через `scripts/validate_control_center.sh`;
+- исправлена production-ошибка `bbvg/bot/natural_language_admin.py`: две записи `critical_patterns` имели несовместимую длину и могли ронять разбор обычной текстовой команды owner/admin до определения intent;
+- `ai_runtime_state.json` добавлен в машинный ownership registry `monitor_data.JSON_STATE_CONTRACTS` как diagnostic state `ai-core`, число зарегистрированных JSON увеличено с 28 до 29;
+- concurrency/CI-тест обновлён под текущий способ миграции и `git add bot_private_state.enc.json`;
+- Chapter 4 UI-тест синхронизирован с уже внедрённой кнопкой `page:profile`; прежние кнопки не переставлялись;
+- временный pytest artifact и одноразовые диагностические/patch-механизмы удалены после локализации причин.
+
+На чистом head после исправлений одновременно прошли пять основных PR-проверок: `Validate current BB V.G. commit`, `BB V.G. current checks`, `Validate bot-only recovery`, `Bot recovery smoke test` и `Telegram transport checks`.
+
+Схемы wheel lifecycle, callback_data, порядок прежних кнопок, source tiers, backup rotation и production runtime entrypoints этим этапом не менялись. Откат: вернуть коммиты этапа 2A в audit-ветке; исходная rollback-точка глобальной ревизии остаётся `backup/before-global-repository-cleanup-2026-07-20`.
+
 ## 2026-07-19 — Ночной список переведён на ручное пополнение
 
 Из 102 ночных источников только три были добавлены администратором вручную:
