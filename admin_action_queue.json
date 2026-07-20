@@ -756,6 +756,12 @@
       "sequence": 51,
       "value": "sysman|2026-07-16T20:47:06.547233+00:00"
     },
+    "c08bbef103a549fb936bdf9a001f6f6c": {
+      "action": "record_personal_vote",
+      "created_at": "2026-07-20T04:02:14.462824+00:00",
+      "sequence": 155,
+      "value": "{\"actor\":\"vote_6d354213070f7ecae88871feecfd6151\",\"event_key\":\"lent#generation:0bfab1be3ee2a251b3e6\",\"role\":\"admin\",\"sources\":[\"zont1x\"],\"weight\":5,\"wheel_key\":\"lent\"}"
+    },
     "c1fb664742804f8b99ded10887499baf": {
       "action": "mark_inactive_global",
       "created_at": "2026-07-15T16:54:11.482450+00:00",
@@ -926,5 +932,5 @@
     }
   },
   "format": "bbvg-admin-action-queue-v1",
-  "sequence": 154
+  "sequence": 155
 }
