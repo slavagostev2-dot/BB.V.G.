@@ -9,6 +9,9 @@ on:
       - "system_checks_v2.py"
       - "system_checks_v3.py"
       - "incident_manager.py"
+      - "bbvg/ai_core.py"
+      - "bbvg/health_inspector.py"
+      - "ai_runtime_state.json"
       - "telegram_transport.py"
       - "notification_router.py"
       - "notification_integrity_v2.py"
@@ -100,6 +103,7 @@ jobs:
           python telegram_transport.py
           python incident_manager.py
           python system_checks_v3.py --self-test
+          python -m pytest -q tests/test_ai_core.py tests/test_ai_health_inspector.py
           python chapter1_stability.py
           python - <<'PY'
           import bot_notification_state
@@ -120,13 +124,17 @@ jobs:
           ADMIN_PANEL_MAX_AGE_MINUTES: "20"
           REQUEST_TIMEOUT_SECONDS: "15"
           DISPLAY_TIMEZONE: Asia/Barnaul
+          BBVG_AI_ENABLED: "true"
+          BBVG_AI_FEATURES: "health_inspector"
+          BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python system_checks_v3.py
 
       - name: Save incident state
         shell: bash
         run: |
           set -euo pipefail
-          files=(incident_state.json system_check_state.json)
+          files=(incident_state.json system_check_state.json ai_runtime_state.json)
           if git diff --quiet -- "${files[@]}"; then
             echo "System health state did not change."
             exit 0
