@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:admin_panel_stale:9278d429b1e1ee67": {
       "detail": "Последний живой сигнал был 149 минут назад.",
@@ -27,7 +27,7 @@
       "first_seen_at": "2026-07-18T15:16:53.876444+00:00",
       "key": "system_checks:discovery_inventory:423683e1cdf4ab6e",
       "kind": "discovery_inventory",
-      "last_seen_at": "2026-07-20T05:18:13.520437+00:00",
+      "last_seen_at": "2026-07-20T08:05:34.283390+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-07-18T21:15:00.572912+00:00",
       "occurrences": 15,
@@ -36,11 +36,13 @@
       "opened_sequence": 61,
       "reopen_notification_suppressed_at": "2026-07-18T18:35:18.762046+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
+      "resolution_notification_pending": true,
       "resolution_notified_at": "2026-07-18T15:32:06.138070+00:00",
-      "resolved_sequence": 60,
+      "resolved_at": "2026-07-20T08:05:34.283390+00:00",
+      "resolved_sequence": 62,
       "scope": "system_checks",
       "severity": "warning",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Ночная проверка видит не весь утверждённый пул"
     },
@@ -245,17 +247,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-20T05:18:13.520437+00:00",
-  "last_reconcile_at": "2026-07-20T05:18:13.520437+00:00",
+  "last_change_at": "2026-07-20T08:05:34.283390+00:00",
+  "last_reconcile_at": "2026-07-20T08:05:34.283390+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
-    "new_notification_count": 1,
+    "active": 0,
+    "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 61,
+  "sequence": 62,
   "status": "initializing",
-  "updated_at": "2026-07-20T05:18:14.473975+00:00",
+  "updated_at": "2026-07-20T08:05:34.283444+00:00",
   "version": 1
 }
