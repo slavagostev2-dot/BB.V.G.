@@ -113,6 +113,24 @@ jobs:
           print("Persistent notification integrity is active in system health")
           PY
 
+      - name: Verify configured AI provider
+        env:
+          BBVG_AI_ENABLED: "true"
+          BBVG_AI_FEATURES: "health_inspector"
+          BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
+          BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python - <<'PY'
+          from bbvg.ai_core import AIConfig
+          config = AIConfig.from_env()
+          assert config.provider in {"gemini", "openai"}, "Unsupported BBVG_AI_PROVIDER"
+          assert config.model, "BBVG_AI_MODEL is empty"
+          assert config.provider_configured(), "Selected AI provider key is missing"
+          print(f"AI provider configured: {config.provider}/{config.model}")
+          PY
+
       - name: Run centralized bot checks
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -125,7 +143,9 @@ jobs:
           DISPLAY_TIMEZONE: Asia/Barnaul
           BBVG_AI_ENABLED: "true"
           BBVG_AI_FEATURES: "health_inspector"
+          BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
           BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python system_checks_v3.py
 
