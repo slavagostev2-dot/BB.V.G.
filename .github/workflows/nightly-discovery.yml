@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - "public_sources.txt"
+      - "source_catalog.txt"
       - "nightly_discovery.py"
       - "nightly_discovery_entry.py"
       - "telegram_transport.py"
