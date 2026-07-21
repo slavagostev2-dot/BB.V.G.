@@ -17,9 +17,19 @@ import monitor_data as data_store
 PRIMARY_DOMAIN = os.getenv("TELEGRAM_WEB_DOMAIN", "telegram.me").strip().casefold() or "telegram.me"
 LEGACY_DOMAINS = {"t.me", "www.t.me", "telegram.me", "www.telegram.me"}
 OUTAGE_PREFIX = "GLOBAL_TRANSPORT_OUTAGE:"
-BATCH_ATTEMPTS = max(2, min(5, int(os.getenv("TRANSPORT_BATCH_ATTEMPTS", "3"))))
+# A source request already has a direct HTTP path plus the resolved-IP curl fallback.
+# Repeating every one of 167 sources several times inside the same cycle can turn a
+# short systemic outage into a 20+ minute monitor stall. Keep only one additional
+# whole-batch retry; the next regular monitor cycle is the next recovery attempt.
+BATCH_ATTEMPTS = max(1, min(2, int(os.getenv("TRANSPORT_BATCH_ATTEMPTS", "2"))))
 BACKOFF_SECONDS = (5, 15, 30, 60)
 DNS_CACHE_SECONDS = max(60, int(os.getenv("TELEGRAM_DNS_CACHE_SECONDS", "1800")))
+DNS_FAILURE_CACHE_SECONDS = max(
+    30, min(300, int(os.getenv("TELEGRAM_DNS_FAILURE_CACHE_SECONDS", "60")))
+)
+SOURCE_REQUEST_TIMEOUT = max(
+    5, min(10, int(os.getenv("TELEGRAM_SOURCE_TIMEOUT_SECONDS", "8")))
+)
 DOH_ENDPOINTS = (
     "https://dns.google/resolve",
     "https://cloudflare-dns.com/dns-query",
@@ -43,6 +53,8 @@ _outage_sources: set[str] = set()
 _outage_detail = ""
 _domain_ipv4 = ""
 _domain_ipv4_at = 0.0
+_domain_resolve_error = ""
+_domain_resolve_error_at = 0.0
 _dns_lock = threading.Lock()
 
 
@@ -131,14 +143,24 @@ def _ipv4_answers(payload: object) -> list[str]:
 
 
 def resolve_primary_ipv4(timeout: int = 15) -> str:
-    global _domain_ipv4, _domain_ipv4_at
+    global _domain_ipv4, _domain_ipv4_at, _domain_resolve_error, _domain_resolve_error_at
     current = time.monotonic()
     if _domain_ipv4 and current - _domain_ipv4_at < DNS_CACHE_SECONDS:
         return _domain_ipv4
+    if (
+        _domain_resolve_error
+        and current - _domain_resolve_error_at < DNS_FAILURE_CACHE_SECONDS
+    ):
+        raise requests.ConnectionError(_domain_resolve_error)
     with _dns_lock:
         current = time.monotonic()
         if _domain_ipv4 and current - _domain_ipv4_at < DNS_CACHE_SECONDS:
             return _domain_ipv4
+        if (
+            _domain_resolve_error
+            and current - _domain_resolve_error_at < DNS_FAILURE_CACHE_SECONDS
+        ):
+            raise requests.ConnectionError(_domain_resolve_error)
         failures: list[str] = []
         for endpoint in DOH_ENDPOINTS:
             try:
@@ -153,12 +175,16 @@ def resolve_primary_ipv4(timeout: int = 15) -> str:
                 if addresses:
                     _domain_ipv4 = addresses[0]
                     _domain_ipv4_at = time.monotonic()
+                    _domain_resolve_error = ""
+                    _domain_resolve_error_at = 0.0
                     return _domain_ipv4
             except (requests.RequestException, ValueError, TypeError) as exc:
                 failures.append(f"{urlsplit(endpoint).hostname}:{type(exc).__name__}")
-        raise requests.ConnectionError(
+        _domain_resolve_error = (
             f"DNS-over-HTTPS for {PRIMARY_DOMAIN} failed: " + ", ".join(failures)
         )
+        _domain_resolve_error_at = time.monotonic()
+        raise requests.ConnectionError(_domain_resolve_error)
 
 
 def _curl_with_resolved_domain(
@@ -292,18 +318,23 @@ def install(monitor_module: Any) -> None:
         hostname = (urlsplit(str(url)).hostname or "").casefold()
         if hostname not in LEGACY_DOMAINS:
             return original_request(method, url, attempts=attempts, **kwargs)
-        timeout_value = kwargs.get("timeout", monitor_module.REQUEST_TIMEOUT)
+        request_kwargs = dict(kwargs)
+        timeout_value = request_kwargs.get("timeout", monitor_module.REQUEST_TIMEOUT)
         try:
-            timeout = max(5, int(timeout_value))
+            timeout = max(5, min(int(timeout_value), SOURCE_REQUEST_TIMEOUT))
         except (TypeError, ValueError):
-            timeout = int(monitor_module.REQUEST_TIMEOUT)
+            timeout = SOURCE_REQUEST_TIMEOUT
+        request_kwargs["timeout"] = timeout
+        # Batch-level recovery already retries a systemic outage. A single source
+        # therefore gets one direct attempt plus the independent resolved-IP
+        # fallback instead of three serial 15-second attempts.
         return _request_without_legacy_redirects(
             original_request,
             method,
             url,
-            attempts=attempts,
+            attempts=1,
             timeout=timeout,
-            kwargs=kwargs,
+            kwargs=request_kwargs,
         )
 
     def primary_fetch_public(username: str):
@@ -404,6 +435,8 @@ def self_test() -> None:
     assert "t.me/" not in rewrite_telegram_text("https://t.me/test/1").replace("telegram.me/", "")
     assert is_transient_transport_error("NameResolutionError: failed to resolve")
     assert _ipv4_answers({"Answer": [{"type": 1, "data": "149.154.167.99"}]}) == ["149.154.167.99"]
+    assert 1 <= BATCH_ATTEMPTS <= 2
+    assert 5 <= SOURCE_REQUEST_TIMEOUT <= 10
     print("telegram_transport self-test passed")
 
 
