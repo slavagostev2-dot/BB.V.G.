@@ -85,7 +85,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          max_age_seconds=1200
+          max_age_seconds=480
           heartbeat=$(jq -r '.last_process_heartbeat_at // .last_iteration_at // empty' monitor_status.json)
           run_id=$(jq -r '.workflow_run_id // .run_id // empty' monitor_status.json)
           stale=false
@@ -219,7 +219,7 @@ jobs:
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           TELEGRAM_WEB_DOMAIN: telegram.me
-          MONITOR_MAX_AGE_MINUTES: "20"
+          MONITOR_MAX_AGE_MINUTES: "10"
           ADMIN_PANEL_MAX_AGE_MINUTES: "20"
           REQUEST_TIMEOUT_SECONDS: "15"
           DISPLAY_TIMEZONE: Asia/Barnaul
