@@ -1,8 +1,8 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-07-21T09:37:51.143179+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-21T09:48:03.883290+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,10 +13,10 @@
     "cached": true,
     "confidence": 0.0,
     "critical_count": 0,
-    "decision_id": "9d499df6348a4f32884c7366c506e883",
+    "decision_id": "6f19b10e914543519276917dbe1f2752",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-21T09:41:27.109207+00:00",
+    "generated_at": "2026-07-21T09:48:23.933319+00:00",
     "impact": "Отсутствует. Система работает в нормальном режиме без деградации производительности.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -61,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T09:41:26.245598+00:00",
+  "checked_at": "2026-07-21T09:48:23.007023+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -103,7 +103,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-21T09:37:51.143179+00:00",
+    "bot_panel_heartbeat": "2026-07-21T09:48:03.883290+00:00",
     "checked_sources": 167,
     "configured_sources": 168,
     "domain": "telegram.me",
@@ -113,9 +113,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T09:36:21.663146+00:00",
+      "last_checked_at": "2026-07-21T09:41:25.289533+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T09:36:21.663146+00:00",
+      "last_success_at": "2026-07-21T09:41:25.289533+00:00",
       "status": "ok"
     }
   },
@@ -175,7 +175,7 @@
     "version": 3,
     "workflow_run_id": "29818917848"
   },
-  "monitor_age_minutes": 4,
+  "monitor_age_minutes": 11,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -245,9 +245,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T09:36:21.663146+00:00",
+    "last_checked_at": "2026-07-21T09:41:25.289533+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T09:36:21.663146+00:00",
+    "last_success_at": "2026-07-21T09:41:25.289533+00:00",
     "status": "ok"
   }
 }
