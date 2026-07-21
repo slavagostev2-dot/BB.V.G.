@@ -272,20 +272,20 @@ jobs:
           VK_API_VERSION: "5.199"
           TELEGRAM_WEB_DOMAIN: telegram.me
           DISPLAY_TIMEZONE: Asia/Barnaul
-          REQUEST_TIMEOUT_SECONDS: "15"
+          REQUEST_TIMEOUT_SECONDS: "10"
           BBVG_AI_ENABLED: "true"
           BBVG_AI_FEATURES: "suspicious_post_analysis,source_discovery"
           BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
           BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # Actions without start_dttm stay pending until BetBoom starts them.
-          WHEEL_API_ATTEMPTS: "3"
+          # Keep one wheel verdict bounded so repost bursts cannot stall the cycle.
+          WHEEL_API_ATTEMPTS: "2"
           WHEEL_API_FAILURE_ALERT_THRESHOLD: "3"
           UNTIMED_WHEEL_TTL_HOURS: "2"
           MAX_WORKERS: "16"
-          TRANSPORT_BATCH_ATTEMPTS: "3"
-          MONITOR_RESTART_FAILURES: "2"
+          TRANSPORT_BATCH_ATTEMPTS: "2"
+          MONITOR_RESTART_FAILURES: "1"
           MONITOR_RESTART_NO_PROGRESS: "2"
           DEADLINE_GRACE_MINUTES: "30"
           FINAL_REMINDER_BEFORE_MINUTES: "5"
@@ -319,6 +319,32 @@ jobs:
             notification_delivery_state.json ai_runtime_state.json
           )
 
+          publish_monitor_status() {
+            for attempt in 1 2 3; do
+              current_sha=$(timeout --signal=TERM --kill-after=5s 20s gh api \
+                -H "Accept: application/vnd.github+json" \
+                "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=main" \
+                --jq '.sha' 2>/dev/null) || current_sha=""
+              if [[ -z "$current_sha" ]]; then
+                sleep 1
+                continue
+              fi
+              encoded=$(base64 -w0 monitor_status.json)
+              if timeout --signal=TERM --kill-after=5s 20s gh api \
+                --method PUT \
+                -H "Accept: application/vnd.github+json" \
+                "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json" \
+                -f message='Publish monitor heartbeat [skip ci]' \
+                -f content="$encoded" \
+                -f sha="$current_sha" \
+                -f branch=main >/dev/null 2>&1; then
+                return 0
+              fi
+              sleep 1
+            done
+            return 1
+          }
+
           push_runtime() {
             if git diff --quiet -- "${runtime_files[@]}"; then
               return 0
@@ -349,6 +375,7 @@ jobs:
 
           shift_end=$(( $(date +%s) + 19800 ))
           last_commit_at=0
+          last_status_publish_at=0
           iteration=0
 
           while true; do
@@ -365,7 +392,7 @@ jobs:
             )
             echo "=== BB V.G. check $iteration at $(date -u +%FT%TZ) ==="
 
-            timeout --signal=TERM --kill-after=30s 600s python bbvg_monitor_main.py 2>&1 | tee monitor-run.log
+            timeout --signal=TERM --kill-after=15s 240s python bbvg_monitor_main.py 2>&1 | tee monitor-run.log
             iteration_exit=${PIPESTATUS[0]}
             duration=$(( $(date +%s) - started_at ))
 
@@ -376,6 +403,15 @@ jobs:
               --iteration "$iteration" \
               --exit-code "$iteration_exit" \
               --duration-seconds "$duration"
+
+            status_now=$(date +%s)
+            if (( iteration_exit != 0 || last_status_publish_at == 0 || status_now - last_status_publish_at >= 300 )); then
+              if publish_monitor_status; then
+                last_status_publish_at=$status_now
+              else
+                echo "WARNING monitor_status.json could not be published independently; bulk runtime sync will retry it."
+              fi
+            fi
 
             if (( iteration_exit != 0 )); then
               echo "BB V.G. iteration failed with exit code ${iteration_exit}; status was saved."
