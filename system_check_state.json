@@ -1,8 +1,8 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-07-21T16:03:20.714299+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-21T16:13:25.892252+00:00",
     "started_at": "2026-07-21T15:53:12.674345+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,7 +13,7 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 3,
-    "decision_id": "2d9d990f92a34816b102086a1f7f75d9",
+    "decision_id": "cf07a6f2cb9346f294c43a8687e3d902",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
@@ -21,15 +21,15 @@
       "source_health_missing",
       "source_transport_smoke"
     ],
-    "generated_at": "2026-07-21T16:05:31.211057+00:00",
-    "impact": "Данные мониторинга устарели, что может привести к задержкам в обнаружении инцидентов и потере актуальности информации по источнику @cct_betboom.",
+    "generated_at": "2026-07-21T16:14:13.191655+00:00",
+    "impact": "Мониторинг работает некорректно, данные об источниках устарели, что может привести к пропуску инцидентов в реальном времени.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: основной монитор не обновлялся 21 минуту и не опрашивает один из источников (@cct_betboom), что привело к неполному покрытию (167/168).",
+    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: зафиксировано 3 критические ошибки, включая зависание основного монитора (последнее обновление 29 минут назад) и неполный охват источников.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -66,7 +66,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T16:05:21.611839+00:00",
+  "checked_at": "2026-07-21T16:14:10.736975+00:00",
   "discovery": {
     "active_size": 167,
     "candidate_count": 478,
@@ -92,7 +92,7 @@
     },
     "inventory_confirmation_window_hours": 6,
     "inventory_registry_generated_at": "2026-07-21T15:45:24.849679+00:00",
-    "inventory_sync_age_minutes": 19,
+    "inventory_sync_age_minutes": 28,
     "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
   },
   "domain_compliance": {
@@ -111,7 +111,7 @@
   "finding_count": 4,
   "findings": [
     {
-      "detail": "Последняя итерация была 21 минут назад.",
+      "detail": "Последняя итерация была 29 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -141,7 +141,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-07-21T16:03:20.714299+00:00",
+    "bot_panel_heartbeat": "2026-07-21T16:13:25.892252+00:00",
     "checked_sources": 167,
     "configured_sources": 169,
     "domain": "telegram.me",
@@ -158,11 +158,11 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 4,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 86,
@@ -192,7 +192,7 @@
     "checks_total": 646886,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "8eac1e0dc3da468531f0b0b4608a29c28e97e804",
+    "head_sha": "f13525d6ea571a91ae9a6b32614ac8878ac2cf2f",
     "iteration": 208,
     "last_failure_at": "2026-07-21T12:13:02.326632+00:00",
     "last_iteration_at": "2026-07-21T15:44:17.195909+00:00",
@@ -205,15 +205,15 @@
     "reachable_sources": 167,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29846873520",
-    "run_started_at": "2026-07-21T16:03:47.203478890Z",
+    "run_id": "29847630424",
+    "run_started_at": "2026-07-21T16:13:45.492349440Z",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "starting",
     "version": 3,
-    "workflow_run_id": "29846873520"
+    "workflow_run_id": "29847630424"
   },
-  "monitor_age_minutes": 21,
+  "monitor_age_minutes": 29,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
