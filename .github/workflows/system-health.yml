@@ -119,22 +119,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          recent_newer_active=0
+          recent_active=0
           if [[ "$STALE_RUN_ID" =~ ^[0-9]+$ ]]; then
-            recent_newer_active=$(gh run list \
+            recent_active=$(gh run list \
               --workflow monitor.yml \
               --limit 20 \
               --json databaseId,status,createdAt \
               | jq --argjson stale "$STALE_RUN_ID" \
-                '[.[] | select((.status == "queued" or .status == "in_progress") and .databaseId > $stale and (now - (.createdAt | fromdateiso8601)) < 480)] | length')
+                '[.[] | select((.status == "queued" or .status == "in_progress") and .databaseId >= $stale and (now - (.createdAt | fromdateiso8601)) < 900)] | length')
           fi
 
-          if (( recent_newer_active > 0 )); then
-            echo "A fresh monitor replacement is already queued or running; watchdog will not duplicate it."
+          if (( recent_active > 0 )); then
+            echo "The current or a newer monitor run is still inside the 15-minute startup/recovery window; watchdog will not cancel it."
             exit 0
           fi
 
-          echo "Monitor heartbeat is stale and no fresh replacement exists; requesting an authoritative replacement."
+          echo "Monitor heartbeat is stale and no fresh active run exists; requesting an authoritative replacement."
           gh workflow run monitor.yml --ref main -f continuous=true -f replace=true
 
   health:
