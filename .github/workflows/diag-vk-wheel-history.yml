@@ -26,13 +26,19 @@ jobs:
           set -euo pipefail
           body_file="$(mktemp)"
           {
-            echo '## PR 112 failed test logs'
+            echo '## PR 112 exact pytest failures'
             for run_id in 29802179686 29802179677; do
               echo
               echo "### Run ${run_id}"
               echo '```text'
-              gh run view "$run_id" --repo "$GH_REPO" --log 2>&1 | grep -E -A 25 -B 12 'FAILED|FAILURES|AssertionError|assert |E   |short test summary|coverage' | tail -n 500 || true
+              log_file="$(mktemp)"
+              gh run view "$run_id" --repo "$GH_REPO" --log > "$log_file" 2>&1 || true
+              awk '
+                /={3,} FAILURES ={3,}/ {show=1}
+                /short test summary info/ {show=1}
+                show {print}
+              ' "$log_file" | tail -n 220
               echo '```'
             done
           } > "$body_file"
-          gh issue edit "$ISSUE_NUMBER" --repo "$GH_REPO" --title "VK PR 112 test diagnostic" --body-file "$body_file"
+          gh issue edit "$ISSUE_NUMBER" --repo "$GH_REPO" --title "VK PR 112 exact pytest failures" --body-file "$body_file"
