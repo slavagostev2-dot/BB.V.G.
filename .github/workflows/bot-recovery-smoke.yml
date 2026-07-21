@@ -40,13 +40,14 @@ jobs:
       - name: Validate recovery core
         run: |
           set -euo pipefail
+          for version in $(seq 25 40); do
+            test ! -e "admin_panel_runtime_v${version}.py" || {
+              echo "Historical panel runtime remains: admin_panel_runtime_v${version}.py" >&2
+              exit 1
+            }
+          done
           python -m compileall -q bbvg tests
           python -m py_compile \
-            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
-            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
             admin_panel_runtime_v41.py telegram_ui.py \
             bot_private_state.py bot_notification_state.py notification_integrity_v2.py \
             privacy_retention.py security_audit.py migrate_bot_private_state.py \
@@ -106,8 +107,8 @@ jobs:
           from bbvg.bot.users import WHEEL_NOTIFICATION_OPTIONS
 
           assert not any(
-              cls.__module__.startswith('admin_panel_runtime_v')
-              for cls in TelegramPanelRuntime.__mro__
+            cls.__module__.startswith('admin_panel_runtime_v')
+            for cls in TelegramPanelRuntime.__mro__
           )
           assert notification_router.load_config is bot_notification_state.load_config
           assert notification_router._bbvg_notification_preferences_v2_installed is True
@@ -131,25 +132,25 @@ jobs:
           assert 'page:reports' not in admin_main
           assert 'control:daily' not in callbacks(panel.control_menu_rows())
           assert {key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS} == {
-              'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'
+            'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'
           }
           assert 'access_signature' not in panel().normalize_access({'owner_id': '1'})
 
           ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
           assert ledger.get('format') in {
-              'bbvg-notification-delivery-v2',
-              'bbvg-notification-delivery-v3',
+            'bbvg-notification-delivery-v2',
+            'bbvg-notification-delivery-v3',
           }
           assert isinstance(ledger.get('entries'), dict)
           primary = [
-              line.split('#', 1)[0].strip().lstrip('@')
-              for line in Path('public_sources.txt').read_text(encoding='utf-8').splitlines()
-              if line.split('#', 1)[0].strip()
+            line.split('#', 1)[0].strip().lstrip('@')
+            for line in Path('public_sources.txt').read_text(encoding='utf-8').splitlines()
+            if line.split('#', 1)[0].strip()
           ]
           nightly = [
-              line.split('#', 1)[0].strip().lstrip('@')
-              for line in Path('source_catalog.txt').read_text(encoding='utf-8').splitlines()
-              if line.split('#', 1)[0].strip()
+            line.split('#', 1)[0].strip().lstrip('@')
+            for line in Path('source_catalog.txt').read_text(encoding='utf-8').splitlines()
+            if line.split('#', 1)[0].strip()
           ]
           combined = [value.casefold() for value in primary + nightly]
           assert len(combined) == len(set(combined))

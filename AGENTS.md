@@ -51,16 +51,20 @@ docs/
 
 - Telegram-панель: `bbvg/bot/runtime.py`.
 - Совместимая production-команда: `python admin_panel_runtime_v41.py`.
-- `admin_panel_runtime_v41.py` — только тонкий переходник на `bbvg.bot.runtime`, а не отдельная реализация.
+- `admin_panel_runtime_v41.py` — compatibility entrypoint над `bbvg.bot.runtime`; он может сохранять узкие presentation-совместимости, но не создаёт параллельный production-runtime.
 - Предметные владельцы панели: `bbvg/bot/interface.py` (экраны и
   навигация), `users.py` (пользователи, роли и настройки),
   `sources.py` (источники), `wheels.py` (колёса и callback), `storage.py`
   (зашифрованное состояние), `runtime.py` (финальная композиция,
-  lifecycle и очередь admin actions).
+  lifecycle и очередь admin actions). Текущий MRO также использует базовый
+  `admin_panel_v2.py` для совместимых общих отчётных методов.
 - Production MRO `bbvg.bot.runtime.TelegramPanelRuntime` не содержит
-  классов из `admin_panel_runtime_v*`. Versioned-файлы остаются только
-  как временная совместимость до главы 9 и не являются
-  владельцами production-поведения.
+  классов из `admin_panel_runtime_v*`.
+- Историческая bot-only цепочка `admin_panel_runtime_v25.py`–`v40.py`
+  удалена в главе 2C после переноса внешних preflight/CI/recovery-ссылок.
+  Возвращать эту лестницу или подключать к production более ранние versioned-
+  runtime запрещено; необходимые совместимости реализуются в действующих
+  предметных владельцах и покрываются regression-контрактами.
 - Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические модули.
 
 Не добавляйте параллельный runtime или второго consumer Telegram `getUpdates`.
@@ -231,7 +235,7 @@ docs/
 - Любая запись локального authoritative/diagnostic state выполняется через
   атомарную замену файла в том же каталоге: flush, `fsync`, `os.replace`.
 - `monitor_data.JSON_STATE_CONTRACTS` является машинно-проверяемым inventory
-  всех 28 JSON. Новый JSON нельзя добавить без категории, владельца и schema
+  всех 29 JSON. Новый JSON нельзя добавить без категории, владельца и schema
   contract либо явной отметки frozen archive.
 - Один authoritative файл не коммитится автоматическими workflow из разных
   concurrency-групп. `public_sources.txt` и `source_catalog.txt` автоматически
@@ -254,6 +258,7 @@ docs/
 | `activation_runtime_state.json` | archive | frozen Mini App |
 | `admin_action_queue.json` | authoritative | `admin_action_queue` CAS |
 | `admin_panel_status.json` | diagnostic | control-center workflow |
+| `ai_runtime_state.json` | authoritative | AI Core |
 | `bot_access.json` | compatibility | encrypted private state |
 | `bot_private_state.enc.json` | authoritative | control center CAS / exclusive key rotation |
 | `candidate_moderation.json` | authoritative | control center moderation |

@@ -45,14 +45,15 @@ jobs:
       - name: Validate consolidated runtime and state
         run: |
           set -euo pipefail
+          for version in $(seq 25 40); do
+            test ! -e "admin_panel_runtime_v${version}.py" || {
+              echo "Historical panel runtime remains: admin_panel_runtime_v${version}.py" >&2
+              exit 1
+            }
+          done
           python -m compileall -q bbvg tests
           python -m py_compile \
             admin_bot.py admin_runtime.py admin_panel_v2.py \
-            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
-            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
             admin_panel_runtime_v41.py bot_private_state.py \
             notification_integrity_v2.py privacy_retention.py security_audit.py \
             migrate_bot_private_state.py source_registry.py \
@@ -69,8 +70,8 @@ jobs:
           python security_audit.py --current
           python security_audit.py --history --history-output security_history_report.json
 
-      - name: Run full pytest suite
-        run: python -m pytest -q
+      - name: Validate chapter 2C removal contracts
+        run: python -m pytest -q tests/test_current_contracts.py
 
       - name: Run production acceptance
         run: python tests/production_acceptance.py --section all
@@ -90,22 +91,25 @@ jobs:
           workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
           assert 'run: python admin_panel_runtime_v41.py' in workflow
           assert not any(
-              cls.__module__.startswith('admin_panel_runtime_v')
-              for cls in TelegramPanelRuntime.__mro__
+            cls.__module__.startswith('admin_panel_runtime_v')
+            for cls in TelegramPanelRuntime.__mro__
           )
           assert 'Role fingerprint' in workflow or 'role fingerprint' in workflow.lower()
           assert {'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'} == {
-              key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
+            key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
           }
           handler = inspect.getsource(UserSettingsMixin.handle_callback)
           assert 'usernotify:' in handler and 'usernotifyall:' in handler
           assert '_load_remote_bundle' in inspect.getsource(PrivateStateRuntime._save_bot_bundle)
           assert 'page:status' in {
-              button['callback_data']
-              for row in TelegramPanelRuntime.compact_menu_rows(False)
-              for button in row
+            button['callback_data']
+            for row in TelegramPanelRuntime.compact_menu_rows(False)
+            for button in row
           }
           assert notification_router._bbvg_notification_integrity_v2_installed is True
           assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
           print('Current consolidated production boundaries validated')
           PY
+
+      - name: Run full pytest suite
+        run: python -m pytest -q

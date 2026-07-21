@@ -11,6 +11,15 @@ if ! git cat-file -e "${release_sha}^{commit}" 2>/dev/null; then
   echo "Release commit is not available in checkout: ${release_sha}" >&2
   exit 1
 fi
+
+for version in $(seq 25 40); do
+  legacy_path="admin_panel_runtime_v${version}.py"
+  if [[ -e "$legacy_path" ]]; then
+    echo "Historical panel runtime must not exist after chapter 2C: ${legacy_path}" >&2
+    exit 1
+  fi
+done
+
 git checkout --detach "$release_sha"
 validated_sha="$(git rev-parse HEAD)"
 if [[ "$validated_sha" != "$release_sha" ]]; then
@@ -22,10 +31,7 @@ echo "Validating exact Control Center release SHA: ${validated_sha}"
 python -m compileall -q bbvg
 python -m py_compile \
   admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_action_queue.py chapter1_stability.py admin_runtime.py \
-  admin_panel_v2.py admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-  admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-  admin_panel_runtime_v30.py admin_panel_runtime_v31.py admin_panel_runtime_v32.py \
-  admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py admin_panel_runtime_v41.py \
+  admin_panel_v2.py admin_panel_runtime_v41.py \
   telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
   bot_private_state.py bot_notification_state.py \
   notification_integrity_v2.py notification_router.py wheel_publications_v2.py \

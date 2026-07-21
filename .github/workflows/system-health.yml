@@ -31,10 +31,7 @@ on:
       - "source_intelligence.py"
       - "nightly_discovery.py"
       - "source_transport_state.json"
-      - "admin_panel_runtime_v25.py"
-      - "admin_panel_runtime_v36.py"
-      - "admin_panel_runtime_v37.py"
-      - "admin_panel_runtime_v38.py"
+      - "admin_panel_runtime_v41.py"
       - "bbvg/bot/**"
       - "telegram_ui.py"
       - "chapter4_acceptance.py"
@@ -93,8 +90,15 @@ jobs:
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           TELEGRAM_WEB_DOMAIN: telegram.me
         run: |
+          set -euo pipefail
+          for version in $(seq 25 40); do
+            test ! -e "admin_panel_runtime_v${version}.py" || {
+              echo "Historical panel runtime remains: admin_panel_runtime_v${version}.py" >&2
+              exit 1
+            }
+          done
           python -m compileall -q bbvg
-          python -m py_compile system_checks.py system_checks_v2.py system_checks_v3.py incident_manager.py telegram_transport.py notification_router.py notification_integrity_v2.py wheel_publications_v2.py rating_policy.py chapter2_unified_logic.py admin_action_queue.py chapter1_stability.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor.py monitor_data.py admin_panel_runtime_v36.py admin_panel_runtime_v37.py admin_panel_runtime_v38.py telegram_ui.py chapter4_acceptance.py
+          python -m py_compile system_checks.py system_checks_v2.py system_checks_v3.py incident_manager.py telegram_transport.py notification_router.py notification_integrity_v2.py wheel_publications_v2.py rating_policy.py chapter2_unified_logic.py admin_action_queue.py chapter1_stability.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor.py monitor_data.py admin_panel_runtime_v41.py telegram_ui.py chapter4_acceptance.py
           python -m bbvg.bot.storage
           python -m bbvg.bot.users
           python notification_integrity_v2.py --self-test
