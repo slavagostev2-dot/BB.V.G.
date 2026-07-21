@@ -113,7 +113,8 @@ jobs:
              | .run_id = $run_id
              | .run_started_at = $started_at
              | .head_sha = $head_sha
-             | .status = "starting"' \
+             | .status = "starting"
+             | del(.startup_error)' \
             monitor_status.json > "$tmp"
           mv "$tmp" monitor_status.json
 
@@ -142,8 +143,42 @@ jobs:
         run: python -m pip install -r requirements.txt
 
       - name: Verify repository layout
+        id: repository_preflight
         timeout-minutes: 2
-        run: python preflight.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set +e
+          output=$(python preflight.py 2>&1)
+          code=$?
+          set -e
+          if (( code == 0 )); then
+            printf '%s\n' "$output"
+            exit 0
+          fi
+
+          printf '%s\n' "$output"
+          tmp=$(mktemp)
+          jq \
+            --arg error "$output" \
+            '.status = "preflight_failed" | .startup_error = $error' \
+            monitor_status.json > "$tmp"
+          mv "$tmp" monitor_status.json
+          current_sha=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=main" \
+            --jq '.sha')
+          encoded=$(base64 -w0 monitor_status.json)
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json" \
+            -f message='Record monitor preflight failure [skip ci]' \
+            -f content="$encoded" \
+            -f sha="$current_sha" \
+            -f branch=main >/dev/null
+          exit "$code"
 
       - name: Check BB V.G. project files
         timeout-minutes: 5
@@ -261,6 +296,7 @@ jobs:
           PY
 
       - name: Run BB V.G. monitor loop
+        id: monitor_loop
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -486,7 +522,7 @@ jobs:
           push_runtime || true
 
       - name: Continue continuous monitoring
-        if: ${{ always() && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
+        if: ${{ always() && steps.monitor_loop.outcome != 'skipped' && steps.monitor_loop.outcome != 'cancelled' && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
