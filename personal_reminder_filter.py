@@ -133,24 +133,36 @@ def _merge_dispatch_ledger_from_disk(state: dict[str, Any], monitor_module: Any)
     return True
 
 
-def _disabled_workflow_failure(record: Any, entry: dict[str, Any]) -> bool:
+def _recoverable_processed_failure(record: Any, entry: dict[str, Any]) -> str:
     if not isinstance(record, dict):
-        return False
+        return ""
     status = str(record.get("status") or entry.get("auto_participation_status") or "")
-    if status != "workflow_dispatch_failed":
-        return False
-    detail = " ".join(
-        str(value or "")
-        for value in (
-            record.get("detail"),
-            record.get("dispatch_error"),
-            entry.get("auto_participation_error"),
+    if status == "workflow_dispatch_failed":
+        detail = " ".join(
+            str(value or "")
+            for value in (
+                record.get("detail"),
+                record.get("dispatch_error"),
+                entry.get("auto_participation_error"),
+            )
+        ).casefold()
+        if _DISABLED_WORKFLOW_MARKER in detail:
+            return "disabled_workflow"
+    if status == "button_not_found":
+        try:
+            attempt_version = int(record.get("attempt_version", 1) or 1)
+        except (TypeError, ValueError):
+            attempt_version = 1
+        target_version = int(
+            getattr(betboom_auto_participation, "_PARTICIPATION_ATTEMPT_VERSION", 1)
+            or 1
         )
-    ).casefold()
-    return _DISABLED_WORKFLOW_MARKER in detail
+        if attempt_version < target_version:
+            return "browser_attempt_upgrade"
+    return ""
 
 
-def _rearm_disabled_workflow_failure(
+def _rearm_recoverable_failure(
     state: dict[str, Any],
     monitor_module: Any,
     processed: dict[str, Any],
@@ -160,10 +172,11 @@ def _rearm_disabled_workflow_failure(
     entry: dict[str, Any],
     current: Any,
 ) -> bool:
-    """Reopen only still-active events that failed solely because Actions disabled the worker."""
+    """Reopen only still-active events covered by an explicit recovery rule."""
 
     record = processed.get(token)
-    if not _disabled_workflow_failure(record, entry):
+    reason = _recoverable_processed_failure(record, entry)
+    if not reason:
         return False
     if not betboom_auto_participation._eligible_for_event_attempt(
         entry, monitor_module, current
@@ -177,14 +190,14 @@ def _rearm_disabled_workflow_failure(
         "auto_participation_checked_at",
         "auto_participation_retry_allowed",
         "auto_participation_error",
-        "auto_participation_manual_notification_at",
         "auto_participation_manual_notification_error",
     ):
         entry.pop(field, None)
     entry["auto_participation_rearmed_at"] = current.isoformat()
+    entry["auto_participation_rearm_reason"] = reason
     print(
-        "Rearmed auto participation after disabled workflow recovery: "
-        f"wheel={wheel_key} token={token}"
+        "Rearmed auto participation after recoverable event failure: "
+        f"wheel={wheel_key} token={token} reason={reason}"
     )
     return True
 
@@ -239,7 +252,6 @@ def _record_dispatch_failure(
         entry["auto_participation_checked_at"] = current.isoformat()
         entry["auto_participation_retry_allowed"] = True
         entry["auto_participation_error"] = detail[:300]
-        entry.pop("auto_participation_manual_notification_at", None)
         entry.pop("auto_participation_manual_notification_error", None)
         print(
             "Auto participation dispatch will retry silently: "
@@ -319,7 +331,7 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
         if not token:
             continue
         if token in processed:
-            if _rearm_disabled_workflow_failure(
+            if _rearm_recoverable_failure(
                 state,
                 monitor_module,
                 processed,
@@ -619,8 +631,14 @@ def self_test() -> None:
         "status": "workflow_dispatch_failed",
         "detail": "HTTP 422 Cannot trigger a workflow_dispatch on a disabled workflow",
     }
-    assert _disabled_workflow_failure(disabled, {})
-    assert not _disabled_workflow_failure({"status": "participated"}, {})
+    assert _recoverable_processed_failure(disabled, {}) == "disabled_workflow"
+    legacy_button = {"status": "button_not_found"}
+    assert _recoverable_processed_failure(legacy_button, {}) == "browser_attempt_upgrade"
+    current_button = {
+        "status": "button_not_found",
+        "attempt_version": betboom_auto_participation._PARTICIPATION_ATTEMPT_VERSION,
+    }
+    assert _recoverable_processed_failure(current_button, {}) == ""
     print("personal reminder filter self-test passed")
 
 
