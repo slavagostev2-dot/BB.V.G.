@@ -22,8 +22,26 @@ VK_SEND_ATTEMPTS = max(1, int(os.getenv("VK_SEND_ATTEMPTS", "3") or 3))
 _TAG_RE = re.compile(r"<[^>]+>")
 _SPLIT_PEERS_RE = re.compile(r"[\s,;]+")
 
+# VK receives only the first user-facing wheel alert. These messages belong to
+# later lifecycle phases or to service diagnostics and must stay in Telegram.
+_BLOCKED_WHEEL_NOTIFICATION_MARKERS = (
+    "активные колёса",
+    "напоминание о колесе",
+    "последний шанс",
+    "время прокрутки",
+    "уже должно быть прокручено",
+    "ошибка",
+    "сбой",
+    "не смог проверить",
+    "недоступ",
+    "служебн",
+    "диагност",
+)
+
 
 def configured_peer_ids(raw: str | None = None) -> list[str]:
+    """Parse the legacy fixed-recipient setting kept for compatibility."""
+
     value = str(raw if raw is not None else os.getenv("VK_WHEEL_PEER_IDS", "")).strip()
     result: list[str] = []
     for item in _SPLIT_PEERS_RE.split(value):
@@ -65,7 +83,15 @@ def _wheel_url(
         match = router_module.WHEEL_URL_RE.search(candidate)
         if match:
             return f"https://betboom.ru/freestream/{match.group(1)}"
-    return str(url or "").strip()
+    return ""
+
+
+def _canonical_initial_identity(identity: str) -> str:
+    parts = str(identity or "").split(":")
+    if len(parts) >= 4 and parts[0] == "wheel" and parts[1] == "wheels":
+        parts[3] = "detected"
+        return ":".join(parts)
+    return ""
 
 
 def _wheel_event(
@@ -74,16 +100,32 @@ def _wheel_event(
     url: str | None,
     reply_markup: dict | None,
 ) -> tuple[bool, str]:
-    kind = str(router_module.notification_kind(text) or "")
-    if kind != "wheels":
+    """Recognize the first user-facing notification for a BetBoom wheel.
+
+    Initial monitor wording may vary. Some verified wheels are announced without
+    the exact phrase ``Новое колесо BetBoom``; CTOM05 was one such production
+    event. The stable signal is the BetBoom wheel URL or button markup. Menus,
+    reminders, draw alerts and explicit system failures remain excluded.
+    """
+
+    wheel_url = _wheel_url(router_module, text, url, reply_markup)
+    if not wheel_url:
         return False, ""
-    identity = str(
-        router_module.notification_event_identity(kind, text, url, reply_markup) or ""
-    )
-    if not identity.startswith("wheel:wheels:"):
-        return False, ""
+
     lowered = _plain_text(text).casefold()
-    if "активные колёса" in lowered and "новое колесо" not in lowered:
+    if any(marker in lowered for marker in _BLOCKED_WHEEL_NOTIFICATION_MARKERS):
+        return False, ""
+
+    # Do not depend on notification_kind(text): its marker list is deliberately
+    # strict and previously classified the valid CTOM05 alert as admin_system.
+    identity = str(
+        router_module.notification_event_identity(
+            "wheels", text, wheel_url, reply_markup
+        )
+        or ""
+    )
+    identity = _canonical_initial_identity(identity)
+    if not identity.startswith("wheel:wheels:"):
         return False, ""
     return True, identity
 
@@ -219,12 +261,17 @@ def install(monitor_module: Any, router_module: Any) -> None:
             telegram_error = exc
 
         try:
-            dispatch_vk_wheel_notification(
+            vk_result = dispatch_vk_wheel_notification(
                 router_module,
                 text,
                 url=url,
                 reply_markup=reply_markup,
             )
+            if vk_result.get("dispatched"):
+                print(
+                    "VK wheel notification workflow scheduled: "
+                    f"{vk_result.get('event_identity', '')}"
+                )
         except Exception as exc:
             print(f"WARNING VK wheel notification dispatch: {type(exc).__name__}: {exc}")
 
@@ -315,6 +362,8 @@ def _send_with_retries(
 
 
 def send_from_environment() -> int:
+    """Legacy fixed-recipient sender; production uses dynamic conversations."""
+
     token = str(os.getenv("VK_GROUP_TOKEN") or "").strip()
     peers = configured_peer_ids()
     message = str(os.getenv("VK_WHEEL_MESSAGE") or "").strip()
@@ -322,7 +371,7 @@ def send_from_environment() -> int:
     event_identity = str(os.getenv("VK_WHEEL_EVENT_ID") or "").strip()
 
     if not token or not peers:
-        print("VK wheel notifications are not configured; skipping delivery")
+        print("VK fixed-recipient delivery is not configured; skipping")
         return 0
     if not message:
         raise SystemExit("VK_WHEEL_MESSAGE is required")
@@ -345,7 +394,7 @@ def send_from_environment() -> int:
         except Exception as exc:
             failures.append(peer_id)
             print(f"WARNING VK target {peer_id}: {type(exc).__name__}: {exc}")
-    print(f"VK wheel notification delivery: sent={sent}, failed={len(failures)}")
+    print(f"VK fixed-recipient delivery: sent={sent}, failed={len(failures)}")
     if failures:
         raise SystemExit("VK delivery failed for: " + ", ".join(failures))
     return 0
@@ -356,6 +405,9 @@ def self_test() -> None:
     assert configured_peer_ids("1, 2;2 bad -3") == ["1", "2", "-3"]
     assert vk_random_id("event", "1") == vk_random_id("event", "1")
     assert vk_random_id("event", "1") != vk_random_id("event", "2")
+    assert _canonical_initial_identity("wheel:wheels:test:active:token") == (
+        "wheel:wheels:test:detected:token"
+    )
     print("VK wheel notifications self-test passed")
 
 
