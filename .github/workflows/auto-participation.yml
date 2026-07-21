@@ -76,36 +76,8 @@ jobs:
           BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
           BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
           BETBOOM_BROWSER_CHANNEL: chrome
-          BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
-        run: |
-          python - <<'PY'
-          import json
-          from datetime import datetime, timezone
-          from pathlib import Path
-          import betboom_auto_participation as auto
-
-          url = Path("force_auto_participation.trigger").read_text(encoding="utf-8").strip()
-          if not url.startswith("https://betboom.ru/freestream/"):
-              raise SystemExit("Invalid forced BetBoom wheel URL")
-          if not auto.configured():
-              raise SystemExit("BetBoom auto participation session is not configured")
-
-          result = auto.participate(url)
-          payload = {
-              "url": url,
-              "success": result.success,
-              "status": result.status,
-              "detail": result.detail,
-              "attempted_at": datetime.now(timezone.utc).isoformat(),
-          }
-          Path("force_auto_participation_result.json").write_text(
-              json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          print(json.dumps(payload, ensure_ascii=False))
-          if not result.success:
-              raise SystemExit(1)
-          PY
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
+        run: python force_auto_participation_browser.py
 
       - name: Persist forced participation result
         if: ${{ always() && steps.force.outputs.enabled == 'true' }}
