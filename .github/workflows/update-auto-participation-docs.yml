@@ -1,0 +1,72 @@
+name: BB V.G. update auto participation docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-auto-participation-docs.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Update AGENTS and changelog, then remove this one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          agents_path = Path("AGENTS.md")
+          agents = agents_path.read_text(encoding="utf-8")
+          old_arch = '- Автоучастие: `auto_participation_worker.py` обрабатывает сохранённые event-запросы; `auto_participation_recovery.py` независимо пересканирует свежие публикации текущего `public_sources.txt`, сверяет ссылки с BetBoom API и восстанавливает потерянные active/event записи; `betboom_participation_browser.py` является устойчивым Playwright fallback фактического участия.\n'
+          new_arch = '- Автоучастие: `auto_participation_worker.py` выполняет первую event-попытку; `auto_participation_recovery.py` независимо пересканирует свежие публикации текущего `public_sources.txt`, сверяет ссылки с BetBoom API и восстанавливает потерянные active/event записи; `betboom_participation_browser.py` является устойчивым Playwright fallback фактического участия. После нового подтверждённого recovery-успеха `auto_participation_bot_sync.py` ставит только публичный pending-маркер в `state.json`, а `auto_participation_owner_sync.py` внутри единственного живого Control Center выполняет личную отметку владельца через штатный `mark_personal_participation`, рейтинг и успешное Telegram-уведомление.\n'
+          if old_arch in agents:
+              agents = agents.replace(old_arch, new_arch, 1)
+          elif new_arch not in agents:
+              raise SystemExit("AGENTS architecture auto participation line not found")
+
+          anchor = '- Если событие потеряно до сохранения `state.json`, recovery восстанавливает подтверждённо активную карточку в `active_wheels`; успешное участие записывает в `participating_wheels` и `auto_participation_events`.\n'
+          contract = anchor + '- Только новый фактический успех browser/recovery получает `bot_success_pending_at`; статус `already_marked_participating` и исторические успешные события не создают ретроспективное успешное уведомление.\n- Pending-успех потребляет только единственный живой Control Center: для владельца вызывается тот же `mark_personal_participation`, что у ручной кнопки «Участвую», поэтому используется стандартный `record_personal_vote`, HMAC-псевдоним, вес владельца 5 очков каждому уникальному источнику и идемпотентность одного пользователя на одно событие.\n- После успешной личной отметки Control Center отправляет владельцу отдельное Telegram-сообщение «Автоучастие подтверждено» и сохраняет event-scoped completion в encrypted state; повторный цикл не создаёт второй голос или повторное успешное уведомление.\n- Workflow автоучастия не записывает `bot_private_state.enc.json`: encrypted personal state остаётся ответственностью Control Center.\n'
+          if contract not in agents:
+              if anchor not in agents:
+                  raise SystemExit("AGENTS auto participation contract anchor not found")
+              agents = agents.replace(anchor, contract, 1)
+          agents_path.write_text(agents, encoding="utf-8")
+
+          changelog_path = Path("docs/PROJECT_CHANGELOG_RU.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          title = "## 2026-07-21 — Успешное автоучастие автоматически отмечается в Telegram-профиле и рейтинге"
+          if title not in changelog:
+              marker = "---\n\n"
+              position = changelog.find(marker)
+              if position < 0:
+                  raise SystemExit("Changelog top marker not found")
+              position += len(marker)
+              entry = '''## 2026-07-21 — Успешное автоучастие автоматически отмечается в Telegram-профиле и рейтинге\n\nПосле подтверждения участия непосредственно BetBoom workflow больше не ограничивается записью `participating=true`. `auto_participation_bot_sync.py` помечает только свежее подтверждённое событие как ожидающее синхронизации, а единственный живой Control Center через `auto_participation_owner_sync.py` автоматически выполняет для владельца тот же личный путь, что ручная кнопка «Участвую».\n\nЛичная отметка использует существующий `mark_personal_participation` и штатную команду `record_personal_vote`: владелец даёт каждому уникальному источнику события 5 очков, actor остаётся HMAC-псевдонимом, а повтор того же события не начисляет рейтинг второй раз. После успешной отметки владельцу отправляется отдельное Telegram-уведомление «Автоучастие в колесе BetBoom подтверждено». Исторические успехи и `already_marked_participating` не создают ретроспективную рассылку. Encrypted state изменяет только Control Center; workflow автоучастия пишет публичный pending-маркер в `state.json`.\n\n**Production-проверка:** новое колесо `zonertw5`, `action_id=685`, BetBoom подтвердил участие; event получил `bot_success_pending_at`, Control Center run `29839383473` создал личную отметку владельца и поставил стандартный `record_personal_vote` с `role=owner`, `weight=5`, источником `mechanogun`, после чего зафиксировал отправку успешного уведомления.\n\n**Pre-update backup:** `backup/2026-07-21-before-auto-participation-success-vote` → `ba15f7aba4c7d9ebdd77fb468ca84c20f7ef3224`.\n\n'''
+              changelog = changelog[:position] + entry + changelog[position:]
+              changelog_path.write_text(changelog, encoding="utf-8")
+          PY
+
+          rm -f .github/workflows/update-auto-participation-docs.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Документировать автоотметку успешного автоучастия"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+          done
+          exit 1
