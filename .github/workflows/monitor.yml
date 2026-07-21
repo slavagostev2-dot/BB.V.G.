@@ -167,13 +167,13 @@ jobs:
           assert notification_router._bbvg_notification_preferences_v2_installed is True
           assert notification_router._bbvg_notification_integrity_v2_installed is True
           assert notification_router.notification_kind(
-            "Время прокрутки колеса наступило"
+              "Время прокрутки колеса наступило"
           ) == "wheel_draw_alerts"
           assert notification_router.notification_kind(
-            "Напоминание о колесе BetBoom: последний шанс"
+              "Напоминание о колесе BetBoom: последний шанс"
           ) == "wheel_final_reminders"
           assert notification_router.notification_kind(
-            "Новое колесо BetBoom — ошибка в тексте публикации"
+              "Новое колесо BetBoom — ошибка в тексте публикации"
           ) == "wheels"
           assert runtime.monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
           assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
@@ -288,13 +288,13 @@ jobs:
             git commit -m "Update BB V.G. runtime data [skip ci]" || true
 
             for attempt in 1 2 3; do
-              if git push origin "HEAD:${GITHUB_REF_NAME:-main}"; then
+              if timeout --signal=TERM --kill-after=10s 60s git push origin "HEAD:${GITHUB_REF_NAME:-main}"; then
                 return 0
               fi
-              echo "Runtime push attempt ${attempt} failed; rebasing before retry."
-              if ! git pull --rebase origin "${GITHUB_REF_NAME:-main}"; then
+              echo "Runtime push attempt ${attempt} failed or timed out; rebasing before retry."
+              if ! timeout --signal=TERM --kill-after=10s 60s git pull --rebase origin "${GITHUB_REF_NAME:-main}"; then
                 git rebase --abort || true
-                echo "Runtime rebase failed; preserving local data for the next retry."
+                echo "Runtime rebase failed or timed out; preserving local data for the next retry."
                 return 1
               fi
             done
@@ -374,7 +374,7 @@ jobs:
             if [[ -n "$admin_action_after" && "$admin_action_after" != "$admin_action_before" ]]; then
               admin_action_applied=true
             fi
-            if [[ "$delivery_changed" == "true" || "$admin_action_applied" == "true" || "$CONTINUOUS" != "true" ]] || (( last_commit_at == 0 || now_ts - last_commit_at >= 900 || now_ts >= shift_end )); then
+            if [[ "$delivery_changed" == "true" || "$admin_action_applied" == "true" || "$CONTINUOUS" != "true" ]] || (( last_commit_at == 0 || now_ts - last_commit_at >= 300 || now_ts >= shift_end )); then
               push_runtime || echo "Runtime push is deferred; watchdog will continue checking repository freshness."
               last_commit_at=$now_ts
             fi
