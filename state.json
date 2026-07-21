@@ -252,9 +252,13 @@
   "active_wheels": {
     "zonertg12": {
       "action_id": 697,
+      "auto_participation_checked_at": "2026-07-21T09:49:09.798660+00:00",
+      "auto_participation_confirmed_at": "2026-07-21T09:49:09.798660+00:00",
       "auto_participation_manual_notification_at": "2026-07-21T09:42:05.534284+00:00",
       "auto_participation_rearm_reason": "browser_attempt_upgrade",
       "auto_participation_rearmed_at": "2026-07-21T09:48:30.890759+00:00",
+      "auto_participation_retry_allowed": false,
+      "auto_participation_status": "participated",
       "availability_status": "available",
       "button_token": "b5b428be2360d5",
       "deadline": "2026-07-21T18:05:58.421000+00:00",
@@ -273,11 +277,12 @@
       "message_id": 35659,
       "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ:\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\n10 ПО 1000 20 ПО 500\nИТОГИ ЧЕРЕЗ 10 ЧАСОВ\nhttps://telegram.me/mechanogun\nhttps://telegram.me/mechanogun/35659\nhttps://betboom.ru/freestream/zonertg12?utm_content=zoner&utm_source=freestream\nhttps://betboom.ru/freestream/zonertg12?utm_content=zoner&amp;utm_source=freestream",
       "message_url": "https://telegram.me/mechanogun/35659",
-      "method": "состояние определяется пользователями BB V.G.",
+      "method": "автоматическое участие подтверждено BetBoom",
       "needs_manual_time": false,
       "page_excerpt": "",
       "page_status": "active",
-      "participating": false,
+      "participating": true,
+      "participating_at": "2026-07-21T09:49:16.469997+00:00",
       "server_start_at": "2026-07-21T08:05:58.421000+00:00",
       "source": "mechanogun",
       "status": "unknown",
@@ -1871,6 +1876,14 @@
       "recorded_at": "2026-07-19T17:14:18.523241+00:00",
       "status": "baseline_existing",
       "wheel_key": "zonertg10"
+    },
+    "zonertg12#event:3385cc03ed657edff57e": {
+      "attempt_version": 2,
+      "attempted_at": "2026-07-21T09:49:09.798660+00:00",
+      "detail": "BetBoom подтвердил участие после нажатия кнопки",
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "zonertg12"
     }
   },
   "bot_commands_version": 1,
@@ -2253,7 +2266,18 @@
   },
   "manual_overrides": {},
   "notification_key_version": 8,
-  "participating_wheels": {},
+  "participating_wheels": {
+    "zonertg12": {
+      "confirmed_at": "2026-07-21T09:49:09.798660+00:00",
+      "deadline": "2026-07-21T18:06:00+00:00",
+      "expires_at": "2026-07-21T18:36:00+00:00",
+      "identifier": "zonertg12",
+      "marked_at": "2026-07-21T09:49:16.469967+00:00",
+      "participation_source": "betboom_browser",
+      "participation_status": "participated",
+      "url": "https://betboom.ru/freestream/zonertg12"
+    }
+  },
   "pending_posts": {},
   "recently_completed_wheels": {
     "acool6": {
@@ -4406,8 +4430,6 @@
     ],
     "zonertg12": [
       {
-        "has_future_availability": false,
-        "has_future_deadline": true,
         "message_date": "2026-07-21T08:06:00+00:00",
         "message_id": 35659,
         "message_url": "https://telegram.me/mechanogun/35659",
