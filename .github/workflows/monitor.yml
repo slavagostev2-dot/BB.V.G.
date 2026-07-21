@@ -9,6 +9,9 @@ on:
       - "monitor_entry.py"
       - "bbvg_monitor_runtime.py"
       - "bbvg_monitor_main.py"
+      - "bbvg/ai_core.py"
+      - "bbvg/monitor/suspicious_posts.py"
+      - "ai_runtime_state.json"
       - "telegram_transport.py"
       - "telegram_post_links_v2.py"
       - "recurring_wheel_events.py"
@@ -108,6 +111,7 @@ jobs:
           FINAL_REMINDER_BEFORE_MINUTES: "5"
           ACTIVE_REMOVE_GRACE_MINUTES: "0"
         run: |
+          python -m compileall -q bbvg
           python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py rating_policy.py chapter2_unified_logic.py chapter5_acceptance.py admin_action_queue.py chapter1_stability.py monitor_health.py incident_manager.py system_checks.py notification_router.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py daily_report.py
           python notification_router.py
           python notification_preferences_v2.py
@@ -191,6 +195,24 @@ jobs:
           python -m json.tool notification_delivery_state.json >/dev/null
           python self_test.py
 
+      - name: Verify configured AI provider
+        env:
+          BBVG_AI_ENABLED: "true"
+          BBVG_AI_FEATURES: "suspicious_post_analysis,source_discovery"
+          BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
+          BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python - <<'PY'
+          from bbvg.ai_core import AIConfig
+          config = AIConfig.from_env()
+          assert config.provider in {"gemini", "openai"}, "Unsupported BBVG_AI_PROVIDER"
+          assert config.model, "BBVG_AI_MODEL is empty"
+          assert config.provider_configured(), "Selected AI provider key is missing"
+          print(f"AI provider configured: {config.provider}/{config.model}")
+          PY
+
       - name: Run BB V.G. monitor loop
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -202,6 +224,12 @@ jobs:
           TELEGRAM_WEB_DOMAIN: telegram.me
           DISPLAY_TIMEZONE: Asia/Barnaul
           REQUEST_TIMEOUT_SECONDS: "15"
+          BBVG_AI_ENABLED: "true"
+          BBVG_AI_FEATURES: "suspicious_post_analysis,source_discovery"
+          BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
+          BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           # Actions without start_dttm stay pending until BetBoom starts them.
           WHEEL_API_ATTEMPTS: "3"
           WHEEL_API_FAILURE_ALERT_THRESHOLD: "3"
@@ -239,7 +267,7 @@ jobs:
           runtime_files=(
             state.json source_health.json source_stats.json
             unknown_timer_samples.json monitor_status.json
-            notification_delivery_state.json
+            notification_delivery_state.json ai_runtime_state.json
           )
 
           push_runtime() {
@@ -389,4 +417,4 @@ jobs:
           fi
           gh workflow run monitor.yml --ref main -f continuous=true -f replace=false
 
-# v36: chapter 2 persistent user-notification ledger and encrypted personal preferences.
+# Gemini/OpenAI analysis is optional and falls back to deterministic monitoring rules.
