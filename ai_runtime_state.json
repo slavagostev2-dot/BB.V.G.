@@ -1,16 +1,8 @@
 {
   "cache": {
-    "5669c3d0b58afbcea31b521f9a6e416a79335785a53bd45f834a671dc1282fb3": {
-      "expires_at": 1784628230.5005715,
-      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly promotes BetBoom services, including a free bet offer and direct referral links to the platform.\"\n}"
-    },
-    "aeb67f8f61755c8f40ea1fa3033031fc8d07e104a820d2c23ce88f39f9deed91": {
-      "expires_at": 1784628229.7979293,
-      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post promotes a betting bot and specifically mentions completing tasks to receive free bets on BetBoom.\"\n}"
-    },
     "dff47bb079591845a7b3390156f347da41c9cba636d060ec4a5b3a6b5e786be1": {
-      "expires_at": 1784627479.51786,
-      "text": "{\n  \"summary\": \"Система функционирует штатно: все 167 источников доступны, ошибок не зафиксировано.\",\n  \"impact\": \"Отсутствует. Система работает в нормальном режиме без деградации производительности.\",\n  \"recommended_action\": \"Вмешательство не требуется, продолжайте штатный мониторинг.\",\n  \"confidence\": \"100%\"\n}"
+      "expires_at": 1784629326.8675904,
+      "text": "{\n  \"summary\": \"Система функционирует в штатном режиме, все 167 источников доступны, ошибок не зафиксировано.\",\n  \"impact\": \"Отсутствует. Все сервисы работают корректно, показатели в норме.\",\n  \"recommended_action\": \"Вмешательство не требуется, продолжайте штатный мониторинг.\",\n  \"confidence\": \"100%\"\n}"
     }
   },
   "decisions": [
@@ -337,11 +329,20 @@
       "provider": "gemini",
       "reason": "The post explicitly promotes BetBoom services, including a free bet offer and direct referral links to the platform.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1784628426.8675904,
+      "feature": "health_inspector",
+      "id": "47337e75158140b4be7e2fc12b293a66",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "33e1db14d437bdb1430f9e765f49a2e380c7e6b0bb3c0cb3c267efdea08a5ba1",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784627329.7979293,
-    1784627330.5005715
+    1784628426.8675904
   ],
   "version": 1
 }
