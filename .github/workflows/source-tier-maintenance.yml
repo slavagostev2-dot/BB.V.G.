@@ -6,6 +6,8 @@ on:
     paths:
       - "source_tier_maintenance.py"
       - "source_tier_maintenance_v2.py"
+      - "public_sources.txt"
+      - "source_catalog.txt"
       - ".github/workflows/source-tier-maintenance.yml"
   workflow_dispatch:
   schedule:
