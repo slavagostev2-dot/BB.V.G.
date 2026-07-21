@@ -1,8 +1,8 @@
 {
-  "active_incidents": 0,
+  "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-07-21T10:03:13.206595+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-07-21T10:38:33.472332+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -12,19 +12,21 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 0,
-    "decision_id": "47337e75158140b4be7e2fc12b293a66",
-    "finding_count": 0,
-    "finding_kinds": [],
-    "generated_at": "2026-07-21T10:07:07.657831+00:00",
-    "impact": "Отсутствует. Все сервисы работают корректно, показатели в норме.",
+    "critical_count": 1,
+    "decision_id": "a394ab7ec4b84d0baea3ad13d416ecde",
+    "finding_count": 1,
+    "finding_kinds": [
+      "monitor_stale"
+    ],
+    "generated_at": "2026-07-21T10:40:45.141249+00:00",
+    "impact": "Система мониторинга перестала обновлять данные, что делает невозможным оперативное обнаружение новых инцидентов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Вмешательство не требуется, продолжайте штатный мониторинг.",
-    "requires_human_attention": false,
-    "severity": "ok",
-    "summary": "Система функционирует в штатном режиме, все 167 источников доступны, ошибок не зафиксировано.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Критическая задержка обновления мониторинга: последняя итерация была 51 минуту назад.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -54,14 +56,14 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "ok",
+    "monitor": "failed",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T10:07:05.928053+00:00",
+  "checked_at": "2026-07-21T10:40:43.141085+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -99,17 +101,25 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 0,
-  "findings": [],
+  "finding_count": 1,
+  "findings": [
+    {
+      "detail": "Последняя итерация была 51 минут назад.",
+      "kind": "monitor_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор давно не обновлялся"
+    }
+  ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-21T10:03:13.206595+00:00",
+    "active_incidents": 1,
+    "bot_panel_heartbeat": "2026-07-21T10:38:33.472332+00:00",
     "checked_sources": 167,
     "configured_sources": 168,
     "domain": "telegram.me",
     "reachable_sources": 167,
     "single_source": "system_check_state.json",
-    "status": "ok",
+    "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
@@ -120,14 +130,14 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
-    "opened": 0,
+    "messages_attempted": 1,
+    "opened": 1,
     "resolved": 0
   },
-  "incident_sequence": 78,
+  "incident_sequence": 79,
   "inventory": {
     "configured": 167,
     "configured_total": 168,
@@ -175,7 +185,7 @@
     "version": 3,
     "workflow_run_id": "29819709034"
   },
-  "monitor_age_minutes": 18,
+  "monitor_age_minutes": 51,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -233,7 +243,7 @@
       "tls": 0
     }
   },
-  "status": "ok",
+  "status": "degraded",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
