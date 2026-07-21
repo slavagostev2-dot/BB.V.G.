@@ -9,10 +9,30 @@ import system_checks_v2 as current
 
 
 legacy = current.legacy
+_ORIGINAL_CHECK_INVENTORY = legacy.check_inventory
 _ORIGINAL_CHECK_DISCOVERY_RUNTIME = legacy.check_discovery_runtime
 _ORIGINAL_DELIVER_PENDING_NOTIFICATIONS = legacy.deliver_pending_notifications
 DISCOVERY_INVENTORY_CONFIRMATION_HOURS = 6
 SOURCE_REGISTRY_PATH = legacy.ROOT / "source_registry.json"
+
+
+def check_inventory_allow_empty_nightly(
+    details: dict[str, Any], findings: list[dict[str, Any]]
+) -> None:
+    """Treat an intentionally empty nightly tier as a valid primary-only policy."""
+
+    before = len(findings)
+    _ORIGINAL_CHECK_INVENTORY(details, findings)
+    inventory = details.get("inventory") if isinstance(details, dict) else None
+    inventory = inventory if isinstance(inventory, dict) else {}
+    if int(inventory.get("nightly_configured", 0) or 0) != 0:
+        return
+    findings[before:] = [
+        item
+        for item in findings[before:]
+        if item.get("kind") != "source_nightly_inventory"
+    ]
+    inventory["nightly_policy"] = "optional_empty"
 
 
 def _source_registry_generated_at():
@@ -106,11 +126,38 @@ def deliver_pending_notifications_with_ai(
     details["incident_delivery"] = delivery
 
 
+legacy.check_inventory = check_inventory_allow_empty_nightly
 legacy.check_discovery_runtime = check_discovery_runtime_with_sync_grace
 legacy.deliver_pending_notifications = deliver_pending_notifications_with_ai
 
 
 def self_test() -> None:
+    original_inventory = _ORIGINAL_CHECK_INVENTORY
+    try:
+        def empty_nightly(
+            details: dict[str, Any], findings: list[dict[str, Any]]
+        ) -> None:
+            details["inventory"] = {
+                "primary_configured": 168,
+                "nightly_configured": 0,
+            }
+            findings.append(legacy.finding(
+                "source_nightly_inventory",
+                "Не задан ночной inventory источников",
+                "Файл ночного наблюдения не содержит источников.",
+            ))
+
+        globals()["_ORIGINAL_CHECK_INVENTORY"] = empty_nightly
+        inventory_details: dict[str, Any] = {}
+        inventory_findings: list[dict[str, Any]] = []
+        check_inventory_allow_empty_nightly(
+            inventory_details, inventory_findings
+        )
+        assert not inventory_findings
+        assert inventory_details["inventory"]["nightly_policy"] == "optional_empty"
+    finally:
+        globals()["_ORIGINAL_CHECK_INVENTORY"] = original_inventory
+
     original = _ORIGINAL_CHECK_DISCOVERY_RUNTIME
     original_now = legacy.now_utc
     original_registry_time = _source_registry_generated_at
@@ -178,10 +225,11 @@ def self_test() -> None:
         globals()["_source_registry_generated_at"] = original_registry_time
         legacy.now_utc = original_now  # type: ignore[assignment]
 
+    assert legacy.check_inventory is check_inventory_allow_empty_nightly
     assert legacy.deliver_pending_notifications is deliver_pending_notifications_with_ai
     ai_health_inspector.self_test()
     current.self_test()
-    print("BB V.G. discovery sync-grace and AI health inspector self-test passed")
+    print("BB V.G. primary-only inventory, discovery sync-grace and AI health inspector self-test passed")
 
 
 def main() -> int:
