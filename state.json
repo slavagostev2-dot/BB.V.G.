@@ -304,6 +304,35 @@
       "verification_status": "confirmed",
       "wheel_key": "kekw"
     },
+    "lent": {
+      "action_id": 952,
+      "auto_participation_checked_at": "2026-07-21T14:02:36.880572+00:00",
+      "auto_participation_confirmed_at": "2026-07-21T14:02:36.880572+00:00",
+      "auto_participation_retry_allowed": false,
+      "auto_participation_status": "participated",
+      "availability_status": "available",
+      "button_token": "fa4848a3f71557",
+      "deadline": "2026-07-21T14:31:28.861000+00:00",
+      "expires_at": "2026-07-21T15:01:28.861000+00:00",
+      "identifier": "lent",
+      "last_checked_at": "2026-07-21T14:02:36.880572+00:00",
+      "last_verification_at": "2026-07-21T14:02:36.880572+00:00",
+      "lifecycle_state": "participating",
+      "message_date": "2026-07-21T14:01:36+00:00",
+      "message_id": 34538,
+      "message_text": "Колесо на 10.000 Фрибетов\n❤️\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nЧерез 30 минут после публикации — колесо сделает прокрут и раздаст победителям фрибеты разных номиналов\n🪙\n❤️\nЗабирай до 10к фрибетов по промокоду LENT\n❤️\nhttps://telegram.me/zont1x\nhttps://telegram.me/zont1x/34538\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&utm_source=freestream\nhttps://bbsport.su/link/5ouCEj/?erid=KW2aPRYdr5QoPXHUFSBHvZSemE3g6FLnvz2VVtD4DAbaB2YBtcVqqwztKNenqC18t",
+      "message_url": "https://telegram.me/zont1x/34538",
+      "method": "восстановлено recovery-проверкой BetBoom",
+      "needs_manual_time": false,
+      "page_status": "active",
+      "participating": true,
+      "participating_at": "2026-07-21T14:02:36.880572+00:00",
+      "server_start_at": "2026-07-21T14:01:28.861000+00:00",
+      "source": "zont1x",
+      "url": "https://betboom.ru/freestream/lent",
+      "verification_status": "confirmed",
+      "wheel_key": "lent"
+    },
     "zonertg12": {
       "action_id": 697,
       "auto_participation_checked_at": "2026-07-21T11:41:51.056211+00:00",
@@ -1951,6 +1980,14 @@
       "status": "participated",
       "wheel_key": "kekw"
     },
+    "lent#action:952:2026-07-21T14:01:28.861000+00:00": {
+      "attempted_at": "2026-07-21T14:02:36.880572+00:00",
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "lent"
+    },
     "neret#event:4624e3ac9ebe9ca3e88e": {
       "recorded_at": "2026-07-19T17:14:18.523241+00:00",
       "status": "baseline_existing",
@@ -2069,6 +2106,21 @@
       "status": "final_reminder",
       "url": "https://betboom.ru/freestream/shik4",
       "wheel_key": "shik4"
+    },
+    "fa4848a3f71557": {
+      "created_at": "2026-07-21T14:03:05.909465+00:00",
+      "identifier": "lent",
+      "message_date": "2026-07-21T14:01:36+00:00",
+      "message_id": 34538,
+      "message_text": "Колесо на 10.000 Фрибетов\n❤️\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nЧерез 30 минут после публикации — колесо сделает прокрут и раздаст победителям фрибеты разных номиналов\n🪙\n❤️\nЗабирай до 10к фрибетов по промокоду LENT\n❤️\nhttps://telegram.me/zont1x\nhttps://telegram.me/zont1x/34538\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&utm_source=freestream\nhttps://bbsport.su/link/5ouCEj/?erid=KW2aPRYdr5QoPXHUFSBHvZSemE3g6FLnvz2VVtD4DAbaB2YBtcVqqwztKNenqC18t",
+      "message_url": "https://telegram.me/zont1x/34538",
+      "method": "восстановлено recovery-проверкой BetBoom",
+      "page_excerpt": "",
+      "post_key": "fa4848a3f715576db3b946e582d2ee0f8db593f13098043c4c42fc25eea6ee17",
+      "source": "zont1x",
+      "status": "preliminary",
+      "url": "https://betboom.ru/freestream/lent",
+      "wheel_key": "lent"
     }
   },
   "completed_wheel_alerts": {
@@ -2309,7 +2361,7 @@
     "zortelad"
   ],
   "last_admin_action_applied_at": "2026-07-21T12:11:37.070507+00:00",
-  "last_auto_participation_recovery_scan_at": "2026-07-21T13:27:51.866614+00:00",
+  "last_auto_participation_recovery_scan_at": "2026-07-21T14:02:36.880572+00:00",
   "last_automatic_status_at": "2026-07-17T06:35:52.571822+00:00",
   "last_heartbeat_at": "2026-07-21T09:36:34.364853+00:00",
   "last_run_kind": "schedule",
@@ -2404,6 +2456,16 @@
       "participation_source": "betboom_browser_recovery",
       "participation_status": "participated",
       "url": "https://betboom.ru/freestream/kekw"
+    },
+    "lent": {
+      "confirmed_at": "2026-07-21T14:02:36.880572+00:00",
+      "deadline": "2026-07-21T14:31:28.861000+00:00",
+      "expires_at": "2026-07-21T15:01:28.861000+00:00",
+      "identifier": "lent",
+      "marked_at": "2026-07-21T14:02:36.880572+00:00",
+      "participation_source": "betboom_browser_recovery",
+      "participation_status": "participated",
+      "url": "https://betboom.ru/freestream/lent"
     },
     "zonertg12": {
       "confirmed_at": "2026-07-21T11:41:51.056211+00:00",
