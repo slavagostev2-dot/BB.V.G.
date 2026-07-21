@@ -20,7 +20,6 @@ jobs:
   participate:
     permissions:
       contents: write
-      actions: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -87,6 +86,7 @@ jobs:
           import betboom_auto_participation as auto
           import auto_participation_recovery
           import auto_participation_bot_sync
+          import auto_participation_owner_sync
           import betboom_participation_browser
           required = ("_event_token", "_eligible_for_event_attempt", "process_new_wheel_events")
           missing = [name for name in required if not hasattr(auto, name)]
@@ -95,9 +95,11 @@ jobs:
           if not auto.configured():
               raise SystemExit("BetBoom auto participation session is not configured")
           assert callable(auto_participation_recovery.run_recovery)
-          assert callable(auto_participation_bot_sync.sync_confirmed_participation)
+          assert callable(auto_participation_bot_sync.queue_confirmed_participation)
+          assert callable(auto_participation_owner_sync.sync_once)
           assert callable(betboom_participation_browser.participate)
           auto_participation_bot_sync.self_test()
+          auto_participation_owner_sync.self_test()
           print("Auto participation preflight OK")
           PY
 
@@ -131,24 +133,9 @@ jobs:
           MAX_WORKERS: "24"
         run: python auto_participation_recovery.py | tee /tmp/bbvg-auto-participation-recovery.json
 
-      - name: Sync confirmed participation with Telegram and rating
+      - name: Queue confirmed participation for Control Center
         if: ${{ steps.mode.outputs.probe != 'true' }}
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
-          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
-          ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_BRANCH: main
-          REQUEST_TIMEOUT_SECONDS: "10"
-        shell: bash
-        run: |
-          set +e
-          python auto_participation_bot_sync.py --recovery-result /tmp/bbvg-auto-participation-recovery.json
-          status=$?
-          git checkout -- bot_private_state.enc.json || true
-          exit "$status"
+        run: python auto_participation_bot_sync.py --recovery-result /tmp/bbvg-auto-participation-recovery.json
 
       - name: Persist participation state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
