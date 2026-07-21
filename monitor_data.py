@@ -24,6 +24,11 @@ NIGHTLY_SOURCES_PATH = ROOT / "source_catalog.txt"
 # contract deliberately includes frozen Mini App files and package.json so a
 # newly added state file cannot silently bypass the ownership review.
 JSON_STATE_CONTRACTS: dict[str, dict[str, Any]] = {
+    "ai_runtime_state.json": {
+        "category": "authoritative",
+        "owner": "ai-core",
+        "schema": ("version", (1,)),
+    },
     "activation_runtime_state.json": {"category": "archive", "owner": "frozen-miniapp"},
     "admin_action_queue.json": {
         "category": "authoritative",
