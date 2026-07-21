@@ -1,1 +1,1 @@
-https://betboom.ru/freestream/chopper
+https://betboom.ru/freestream/HOOCH66
