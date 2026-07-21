@@ -74,7 +74,10 @@ def checkpoint(integrity_module: Any) -> bool:
             remote, sha = _remote_state()
             merged = integrity_module.merge_states(remote, local)
             encoded = base64.b64encode(
-                (json.dumps(merged, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+                (
+                    json.dumps(merged, ensure_ascii=False, indent=2, sort_keys=True)
+                    + "\n"
+                ).encode("utf-8")
             ).decode("ascii")
             body: dict[str, Any] = {
                 "message": "Checkpoint BB V.G. notification delivery [skip ci]",
@@ -104,6 +107,13 @@ def checkpoint(integrity_module: Any) -> bool:
                 return False
             time.sleep(0.4 * attempt)
     return False
+
+
+def _needs_auto_recovery(event_identity: str) -> bool:
+    identity = str(event_identity or "")
+    return identity.startswith("wheel:") and any(
+        marker in identity for marker in (":detected", ":active", ":available")
+    )
 
 
 def _dispatch_auto_participation_recovery(event_identity: str) -> bool:
@@ -150,10 +160,7 @@ def install(router_module: Any, integrity_module: Any) -> None:
         reply_markup: dict | None,
     ) -> str:
         identity = original_event_identity(kind, text, url, reply_markup)
-        if identity.startswith("wheel:wheels:") and any(
-            marker in identity
-            for marker in (":detected", ":active", ":available")
-        ):
+        if _needs_auto_recovery(identity):
             _dispatch_auto_participation_recovery(identity)
         return identity
 
@@ -181,3 +188,16 @@ def install(router_module: Any, integrity_module: Any) -> None:
     router_module.complete_delivery = durable_complete
     router_module.release_delivery = durable_release
     router_module._bbvg_remote_notification_checkpoint_installed = True
+
+
+def self_test() -> None:
+    assert _needs_auto_recovery("wheel:wheels:test:detected")
+    assert _needs_auto_recovery("wheel:wheel_new:test:active:event")
+    assert _needs_auto_recovery("wheel:wheels:test:available")
+    assert not _needs_auto_recovery("wheel:wheels:test:reminder")
+    assert not _needs_auto_recovery("system:incident")
+    print("notification remote checkpoint self-test passed")
+
+
+if __name__ == "__main__":
+    self_test()
