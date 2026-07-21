@@ -1,0 +1,399 @@
+name: BB V.G. wheel monitor
+run-name: BB V.G. monitor — ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "monitor.py"
+      - "monitor_entry.py"
+      - "bbvg_monitor_runtime.py"
+      - "bbvg_monitor_main.py"
+      - "telegram_transport.py"
+      - "telegram_post_links_v2.py"
+      - "recurring_wheel_events.py"
+      - "wheel_event_runtime.py"
+      - "wheel_metadata_quality.py"
+      - "wheel_publications_v2.py"
+      - "rating_policy.py"
+      - "chapter2_unified_logic.py"
+      - "wheel_lifecycle_v2.py"
+      - "personal_reminder_filter.py"
+      - "notification_preferences_v2.py"
+      - "notification_navigation.py"
+      - "notification_integrity_v2.py"
+      - "notification_delivery_state.json"
+      - "admin_action_queue.py"
+      - "admin_action_queue.json"
+      - "chapter1_stability.py"
+      - "monitor_health.py"
+      - "incident_manager.py"
+      - "notification_router.py"
+      - "vk_wheel_notifications.py"
+      - "vk_dynamic_subscribers.py"
+      - "vk_start_welcome.py"
+      - ".github/workflows/vk-wheel-notification.yml"
+      - ".github/workflows/vk-start-welcome.yml"
+      - "bot_notification_state.py"
+      - "bot_private_state.py"
+      - "bot_private_state.enc.json"
+      - "privacy_retention.py"
+      - "bot_access.json"
+      - "monitor_data.py"
+      - "daily_report.py"
+      - "telegram_monitor.py"
+      - "nightly_discovery.py"
+      - "nightly_discovery_entry.py"
+      - "source_intelligence.py"
+      - "source_intelligence_entry.py"
+      - "source_intelligence_alerts.py"
+      - "public_sources.txt"
+      - "source_catalog.txt"
+      - "partners_catalog.json"
+      - "identifier_sources.json"
+      - "requirements.txt"
+      - "self_test.py"
+      - "preflight.py"
+      - ".github/workflows/monitor.yml"
+  workflow_dispatch:
+    inputs:
+      continuous:
+        description: "Непрерывный режим"
+        required: false
+        type: boolean
+        default: true
+      replace:
+        description: "Заменить текущий процесс"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    - cron: "23 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bb-vg-monitor-continuous
+  cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.replace == true) }}
+
+jobs:
+  monitor:
+    permissions:
+      contents: write
+      actions: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Verify repository layout
+        run: python preflight.py
+
+      - name: Check BB V.G. project files
+        env:
+          BOT_TOKEN: "test-bot-token"
+          BOT_STATE_KEY: "test-state-key"
+          BOT_CHAT_ID: "1"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          FINAL_REMINDER_BEFORE_MINUTES: "5"
+          ACTIVE_REMOVE_GRACE_MINUTES: "0"
+        run: |
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py rating_policy.py chapter2_unified_logic.py chapter5_acceptance.py admin_action_queue.py chapter1_stability.py monitor_health.py incident_manager.py system_checks.py notification_router.py vk_wheel_notifications.py vk_dynamic_subscribers.py vk_start_welcome.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py nightly_discovery.py nightly_discovery_entry.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py daily_report.py
+          python notification_router.py
+          python vk_wheel_notifications.py --self-test
+          python vk_dynamic_subscribers.py --self-test
+          python notification_preferences_v2.py
+          python notification_navigation.py
+          python notification_integrity_v2.py --self-test
+          python notification_integrity_v2.py --prune
+          python chapter2_unified_logic.py
+          python admin_action_queue.py
+          python telegram_transport.py
+          python telegram_post_links_v2.py
+          python recurring_wheel_events.py
+          python wheel_event_runtime.py
+          python wheel_metadata_quality.py
+          python wheel_publications_v2.py
+          python wheel_lifecycle_v2.py
+          python chapter5_acceptance.py
+          python personal_reminder_filter.py
+          python source_intelligence_alerts.py
+          python monitor_health.py --self-test
+          python incident_manager.py
+          python system_checks.py --self-test
+          python chapter1_stability.py
+          python - <<'PY'
+          import json
+          import bbvg_monitor_main as runtime
+          import monitor
+          import monitor_data
+          import notification_router
+          from pathlib import Path
+
+          assert runtime.monitor.remember_pending.__module__ == "wheel_metadata_quality"
+          assert runtime.monitor.wheel_reply_markup.__module__ == "bbvg_monitor_main"
+          assert runtime.monitor.process_active_wheels.__module__ == "wheel_lifecycle_v2"
+          assert runtime.runtime.base_runtime._persist_publications.__module__ == "wheel_publications_v2"
+          assert runtime.monitor.is_suppressed.__module__ == "wheel_publications_v2"
+          assert runtime.monitor.is_activation_suppressed.__module__ == "wheel_publications_v2"
+          assert runtime.monitor.telegram_api.__module__ == "personal_reminder_filter"
+          assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
+          assert runtime.monitor.fetch_public_channel.__module__ == "telegram_post_links_v2"
+          assert runtime.monitor._bbvg_recurring_wheel_events_installed is True
+          assert runtime.monitor._bbvg_wheel_event_runtime_installed is True
+          assert runtime.monitor._bbvg_wheel_metadata_quality_installed is True
+          assert runtime.monitor._bbvg_publication_merge_v2_installed is True
+          assert runtime.monitor._bbvg_wheel_lifecycle_v2_installed is True
+          assert runtime.monitor._bbvg_personal_reminder_filter_installed is True
+          assert notification_router._bbvg_notification_preferences_v2_installed is True
+          assert notification_router._bbvg_notification_integrity_v2_installed is True
+          assert notification_router.notification_kind(
+            "Время прокрутки колеса наступило"
+          ) == "wheel_draw_alerts"
+          assert notification_router.notification_kind(
+            "Напоминание о колесе BetBoom: последний шанс"
+          ) == "wheel_final_reminders"
+          assert notification_router.notification_kind(
+            "Новое колесо BetBoom — ошибка в тексте публикации"
+          ) == "wheels"
+          assert runtime.monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
+          assert runtime.monitor.TELEGRAM_WEB_DOMAIN == "telegram.me"
+          state = {"inactive_wheels": {}, "pending_posts": {}, "active_wheels": {}}
+          assert runtime.runtime._inactive_entry(state, "test") is None
+          configured_primary = monitor.read_list(Path("public_sources.txt"))
+          configured_nightly = monitor.read_list(Path("source_catalog.txt"))
+          primary = monitor_data.operational_sources(configured_primary, "fast")
+          nightly = monitor_data.operational_sources(configured_nightly, "nightly")
+          configured_union = {value.casefold() for value in configured_primary + configured_nightly}
+          operational_union = {value.casefold() for value in primary + nightly}
+          assert configured_primary and configured_nightly
+          assert operational_union == configured_union
+          assert not {value.casefold() for value in primary} & {value.casefold() for value in nightly}
+          ledger = json.load(open("notification_delivery_state.json", encoding="utf-8"))
+          assert ledger.get("format") in {
+              "bbvg-notification-delivery-v2",
+              "bbvg-notification-delivery-v3",
+          }
+          assert not {"chat_id", "user_id", "text", "url", "username"} & set(ledger)
+          print("BB V.G. monitor lifecycle, persistent notifications and multi-source validation passed")
+          PY
+          python -m json.tool identifier_sources.json >/dev/null
+          python -m json.tool partners_catalog.json >/dev/null
+          python -m json.tool bot_access.json >/dev/null
+          python -m json.tool notification_delivery_state.json >/dev/null
+          python self_test.py
+
+      - name: Run BB V.G. monitor loop
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_BRANCH: main
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          DISPLAY_TIMEZONE: Asia/Barnaul
+          REQUEST_TIMEOUT_SECONDS: "15"
+          # Actions without start_dttm stay pending until BetBoom starts them.
+          WHEEL_API_ATTEMPTS: "3"
+          WHEEL_API_FAILURE_ALERT_THRESHOLD: "3"
+          UNTIMED_WHEEL_TTL_HOURS: "2"
+          MAX_WORKERS: "16"
+          TRANSPORT_BATCH_ATTEMPTS: "3"
+          MONITOR_RESTART_FAILURES: "2"
+          MONITOR_RESTART_NO_PROGRESS: "2"
+          DEADLINE_GRACE_MINUTES: "30"
+          FINAL_REMINDER_BEFORE_MINUTES: "5"
+          ACTIVE_REMOVE_GRACE_MINUTES: "0"
+          HEARTBEAT_HOURS: "6"
+          HEALTH_ALERT_COOLDOWN_HOURS: "24"
+          STATUS_REPORT_HOURS: "12"
+          MAX_NEW_POST_AGE_MINUTES: "360"
+          NEW_SOURCE_CATCHUP_MINUTES: "1440"
+          FRESH_UNKNOWN_POST_MINUTES: "20"
+          QUARANTINE_FAILURE_THRESHOLD: "3"
+          QUARANTINE_EMPTY_THRESHOLD: "4"
+          QUARANTINE_RECHECK_HOURS: "6"
+          UNAVAILABLE_REPORT_DAYS: "2"
+          SOURCE_INACTIVITY_DAYS: "7"
+          SOURCE_INACTIVITY_REPORT_DAYS: "7"
+          BOT_FEEDBACK_ENABLED: "false"
+          MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.continuous != true }}
+          AUTO_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.continuous == true }}
+          CONTINUOUS: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true) }}
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          runtime_files=(
+            state.json source_health.json source_stats.json
+            unknown_timer_samples.json monitor_status.json
+            notification_delivery_state.json
+          )
+
+          push_runtime() {
+            if git diff --quiet -- "${runtime_files[@]}"; then
+              return 0
+            fi
+
+            git add "${runtime_files[@]}"
+            git commit -m "Update BB V.G. runtime data [skip ci]" || true
+
+            for attempt in 1 2 3; do
+              if git push origin "HEAD:${GITHUB_REF_NAME:-main}"; then
+                return 0
+              fi
+              echo "Runtime push attempt ${attempt} failed; rebasing before retry."
+              if ! git pull --rebase origin "${GITHUB_REF_NAME:-main}"; then
+                git rebase --abort || true
+                echo "Runtime rebase failed; preserving local data for the next retry."
+                return 1
+              fi
+            done
+            return 1
+          }
+
+          BBVG_HEAD_SHA="$(git rev-parse HEAD)"
+          python monitor_health.py start \
+            --run-id "${GITHUB_RUN_ID:-}" \
+            --head-sha "$BBVG_HEAD_SHA" \
+            --run-attempt "${GITHUB_RUN_ATTEMPT:-}"
+
+          shift_end=$(( $(date +%s) + 19800 ))
+          last_commit_at=0
+          iteration=0
+
+          while true; do
+            iteration=$((iteration + 1))
+            started_at=$(date +%s)
+            admin_action_before=$(python - <<'PY'
+          import json
+          try:
+              value = json.load(open("state.json", encoding="utf-8"))
+              print(str(value.get("last_admin_action_applied_at") or ""))
+          except Exception:
+              print("")
+          PY
+            )
+            echo "=== BB V.G. check $iteration at $(date -u +%FT%TZ) ==="
+
+            timeout --signal=TERM --kill-after=30s 600s python bbvg_monitor_main.py 2>&1 | tee monitor-run.log
+            iteration_exit=${PIPESTATUS[0]}
+            duration=$(( $(date +%s) - started_at ))
+
+            python monitor_health.py record \
+              --run-id "${GITHUB_RUN_ID:-}" \
+              --head-sha "$BBVG_HEAD_SHA" \
+              --run-attempt "${GITHUB_RUN_ATTEMPT:-}" \
+              --iteration "$iteration" \
+              --exit-code "$iteration_exit" \
+              --duration-seconds "$duration"
+
+            if (( iteration_exit != 0 )); then
+              echo "BB V.G. iteration failed with exit code ${iteration_exit}; status was saved."
+            fi
+
+            restart_required=$(python - <<'PY'
+          import json
+          try:
+              value = json.load(open("monitor_status.json", encoding="utf-8"))
+          except Exception:
+              value = {}
+          print("true" if value.get("restart_recommended") else "false")
+          PY
+            )
+            if [[ "$restart_required" == "true" ]]; then
+              echo "Repeated failures or missing source progress detected; ending this shift cleanly so the queued replacement can start."
+              push_runtime || true
+              break
+            fi
+
+            now_ts=$(date +%s)
+            delivery_changed=false
+            if ! git diff --quiet -- notification_delivery_state.json; then
+              delivery_changed=true
+            fi
+            admin_action_after=$(python - <<'PY'
+          import json
+          try:
+              value = json.load(open("state.json", encoding="utf-8"))
+              print(str(value.get("last_admin_action_applied_at") or ""))
+          except Exception:
+              print("")
+          PY
+            )
+            admin_action_applied=false
+            if [[ -n "$admin_action_after" && "$admin_action_after" != "$admin_action_before" ]]; then
+              admin_action_applied=true
+            fi
+            if [[ "$delivery_changed" == "true" || "$admin_action_applied" == "true" || "$CONTINUOUS" != "true" ]] || (( last_commit_at == 0 || now_ts - last_commit_at >= 900 || now_ts >= shift_end )); then
+              push_runtime || echo "Runtime push is deferred; watchdog will continue checking repository freshness."
+              last_commit_at=$now_ts
+            fi
+
+            if [[ "$CONTINUOUS" != "true" ]] || (( now_ts >= shift_end )); then
+              break
+            fi
+
+            interval_seconds=$(python - <<'PY'
+          import bot_notification_state
+          try:
+              data, _ = bot_notification_state.load_config()
+              value = int(data.get("settings", {}).get("monitor_interval_minutes", 5))
+          except Exception:
+              value = 5
+          value = value if value in {1, 3, 5, 10, 15, 30} else 5
+          print(value * 60)
+          PY
+            )
+
+            sleep_for=$(( interval_seconds - duration ))
+            if (( sleep_for > 0 )); then
+              echo "Previous check finished in ${duration}s. Next check in ${sleep_for}s."
+              sleep "$sleep_for"
+            else
+              echo "Previous check took ${duration}s; configured interval already elapsed."
+            fi
+          done
+
+          push_runtime || true
+
+      - name: Continue continuous monitoring
+        if: ${{ always() && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          queued=$(gh run list \
+            --workflow monitor.yml \
+            --status queued \
+            --limit 30 \
+            --json databaseId \
+            --jq 'length')
+          if (( queued > 0 )); then
+            echo "A continuous BB V.G. monitor run is already queued."
+            exit 0
+          fi
+          gh workflow run monitor.yml --ref main -f continuous=true -f replace=false
+
+# v36: chapter 2 persistent user-notification ledger and encrypted personal preferences.
