@@ -79,8 +79,6 @@ jobs:
               if marker not in text:
                   raise SystemExit("changelog insertion marker not found")
               changelog.write_text(text.replace(marker, marker + entry, 1), encoding="utf-8")
-
-          Path(".github/workflows/apply-vk-final.yml").unlink()
           PY
 
       - name: Commit final VK patch
@@ -89,6 +87,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add vk_wheel_notifications.py tests/test_vk_wheel_notifications.py .github/workflows/monitor.yml docs/PROJECT_CHANGELOG_RU.md
           git commit -m "Fix VK delivery for all new wheel wordings"
           git push origin HEAD:fix/vk-wheel-delivery-final
