@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:admin_panel_stale:9278d429b1e1ee67": {
       "detail": "Последний живой сигнал был 46 минут назад.",
@@ -161,7 +161,7 @@
       "first_seen_at": "2026-07-14T04:04:11.018046+00:00",
       "key": "system_checks:monitor_stale:e73e4f9e136f77bb",
       "kind": "monitor_stale",
-      "last_seen_at": "2026-07-21T10:47:12.924964+00:00",
+      "last_seen_at": "2026-07-21T10:50:23.339383+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-07-19T21:11:39.026198+00:00",
       "occurrences": 28,
@@ -170,10 +170,13 @@
       "opened_sequence": 79,
       "reopen_notification_suppressed_at": "2026-07-19T18:42:11.650448+00:00",
       "reopen_notification_suppressed_until": "2026-07-19T23:34:02.499704+00:00",
-      "resolved_sequence": 64,
+      "resolution_notification_pending": false,
+      "resolution_notified_at": "2026-07-21T10:50:25.590785+00:00",
+      "resolved_at": "2026-07-21T10:50:23.339383+00:00",
+      "resolved_sequence": 80,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Основной монитор давно не обновлялся"
     },
@@ -268,17 +271,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-21T10:47:12.924964+00:00",
-  "last_reconcile_at": "2026-07-21T10:47:12.924964+00:00",
+  "last_change_at": "2026-07-21T10:50:23.339383+00:00",
+  "last_reconcile_at": "2026-07-21T10:50:23.339383+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 0,
     "new_notification_count": 0,
-    "recovery_notification_count": 0,
+    "recovery_notification_count": 1,
     "scope": "system_checks"
   },
-  "sequence": 79,
+  "sequence": 80,
   "status": "initializing",
-  "updated_at": "2026-07-21T10:47:12.925053+00:00",
+  "updated_at": "2026-07-21T10:50:25.590829+00:00",
   "version": 1
 }

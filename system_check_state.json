@@ -1,8 +1,8 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-07-21T10:43:35.090474+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-07-21T10:48:37.952923+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -12,21 +12,19 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 1,
-    "decision_id": "bc3cb473e9614e7a8f4a092bc8d42285",
-    "finding_count": 1,
-    "finding_kinds": [
-      "monitor_stale"
-    ],
-    "generated_at": "2026-07-21T10:47:13.685539+00:00",
-    "impact": "Система мониторинга не предоставляет актуальных данных о состоянии инфраструктуры, что делает невозможным оперативное обнаружение новых инцидентов.",
+    "critical_count": 0,
+    "decision_id": "9cdfc0e603064da3ac6b2599ad766cb6",
+    "finding_count": 0,
+    "finding_kinds": [],
+    "generated_at": "2026-07-21T10:50:24.478475+00:00",
+    "impact": "Отсутствует. Все сервисы работают в нормальном режиме.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 58 минут назад.",
+    "recommended_action": "Вмешательство не требуется, продолжайте штатный мониторинг.",
+    "requires_human_attention": false,
+    "severity": "ok",
+    "summary": "Система функционирует штатно: все 167 источников доступны, ошибок не зафиксировано.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -56,14 +54,14 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "failed",
+    "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T10:47:11.724539+00:00",
+  "checked_at": "2026-07-21T10:50:22.406943+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -101,43 +99,35 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "Последняя итерация была 58 минут назад.",
-      "kind": "monitor_stale",
-      "severity": "critical",
-      "subject": "",
-      "title": "Основной монитор давно не обновлялся"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-21T10:43:35.090474+00:00",
+    "active_incidents": 0,
+    "bot_panel_heartbeat": "2026-07-21T10:48:37.952923+00:00",
     "checked_sources": 167,
     "configured_sources": 168,
     "domain": "telegram.me",
     "reachable_sources": 167,
     "single_source": "system_check_state.json",
-    "status": "degraded",
+    "status": "ok",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T09:48:30.133502+00:00",
+      "last_checked_at": "2026-07-21T10:47:16.849162+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T09:48:30.133502+00:00",
+      "last_success_at": "2026-07-21T10:47:16.849162+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
+    "messages_attempted": 1,
     "opened": 0,
-    "resolved": 0
+    "resolved": 1
   },
-  "incident_sequence": 79,
+  "incident_sequence": 80,
   "inventory": {
     "configured": 167,
     "configured_total": 168,
@@ -161,35 +151,35 @@
     "brand": "BB V.G.",
     "checked_sources": 167,
     "checks_delta": 167,
-    "checks_total": 611983,
+    "checks_total": 612150,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "6ca45d02fee8d4bc413257fc50405fbfbec4a763",
+    "head_sha": "5eef5f76be5ee3ef29feaf283f9fc7db37bc7a9e",
     "iteration": 1,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-21T09:48:51.511856+00:00",
-    "last_iteration_duration_seconds": 23,
+    "last_iteration_at": "2026-07-21T10:47:27.491601+00:00",
+    "last_iteration_duration_seconds": 13,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T09:48:51.511856+00:00",
-    "last_successful_checks_total": 611983,
-    "last_successful_iteration_at": "2026-07-21T09:48:51.511856+00:00",
+    "last_process_heartbeat_at": "2026-07-21T10:47:27.491601+00:00",
+    "last_successful_checks_total": 612150,
+    "last_successful_iteration_at": "2026-07-21T10:47:27.491601+00:00",
     "pending_wheels": 0,
     "reachable_sources": 167,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29819709034",
-    "run_started_at": "2026-07-21T09:48:28.261354+00:00",
+    "run_id": "29823538681",
+    "run_started_at": "2026-07-21T10:47:14.854894+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "29819709034"
+    "workflow_run_id": "29823538681"
   },
-  "monitor_age_minutes": 58,
+  "monitor_age_minutes": 2,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 18,
+    "entry_count": 16,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -243,7 +233,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
@@ -255,9 +245,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T09:48:30.133502+00:00",
+    "last_checked_at": "2026-07-21T10:47:16.849162+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T09:48:30.133502+00:00",
+    "last_success_at": "2026-07-21T10:47:16.849162+00:00",
     "status": "ok"
   }
 }
