@@ -220,9 +220,9 @@ def test_analytics_keeps_period_metrics_and_links_to_detail_sections() -> None:
         for button in row
     ]
     assert "page:analytics:7" in callbacks
-    assert "page:report:inactive" not in callbacks
-    assert callbacks.count("page:ranking") == 1
-    assert callbacks.count("page:sources") == 1
+    assert "page:report:inactive" in callbacks
+    assert callbacks.count("page:ranking") == 0
+    assert callbacks.count("page:sources") == 0
     assert callbacks[-1] == "nav:home"
 
 
@@ -266,5 +266,5 @@ def test_future_runtime_analytics_is_wrapped_after_class_definition() -> None:
     assert "Разовых ошибок проверок за период" in text
     assert "Участие и рейтинг" not in text
     assert markup is not None
-    assert "page:ranking" in str(markup)
-    assert "page:sources" in str(markup)
+    assert "page:ranking" not in str(markup)
+    assert "page:sources" not in str(markup)

@@ -288,7 +288,6 @@ _ANALYTICS_SECTION_CUTOFFS = frozenset({
 _ANALYTICS_DETAIL_CALLBACKS = frozenset({
     "page:ranking",
     "page:sources",
-    "page:report:inactive",
 })
 
 
@@ -339,12 +338,6 @@ def analytics_markup_for_section(
             continue
         (navigation_rows if is_navigation else content_rows).append(row)
 
-    content_rows.append(
-        [
-            {"text": "🏆 Рейтинг источников", "callback_data": "page:ranking"},
-            {"text": "📡 Покрытие источников", "callback_data": "page:sources"},
-        ]
-    )
     result = dict(reply_markup)
     result["inline_keyboard"] = content_rows + navigation_rows
     return result

@@ -236,8 +236,8 @@ class Chapter4InterfaceTests(unittest.TestCase):
         text, kwargs = captured[-1]
         self.assertIn("Публикаций с колёсами", text)
         self.assertIn("Источников с находками", text)
-        self.assertIn("Активных колёс: <b>1</b>", text)
-        self.assertIn("Вы участвуете: <b>1</b>", text)
+        self.assertNotIn("Активных колёс", text)
+        self.assertNotIn("Вы участвуете", text)
         self.assertIn("Отправлено уведомлений", text)
         self.assertIn("✓ 7 дней", str(kwargs["reply_markup"]))
 

@@ -178,8 +178,8 @@ def test_environment_selects_gemini_key(monkeypatch, tmp_path: Path) -> None:
     config = AIConfig.from_env()
 
     assert config.provider == "gemini"
-    # The legacy 2.5 alias is normalized by the runtime compatibility layer.
-    assert config.model == "gemini-3.1-flash-lite"
+    # from_env preserves the configured model; transport normalization is separate.
+    assert config.model == "gemini-2.5-flash-lite"
     assert config.api_key == "gemini-secret"
     assert config.provider_configured() is True
 
