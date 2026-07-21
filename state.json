@@ -252,24 +252,32 @@
   "active_wheels": {
     "zonertg12": {
       "action_id": 697,
+      "availability_status": "available",
       "button_token": "b5b428be2360d5",
       "deadline": "2026-07-21T18:05:58.421000+00:00",
+      "deadline_source": "api",
+      "event_id": "3385cc03ed657edff57e",
       "expires_at": "2026-07-21T18:35:58.421000+00:00",
       "first_notified_at": "2026-07-21T08:26:56.555850+00:00",
       "generation_id": "3385cc03ed657edff57e",
       "identifier": "zonertg12",
-      "last_checked_at": "2026-07-21T08:26:56.555850+00:00",
+      "last_checked_at": "2026-07-21T08:27:46.203317+00:00",
       "last_notification_at": "2026-07-21T08:26:56.555850+00:00",
+      "last_verification_at": "2026-07-21T08:27:45.878684+00:00",
+      "lifecycle_changed_at": "2026-07-21T08:27:45.878633+00:00",
+      "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-21T08:06:00+00:00",
       "message_id": 35659,
       "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ:\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\n10 ПО 1000 20 ПО 500\nИТОГИ ЧЕРЕЗ 10 ЧАСОВ\nhttps://telegram.me/mechanogun\nhttps://telegram.me/mechanogun/35659\nhttps://betboom.ru/freestream/zonertg12?utm_content=zoner&utm_source=freestream\nhttps://betboom.ru/freestream/zonertg12?utm_content=zoner&amp;utm_source=freestream",
       "message_url": "https://telegram.me/mechanogun/35659",
-      "method": "активность и таймер подтверждены BetBoom",
+      "method": "состояние определяется пользователями BB V.G.",
+      "needs_manual_time": false,
       "page_excerpt": "",
+      "page_status": "active",
       "participating": false,
       "server_start_at": "2026-07-21T08:05:58.421000+00:00",
       "source": "mechanogun",
-      "status": "preliminary",
+      "status": "unknown",
       "url": "https://betboom.ru/freestream/zonertg12",
       "verification_status": "confirmed"
     }
@@ -1794,6 +1802,11 @@
       "scheduled_at": "2026-07-20T17:53:51.337179+00:00",
       "status": "workflow_dispatch_retry_scheduled",
       "wheel_key": "zonertg11"
+    },
+    "zonertg12#event:3385cc03ed657edff57e": {
+      "scheduled_at": "2026-07-21T08:27:46.203375+00:00",
+      "status": "workflow_dispatch_scheduled",
+      "wheel_key": "zonertg12"
     }
   },
   "auto_participation_event_mode_initialized_at": "2026-07-19T17:14:18.523241+00:00",
@@ -3281,7 +3294,7 @@
     "zonertg12": {
       "action_id": 697,
       "generation_id": "3385cc03ed657edff57e",
-      "seen_at": "2026-07-21T08:26:56.555978+00:00",
+      "seen_at": "2026-07-21T08:27:45.878684+00:00",
       "server_start_at": "2026-07-21T08:05:58.421000+00:00",
       "state": "active"
     },
@@ -3321,9 +3334,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T08:26:54.888518+00:00",
+    "last_checked_at": "2026-07-21T08:27:45.878684+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T08:26:54.888518+00:00",
+    "last_success_at": "2026-07-21T08:27:45.878684+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -3506,11 +3519,11 @@
       "action_id": 697,
       "first_seen_at": "2026-07-21T08:26:56.555978+00:00",
       "generation_id": "3385cc03ed657edff57e",
-      "last_seen_at": "2026-07-21T08:26:56.555978+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-21T08:27:45.878684+00:00",
+      "observations": 3,
       "server_start_at": "2026-07-21T08:05:58.421000+00:00",
       "statuses": {
-        "active": 1
+        "active": 3
       },
       "wheel_key": "zonertg12"
     },
