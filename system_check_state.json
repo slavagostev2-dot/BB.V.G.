@@ -1,7 +1,7 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 0,
+    "age_minutes": 1,
     "last_heartbeat_at": "2026-07-21T07:53:26.757700+00:00",
     "started_at": "2026-07-21T06:01:38.709765+00:00",
     "status": "running",
@@ -13,7 +13,7 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 2,
-    "decision_id": "e884011eb3244b229dc4bdcfc8644724",
+    "decision_id": "52cb1c67df5c452abb9ff1a0981019d0",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
@@ -21,15 +21,15 @@
       "source_nightly_inventory",
       "source_transport_smoke"
     ],
-    "generated_at": "2026-07-21T07:54:20.342560+00:00",
-    "impact": "Нарушена целостность мониторинга: часть источников (включая @ayukifunpage и @nucleartigeres) выпадает из цикла обработки, что делает данные неполными.",
+    "generated_at": "2026-07-21T07:54:44.191928+00:00",
+    "impact": "Нарушена целостность данных мониторинга. Часть источников (2 из 168) не опрашивается, что приводит к потере актуальной информации по ним.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 2 критические ошибки и 2 предупреждения. Основной монитор не охватывает 2 источника из 168, а транспортная проверка inventory не подтверждена.",
+    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: 2 критические ошибки и 2 предупреждения. Основной монитор не охватывает 2 источника, а транспортная проверка inventory не подтверждена.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 2
@@ -66,7 +66,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T07:54:18.577235+00:00",
+  "checked_at": "2026-07-21T07:54:42.289080+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -154,11 +154,11 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 4,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 74,
@@ -209,7 +209,7 @@
     "version": 3,
     "workflow_run_id": "29806000685"
   },
-  "monitor_age_minutes": 0,
+  "monitor_age_minutes": 1,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
