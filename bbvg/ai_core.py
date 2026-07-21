@@ -102,12 +102,11 @@ class AIConfig:
                     features.discard(feature)
 
         provider = os.getenv("BBVG_AI_PROVIDER", "openai").strip().casefold() or "openai"
-        model = _normalized_model(provider, os.getenv("BBVG_AI_MODEL", ""))
         return cls(
             enabled=_bool_env("BBVG_AI_ENABLED"),
             enabled_features=frozenset(features & set(KNOWN_FEATURES)),
             provider=provider,
-            model=model,
+            model=os.getenv("BBVG_AI_MODEL", "").strip(),
             timeout_seconds=_int_env("BBVG_AI_TIMEOUT_SECONDS", 20, 3, 120),
             max_calls_per_minute=_int_env("BBVG_AI_MAX_CALLS_PER_MINUTE", 10, 1, 120),
             cache_ttl_seconds=_int_env("BBVG_AI_CACHE_TTL_SECONDS", 900, 0, 86400),
@@ -119,8 +118,11 @@ class AIConfig:
     def feature_enabled(self, feature: str) -> bool:
         return self.enabled and feature in self.enabled_features
 
+    def effective_model(self) -> str:
+        return _normalized_model(self.provider, self.model)
+
     def provider_configured(self) -> bool:
-        return self.provider in SUPPORTED_PROVIDERS and bool(self.api_key and self.model)
+        return self.provider in SUPPORTED_PROVIDERS and bool(self.api_key and self.effective_model())
 
 
 @dataclass(frozen=True)
@@ -193,11 +195,15 @@ class AIClient:
     def feature_enabled(self, feature: str) -> bool:
         return self.config.feature_enabled(feature)
 
+    def _model(self) -> str:
+        return self.config.effective_model()
+
     def status_snapshot(self) -> dict[str, Any]:
         return {
             "enabled": self.config.enabled,
             "provider": self.config.provider,
-            "model": self.config.model,
+            "model": self._model(),
+            "configured_model": self.config.model,
             "provider_configured": bool(self.transport or self.config.provider_configured()),
             "enabled_features": sorted(self.config.enabled_features),
             "max_calls_per_minute": self.config.max_calls_per_minute,
@@ -215,7 +221,7 @@ class AIClient:
         base = {
             "text": fallback_text,
             "provider": self.config.provider,
-            "model": self.config.model,
+            "model": self._model(),
             "used_fallback": True,
         }
         if feature not in KNOWN_FEATURES:
@@ -238,7 +244,7 @@ class AIClient:
                 "ok",
                 cached,
                 provider=self.config.provider,
-                model=self.config.model,
+                model=self._model(),
                 cached=True,
                 decision_id=decision_id,
             )
@@ -284,7 +290,7 @@ class AIClient:
             "ok",
             text,
             provider=self.config.provider,
-            model=self.config.model,
+            model=self._model(),
             decision_id=decision_id,
         )
 
@@ -362,7 +368,7 @@ class AIClient:
             {
                 "feature": feature,
                 "provider": self.config.provider,
-                "model": self.config.model,
+                "model": self._model(),
                 "prompt": prompt,
             },
             ensure_ascii=False,
@@ -422,7 +428,7 @@ class AIClient:
             "feature": feature,
             "status": status,
             "provider": self.config.provider,
-            "model": self.config.model,
+            "model": self._model(),
             "cached": cached,
             "output_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest() if text else "",
         }
@@ -462,7 +468,7 @@ class AIClient:
                 "Authorization": f"Bearer {self.config.api_key}",
                 "Content-Type": "application/json",
             },
-            json={"model": self.config.model, "input": prompt},
+            json={"model": self._model(), "input": prompt},
             timeout=self.config.timeout_seconds,
         )
         if response.status_code >= 400:
@@ -474,7 +480,7 @@ class AIClient:
         return self._openai_output_text(payload)
 
     def _call_gemini(self, prompt: str) -> str:
-        model = quote(self.config.model, safe="-._")
+        model = quote(self._model(), safe="-._")
         url = f"{GEMINI_MODELS_URL}/{model}:generateContent"
         generation_config: dict[str, Any] = {"temperature": 0.1}
         if "Return only one valid JSON object without Markdown fences." in prompt:
@@ -540,7 +546,6 @@ class AIClient:
         suffix = f": {block_reason}" if block_reason else ""
         raise RuntimeError(f"Gemini response contains no output text{suffix}")
 
-    # Backward-compatible name used by older tests and callers.
     _output_text = _openai_output_text
 
     @staticmethod
