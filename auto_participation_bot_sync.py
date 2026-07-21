@@ -51,61 +51,123 @@ def _event_token(item: dict[str, Any]) -> str:
     return f"{key}#seen:{item.get('message_date') or ''}"
 
 
-def queue_confirmed_participation(
+def queue_recovery_outcomes(
     recovery_result_path: Path = DEFAULT_RECOVERY_RESULT,
 ) -> dict[str, Any]:
-    """Queue only fresh confirmed BetBoom successes for the live Control Center.
+    """Queue recovery outcomes for the single live Control Center.
 
-    The workflow owns public state.json only. It never writes encrypted user state,
-    never creates a rating vote and never sends the success Telegram message itself.
-    Those personal operations stay inside the single live Control Center process.
+    Workflow/recovery owns only public state.json. It never writes encrypted user
+    state and never sends the final success/failure Telegram outcome. Personal
+    marking, rating and final user-facing outcome are serialized by Control Center.
     """
 
     recovery = _load_recovery_result(recovery_result_path)
     state = _load_json(monitor.STATE_PATH, {})
     events = state.setdefault("auto_participation_events", {})
-    attempts = recovery.get("attempts") if isinstance(recovery.get("attempts"), list) else []
-    queued: list[str] = []
+    attempts = (
+        recovery.get("attempts")
+        if isinstance(recovery.get("attempts"), list)
+        else []
+    )
+    success_queued: list[str] = []
+    failure_queued: list[str] = []
+    changed = False
     now_text = datetime.now(UTC).isoformat()
 
     for attempt in attempts:
-        if not isinstance(attempt, dict) or not bool(attempt.get("success")):
-            continue
-        # This status means a previous run had already completed BetBoom participation;
-        # it must not generate a retroactive or duplicate success notification.
-        if str(attempt.get("status") or "") == "already_marked_participating":
+        if not isinstance(attempt, dict):
             continue
         token = _event_token(attempt)
         record = events.get(token)
         if not isinstance(record, dict):
             continue
-        if str(record.get("status") or "") != "participated":
+
+        if bool(attempt.get("success")):
+            # A previous run already confirmed this exact event. Do not generate a
+            # retroactive success notification, but clear any stale failure candidate.
+            for field in (
+                "bot_failure_pending_at",
+                "bot_failure_sync_status",
+                "bot_failure_sync_version",
+                "bot_failure_status",
+                "bot_failure_detail",
+            ):
+                if field in record:
+                    record.pop(field, None)
+                    changed = True
+
+            if str(attempt.get("status") or "") == "already_marked_participating":
+                continue
+            if str(record.get("status") or "") != "participated":
+                continue
+            if not record.get("bot_success_pending_at"):
+                record["bot_success_pending_at"] = now_text
+                record["bot_success_sync_status"] = "waiting_for_control_center"
+                record["bot_success_sync_version"] = 1
+                success_queued.append(token)
+                changed = True
+            continue
+
+        # Recovery itself may already have created these fields. Reassert them here
+        # from the exact result file so a future refactor cannot restore direct sends.
+        if bool(record.get("manual_notification_sent")):
             continue
         if record.get("bot_success_pending_at"):
             continue
-        record["bot_success_pending_at"] = now_text
-        record["bot_success_sync_status"] = "waiting_for_control_center"
-        record["bot_success_sync_version"] = 1
-        queued.append(token)
+        if str(record.get("status") or "") in {
+            "participated",
+            "already_marked_participating",
+        }:
+            continue
+        if not record.get("bot_failure_pending_at"):
+            record["bot_failure_pending_at"] = now_text
+            failure_queued.append(token)
+            changed = True
+        record["bot_failure_sync_status"] = "waiting_for_control_center"
+        record["bot_failure_sync_version"] = 1
+        record["bot_failure_status"] = str(attempt.get("status") or "failed")[:80]
+        record["bot_failure_detail"] = str(
+            attempt.get("detail") or "автоучастие не подтверждено"
+        )[:300]
+        changed = True
 
-    if queued:
+    if changed:
         monitor.save_state(state)
-    return {"queued": len(queued), "events": queued}
+    return {
+        "success_queued": len(success_queued),
+        "failure_queued": len(failure_queued),
+        "success_events": success_queued,
+        "failure_events": failure_queued,
+    }
+
+
+def queue_confirmed_participation(
+    recovery_result_path: Path = DEFAULT_RECOVERY_RESULT,
+) -> dict[str, Any]:
+    """Backward-compatible entrypoint; outcomes are now finalized by Control Center."""
+
+    return queue_recovery_outcomes(recovery_result_path)
 
 
 def self_test() -> None:
-    attempts = [
-        {
-            "wheel_key": "lent",
-            "action_id": 952,
-            "server_start_at": "2026-07-21T14:01:28.861000+00:00",
-            "success": True,
-            "status": "participated",
-        }
-    ]
-    assert _event_token(attempts[0]) == "lent#action:952:2026-07-21T14:01:28.861000+00:00"
+    success = {
+        "wheel_key": "lent",
+        "action_id": 952,
+        "server_start_at": "2026-07-21T14:01:28.861000+00:00",
+        "success": True,
+        "status": "participated",
+    }
+    failure = {
+        "wheel_key": "ctom11",
+        "action_id": 958,
+        "server_start_at": "2026-07-21T15:28:57.035000+00:00",
+        "success": False,
+        "status": "unconfirmed",
+    }
+    assert _event_token(success) == "lent#action:952:2026-07-21T14:01:28.861000+00:00"
+    assert _event_token(failure) == "ctom11#action:958:2026-07-21T15:28:57.035000+00:00"
     assert _event_token({"wheel_key": "x", "message_date": "now"}) == "x#seen:now"
-    print("auto participation bot sync self-test passed")
+    print("auto participation bot outcome sync self-test passed")
 
 
 def main() -> int:
@@ -116,7 +178,7 @@ def main() -> int:
     if args.self_test:
         self_test()
         return 0
-    result = queue_confirmed_participation(Path(args.recovery_result))
+    result = queue_recovery_outcomes(Path(args.recovery_result))
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0
 
