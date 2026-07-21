@@ -63,7 +63,7 @@ class Chapter4InterfaceTests(unittest.TestCase):
         admin = {button["callback_data"] for row in TelegramPanelRuntime.compact_menu_rows(True) for button in row}
         self.assertEqual(
             user,
-            {"page:active", "page:analytics", "page:sources", "page:settings", "page:status"},
+            {"page:active", "page:analytics", "page:profile", "page:sources", "page:settings", "page:status"},
         )
         self.assertEqual(
             admin,
