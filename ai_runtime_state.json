@@ -1,5 +1,9 @@
 {
   "cache": {
+    "13c874bad0f83cf27cd2becc4a9446fddb70c29b8bce86ce0c4b0af9f36a7674": {
+      "expires_at": 1784631655.9080799,
+      "text": "{\n  \"summary\": \"Критическая ошибка: основной монитор не обновлял данные в течение 57 минут.\",\n  \"impact\": \"Система мониторинга зависла, что приводит к отсутствию актуальных данных о состоянии инфраструктуры.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации.\",\n  \"confidence\": \"high\"\n}"
+    },
     "954a6bd2641790800cc9104e767330dbb560f21c5d0ab126f425648f8f56c9d3": {
       "expires_at": 1784631344.2349997,
       "text": "{\n  \"summary\": \"Критическая задержка обновления мониторинга: последняя итерация была 51 минуту назад.\",\n  \"impact\": \"Система мониторинга перестала обновлять данные, что делает невозможным оперативное обнаружение новых инцидентов.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации.\",\n  \"confidence\": \"high\"\n}"
@@ -349,10 +353,20 @@
       "output_sha256": "5eec1da6549ded55fe724f87b251647ac9ff6956e897765ba2e0fab537f2c792",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1784630755.9080799,
+      "feature": "health_inspector",
+      "id": "0d89ca868f6949d3b70eeccc9bad8e67",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "ef06ffb2a4b4b272249d4d739b15d6edac953d77b16b728d5dbd5ce9cbd39b38",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784630444.2349997
+    1784630755.9080799
   ],
   "version": 1
 }
