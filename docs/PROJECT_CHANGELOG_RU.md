@@ -6,6 +6,18 @@
 
 ---
 
+## 2026-07-21 — Финальный результат автоучастия сериализован через Control Center
+
+Свежая production-проверка выявила повторение противоречивых сообщений: несколько близких запусков auto-participation независимо пересканировали все свежие колёса, а `auto_participation_recovery.py` успевал отправить Telegram-failure до сохранения своего `state.json` в `main`. Поэтому пользователь мог сначала получить подтверждённый успех от Control Center, а затем ложное «не сработало» от recovery со старым snapshot.
+
+Финальная пользовательская доставка полностью вынесена из recovery. Recovery теперь только фиксирует event-scoped `bot_failure_pending_at`; `auto_participation_bot_sync.py` синхронизирует public outcome, а единственный `auto_participation_owner_sync.py` внутри Control Center обрабатывает успех первым и задерживает failure минимум на 90 секунд. Перед failure повторно проверяются точные `wheel_key + action_id + server_start_at`, текущее `participating`, BetBoom-confirmed status, success-pending и зашифрованная история уже отправленных owner-success. Если успех по событию уже был отправлен, более поздний failure запрещён.
+
+**Живая диагностика:** `kekw` (`action_id=955`), `dayneez` (`action_id=950`) и `zonertw17` (`action_id=655`) подтверждены BetBoom и отмечены `participating=true`. `CTOM11` (`action_id=958`) остался `unconfirmed`: элемент участия нажимается, но BetBoom не показывает подтверждение; исходный Telegram-пост отдельно указывает условие регистрации по промокоду CTOM.
+
+**Pre-update backup:** `backup/2026-07-21-before-authoritative-auto-participation-alerts` → `1cf7860275111eab0c19e5260c1030512b817a63`.
+
+**Production Control Center после изменения:** run `29846004846`, статус `running`.
+
 ## 2026-07-21 — Успешное автоучастие автоматически отмечается в Telegram-профиле и рейтинге
 
 После подтверждения участия непосредственно BetBoom workflow больше не ограничивается записью `participating=true`. `auto_participation_bot_sync.py` помечает только свежее подтверждённое событие как ожидающее синхронизации, а единственный живой Control Center через `auto_participation_owner_sync.py` автоматически выполняет для владельца тот же личный путь, что ручная кнопка «Участвую».
