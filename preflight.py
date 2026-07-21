@@ -192,7 +192,7 @@ def main() -> None:
     require_text(
         "bbvg/bot/interface.py",
         (
-            "📨 Отправить сводку",
+            "📨 <b>Отправить сводку</b>",
             "summary:send:monthly",
             "📭 Давно без колёс",
             "def show_inactive_report",
