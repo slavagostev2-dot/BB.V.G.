@@ -125,8 +125,8 @@ jobs:
               --workflow monitor.yml \
               --limit 20 \
               --json databaseId,status \
-              --jq --argjson stale "$STALE_RUN_ID" \
-              '[.[] | select((.status == "queued" or .status == "in_progress") and .databaseId > $stale)] | length')
+              | jq --argjson stale "$STALE_RUN_ID" \
+                '[.[] | select((.status == "queued" or .status == "in_progress") and .databaseId > $stale)] | length')
           fi
 
           if (( newer_active > 0 )); then
