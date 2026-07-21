@@ -1,8 +1,8 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-07-20T23:41:48.374338+00:00",
+    "age_minutes": 3,
+    "last_heartbeat_at": "2026-07-20T23:56:55.032168+00:00",
     "started_at": "2026-07-20T18:29:14.036115+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -16,7 +16,7 @@
     "decision_id": "",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-20T23:43:23.614860+00:00",
+    "generated_at": "2026-07-21T00:00:07.318896+00:00",
     "impact": "Мониторинг и связанные контуры могут продолжать штатную работу.",
     "mode": "rules",
     "model": "",
@@ -37,7 +37,7 @@
     "recorded_configured_sources": 167,
     "recorded_nightly_sources": 2,
     "recorded_primary_sources": 165,
-    "source_tier_last_run_at": "2026-07-19T23:46:32.636190+00:00",
+    "source_tier_last_run_at": "2026-07-20T23:43:34.654196+00:00",
     "source_tier_policy": "manual_nightly_only",
     "transport_accounted_sources": 167,
     "transport_checked_at": "2026-07-20T23:42:44.524523+00:00",
@@ -61,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-20T23:43:22.286522+00:00",
+  "checked_at": "2026-07-21T00:00:06.564755+00:00",
   "discovery": {
     "active_size": 165,
     "candidate_count": 470,
@@ -103,7 +103,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-20T23:41:48.374338+00:00",
+    "bot_panel_heartbeat": "2026-07-20T23:56:55.032168+00:00",
     "checked_sources": 165,
     "configured_sources": 167,
     "domain": "telegram.me",
@@ -113,9 +113,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-20T23:29:30.833539+00:00",
+      "last_checked_at": "2026-07-20T23:59:39.617208+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-20T23:29:30.833539+00:00",
+      "last_success_at": "2026-07-20T23:59:39.617208+00:00",
       "status": "ok"
     }
   },
@@ -151,18 +151,18 @@
     "brand": "BB V.G.",
     "checked_sources": 165,
     "checks_delta": 165,
-    "checks_total": 527499,
+    "checks_total": 532449,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "85cdf8525281165a2c1705acf7d09c2099902748",
-    "iteration": 46,
+    "iteration": 76,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-20T23:29:30.993558+00:00",
+    "last_iteration_at": "2026-07-20T23:59:39.786281+00:00",
     "last_iteration_duration_seconds": 12,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-20T23:29:30.993558+00:00",
-    "last_successful_checks_total": 527499,
-    "last_successful_iteration_at": "2026-07-20T23:29:30.993558+00:00",
+    "last_process_heartbeat_at": "2026-07-20T23:59:39.786281+00:00",
+    "last_successful_checks_total": 532449,
+    "last_successful_iteration_at": "2026-07-20T23:59:39.786281+00:00",
     "pending_wheels": 0,
     "reachable_sources": 165,
     "restart_recommended": false,
@@ -175,7 +175,7 @@
     "version": 3,
     "workflow_run_id": "29784896879"
   },
-  "monitor_age_minutes": 13,
+  "monitor_age_minutes": 0,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -248,9 +248,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-20T23:29:30.833539+00:00",
+    "last_checked_at": "2026-07-20T23:59:39.617208+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-20T23:29:30.833539+00:00",
+    "last_success_at": "2026-07-20T23:59:39.617208+00:00",
     "status": "ok"
   }
 }
