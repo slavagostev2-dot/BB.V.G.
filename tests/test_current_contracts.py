@@ -25,6 +25,7 @@ import source_intelligence
 import source_intelligence_alerts
 import source_registry
 import system_checks_v2
+import system_checks_v3
 import wheel_lifecycle_v2
 import wheel_link_lifecycle
 import wheel_metadata_quality
@@ -104,6 +105,7 @@ class CurrentProductionContractTests(unittest.TestCase):
         self.assertEqual(bot.refresh_source_runtime(), [])
 
         self.assertEqual(calls, list(admin_runtime.SOURCE_REFRESH_WORKFLOWS))
+        self.assertIn(("nightly-discovery.yml", None), calls)
         self.assertIn(
             ("monitor.yml", {"continuous": "true", "replace": "true"}),
             calls,
@@ -174,6 +176,7 @@ class CurrentProductionContractTests(unittest.TestCase):
         monitor_health.self_test()
         incident_manager.self_test()
         system_checks_v2.self_test()
+        system_checks_v3.self_test()
 
     def test_notification_preferences_and_personal_filters(self) -> None:
         notification_preferences_v2.self_test()

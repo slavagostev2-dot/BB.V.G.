@@ -8,6 +8,7 @@ import admin_bot
 
 BLOCKED_SOURCES = {"frixa_betboom", "gazazor"}
 SOURCE_REFRESH_WORKFLOWS: tuple[tuple[str, dict[str, str] | None], ...] = (
+    ("nightly-discovery.yml", None),
     ("monitor.yml", {"continuous": "true", "replace": "true"}),
     ("activate-66-sources.yml", None),
     ("source-registry.yml", None),
@@ -78,6 +79,7 @@ def self_test() -> None:
     bot.dispatch = lambda workflow, inputs=None: calls.append((workflow, inputs))  # type: ignore[method-assign]
     assert bot.refresh_source_runtime() == []
     assert calls == list(SOURCE_REFRESH_WORKFLOWS)
+    assert ("nightly-discovery.yml", None) in calls
     print("admin_runtime self-test passed")
 
 

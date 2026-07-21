@@ -7,10 +7,19 @@ from typing import Any
 from bbvg import health_inspector as ai_health_inspector
 import system_checks_v2 as current
 
+
 legacy = current.legacy
 _ORIGINAL_CHECK_DISCOVERY_RUNTIME = legacy.check_discovery_runtime
 _ORIGINAL_DELIVER_PENDING_NOTIFICATIONS = legacy.deliver_pending_notifications
 DISCOVERY_INVENTORY_CONFIRMATION_HOURS = 6
+SOURCE_REGISTRY_PATH = legacy.ROOT / "source_registry.json"
+
+
+def _source_registry_generated_at():
+    registry = legacy.load_json(SOURCE_REGISTRY_PATH, {})
+    if not isinstance(registry, dict):
+        return None
+    return legacy.parse_datetime(registry.get("generated_at"))
 
 
 def check_discovery_runtime_with_sync_grace(
@@ -19,26 +28,36 @@ def check_discovery_runtime_with_sync_grace(
     before = len(findings)
     _ORIGINAL_CHECK_DISCOVERY_RUNTIME(details, findings)
 
+    added = findings[before:]
+    if not any(item.get("kind") == "discovery_inventory" for item in added):
+        return
+
     discovery = details.get("discovery") if isinstance(details, dict) else None
     discovery = discovery if isinstance(discovery, dict) else {}
     last_run = legacy.parse_datetime(discovery.get("discovery_last_run_at"))
-    if last_run is None:
+    registry_at = _source_registry_generated_at()
+    if registry_at is None or (last_run is not None and registry_at <= last_run):
         return
 
-    age = legacy.now_utc() - last_run
-    if age <= timedelta(hours=DISCOVERY_INVENTORY_CONFIRMATION_HOURS):
-        return
+    age = legacy.now_utc() - registry_at
+    discovery["inventory_registry_generated_at"] = registry_at.isoformat()
+    discovery["inventory_confirmation_window_hours"] = (
+        DISCOVERY_INVENTORY_CONFIRMATION_HOURS
+    )
+    discovery["inventory_sync_age_minutes"] = max(
+        0, int(age.total_seconds() // 60)
+    )
 
-    added = findings[before:]
-    if not any(item.get("kind") == "discovery_inventory" for item in added):
+    if age > timedelta(hours=DISCOVERY_INVENTORY_CONFIRMATION_HOURS):
+        discovery["inventory_sync_state"] = "discovery_sync_overdue"
         return
 
     findings[before:] = [
         item for item in added if item.get("kind") != "discovery_inventory"
     ]
-    discovery["inventory_sync_state"] = "waiting_for_next_discovery_run"
-    discovery["inventory_snapshot_age_hours"] = max(0, int(age.total_seconds() // 3600))
-    discovery["inventory_confirmation_window_hours"] = DISCOVERY_INVENTORY_CONFIRMATION_HOURS
+    discovery["inventory_sync_state"] = (
+        "waiting_for_discovery_after_inventory_change"
+    )
 
 
 def deliver_pending_notifications_with_ai(
@@ -94,41 +113,69 @@ legacy.deliver_pending_notifications = deliver_pending_notifications_with_ai
 def self_test() -> None:
     original = _ORIGINAL_CHECK_DISCOVERY_RUNTIME
     original_now = legacy.now_utc
+    original_registry_time = _source_registry_generated_at
     try:
-        fixed_now = legacy.parse_datetime("2026-07-19T15:00:00+00:00")
+        fixed_now = legacy.parse_datetime("2026-07-21T03:00:00+00:00")
         assert fixed_now is not None
         legacy.now_utc = lambda: fixed_now  # type: ignore[assignment]
 
-        def stale_mismatch(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
-            details["discovery"] = {"discovery_last_run_at": "2026-07-19T05:00:00+00:00"}
-            findings.append(legacy.finding(
-                "discovery_inventory",
-                "Ночная проверка видит не весь утверждённый пул",
-                "В состоянии поиска записано 162, текущий inventory содержит 164.",
-            ))
+        def mismatch_at(last_run_at: str):
+            def mismatch(
+                details: dict[str, Any], findings: list[dict[str, Any]]
+            ) -> None:
+                details["discovery"] = {
+                    "discovery_last_run_at": last_run_at
+                }
+                findings.append(legacy.finding(
+                    "discovery_inventory",
+                    "Ночная проверка видит не весь утверждённый пул",
+                    "В состоянии поиска записано 167, текущий inventory содержит 168.",
+                ))
 
-        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = stale_mismatch
+            return mismatch
+
+        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = mismatch_at(
+            "2026-07-21T00:00:00+00:00"
+        )
+        globals()["_source_registry_generated_at"] = lambda: legacy.parse_datetime(
+            "2026-07-21T01:00:00+00:00"
+        )
         details: dict[str, Any] = {}
         findings: list[dict[str, Any]] = []
         check_discovery_runtime_with_sync_grace(details, findings)
         assert not any(item.get("kind") == "discovery_inventory" for item in findings)
-        assert details["discovery"]["inventory_sync_state"] == "waiting_for_next_discovery_run"
+        assert details["discovery"]["inventory_sync_state"] == (
+            "waiting_for_discovery_after_inventory_change"
+        )
 
-        def fresh_mismatch(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
-            details["discovery"] = {"discovery_last_run_at": "2026-07-19T14:00:00+00:00"}
-            findings.append(legacy.finding(
-                "discovery_inventory",
-                "Ночная проверка видит не весь утверждённый пул",
-                "В состоянии поиска записано 162, текущий inventory содержит 164.",
-            ))
-
-        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = fresh_mismatch
+        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = mismatch_at(
+            "2026-07-20T18:00:00+00:00"
+        )
+        globals()["_source_registry_generated_at"] = lambda: legacy.parse_datetime(
+            "2026-07-20T19:00:00+00:00"
+        )
         details = {}
         findings = []
         check_discovery_runtime_with_sync_grace(details, findings)
         assert any(item.get("kind") == "discovery_inventory" for item in findings)
+        assert details["discovery"]["inventory_sync_state"] == (
+            "discovery_sync_overdue"
+        )
+
+        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = mismatch_at(
+            "2026-07-21T02:00:00+00:00"
+        )
+        globals()["_source_registry_generated_at"] = lambda: legacy.parse_datetime(
+            "2026-07-21T01:00:00+00:00"
+        )
+        details = {}
+        findings = []
+        check_discovery_runtime_with_sync_grace(details, findings)
+        assert any(item.get("kind") == "discovery_inventory" for item in findings)
+        assert "inventory_sync_state" not in details["discovery"]
     finally:
         globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = original
+        globals()["_source_registry_generated_at"] = original_registry_time
         legacy.now_utc = original_now  # type: ignore[assignment]
 
     assert legacy.deliver_pending_notifications is deliver_pending_notifications_with_ai
