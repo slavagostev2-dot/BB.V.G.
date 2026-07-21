@@ -37,7 +37,7 @@ jobs:
         id: force
         shell: bash
         run: |
-          if [[ -f force_auto_participation.trigger ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && -f force_auto_participation.trigger ]]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
@@ -71,6 +71,7 @@ jobs:
 
       - name: Force current wheel participation
         if: ${{ steps.force.outputs.enabled == 'true' }}
+        continue-on-error: true
         env:
           BETBOOM_AUTO_PARTICIPATE: "true"
           BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
@@ -89,7 +90,8 @@ jobs:
           test -f force_recent_wheels_result.json || echo '{"status":"scan_result_missing"}' > force_recent_wheels_result.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add force_auto_participation_result.json force_recent_wheels_result.json
+          git add state.json force_auto_participation_result.json force_recent_wheels_result.json
+          git rm -f force_auto_participation.trigger || true
           git commit -m "Record forced auto participation result [skip ci]" || exit 0
           git pull --rebase origin main
           git push origin HEAD:main
@@ -142,6 +144,7 @@ jobs:
 
       - name: Run auto participation
         if: ${{ steps.force.outputs.enabled != 'true' && steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -153,15 +156,31 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
         run: python auto_participation_worker.py
 
-      - name: Persist participation state
+      - name: Recover fresh wheels when event state was lost
         if: ${{ steps.force.outputs.enabled != 'true' && steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          BETBOOM_AUTO_PARTICIPATE: "true"
+          BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
+          BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          REQUEST_TIMEOUT_SECONDS: "10"
+          MAX_WORKERS: "24"
+        run: python force_recent_wheels.py
+
+      - name: Persist participation state
+        if: ${{ always() && steps.force.outputs.enabled != 'true' && steps.mode.outputs.probe != 'true' }}
         run: |
-          if git diff --quiet -- state.json; then
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add state.json
+          test ! -f force_auto_participation_result.json || git add force_auto_participation_result.json
+          test ! -f force_recent_wheels_result.json || git add force_recent_wheels_result.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
           git commit -m "Update auto participation state [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
