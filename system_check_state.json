@@ -1,8 +1,8 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-07-21T14:25:15.034345+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-21T14:30:17.980365+00:00",
     "started_at": "2026-07-21T13:43:56.936780+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,10 +13,10 @@
     "cached": true,
     "confidence": 0.0,
     "critical_count": 0,
-    "decision_id": "ef196b162a1d4c7aa638667e906b3ad2",
+    "decision_id": "27f838c350bb489988f0d6e7c9ad0f9d",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-21T14:28:58.619276+00:00",
+    "generated_at": "2026-07-21T14:31:00.344161+00:00",
     "impact": "Отсутствует; система работает в нормальном режиме без деградации производительности.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -61,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T14:28:57.362540+00:00",
+  "checked_at": "2026-07-21T14:30:59.120144+00:00",
   "discovery": {
     "active_size": 167,
     "candidate_count": 478,
@@ -103,7 +103,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-21T14:25:15.034345+00:00",
+    "bot_panel_heartbeat": "2026-07-21T14:30:17.980365+00:00",
     "checked_sources": 167,
     "configured_sources": 168,
     "domain": "telegram.me",
@@ -175,11 +175,11 @@
     "version": 3,
     "workflow_run_id": "29829155720"
   },
-  "monitor_age_minutes": 2,
+  "monitor_age_minutes": 4,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 56,
+    "entry_count": 62,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
