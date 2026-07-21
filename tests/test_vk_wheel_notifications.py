@@ -185,6 +185,76 @@ def test_wheel_url_inside_system_error_does_not_dispatch_to_vk() -> None:
     assert calls == []
 
 
+def test_direct_vk_dispatch_sends_to_every_writable_conversation(monkeypatch) -> None:
+    calls: list[tuple[str, str]] = []
+    monkeypatch.setenv("VK_GROUP_TOKEN", "group-token")
+    monkeypatch.setattr(
+        vk_wheel_notifications.vk_dynamic_subscribers,
+        "conversation_peer_ids",
+        lambda token: ["10", "20", "30"] if token == "group-token" else [],
+    )
+    monkeypatch.setattr(
+        vk_wheel_notifications.vk_dynamic_subscribers,
+        "send_message",
+        lambda token, peer_id, message, event_identity: calls.append(
+            (peer_id, event_identity)
+        ),
+    )
+
+    assert vk_wheel_notifications._direct_vk_dispatch(
+        message="Новое колесо",
+        wheel_url="https://betboom.ru/freestream/direct-test",
+        event_identity="wheel:wheels:direct-test:detected",
+    ) is True
+    assert calls == [
+        ("10", "wheel:wheels:direct-test:detected"),
+        ("20", "wheel:wheels:direct-test:detected"),
+        ("30", "wheel:wheels:direct-test:detected"),
+    ]
+
+
+def test_direct_vk_failure_releases_delivery_for_retry(monkeypatch) -> None:
+    monkeypatch.setenv("VK_GROUP_TOKEN", "group-token")
+    monkeypatch.setattr(
+        vk_wheel_notifications.vk_dynamic_subscribers,
+        "conversation_peer_ids",
+        lambda token: ["10"],
+    )
+
+    def fail_once(token: str, peer_id: str, message: str, event_identity: str) -> None:
+        raise RuntimeError("temporary VK failure")
+
+    monkeypatch.setattr(
+        vk_wheel_notifications.vk_dynamic_subscribers,
+        "send_message",
+        fail_once,
+    )
+    try:
+        vk_wheel_notifications.dispatch_vk_wheel_notification(
+            FakeRouter,
+            "🎡 Новое колесо BetBoom",
+            url="https://betboom.ru/freestream/direct-retry",
+        )
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("Direct VK failure must remain visible")
+
+    sent: list[str] = []
+    monkeypatch.setattr(
+        vk_wheel_notifications.vk_dynamic_subscribers,
+        "send_message",
+        lambda token, peer_id, message, event_identity: sent.append(peer_id),
+    )
+    retry = vk_wheel_notifications.dispatch_vk_wheel_notification(
+        FakeRouter,
+        "🎡 Новое колесо BetBoom",
+        url="https://betboom.ru/freestream/direct-retry",
+    )
+    assert retry["dispatched"] is True
+    assert sent == ["10"]
+
+
 def test_vk_dispatch_failure_cannot_break_successful_telegram(monkeypatch) -> None:
     class FakeMonitor:
         sent = 0

@@ -12,6 +12,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+import vk_dynamic_subscribers
+
 VK_API_ENDPOINT = "https://api.vk.com/method/messages.send"
 VK_API_VERSION = os.getenv("VK_API_VERSION", "5.199").strip() or "5.199"
 VK_WORKFLOW_FILE = "vk-wheel-notification.yml"
@@ -137,12 +139,60 @@ def _vk_message(text: str, wheel_url: str) -> str:
     return message
 
 
+def _direct_vk_dispatch(
+    *,
+    message: str,
+    wheel_url: str,
+    event_identity: str,
+) -> bool:
+    """Deliver one wheel alert directly from the live monitor to VK dialogs."""
+
+    token = str(os.getenv("VK_GROUP_TOKEN") or "").strip()
+    if not token:
+        raise RuntimeError("VK_GROUP_TOKEN is not configured in the monitor runtime")
+
+    if wheel_url and wheel_url not in message:
+        message = f"{message}\n\n{wheel_url}" if message else wheel_url
+
+    peers = vk_dynamic_subscribers.conversation_peer_ids(token)
+    if not peers:
+        raise RuntimeError("VK has no writable user conversations")
+
+    sent = 0
+    failures: list[str] = []
+    for peer_id in peers:
+        try:
+            vk_dynamic_subscribers.send_message(
+                token,
+                peer_id,
+                message,
+                event_identity,
+            )
+            sent += 1
+        except Exception as exc:
+            failures.append(f"{type(exc).__name__}: {exc}")
+
+    print(
+        "VK direct wheel delivery: "
+        f"subscribers={len(peers)}, sent={sent}, failed={len(failures)}"
+    )
+    if failures:
+        raise RuntimeError(
+            "VK direct delivery failed for "
+            f"{len(failures)} of {len(peers)} writable conversations; "
+            f"first_error={failures[0]}"
+        )
+    return sent > 0
+
+
 def _github_dispatch(
     *,
     message: str,
     wheel_url: str,
     event_identity: str,
 ) -> bool:
+    """Legacy/manual fallback that schedules vk-wheel-notification.yml."""
+
     token = str(os.getenv("GITHUB_TOKEN") or "").strip()
     repository = str(os.getenv("GITHUB_REPOSITORY") or "").strip()
     branch = str(os.getenv("GITHUB_BRANCH") or "main").strip() or "main"
@@ -194,7 +244,7 @@ def dispatch_vk_wheel_notification(
     url: str | None = None,
     reply_markup: dict | None = None,
     *,
-    dispatcher: Callable[..., bool] = _github_dispatch,
+    dispatcher: Callable[..., bool] = _direct_vk_dispatch,
 ) -> dict[str, Any]:
     eligible, event_identity = _wheel_event(router_module, text, url, reply_markup)
     if not eligible:
@@ -269,7 +319,7 @@ def install(monitor_module: Any, router_module: Any) -> None:
             )
             if vk_result.get("dispatched"):
                 print(
-                    "VK wheel notification workflow scheduled: "
+                    "VK wheel notification sent directly: "
                     f"{vk_result.get('event_identity', '')}"
                 )
         except Exception as exc:
