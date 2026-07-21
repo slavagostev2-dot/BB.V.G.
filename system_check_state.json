@@ -1,8 +1,8 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-07-21T02:31:38.553617+00:00",
+    "age_minutes": 3,
+    "last_heartbeat_at": "2026-07-21T03:27:02.844421+00:00",
     "started_at": "2026-07-21T00:00:17.008446+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -14,22 +14,20 @@
     "confidence": 1.0,
     "critical_count": 0,
     "decision_id": "",
-    "finding_count": 1,
-    "finding_kinds": [
-      "discovery_inventory"
-    ],
-    "generated_at": "2026-07-21T02:35:52.103339+00:00",
-    "impact": "Основные функции продолжают работать, но отдельные проверки требуют наблюдения.",
+    "finding_count": 0,
+    "finding_kinds": [],
+    "generated_at": "2026-07-21T03:30:45.210661+00:00",
+    "impact": "Мониторинг и связанные контуры могут продолжать штатную работу.",
     "mode": "rules",
     "model": "",
     "provider": "openai",
-    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
+    "recommended_action": "Вмешательство не требуется. Продолжать штатный мониторинг.",
     "requires_human_attention": false,
-    "severity": "warning",
-    "summary": "Система работает с отклонениями: активных предупреждений — 1. Источники последнего цикла: доступно 166/166, ошибок 0.",
+    "severity": "ok",
+    "summary": "Системные проверки не обнаружили активных проблем. Источники последнего цикла: доступно 166/166, ошибок 0.",
     "used_fallback": true,
     "version": 1,
-    "warning_count": 1
+    "warning_count": 0
   },
   "automation_state": {
     "expected_nightly_sources": 2,
@@ -53,7 +51,7 @@
   "check_matrix": {
     "automations": "ok",
     "bot_panel": "ok",
-    "discovery": "failed",
+    "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
     "monitor": "ok",
@@ -63,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T02:35:51.308631+00:00",
+  "checked_at": "2026-07-21T03:30:43.932439+00:00",
   "discovery": {
     "active_size": 165,
     "candidate_count": 470,
@@ -86,7 +84,11 @@
       "unique_candidates": 157,
       "verified_candidates": 150,
       "workers": 12
-    }
+    },
+    "inventory_confirmation_window_hours": 6,
+    "inventory_registry_generated_at": "2026-07-21T00:56:27.846317+00:00",
+    "inventory_sync_age_minutes": 154,
+    "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
   },
   "domain_compliance": {
     "checked_files": [
@@ -101,31 +103,23 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "В состоянии поиска записано 167, текущий inventory содержит 168.",
-      "kind": "discovery_inventory",
-      "severity": "warning",
-      "subject": "",
-      "title": "Ночная проверка видит не весь утверждённый пул"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-21T02:31:38.553617+00:00",
+    "active_incidents": 0,
+    "bot_panel_heartbeat": "2026-07-21T03:27:02.844421+00:00",
     "checked_sources": 166,
     "configured_sources": 168,
     "domain": "telegram.me",
     "reachable_sources": 166,
     "single_source": "system_check_state.json",
-    "status": "degraded",
+    "status": "ok",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T02:27:29.663025+00:00",
+      "last_checked_at": "2026-07-21T03:21:19.364718+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T02:27:29.663025+00:00",
+      "last_success_at": "2026-07-21T03:21:19.364718+00:00",
       "status": "ok"
     }
   },
@@ -134,10 +128,10 @@
     "health_inspector_mode": "rules",
     "health_inspector_status": "not_configured",
     "messages_attempted": 1,
-    "opened": 1,
-    "resolved": 0
+    "opened": 0,
+    "resolved": 1
   },
-  "incident_sequence": 69,
+  "incident_sequence": 70,
   "inventory": {
     "configured": 166,
     "configured_total": 168,
@@ -161,31 +155,31 @@
     "brand": "BB V.G.",
     "checked_sources": 166,
     "checks_delta": 166,
-    "checks_total": 554980,
+    "checks_total": 562616,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "3aba860e476e631eef24910e478d6d800448ddcf",
-    "iteration": 91,
+    "head_sha": "65fd60b91ed337d222d3e6a7f23d2876e0e81e28",
+    "iteration": 46,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-21T02:27:29.817835+00:00",
+    "last_iteration_at": "2026-07-21T03:21:19.519859+00:00",
     "last_iteration_duration_seconds": 13,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T02:27:29.817835+00:00",
-    "last_successful_checks_total": 554980,
-    "last_successful_iteration_at": "2026-07-21T02:27:29.817835+00:00",
+    "last_process_heartbeat_at": "2026-07-21T03:21:19.519859+00:00",
+    "last_successful_checks_total": 562616,
+    "last_successful_iteration_at": "2026-07-21T03:21:19.519859+00:00",
     "pending_wheels": 0,
     "reachable_sources": 166,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29791746006",
-    "run_started_at": "2026-07-21T00:56:54.592777+00:00",
+    "run_id": "29796244085",
+    "run_started_at": "2026-07-21T02:35:56.478418+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "29791746006"
+    "workflow_run_id": "29796244085"
   },
-  "monitor_age_minutes": 8,
+  "monitor_age_minutes": 9,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -246,7 +240,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
@@ -258,9 +252,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T02:27:29.663025+00:00",
+    "last_checked_at": "2026-07-21T03:21:19.364718+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T02:27:29.663025+00:00",
+    "last_success_at": "2026-07-21T03:21:19.364718+00:00",
     "status": "ok"
   }
 }
