@@ -6,6 +6,24 @@
 
 ---
 
+## 2026-07-21 — Автоучастие и доставка wheel-event защищены от отмены monitor-run
+
+Диагностика одновременных симптомов — повторного Telegram-уведомления, отсутствия нового колеса в `active_wheels` и пропущенного автоучастия — подтвердила одно аварийное окно: внешний Telegram-send мог завершиться раньше, чем runner успевал сохранить runtime-state в `main`. При отмене/replacement запуска следующий monitor видел старое состояние и мог повторить уведомление, а event автоучастия и карточка активного колеса терялись.
+
+Для срочной проверки был выполнен независимый скан текущего approved inventory. Новое короткое колесо `zonertw4` было найдено через BetBoom API и участие подтверждено страницей BetBoom. После перевода решения в production-контур штатная цепочка самостоятельно обнаружила новое `aunkere` и записала `auto_participation_status=participated`, что подтвердило работу без аварийного trigger.
+
+Добавлен `notification_remote_checkpoint.py`: HMAC-claim уведомления синхронно merge/CAS-фактически фиксируется в `notification_delivery_state.json` на `main` до Telegram API, а после успешной отправки переводится в completed delivery. Новый wheel-event одновременно инициирует `auto-participation.yml`, поэтому запуск автоучастия больше не зависит от того, успел ли bulk runtime-push сохранить `state.json`.
+
+`auto-participation.yml` теперь после обычного `auto_participation_worker.py` всегда выполняет независимый `auto_participation_recovery.py`. Recovery читает текущий `public_sources.txt`, проверяет свежие freestream-ссылки через BetBoom API, использует устойчивый `betboom_participation_browser.py` и при необходимости восстанавливает потерянную активную карточку/участие. `wheel_metadata_quality.py` не позволяет recovery-пути закрепить более поздний репост как исходный источник существующего колеса; исходная публикация восстанавливается из `wheel_publications`.
+
+Временные аварийные `force_*` trigger/script/result-файлы после переноса логики в постоянные модули удалены. Финальный monitor preflight прошёл на production-модулях; отдельный runtime heartbeat продолжает публиковаться независимо от bulk state push.
+
+**Проверка:** срочное `zonertw4` — участие подтверждено BetBoom; последующее `aunkere` — штатно `participated`; монитор проверяет 167 источников, source errors = 0.
+
+**Промежуточная rollback-точка:** `backup/2026-07-21-after-auto-participation-recovery`. Финальная post-update backup создаётся после этой синхронизации документации.
+
+**Откат:** вернуть post-update/pre-update backup целиком; ручное восстановление отдельных runtime JSON не требуется.
+
 ## 2026-07-21 — VK-доставка переведена напрямую в монитор
 
 Повторная production-диагностика после пропуска `zonertg12` показала: монитор исправно видит колесо, `VK_GROUP_TOKEN` настроен, VK API возвращает три доступных для записи пользовательских диалога, но после 19 июля не создавался ни один новый запуск `VK wheel notification`. Доставка обрывалась на промежуточном переходе monitor → GitHub workflow ещё до обращения к VK API.

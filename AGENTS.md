@@ -66,6 +66,8 @@ docs/
   runtime запрещено; необходимые совместимости реализуются в действующих
   предметных владельцах и покрываются regression-контрактами.
 - Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические модули.
+- Автоучастие: `auto_participation_worker.py` обрабатывает сохранённые event-запросы; `auto_participation_recovery.py` независимо пересканирует свежие публикации текущего `public_sources.txt`, сверяет ссылки с BetBoom API и восстанавливает потерянные active/event записи; `betboom_participation_browser.py` является устойчивым Playwright fallback фактического участия.
+- Надёжность Telegram-доставки: `notification_integrity_v2.py` хранит HMAC-ledger и локальный claim, а `notification_remote_checkpoint.py` до внешней отправки фиксирует claim в `main` через Contents API и запускает recovery-автоучастие для новых wheel-event.
 - VK-уведомления о новых колёсах отправляются напрямую из monitor-runtime: `vk_wheel_notifications.py` определяет событие и дедупликацию, `vk_dynamic_subscribers.py` получает доступные диалоги и вызывает VK API. `vk-wheel-notification.yml` остаётся только ручным fallback/диагностикой.
 
 Не добавляйте параллельный runtime или второго consumer Telegram `getUpdates`.
@@ -176,6 +178,17 @@ docs/
   Журнал не содержит Telegram ID и не меняет решение о
   дедупликации. Отчёт: `python wheel_event_runtime.py
   --observation-report state.json`.
+
+### Автоучастие и устойчивость wheel-event
+
+- Новое wheel-событие фаз `detected`, `active` или `available` запускает `.github/workflows/auto-participation.yml` до зависимости от позднего bulk-push `state.json`.
+- Workflow сначала выполняет event-based `auto_participation_worker.py`, затем обязательно запускает независимый `auto_participation_recovery.py`.
+- Recovery берёт количество и список источников только из текущего `public_sources.txt`, извлекает свежие freestream-ссылки и перед попыткой участия подтверждает активность каждой ссылки через BetBoom API. Исторические фиксированные количества источников запрещены.
+- Если событие потеряно до сохранения `state.json`, recovery восстанавливает подтверждённо активную карточку в `active_wheels`; успешное участие записывает в `participating_wheels` и `auto_participation_events`.
+- Recovery не перезаписывает `source`, `message_id`, `message_date` и `message_url` уже существующего активного колеса более поздним репостом. Если ранний recovery уже подменил атрибуцию, `wheel_metadata_quality.py` восстанавливает исходную публикацию из `wheel_publications`, не меняя API-поколение и участие.
+- `betboom_participation_browser.py` ищет семантические кнопки и видимые SPA-обёртки, допускает контрольную перезагрузку и считает успехом только подтверждение участия на стороне BetBoom.
+- Для Telegram-уведомления interprocess claim `notification_delivery_state.json` обязан быть удалённо зафиксирован в `main` **до** вызова Telegram API. После успешной отправки claim переводится в completed delivery таким же remote checkpoint. Если pre-send checkpoint не удался, уведомление с незаписанным claim не отправляется.
+- Временные файлы и режимы `force_*` не являются production-архитектурой и после диагностики должны быть удалены.
 
 ### Достоверный health и inventory источников
 
