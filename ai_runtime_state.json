@@ -1,5 +1,10 @@
 {
-  "cache": {},
+  "cache": {
+    "4dc370e79588b11164662825b51928a9f2f859b2df533e3373b25bce4faf9980": {
+      "expires_at": 1784613739.9267604,
+      "text": "{\n  \"summary\": \"Система функционирует в штатном режиме: все 166 источников доступны, ошибок не зафиксировано.\",\n  \"impact\": \"Отсутствует. Все сервисы работают согласно целевым показателям.\",\n  \"recommended_action\": \"Вмешательство не требуется. Продолжать штатный мониторинг.\",\n  \"confidence\": \"100%\"\n}"
+    }
+  },
   "decisions": [
     {
       "cached": false,
@@ -33,10 +38,20 @@
       "output_sha256": "fda3cbb2268944c39771547ab1412a8292dd223ee5ebaaa22dabc4dbee7b580b",
       "provider": "gemini",
       "status": "provider_error"
+    },
+    {
+      "cached": false,
+      "created_at": 1784612839.9267604,
+      "feature": "health_inspector",
+      "id": "7a22e6232cb044d492a038f76f741bc7",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "433a304c335fabca9725df96d9a2672e2308bd147880013b430d7848303313a8",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784612619.1581259
+    1784612839.9267604
   ],
   "version": 1
 }
