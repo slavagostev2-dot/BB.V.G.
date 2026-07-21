@@ -14,24 +14,46 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Checkout exact diagnostic commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
       - name: Validate VK community token without sending messages
         env:
           VK_GROUP_TOKEN: ${{ secrets.VK_GROUP_TOKEN }}
           VK_API_VERSION: "5.199"
         run: |
           python - <<'PY'
+          import json
           import os
-          from vk_dynamic_subscribers import conversation_peer_ids
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
 
           token = os.getenv("VK_GROUP_TOKEN", "").strip()
           if not token:
               raise SystemExit("VK_GROUP_TOKEN is missing")
-          peers = conversation_peer_ids(token)
+          body = urlencode({
+              "access_token": token,
+              "v": os.getenv("VK_API_VERSION", "5.199"),
+              "count": 200,
+              "offset": 0,
+              "filter": "all",
+          }).encode("utf-8")
+          request = Request(
+              "https://api.vk.com/method/messages.getConversations",
+              data=body,
+              method="POST",
+              headers={"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"},
+          )
+          with urlopen(request, timeout=15) as response:
+              data = json.loads(response.read().decode("utf-8"))
+          if isinstance(data.get("error"), dict):
+              error = data["error"]
+              raise SystemExit(f"VK API error {error.get('error_code')}: {error.get('error_msg')}")
+          payload = data.get("response") or {}
+          peers = set()
+          for item in payload.get("items") or []:
+              conversation = item.get("conversation") or {}
+              peer = conversation.get("peer") or {}
+              can_write = conversation.get("can_write") or {}
+              if peer.get("type") == "user" and can_write.get("allowed") is not False:
+                  peers.add(int(peer.get("id")))
           print(f"VK token health: writable_user_conversations={len(peers)}")
           if not peers:
               raise SystemExit("VK has no writable user conversations")
