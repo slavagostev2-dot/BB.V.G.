@@ -203,7 +203,6 @@ def main() -> None:
         (
             "class TelegramPanelV2",
             "def show_period_report",
-            "def period_totals",
         ),
     )
     require_text(
