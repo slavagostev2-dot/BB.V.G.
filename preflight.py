@@ -199,10 +199,18 @@ def main() -> None:
         ),
     )
     require_text(
+        "admin_panel_v2.py",
+        (
+            "class TelegramPanelV2",
+            "def show_period_report",
+            "def period_totals",
+        ),
+    )
+    require_text(
         "bbvg/bot/runtime.py",
         (
             "SUMMARY_PERIODS",
-            "def show_period_report",
+            "self.show_period_report(days)",
             "summary:send:",
             "class TelegramPanelRuntime",
         ),
