@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from bbvg.ai_core import (
     AIClient,
@@ -11,13 +12,19 @@ from bbvg.ai_core import (
 )
 
 
-def make_config(path: Path, *, enabled: bool = True, limit: int = 10) -> AIConfig:
+def make_config(
+    path: Path,
+    *,
+    enabled: bool = True,
+    limit: int = 10,
+    provider: str = "openai",
+) -> AIConfig:
     return AIConfig(
         enabled=enabled,
         enabled_features=frozenset(
             {FEATURE_HEALTH_INSPECTOR, FEATURE_SUSPICIOUS_POST_ANALYSIS}
         ),
-        provider="openai",
+        provider=provider,
         model="test-model",
         timeout_seconds=5,
         max_calls_per_minute=limit,
@@ -157,3 +164,87 @@ def test_provider_error_returns_deterministic_fallback(tmp_path: Path) -> None:
     assert result.used_fallback is True
     state = json.loads(state_path.read_text(encoding="utf-8"))
     assert state["decisions"][-1]["status"] == "provider_error"
+
+
+def test_environment_selects_gemini_key(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("BBVG_AI_ENABLED", "true")
+    monkeypatch.setenv("BBVG_AI_FEATURES", FEATURE_HEALTH_INSPECTOR)
+    monkeypatch.setenv("BBVG_AI_PROVIDER", "gemini")
+    monkeypatch.setenv("BBVG_AI_MODEL", "gemini-2.5-flash-lite")
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini-secret")
+    monkeypatch.setenv("OPENAI_API_KEY", "openai-secret")
+    monkeypatch.setenv("BBVG_AI_STATE_PATH", str(tmp_path / "ai.json"))
+
+    config = AIConfig.from_env()
+
+    assert config.provider == "gemini"
+    assert config.model == "gemini-2.5-flash-lite"
+    assert config.api_key == "gemini-secret"
+    assert config.provider_configured() is True
+
+
+def test_gemini_request_uses_key_header_and_structured_output(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class Response:
+        status_code = 200
+        text = ""
+
+        @staticmethod
+        def json() -> dict[str, Any]:
+            return {
+                "candidates": [
+                    {"content": {"parts": [{"text": '{"status":"ok"}'}]}}
+                ]
+            }
+
+    def fake_post(url: str, **kwargs: Any) -> Response:
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.setattr("bbvg.ai_core.requests.post", fake_post)
+    client = AIClient(make_config(tmp_path / "ai.json", provider="gemini"))
+
+    result = client.ask_json(
+        FEATURE_HEALTH_INSPECTOR,
+        system_prompt="Return system health.",
+        user_input="all checks passed",
+        fallback_data={"status": "unknown"},
+    )
+
+    assert result.ok is True
+    assert result.data == {"status": "ok"}
+    assert captured["url"].endswith("/gemini-2.5-flash-lite:generateContent") is False
+    assert captured["url"].endswith("/test-model:generateContent") is True
+    assert captured["headers"]["x-goog-api-key"] == "test-key"
+    assert "Authorization" not in captured["headers"]
+    assert captured["json"]["generationConfig"]["responseMimeType"] == "application/json"
+
+
+def test_gemini_blocked_response_uses_fallback(monkeypatch, tmp_path: Path) -> None:
+    class Response:
+        status_code = 200
+        text = ""
+
+        @staticmethod
+        def json() -> dict[str, Any]:
+            return {"promptFeedback": {"blockReason": "SAFETY"}}
+
+    monkeypatch.setattr("bbvg.ai_core.requests.post", lambda *_args, **_kwargs: Response())
+    client = AIClient(make_config(tmp_path / "ai.json", provider="gemini"))
+
+    result = client.ask_text(
+        FEATURE_HEALTH_INSPECTOR,
+        system_prompt="Explain.",
+        user_input="snapshot",
+        fallback_text="rules-only",
+    )
+
+    assert result.ok is False
+    assert result.status == "provider_error"
+    assert result.text == "rules-only"
+    assert "SAFETY" in result.error
