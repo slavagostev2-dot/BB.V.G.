@@ -1,7 +1,7 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 2,
+    "age_minutes": 3,
     "last_heartbeat_at": "2026-07-21T10:43:35.090474+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
@@ -10,15 +10,15 @@
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": false,
+    "cached": true,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "0d89ca868f6949d3b70eeccc9bad8e67",
+    "decision_id": "5c8a2acefdb740459e083af88121f617",
     "finding_count": 1,
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-21T10:45:56.680971+00:00",
+    "generated_at": "2026-07-21T10:46:42.953459+00:00",
     "impact": "Система мониторинга зависла, что приводит к отсутствию актуальных данных о состоянии инфраструктуры.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T10:45:54.535756+00:00",
+  "checked_at": "2026-07-21T10:46:41.861532+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
