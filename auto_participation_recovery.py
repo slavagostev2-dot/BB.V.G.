@@ -30,6 +30,38 @@ def _event_token(item: dict[str, Any]) -> str:
     return f"{key}#seen:{item.get('message_date') or ''}"
 
 
+def _confirmed_success_for_event(
+    state: dict[str, Any],
+    item: dict[str, Any],
+) -> bool:
+    """Return True only when this exact wheel event was already confirmed participating."""
+
+    key = str(item.get("wheel_key") or "").casefold()
+    if not key:
+        return False
+    token = _event_token(item)
+
+    processed = state.get("auto_participation_events")
+    record = processed.get(token) if isinstance(processed, dict) else None
+    if isinstance(record, dict) and str(record.get("status") or "") in {
+        "participated",
+        "already_marked_participating",
+    }:
+        return True
+
+    active = state.get("active_wheels")
+    entry = active.get(key) if isinstance(active, dict) else None
+    if isinstance(entry, dict) and _event_token(entry) == token:
+        if bool(entry.get("participating")):
+            return True
+        if str(entry.get("auto_participation_status") or "") == "participated":
+            return True
+        if entry.get("auto_participation_confirmed_at"):
+            return True
+
+    return False
+
+
 def _ensure_button_context(
     state: dict[str, Any],
     entry: dict[str, Any],
@@ -98,6 +130,10 @@ def _restore_runtime_state(
         if is_recovered_missing:
             active_wheels[key] = entry
 
+        # Capture success before refreshing API fields so a later browser probe cannot
+        # downgrade the exact event that BetBoom had already confirmed.
+        confirmed_before = _confirmed_success_for_event(state, item)
+
         deadline = monitor.parse_datetime(item.get("deadline"))
         expires = (
             deadline + timedelta(minutes=30)
@@ -150,6 +186,15 @@ def _restore_runtime_state(
 
         token = _event_token(item)
         if not bool(attempt.get("success")):
+            if confirmed_before:
+                entry["participating"] = True
+                entry["lifecycle_state"] = "participating"
+                entry["auto_participation_status"] = "participated"
+                entry["auto_participation_retry_allowed"] = False
+                entry.pop("auto_participation_error", None)
+                entry.pop("auto_participation_manual_notification_error", None)
+                continue
+
             status = str(attempt.get("status") or "failed")
             detail = str(attempt.get("detail") or "автоучастие не подтверждено")[:300]
             previous = processed.get(token)
@@ -186,6 +231,8 @@ def _restore_runtime_state(
         if status == "already_marked_participating":
             entry["participating"] = True
             entry["lifecycle_state"] = "participating"
+            entry["auto_participation_status"] = "participated"
+            entry["auto_participation_retry_allowed"] = False
             entry.pop("auto_participation_error", None)
             entry.pop("auto_participation_manual_notification_error", None)
             continue
@@ -231,7 +278,7 @@ def _notify_final_failures(
     attempts: list[dict[str, Any]],
     scanned_at: Any,
 ) -> list[dict[str, Any]]:
-    """Alert only after both the event worker and independent recovery have failed."""
+    """Alert only after both paths failed and no success exists for this exact event."""
 
     active_wheels = state.setdefault("active_wheels", {})
     processed = state.setdefault("auto_participation_events", {})
@@ -241,6 +288,9 @@ def _notify_final_failures(
     for attempt in attempts:
         if not isinstance(attempt, dict) or bool(attempt.get("success")):
             continue
+        if _confirmed_success_for_event(state, attempt):
+            continue
+
         key = str(attempt.get("wheel_key") or "").casefold()
         token = _event_token(attempt)
         record = processed.get(token)
@@ -296,11 +346,6 @@ def run_recovery() -> dict[str, Any]:
     cutoff = now - timedelta(hours=3)
 
     persisted = _json(monitor.STATE_PATH, {})
-    participating = {
-        str(key).casefold()
-        for key, value in (persisted.get("participating_wheels") or {}).items()
-        if isinstance(value, dict)
-    }
 
     candidates: dict[str, dict[str, Any]] = {}
     for source, messages in results.items():
@@ -351,10 +396,14 @@ def run_recovery() -> dict[str, Any]:
 
     attempts: list[dict[str, Any]] = []
     for item in active:
-        key = str(item["wheel_key"]).casefold()
-        if key in participating:
+        if _confirmed_success_for_event(persisted, item):
             attempts.append(
-                {**item, "success": True, "status": "already_marked_participating"}
+                {
+                    **item,
+                    "success": True,
+                    "status": "already_marked_participating",
+                    "detail": "Участие уже подтверждено для этого события; повторный клик не требуется",
+                }
             )
             continue
 
@@ -385,7 +434,62 @@ def run_recovery() -> dict[str, Any]:
     }
 
 
+def self_test() -> None:
+    item = {
+        "wheel_key": "ctom10",
+        "action_id": 947,
+        "server_start_at": "2026-07-21T14:23:41.383000+00:00",
+        "message_date": "2026-07-21T14:24:14+00:00",
+    }
+    token = _event_token(item)
+    state = {
+        "active_wheels": {
+            "ctom10": {
+                **item,
+                "participating": True,
+                "auto_participation_status": "participated",
+                "auto_participation_confirmed_at": "2026-07-21T14:25:07.318058+00:00",
+            }
+        },
+        "participating_wheels": {},
+        "auto_participation_events": {
+            token: {
+                "wheel_key": "ctom10",
+                "status": "participated",
+                "attempted_at": "2026-07-21T14:25:07.318058+00:00",
+            }
+        },
+    }
+    assert _confirmed_success_for_event(state, item)
+
+    next_generation = {
+        **item,
+        "action_id": 948,
+        "server_start_at": "2026-07-21T15:00:00+00:00",
+    }
+    assert not _confirmed_success_for_event(state, next_generation)
+
+    # A stale auxiliary participating_wheels record alone must not suppress a new
+    # BetBoom generation; success is event-scoped via active/event records above.
+    state_without_exact_success = {
+        "active_wheels": {},
+        "participating_wheels": {"ctom10": {"confirmed_at": "old"}},
+        "auto_participation_events": {},
+    }
+    assert not _confirmed_success_for_event(state_without_exact_success, item)
+    print("auto participation recovery success-guard self-test passed")
+
+
 def main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
+        self_test()
+        return 0
+
     payload = run_recovery()
     print(json.dumps(payload, ensure_ascii=False))
     # A clean scan with no new active wheel is not a workflow failure.
