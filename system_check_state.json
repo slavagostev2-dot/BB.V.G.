@@ -1,8 +1,8 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-07-21T08:42:10.319036+00:00",
+    "age_minutes": 3,
+    "last_heartbeat_at": "2026-07-21T09:32:50.385234+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,11 +13,11 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 0,
-    "decision_id": "74d96a4044514f16acf73c95dd980c34",
+    "decision_id": "bfd19868a9b347cbaca8a11a1fefd616",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-21T08:44:02.453733+00:00",
-    "impact": "Отсутствует. Все сервисы работают в нормальном режиме.",
+    "generated_at": "2026-07-21T09:36:20.395465+00:00",
+    "impact": "Отсутствует. Система работает в нормальном режиме без деградации производительности.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
@@ -61,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T08:44:00.514237+00:00",
+  "checked_at": "2026-07-21T09:36:18.139454+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -103,7 +103,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-21T08:42:10.319036+00:00",
+    "bot_panel_heartbeat": "2026-07-21T09:32:50.385234+00:00",
     "checked_sources": 167,
     "configured_sources": 168,
     "domain": "telegram.me",
@@ -113,19 +113,19 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T08:41:48.564365+00:00",
+      "last_checked_at": "2026-07-21T09:29:09.331522+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T08:41:48.564365+00:00",
+      "last_success_at": "2026-07-21T09:29:09.331522+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
+    "messages_attempted": 0,
     "opened": 0,
-    "resolved": 3
+    "resolved": 0
   },
   "incident_sequence": 78,
   "inventory": {
@@ -151,18 +151,18 @@
     "brand": "BB V.G.",
     "checked_sources": 167,
     "checks_delta": 167,
-    "checks_total": 603800,
+    "checks_total": 611649,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "7b7ed8cb2b7ed0c6a762632e3fc71e5f124c1f9f",
-    "iteration": 16,
+    "iteration": 63,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-21T08:41:58.833874+00:00",
-    "last_iteration_duration_seconds": 11,
+    "last_iteration_at": "2026-07-21T09:29:20.802107+00:00",
+    "last_iteration_duration_seconds": 13,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T08:41:58.833874+00:00",
-    "last_successful_checks_total": 603800,
-    "last_successful_iteration_at": "2026-07-21T08:41:58.833874+00:00",
+    "last_process_heartbeat_at": "2026-07-21T09:29:20.802107+00:00",
+    "last_successful_checks_total": 611649,
+    "last_successful_iteration_at": "2026-07-21T09:29:20.802107+00:00",
     "pending_wheels": 0,
     "reachable_sources": 167,
     "restart_recommended": false,
@@ -175,11 +175,11 @@
     "version": 3,
     "workflow_run_id": "29814286986"
   },
-  "monitor_age_minutes": 2,
+  "monitor_age_minutes": 6,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 16,
+    "entry_count": 18,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -245,9 +245,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T08:41:48.564365+00:00",
+    "last_checked_at": "2026-07-21T09:29:09.331522+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T08:41:48.564365+00:00",
+    "last_success_at": "2026-07-21T09:29:09.331522+00:00",
     "status": "ok"
   }
 }
