@@ -1,7 +1,7 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 1,
+    "age_minutes": 4,
     "last_heartbeat_at": "2026-07-21T11:41:44.778000+00:00",
     "started_at": "2026-07-21T11:21:17.336292+00:00",
     "status": "running",
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "339e9f11198b4fc28537f6bd5e4adb90",
+    "decision_id": "96253d59d1cb44bfa9302dfe8a14170e",
     "finding_count": 1,
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-21T11:43:03.202025+00:00",
-    "impact": "Система мониторинга зависла, что приводит к отсутствию актуальных данных о состоянии инфраструктуры.",
+    "generated_at": "2026-07-21T11:46:44.290573+00:00",
+    "impact": "Система мониторинга не обновляет данные в реальном времени, что делает невозможным оперативное обнаружение новых инцидентов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая ошибка: основной монитор системы не обновлялся в течение 55 минут.",
+    "summary": "Критическая задержка обновления мониторинга: последняя итерация была 59 минут назад.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T11:43:01.076368+00:00",
+  "checked_at": "2026-07-21T11:46:42.186572+00:00",
   "discovery": {
     "active_size": 167,
     "candidate_count": 472,
@@ -104,7 +104,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последняя итерация была 55 минут назад.",
+      "detail": "Последняя итерация была 59 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -185,7 +185,7 @@
     "version": 3,
     "workflow_run_id": "29827124246"
   },
-  "monitor_age_minutes": 55,
+  "monitor_age_minutes": 59,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
