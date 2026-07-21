@@ -1,0 +1,53 @@
+name: Temporary BB V.G. backup docs finalize
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs_backup_finalize.trigger"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bb-vg-temporary-backup-docs-finalize
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Record final backup SHA
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("docs/PROJECT_CHANGELOG_RU.md")
+          text = path.read_text(encoding="utf-8")
+          old = "**Промежуточная rollback-точка:** `backup/2026-07-21-after-auto-participation-recovery`. Финальная post-update backup создаётся после этой синхронизации документации."
+          new = "**Промежуточная rollback-точка:** `backup/2026-07-21-after-auto-participation-recovery`.\n\n**Post-update backup:** `backup/2026-07-21-after-auto-participation-recovery-final` → `fdb91fe2a9ce853b4cc5f3433f0bb065cda35e49`."
+          if old not in text:
+              if new not in text:
+                  raise SystemExit("backup changelog marker not found")
+          else:
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+
+      - name: Commit and remove temporary files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/docs-backup-finalize-temp.yml docs_backup_finalize.trigger
+          git add docs/PROJECT_CHANGELOG_RU.md
+          git commit -m "Зафиксировать финальный backup recovery автоучастия"
+          git pull --rebase origin main
+          git push origin HEAD:main
