@@ -31,6 +31,9 @@ DEFAULT_STATE_PATH = Path(__file__).resolve().parents[1] / "ai_runtime_state.jso
 OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
 GEMINI_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 SUPPORTED_PROVIDERS = frozenset({"openai", "gemini"})
+GEMINI_MODEL_ALIASES = {
+    "gemini-2.5-flash-lite": "gemini-3.1-flash-lite",
+}
 
 
 def _bool_env(name: str, default: bool = False) -> bool:
@@ -59,6 +62,13 @@ def _provider_api_key(provider: str) -> str:
     if provider == "openai":
         return os.getenv("OPENAI_API_KEY", "").strip()
     return ""
+
+
+def _normalized_model(provider: str, model: str) -> str:
+    value = str(model or "").strip()
+    if provider == "gemini":
+        return GEMINI_MODEL_ALIASES.get(value, value)
+    return value
 
 
 @dataclass(frozen=True)
@@ -92,11 +102,12 @@ class AIConfig:
                     features.discard(feature)
 
         provider = os.getenv("BBVG_AI_PROVIDER", "openai").strip().casefold() or "openai"
+        model = _normalized_model(provider, os.getenv("BBVG_AI_MODEL", ""))
         return cls(
             enabled=_bool_env("BBVG_AI_ENABLED"),
             enabled_features=frozenset(features & set(KNOWN_FEATURES)),
             provider=provider,
-            model=os.getenv("BBVG_AI_MODEL", "").strip(),
+            model=model,
             timeout_seconds=_int_env("BBVG_AI_TIMEOUT_SECONDS", 20, 3, 120),
             max_calls_per_minute=_int_env("BBVG_AI_MAX_CALLS_PER_MINUTE", 10, 1, 120),
             cache_ttl_seconds=_int_env("BBVG_AI_CACHE_TTL_SECONDS", 900, 0, 86400),
