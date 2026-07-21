@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 import os
 import subprocess
 import sys
@@ -18,6 +19,8 @@ REMINDER_MARKERS = (
     "вы еще не отметили участие",
 )
 _CURRENT_STATS: dict[str, Any] | None = None
+_DISPATCH_RETRY_AFTER = timedelta(minutes=3)
+_DISPATCH_RESULT_TIMEOUT = timedelta(minutes=5)
 
 
 def set_current_stats(stats: dict[str, Any] | None) -> None:
@@ -112,6 +115,91 @@ def participating_for_chat(
     return _vote_recorded_for_chat(config, chat_id, event_key, stats)
 
 
+def _merge_dispatch_ledger_from_disk(state: dict[str, Any], monitor_module: Any) -> bool:
+    """Merge dispatcher-written status back into the monitor's in-memory state."""
+
+    try:
+        persisted = json.loads(monitor_module.STATE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
+        return False
+    if not isinstance(persisted, dict):
+        return False
+    ledger = persisted.get("auto_participation_dispatch_events")
+    if not isinstance(ledger, dict):
+        return False
+    state["auto_participation_dispatch_events"] = ledger
+    return True
+
+
+def _record_dispatch_failure(
+    state: dict[str, Any],
+    monitor_module: Any,
+    token: str,
+    wheel_key: str,
+    *,
+    status: str,
+    detail: str,
+) -> bool:
+    """Alert the owner once and stop automatic retries for this wheel event."""
+
+    current = monitor_module.now_utc()
+    active = state.setdefault("active_wheels", {})
+    entry = active.get(wheel_key)
+    if not isinstance(entry, dict):
+        entry = {"wheel_key": wheel_key, "identifier": wheel_key}
+        active[wheel_key] = entry
+
+    result = betboom_auto_participation.ParticipationResult(
+        False,
+        status,
+        detail[:300],
+    )
+    notified, notification_detail = (
+        betboom_auto_participation._notify_manual_participation(
+            monitor_module,
+            entry,
+            result,
+        )
+    )
+
+    dispatches = state.setdefault("auto_participation_dispatch_events", {})
+    dispatch_record = dispatches.get(token)
+    if not isinstance(dispatch_record, dict):
+        dispatch_record = {"wheel_key": wheel_key}
+        dispatches[token] = dispatch_record
+    dispatch_record["status"] = (
+        f"{status}_notified" if notified else f"{status}_alert_pending"
+    )
+    dispatch_record["dispatch_error"] = detail[:500]
+    dispatch_record["alert_attempted_at"] = current.isoformat()
+    dispatch_record["manual_notification_sent"] = notified
+    dispatch_record["manual_notification_detail"] = notification_detail[:300]
+
+    entry["auto_participation_status"] = status
+    entry["auto_participation_checked_at"] = current.isoformat()
+    entry["auto_participation_retry_allowed"] = False
+    entry["auto_participation_error"] = detail[:300]
+
+    if notified:
+        dispatch_record["manual_notification_at"] = current.isoformat()
+        entry["auto_participation_manual_notification_at"] = current.isoformat()
+        state.setdefault("auto_participation_events", {})[token] = {
+            "wheel_key": wheel_key,
+            "status": status,
+            "detail": detail[:300],
+            "dispatch_failed_at": current.isoformat(),
+            "retry_allowed": False,
+            "manual_notification_sent": True,
+            "manual_notification_at": current.isoformat(),
+            "manual_notification_detail": notification_detail[:300],
+        }
+    else:
+        entry["auto_participation_manual_notification_error"] = (
+            notification_detail[:300]
+        )
+    return notified
+
+
 def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module: Any) -> bool:
     """Persist new event requests and synchronously dispatch the isolated workflow."""
 
@@ -125,8 +213,8 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
     current = monitor_module.now_utc()
     processed = state.setdefault("auto_participation_events", {})
     dispatched = state.setdefault("auto_participation_dispatch_events", {})
-    retry_after = timedelta(minutes=3)
     candidates: list[tuple[str, str, bool]] = []
+    alerts: list[tuple[str, str, str, str]] = []
 
     for key, entry in list(state.setdefault("active_wheels", {}).items()):
         if not isinstance(entry, dict):
@@ -139,10 +227,45 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
         previous_dispatch = dispatched.get(token)
         is_retry = isinstance(previous_dispatch, dict)
         if is_retry:
+            previous_status = str(previous_dispatch.get("status") or "")
+            previous_at = monitor_module.parse_datetime(
+                previous_dispatch.get("alert_attempted_at")
+                or previous_dispatch.get("dispatched_at")
+                or previous_dispatch.get("scheduled_at")
+            )
+            if previous_status.endswith("_notified"):
+                continue
+            if previous_status.endswith("_alert_pending"):
+                if previous_at is not None and current - previous_at < _DISPATCH_RETRY_AFTER:
+                    continue
+                base_status = previous_status.removesuffix("_alert_pending")
+                alerts.append(
+                    (
+                        token,
+                        normalized,
+                        base_status,
+                        str(previous_dispatch.get("dispatch_error") or "")
+                        or "не удалось отправить уведомление о сбое автоучастия",
+                    )
+                )
+                continue
+            if previous_status == "workflow_dispatch_sent":
+                if previous_at is not None and current - previous_at < _DISPATCH_RESULT_TIMEOUT:
+                    continue
+                alerts.append(
+                    (
+                        token,
+                        normalized,
+                        "workflow_dispatch_timeout",
+                        "GitHub принял запуск автоучастия, но worker не записал результат за 5 минут",
+                    )
+                )
+                continue
+
             scheduled_at = monitor_module.parse_datetime(
                 previous_dispatch.get("scheduled_at")
             )
-            if scheduled_at is not None and current - scheduled_at < retry_after:
+            if scheduled_at is not None and current - scheduled_at < _DISPATCH_RETRY_AFTER:
                 continue
 
         if not betboom_auto_participation._eligible_for_event_attempt(
@@ -151,8 +274,22 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
             continue
         candidates.append((token, normalized, is_retry))
 
+    changed = False
+    for token, normalized, status, detail in alerts:
+        _record_dispatch_failure(
+            state,
+            monitor_module,
+            token,
+            normalized,
+            status=status,
+            detail=detail,
+        )
+        changed = True
+
     if not candidates:
-        return False
+        if changed:
+            monitor_module.save_state(state)
+        return changed
 
     retry_count = 0
     for token, normalized, is_retry in candidates:
@@ -183,22 +320,74 @@ def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module:
             check=False,
         )
     except Exception as exc:
-        print(
-            "WARNING synchronous auto participation dispatch failed: "
-            f"{type(exc).__name__}: {exc}"
-        )
+        detail = f"dispatcher_exception:{type(exc).__name__}: {exc}"[:500]
+        for token, normalized, _ in candidates:
+            _record_dispatch_failure(
+                state,
+                monitor_module,
+                token,
+                normalized,
+                status="workflow_dispatch_failed",
+                detail=detail,
+            )
+        monitor_module.save_state(state)
+        print(f"WARNING synchronous auto participation dispatch failed: {detail}")
         return True
 
     if completed.stdout.strip():
         print(completed.stdout.strip())
     if completed.stderr.strip():
         print(completed.stderr.strip())
-    if completed.returncode != 0:
-        print(
-            "WARNING auto participation dispatcher returned "
-            f"exit code {completed.returncode}"
-        )
 
+    merged = _merge_dispatch_ledger_from_disk(state, monitor_module)
+    failure_detail = ""
+    if completed.returncode != 0:
+        failure_detail = (
+            f"dispatcher_exit_{completed.returncode}: "
+            f"{(completed.stderr or completed.stdout).strip()}"
+        )[:500]
+    elif not merged:
+        failure_detail = "dispatcher завершился без читаемого статуса state.json"
+
+    if failure_detail:
+        for token, normalized, _ in candidates:
+            _record_dispatch_failure(
+                state,
+                monitor_module,
+                token,
+                normalized,
+                status="workflow_dispatch_failed",
+                detail=failure_detail,
+            )
+        monitor_module.save_state(state)
+        print(f"WARNING auto participation dispatcher failed: {failure_detail}")
+        return True
+
+    unconfirmed: list[tuple[str, str]] = []
+    ledger = state.setdefault("auto_participation_dispatch_events", {})
+    for token, normalized, _ in candidates:
+        record = ledger.get(token)
+        if not isinstance(record, dict) or str(record.get("status") or "") != "workflow_dispatch_sent":
+            unconfirmed.append((token, normalized))
+
+    if unconfirmed:
+        detail = "dispatcher завершился без подтверждения workflow_dispatch_sent"
+        for token, normalized in unconfirmed:
+            _record_dispatch_failure(
+                state,
+                monitor_module,
+                token,
+                normalized,
+                status="workflow_dispatch_failed",
+                detail=detail,
+            )
+        monitor_module.save_state(state)
+        print(f"WARNING auto participation dispatcher failed: {detail}")
+        return True
+
+    # Persist the child-written `workflow_dispatch_sent` status in the parent's
+    # in-memory state so the monitor cannot overwrite it with stale `scheduled`.
+    monitor_module.save_state(state)
     print(
         f"Queued auto participation workflow for {len(candidates)} new wheel event(s)"
         + (f"; retries={retry_count}" if retry_count else "")
