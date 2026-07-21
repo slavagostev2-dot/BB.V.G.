@@ -1,8 +1,8 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-07-21T11:08:51.888988+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-21T11:19:07.497107+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "be92d4cc0f14427ea8ffe1ab4d44e8ce",
+    "decision_id": "3b6cfec4a9804b3191c988febfb3f329",
     "finding_count": 1,
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-21T11:13:36.105327+00:00",
-    "impact": "Мониторинг системы неактуален, что может привести к пропуску инцидентов в реальном времени.",
+    "generated_at": "2026-07-21T11:19:26.796607+00:00",
+    "impact": "Система мониторинга не предоставляет актуальных данных, что может привести к пропуску инцидентов в реальном времени.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 26 минут назад.",
+    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 31 минуту назад.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T11:13:34.262744+00:00",
+  "checked_at": "2026-07-21T11:19:24.649567+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -104,7 +104,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последняя итерация была 26 минут назад.",
+      "detail": "Последняя итерация была 31 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -113,7 +113,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-21T11:08:51.888988+00:00",
+    "bot_panel_heartbeat": "2026-07-21T11:19:07.497107+00:00",
     "checked_sources": 167,
     "configured_sources": 168,
     "domain": "telegram.me",
@@ -185,7 +185,7 @@
     "version": 3,
     "workflow_run_id": "29823538681"
   },
-  "monitor_age_minutes": 26,
+  "monitor_age_minutes": 31,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
