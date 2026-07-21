@@ -22,6 +22,11 @@ _EVIDENCE_FIELDS = (
     "availability_status",
     "verification_status",
 )
+_RECOVERY_METHOD_MARKERS = (
+    "восстановлено аварийной проверкой BetBoom",
+    "восстановлено recovery-проверкой BetBoom",
+)
+_PUBLICATION_FIELDS = ("source", "message_id", "message_date", "message_url")
 
 
 def _future_deadline(monitor_module: Any, entry: Any):
@@ -65,6 +70,70 @@ def _restore_timed_evidence(
     current["last_checked_at"] = monitor_module.now_utc().isoformat()
     current["metadata_quality"] = "preserved_timed_publication"
     return True
+
+
+def _publication_timestamp(monitor_module: Any, row: dict[str, Any]):
+    parsed = monitor_module.parse_datetime(row.get("message_date"))
+    if parsed is not None:
+        return parsed
+    return datetime.max.replace(tzinfo=timezone.utc)
+
+
+def repair_recovery_attribution(monitor_module: Any, state: dict[str, Any]) -> bool:
+    """Restore the original publication after a recovery scan rebuilt an active card.
+
+    Recovery is allowed to reconstruct a missing active wheel from any fresh repost,
+    but it must not permanently turn that repost into the canonical source when the
+    monitor already retained earlier publication evidence for the same wheel.
+    Only publication fields are repaired; API timing and participation state remain
+    untouched.
+    """
+
+    active = state.get("active_wheels")
+    publications = state.get("wheel_publications")
+    if not isinstance(active, dict) or not isinstance(publications, dict):
+        return False
+
+    changed = False
+    for raw_key, entry in active.items():
+        if not isinstance(entry, dict):
+            continue
+        method = str(entry.get("method") or "")
+        if not any(marker in method for marker in _RECOVERY_METHOD_MARKERS):
+            continue
+
+        key = str(raw_key).casefold()
+        rows = publications.get(key)
+        if not isinstance(rows, list):
+            rows = publications.get(raw_key)
+        valid_rows = [
+            row
+            for row in (rows if isinstance(rows, list) else [])
+            if isinstance(row, dict)
+            and str(row.get("source") or "").strip()
+            and int(row.get("message_id") or 0) > 0
+        ]
+        if not valid_rows:
+            continue
+
+        canonical = min(
+            valid_rows,
+            key=lambda row: _publication_timestamp(monitor_module, row),
+        )
+        row_changed = False
+        for field in _PUBLICATION_FIELDS:
+            value = canonical.get(field)
+            if value in (None, "") or entry.get(field) == value:
+                continue
+            entry[field] = value
+            row_changed = True
+
+        if row_changed:
+            entry["method"] = "исходная публикация восстановлена из wheel_publications"
+            entry["metadata_quality"] = "recovery_attribution_repaired"
+            changed = True
+
+    return changed
 
 
 def install(monitor_module: Any, runtime_module: Any) -> None:
@@ -237,6 +306,45 @@ def self_test() -> None:
     pending = pending_state["active_wheels"]["zonertg5"]
     assert pending["source"] == "mechanogun"
     assert pending["deadline"] == deadline.isoformat()
+
+    recovery_state = {
+        "active_wheels": {
+            "zonertg12": {
+                "source": "collector",
+                "message_id": 71831,
+                "message_date": "2026-07-21T09:34:22+00:00",
+                "message_url": "https://telegram.me/collector/71831",
+                "method": "восстановлено аварийной проверкой BetBoom",
+                "participating": True,
+                "action_id": 697,
+            }
+        },
+        "wheel_publications": {
+            "zonertg12": [
+                {
+                    "source": "mechanogun",
+                    "message_id": 35659,
+                    "message_date": "2026-07-21T08:06:00+00:00",
+                    "message_url": "https://telegram.me/mechanogun/35659",
+                },
+                {
+                    "source": "collector",
+                    "message_id": 71831,
+                    "message_date": "2026-07-21T09:34:22+00:00",
+                    "message_url": "https://telegram.me/collector/71831",
+                },
+            ]
+        },
+    }
+    assert repair_recovery_attribution(FakeMonitor, recovery_state)
+    repaired = recovery_state["active_wheels"]["zonertg12"]
+    assert repaired["source"] == "mechanogun"
+    assert repaired["message_id"] == 35659
+    assert repaired["participating"] is True
+    assert repaired["action_id"] == 697
+    assert repaired["metadata_quality"] == "recovery_attribution_repaired"
+    assert not repair_recovery_attribution(FakeMonitor, recovery_state)
+
     print("wheel_metadata_quality timed-source preservation self-test passed")
 
 
