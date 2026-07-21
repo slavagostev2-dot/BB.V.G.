@@ -4,13 +4,13 @@
       "expires_at": 1784626393.6819317,
       "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly mentions a giveaway in collaboration with BetBoom, includes free bet prizes, and provides a direct link to participate in a promotional event.\"\n}"
     },
+    "8a7112b099bcccc3a5ba547a7af7284274cdc14badca9e0f428734a8119fdd1f": {
+      "expires_at": 1784627059.160753,
+      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions 'КОЛЕСА' (wheels) in the context of a current BLAST event stream, indicating an active promotion.\"\n}"
+    },
     "e1a7dc220de97892a1dc8799a1b9ea9c8bff21ebe0634712190b8bed39f3d38f": {
       "expires_at": 1784626273.7945018,
       "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly mentions a giveaway in partnership with BetBoom, includes free bet prizes, and provides a direct link to a BetBoom-related promotion.\"\n}"
-    },
-    "e6c0437f18208012c9731583e0a496953e61897e7927210978bfe3a3e89d2064": {
-      "expires_at": 1784626152.345399,
-      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly mentions a giveaway in collaboration with BetBoom, includes free bet prizes, and provides a direct link to participate in the promotion.\"\n}"
     }
   },
   "decisions": [
@@ -248,10 +248,23 @@
       "provider": "gemini",
       "reason": "The post explicitly mentions a giveaway in collaboration with BetBoom, includes free bet prizes, and provides a direct link to participate in a promotional event.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "active_wheel",
+      "confidence": 0.95,
+      "created_at": 1784626159.160753,
+      "feature": "suspicious_post_analysis",
+      "id": "e68e443261774d2d8f843d11180399fd",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "35297c94094fd2a5a9bbe6d8a29317d51a4f2bf4905eac391dd823c447c0ade6",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions 'КОЛЕСА' (wheels) in the context of a current BLAST event stream, indicating an active promotion.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784625493.6819317
+    1784626159.160753
   ],
   "version": 1
 }
