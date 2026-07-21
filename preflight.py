@@ -7,6 +7,7 @@ import monitor_data as data_store
 
 ROOT = Path(__file__).resolve().parent
 
+
 def require_text(path: str, markers: tuple[str, ...]) -> None:
     file_path = ROOT / path
     if not file_path.is_file():
@@ -38,6 +39,17 @@ def source_values(path: str) -> list[str]:
 
 
 def main() -> None:
+    legacy_panel_files = [
+        f"admin_panel_runtime_v{version}.py"
+        for version in range(25, 41)
+        if (ROOT / f"admin_panel_runtime_v{version}.py").exists()
+    ]
+    if legacy_panel_files:
+        raise SystemExit(
+            "PRECHECK ERROR: historical panel runtime chain remains: "
+            + ", ".join(legacy_panel_files)
+        )
+
     require_text("requirements.txt", ("requests==", "beautifulsoup4==", "tzdata"))
     require_text(
         "monitor.py",
@@ -178,12 +190,28 @@ def main() -> None:
         ),
     )
     require_text(
-        "admin_panel_runtime_v31.py",
+        "bbvg/bot/interface.py",
         (
-            "📨 Отправить сводку",
+            "📨 <b>Отправить сводку</b>",
             "summary:send:monthly",
             "📭 Давно без колёс",
+            "def show_inactive_report",
+        ),
+    )
+    require_text(
+        "admin_panel_v2.py",
+        (
+            "class TelegramPanelV2",
             "def show_period_report",
+        ),
+    )
+    require_text(
+        "bbvg/bot/runtime.py",
+        (
+            "SUMMARY_PERIODS",
+            "self.show_period_report(days)",
+            "summary:send:",
+            "class TelegramPanelRuntime",
         ),
     )
     require_text("nightly_discovery.py", ("import monitor", "def main()"))

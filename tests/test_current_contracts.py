@@ -160,6 +160,28 @@ class CurrentProductionContractTests(unittest.TestCase):
             self.assertEqual(source.parent.name, "bot", method_name)
             self.assertEqual(source.parent.parent.name, "bbvg", method_name)
 
+    def test_historical_panel_runtime_chain_is_absent(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        remaining = [
+            path.name
+            for version in range(25, 41)
+            if (path := root / f"admin_panel_runtime_v{version}.py").exists()
+        ]
+        self.assertEqual(remaining, [])
+
+        active_contracts = (
+            root / "preflight.py",
+            root / "scripts/validate_control_center.sh",
+            root / ".github/workflows/v22-checks.yml",
+            root / ".github/workflows/bot-recovery-smoke.yml",
+            root / ".github/workflows/validate-private-state.yml",
+            root / ".github/workflows/system-health.yml",
+        )
+        for path in active_contracts:
+            text = path.read_text(encoding="utf-8")
+            for version in range(25, 41):
+                self.assertNotIn(f"admin_panel_runtime_v{version}", text, str(path))
+
     def test_admin_action_is_queued_without_direct_state_mutation(self) -> None:
         panel = panel_runtime.TelegramPanelRuntime()
         with patch.object(admin_action_queue, "enqueue_remote", return_value="command-1") as enqueue:

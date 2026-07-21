@@ -68,16 +68,17 @@ jobs:
       - name: Validate encrypted bot runtime
         run: |
           set -euo pipefail
+          for version in $(seq 25 40); do
+            test ! -e "admin_panel_runtime_v${version}.py" || {
+              echo "Historical panel runtime remains: admin_panel_runtime_v${version}.py" >&2
+              exit 1
+            }
+          done
           python -m compileall -q bbvg tests
           python -m py_compile \
             bot_private_state.py bot_notification_state.py notification_integrity_v2.py \
             migrate_bot_private_state.py privacy_retention.py security_audit.py \
             test_bot_state_fixture.py notification_preferences_v2.py \
-            admin_panel_runtime_v25.py admin_panel_runtime_v26.py \
-            admin_panel_runtime_v28.py admin_panel_runtime_v29.py \
-            admin_panel_runtime_v30.py admin_panel_runtime_v31.py \
-            admin_panel_runtime_v32.py admin_panel_runtime_v36.py \
-            admin_panel_runtime_v37.py admin_panel_runtime_v38.py \
             admin_panel_runtime_v41.py telegram_ui.py chapter4_acceptance.py \
             bbvg_monitor_main.py recurring_wheel_events.py wheel_event_runtime.py \
             wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py \
@@ -126,8 +127,8 @@ jobs:
 
           ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
           assert ledger.get('format') in {
-              'bbvg-notification-delivery-v2',
-              'bbvg-notification-delivery-v3',
+            'bbvg-notification-delivery-v2',
+            'bbvg-notification-delivery-v3',
           }
           assert ledger.get('algorithm') == 'HMAC-SHA256'
           assert isinstance(ledger.get('entries'), dict)
@@ -147,16 +148,16 @@ jobs:
           assert 'usernotifyall:' in users_source
           assert 'privacy:delete:' in users_source
           assert 'Управлять уведомлениями' in inspect.getsource(
-              TelegramPanelRuntime.show_user_detail
+            TelegramPanelRuntime.show_user_detail
           )
           assert 'run: python admin_panel_runtime_v41.py' in workflow
           assert 'notification_delivery_state.json' in monitor_workflow
           assert 'wheel_draw_alerts' in inspect.getsource(UserSettingsMixin)
 
           user_callbacks = {
-              button['callback_data']
-              for row in TelegramPanelRuntime.compact_menu_rows(False)
-              for button in row
+            button['callback_data']
+            for row in TelegramPanelRuntime.compact_menu_rows(False)
+            for button in row
           }
           assert 'page:status' in user_callbacks
           assert 'page:reports' not in user_callbacks
