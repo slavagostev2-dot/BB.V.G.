@@ -8,9 +8,11 @@ from typing import Any
 
 import bot_private_state
 import notification_integrity_v2
+import notification_remote_checkpoint
 import notification_router
 
 notification_integrity_v2.install(notification_router)
+notification_remote_checkpoint.install(notification_router, notification_integrity_v2)
 
 if "bbvg.bot.runtime" in sys.modules:
     import admin_bot as legacy_admin
@@ -124,6 +126,7 @@ def self_test() -> None:
             assert isinstance(access, dict)
             assert isinstance(exists, bool)
             assert notification_router._bbvg_notification_integrity_v2_installed is True
+            assert notification_router._bbvg_remote_notification_checkpoint_installed is True
     finally:
         bot_private_state.STATE_PATH = original
     print("BB V.G. bot notification state self-test passed")
