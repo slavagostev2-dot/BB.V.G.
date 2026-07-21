@@ -87,8 +87,9 @@ jobs:
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- bot_private_state.enc.json; then
-            git add bot_private_state.enc.json
+          files=(bot_private_state.enc.json)
+          if ! git diff --quiet -- "${files[@]}"; then
+            git add "${files[@]}"
             git commit -m "Migrate BB V.G. private state [skip ci]"
             for attempt in 1 2 3; do
               if git push origin HEAD:main; then
