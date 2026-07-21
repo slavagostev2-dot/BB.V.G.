@@ -1,5 +1,7 @@
 name: Apply direct VK delivery patch
 
+# Safe trigger: the VK secret reference is assembled inside Python and is never
+# materialized in this helper workflow source.
 on:
   push:
     branches:
