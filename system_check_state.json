@@ -1,7 +1,7 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 3,
+    "age_minutes": 26,
     "last_heartbeat_at": "2026-07-21T21:21:03.986713+00:00",
     "started_at": "2026-07-21T15:53:12.674345+00:00",
     "status": "running",
@@ -12,21 +12,22 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 0,
-    "decision_id": "04cf54f083b3496baf9ffae091922f03",
-    "finding_count": 1,
+    "critical_count": 1,
+    "decision_id": "dd58fafeddad45e18f093db185247a43",
+    "finding_count": 2,
     "finding_kinds": [
-      "source_health_missing"
+      "admin_panel_stale",
+      "discovery_inventory"
     ],
-    "generated_at": "2026-07-21T21:24:25.153597+00:00",
-    "impact": "Возможна неполная или устаревшая информация по конкретному источнику (@cct_betboom), при этом общая работоспособность системы сохраняется.",
+    "generated_at": "2026-07-21T21:47:50.172028+00:00",
+    "impact": "Бот неактивен для пользователей, несмотря на корректную работу фоновых процессов и наличие данных в инвентаре.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить файл system_check_state.json и активные инциденты для подтверждения первопричины отсутствия данных по @cct_betboom.",
-    "requires_human_attention": false,
-    "severity": "warning",
-    "summary": "Система функционирует, но зафиксировано предупреждение: отсутствуют данные о состоянии для источника @cct_betboom.",
+    "recommended_action": "Проверить heartbeat Control Center и последний workflow панели.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Критический сбой: панель управления не обновлялась 26 минут, бот перестал принимать команды.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -52,45 +53,45 @@
   },
   "check_matrix": {
     "automations": "ok",
-    "bot_panel": "ok",
-    "discovery": "ok",
+    "bot_panel": "failed",
+    "discovery": "failed",
     "inventory": "ok",
     "miniapp": "ok",
     "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
-    "source_health": "failed",
+    "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T21:24:22.650843+00:00",
+  "checked_at": "2026-07-21T21:47:47.833090+00:00",
   "discovery": {
     "active_size": 167,
-    "candidate_count": 478,
+    "candidate_count": 484,
     "catalog_size": 1,
     "discovery_errors": 0,
     "discovery_last_run_at": "2026-07-21T14:27:48.719304+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-21T14:28:14.144834+00:00",
+    "intelligence_last_run_at": "2026-07-21T21:47:26.340853+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
-      "known_sources": 168,
-      "references_found": 304,
-      "relevant_candidates": 160,
-      "sources_scanned": 168,
+      "known_sources": 169,
+      "references_found": 311,
+      "relevant_candidates": 157,
+      "sources_scanned": 169,
       "strong_candidates": 0,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 160,
+      "unique_candidates": 157,
       "verified_candidates": 150,
       "workers": 12
     },
     "inventory_confirmation_window_hours": 6,
     "inventory_registry_generated_at": "2026-07-21T15:45:24.849679+00:00",
-    "inventory_sync_age_minutes": 338,
-    "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
+    "inventory_sync_age_minutes": 362,
+    "inventory_sync_state": "discovery_sync_overdue"
   },
   "domain_compliance": {
     "checked_files": [
@@ -105,18 +106,25 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
+  "finding_count": 2,
   "findings": [
     {
-      "detail": "Нет записей для 1 источников: @cct_betboom.",
-      "kind": "source_health_missing",
+      "detail": "Последний живой сигнал был 26 минут назад.",
+      "kind": "admin_panel_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Бот давно не принимает команды пользователей"
+    },
+    {
+      "detail": "В состоянии поиска записано 168, текущий inventory содержит 169.",
+      "kind": "discovery_inventory",
       "severity": "warning",
       "subject": "",
-      "title": "Не для всех источников есть данные здоровья"
+      "title": "Ночная проверка видит не весь утверждённый пул"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
+    "active_incidents": 2,
     "bot_panel_heartbeat": "2026-07-21T21:21:03.986713+00:00",
     "checked_sources": 168,
     "configured_sources": 169,
@@ -127,21 +135,21 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T12:11:37.070581+00:00",
+      "last_checked_at": "2026-07-21T21:45:50.796631+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T12:11:37.070581+00:00",
+      "last_success_at": "2026-07-21T21:45:50.796631+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
-    "opened": 0,
-    "resolved": 0
+    "messages_attempted": 1,
+    "opened": 2,
+    "resolved": 1
   },
-  "incident_sequence": 89,
+  "incident_sequence": 92,
   "inventory": {
     "configured": 168,
     "configured_total": 169,
@@ -164,36 +172,36 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 168,
-    "checks_delta": 168,
-    "checks_total": 662550,
+    "checks_delta": 612318,
+    "checks_total": 612318,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "60dbbb387faf3ec5935140db4cfb529825f7ee85",
-    "iteration": 300,
+    "head_sha": "45943714b1f4fd08f1d964df06da369427e99c74",
+    "iteration": 1,
     "last_failure_at": "2026-07-21T12:13:02.326632+00:00",
-    "last_iteration_at": "2026-07-21T21:21:33.068375+00:00",
-    "last_iteration_duration_seconds": 17,
+    "last_iteration_at": "2026-07-21T21:45:50.964290+00:00",
+    "last_iteration_duration_seconds": 16,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T21:21:33.068375+00:00",
-    "last_successful_checks_total": 662550,
-    "last_successful_iteration_at": "2026-07-21T21:21:33.068375+00:00",
-    "pending_wheels": 4,
+    "last_process_heartbeat_at": "2026-07-21T21:45:50.964290+00:00",
+    "last_successful_checks_total": 612318,
+    "last_successful_iteration_at": "2026-07-21T21:45:50.964290+00:00",
+    "pending_wheels": 0,
     "reachable_sources": 168,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29847659967",
-    "run_started_at": "2026-07-21T16:14:22.727097+00:00",
+    "run_id": "29871199987",
+    "run_started_at": "2026-07-21T21:45:34.770514+00:00",
     "source_errors": 0,
-    "stats_counter_reset": false,
+    "stats_counter_reset": true,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "29847659967"
+    "workflow_run_id": "29871199987"
   },
-  "monitor_age_minutes": 2,
+  "monitor_age_minutes": 1,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 145,
+    "entry_count": 138,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -221,24 +229,22 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 104,
+    "personal_vote_records": 120,
     "policy": "personal_votes_v1",
-    "rated_sources": 28,
+    "rated_sources": 30,
     "score_mismatches": [],
-    "valid_personal_votes": 104
+    "valid_personal_votes": 120
   },
   "source_health_summary": {
-    "configured_records": 168,
-    "missing_sources": [
-      "cct_betboom"
-    ],
+    "configured_records": 169,
+    "missing_sources": [],
     "nightly_pending_first_check": [],
     "problem_details": [],
     "problem_sources": [],
-    "records": 168,
-    "required_primary_records": 167,
+    "records": 169,
+    "required_primary_records": 168,
     "statuses": {
-      "ok": 168
+      "ok": 169
     },
     "transport_failure_types": {
       "dns": 0,
@@ -261,9 +267,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T12:11:37.070581+00:00",
+    "last_checked_at": "2026-07-21T21:45:50.796631+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T12:11:37.070581+00:00",
+    "last_success_at": "2026-07-21T21:45:50.796631+00:00",
     "status": "ok"
   }
 }
