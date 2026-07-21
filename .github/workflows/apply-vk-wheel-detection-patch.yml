@@ -1,0 +1,109 @@
+name: Apply VK wheel detection patch
+
+on:
+  push:
+    branches:
+      - fix/vk-detect-all-new-wheels
+    paths:
+      - ".github/workflows/apply-vk-wheel-detection-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: fix/vk-detect-all-new-wheels
+          fetch-depth: 0
+
+      - name: Apply focused production patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file_path = Path(path)
+              text = file_path.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"Expected block not found in {path}: {old[:120]!r}")
+              file_path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          replace_once(
+              "vk_wheel_notifications.py",
+              '_TAG_RE = re.compile(r"<[^>]+>")\n_SPLIT_PEERS_RE = re.compile(r"[\\s,;]+")\n',
+              '_TAG_RE = re.compile(r"<[^>]+>")\n_SPLIT_PEERS_RE = re.compile(r"[\\s,;]+")\n_BLOCKED_WHEEL_NOTIFICATION_MARKERS = (\n    "активные колёса",\n    "напоминание о колесе",\n    "последний шанс",\n    "время прокрутки",\n    "уже должно быть прокручено",\n    "ошибка",\n    "сбой",\n    "не смог проверить",\n    "недоступ",\n    "служебн",\n    "диагност",\n)\n',
+          )
+
+          replace_once(
+              "vk_wheel_notifications.py",
+              '''def _wheel_event(\n    router_module: Any,\n    text: str,\n    url: str | None,\n    reply_markup: dict | None,\n) -> tuple[bool, str]:\n    kind = str(router_module.notification_kind(text) or "")\n    if kind != "wheels":\n        return False, ""\n    identity = str(\n        router_module.notification_event_identity(kind, text, url, reply_markup) or ""\n    )\n    if not identity.startswith("wheel:wheels:"):\n        return False, ""\n    lowered = _plain_text(text).casefold()\n    if "активные колёса" in lowered and "новое колесо" not in lowered:\n        return False, ""\n    return True, identity\n''',
+              '''def _wheel_event(\n    router_module: Any,\n    text: str,\n    url: str | None,\n    reply_markup: dict | None,\n) -> tuple[bool, str]:\n    """Recognize the first user-facing notification for a BetBoom wheel.\n\n    Initial monitor wording is intentionally allowed to vary.  Some verified\n    wheels are announced without the exact phrase ``Новое колесо BetBoom``;\n    CTOM05 was one such production event.  The stable signal is the BetBoom\n    wheel URL/markup, while reminders, menus, draw alerts and system failures\n    are explicitly excluded.\n    """\n\n    wheel_url = _wheel_url(router_module, text, url, reply_markup)\n    if not wheel_url or not router_module.WHEEL_URL_RE.search(wheel_url):\n        return False, ""\n\n    lowered = _plain_text(text).casefold()\n    if any(marker in lowered for marker in _BLOCKED_WHEEL_NOTIFICATION_MARKERS):\n        return False, ""\n\n    # Force the wheel category instead of relying on a fragile text marker.\n    # Canonicalize every accepted first-state wording (detected/active/confirmed)\n    # to one phase so a later wording change cannot create a second VK alert.\n    identity = str(\n        router_module.notification_event_identity(\n            "wheels", text, wheel_url, reply_markup\n        )\n        or ""\n    )\n    if not identity.startswith("wheel:wheels:"):\n        return False, ""\n    parts = identity.split(":")\n    if len(parts) >= 4:\n        parts[3] = "detected"\n        identity = ":".join(parts)\n    return True, identity\n''',
+          )
+
+          tests = Path("tests/test_vk_wheel_notifications.py")
+          test_text = tests.read_text(encoding="utf-8")
+          regression = '''\n\ndef test_ctom05_style_initial_notification_dispatches_without_exact_title() -> None:\n    class StrictRouter(FakeRouter):\n        @staticmethod\n        def notification_kind(text: str) -> str:\n            return "admin_system"\n\n    calls: list[dict[str, str]] = []\n\n    result = vk_wheel_notifications.dispatch_vk_wheel_notification(\n        StrictRouter,\n        (\n            "Колесо для всех ->\\n"\n            "https://betboom.ru/freestream/CTOM05\\n"\n            "BetBoom промокод CTOM до 10000 фрибетов"\n        ),\n        url="https://betboom.ru/freestream/CTOM05",\n        dispatcher=lambda **kwargs: calls.append(dict(kwargs)) or True,\n    )\n\n    assert result["eligible"] is True\n    assert result["dispatched"] is True\n    assert len(calls) == 1\n    assert calls[0]["event_identity"] == "wheel:wheels:CTOM05:detected"\n    assert "https://betboom.ru/freestream/CTOM05" in calls[0]["message"]\n\n\ndef test_wheel_url_inside_system_error_does_not_dispatch_to_vk() -> None:\n    calls: list[str] = []\n    result = vk_wheel_notifications.dispatch_vk_wheel_notification(\n        FakeRouter,\n        "Ошибка проверки колеса https://betboom.ru/freestream/broken",\n        dispatcher=lambda **kwargs: calls.append("dispatch") or True,\n    )\n\n    assert result["eligible"] is False\n    assert calls == []\n'''
+          if "test_ctom05_style_initial_notification_dispatches_without_exact_title" not in test_text:
+              tests.write_text(test_text + regression, encoding="utf-8")
+
+          workflow = Path(".github/workflows/monitor.yml")
+          workflow_text = workflow.read_text(encoding="utf-8")
+          path_anchor = '      - "notification_router.py"\n'
+          path_block = (
+              path_anchor
+              + '      - "vk_wheel_notifications.py"\n'
+              + '      - "vk_dynamic_subscribers.py"\n'
+              + '      - "vk_start_welcome.py"\n'
+              + '      - ".github/workflows/vk-wheel-notification.yml"\n'
+              + '      - ".github/workflows/vk-start-welcome.yml"\n'
+          )
+          if '      - "vk_wheel_notifications.py"\n' not in workflow_text:
+              if path_anchor not in workflow_text:
+                  raise SystemExit("monitor.yml notification_router path anchor not found")
+              workflow_text = workflow_text.replace(path_anchor, path_block, 1)
+
+          compile_anchor = "notification_router.py bot_notification_state.py"
+          compile_replacement = (
+              "notification_router.py vk_wheel_notifications.py "
+              "vk_dynamic_subscribers.py vk_start_welcome.py bot_notification_state.py"
+          )
+          if compile_replacement not in workflow_text:
+              if compile_anchor not in workflow_text:
+                  raise SystemExit("monitor.yml py_compile anchor not found")
+              workflow_text = workflow_text.replace(compile_anchor, compile_replacement, 1)
+
+          selftest_anchor = "          python notification_router.py\n"
+          selftest_block = (
+              selftest_anchor
+              + "          python vk_wheel_notifications.py --self-test\n"
+              + "          python vk_dynamic_subscribers.py --self-test\n"
+          )
+          if "python vk_wheel_notifications.py --self-test" not in workflow_text:
+              if selftest_anchor not in workflow_text:
+                  raise SystemExit("monitor.yml self-test anchor not found")
+              workflow_text = workflow_text.replace(selftest_anchor, selftest_block, 1)
+          workflow.write_text(workflow_text, encoding="utf-8")
+
+          changelog = Path("docs/PROJECT_CHANGELOG_RU.md")
+          changelog_text = changelog.read_text(encoding="utf-8")
+          entry = '''## 2026-07-21 — Исправлена доставка новых колёс во VK\n\nНочное колесо `CTOM05` было найдено и отправлено в Telegram, но отдельный\nworkflow VK не запускался. Причина: VK-транспорт требовал, чтобы текст\nуведомления совпал с одним из фиксированных заголовков маршрутизатора. Первое\nсообщение CTOM05 содержало корректную ссылку BetBoom, но имело другую\nформулировку, поэтому отсеивалось до обращения к VK API.\n\nVK-транспорт теперь распознаёт первичное событие по ссылке колеса и разметке\nкнопок, независимо от конкретного заголовка. Меню активных колёс, напоминания,\nуведомления о времени прокрутки и системные ошибки по-прежнему не отправляются\nво VK. Допустимые первичные формулировки приводятся к единой фазе `detected`,\nчтобы смена текста не создавала повторную рассылку. Добавлен regression-тест на\nреальный формат CTOM05 и отрицательный тест на системную ошибку со ссылкой.\n\n`monitor.yml` теперь отслеживает изменения всех production-модулей и workflow\nVK, компилирует их и запускает их безопасные self-test, поэтому дальнейшее\nобновление VK-транспорта автоматически заменит живой процесс монитора. Новых\nпостоянных файлов и миграции состояния нет.\n\n**Pre-update backup:**\n`backup/before-vk-wheel-detection-2026-07-21` →\n`505dd34bc58efb5bb77dd0f3a2552c05604a1dfa`.\n\n**Откат:** вернуть commit изменения целиком; миграция данных не требуется.\n\n'''
+          marker = "---\n\n"
+          if "## 2026-07-21 — Исправлена доставка новых колёс во VK" not in changelog_text:
+              if marker not in changelog_text:
+                  raise SystemExit("Changelog insertion marker not found")
+              changelog.write_text(changelog_text.replace(marker, marker + entry, 1), encoding="utf-8")
+
+          Path(".github/workflows/apply-vk-wheel-detection-patch.yml").unlink()
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vk_wheel_notifications.py tests/test_vk_wheel_notifications.py .github/workflows/monitor.yml docs/PROJECT_CHANGELOG_RU.md .github/workflows/apply-vk-wheel-detection-patch.yml
+          git commit -m "Fix VK detection for all new wheel notifications"
+          git push origin HEAD:fix/vk-detect-all-new-wheels
