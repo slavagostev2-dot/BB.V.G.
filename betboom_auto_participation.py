@@ -10,7 +10,7 @@ from typing import Any
 _SUCCESS_RE = re.compile(
     r"(?:участие\s+(?:принято|подтверждено|зарегистрировано)|"
     r"вы\s+(?:уже\s+)?участвуете|уже\s+участвуете|участие\s+отмечено|"
-    r"теперь\s+ты\s+участвуешь\s+в\s+розыгрыше)",
+    r"теперь\s+ты\s+участвуешь\s+в\s+розыгрыше|вы\s+в\s+розыгрыше)",
     re.IGNORECASE,
 )
 _BUTTON_RE = re.compile(
@@ -18,6 +18,7 @@ _BUTTON_RE = re.compile(
     re.IGNORECASE,
 )
 _DEFAULT_ALERT_USER = "Вячеслав"
+_PARTICIPATION_ATTEMPT_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -70,6 +71,50 @@ def _body_text(page: Any) -> str:
         return ""
 
 
+def _page_state_hint(page: Any, body_text: str) -> str:
+    lowered = str(body_text or "").casefold()
+    current_url = str(getattr(page, "url", "") or "")
+    if any(marker in lowered for marker in ("войти", "авторизоваться", "авторизация")):
+        return "страница BetBoom показывает вход/авторизацию"
+    if _BUTTON_RE.search(body_text or ""):
+        return "текст участия появился, но кликабельный элемент не распознан"
+    if "колес" in lowered or "/freestream/" in current_url.casefold():
+        return "страница колеса загрузилась, но кнопка участия не появилась"
+    if current_url:
+        return f"интерфейс участия не загрузился; текущий URL: {current_url[:180]}"
+    return "интерфейс участия не загрузился"
+
+
+def _visible_participation_control(page: Any) -> Any | None:
+    candidates = (
+        page.get_by_role("button", name=_BUTTON_RE),
+        page.locator("button").filter(has_text=_BUTTON_RE),
+        page.locator('[role="button"]').filter(has_text=_BUTTON_RE),
+        page.get_by_text(_BUTTON_RE, exact=True),
+    )
+    for locator in candidates:
+        try:
+            if locator.count() > 0 and locator.first.is_visible():
+                return locator.first
+        except Exception:
+            continue
+    return None
+
+
+def _wait_for_participation_control(page: Any, timeout_ms: int) -> Any | None:
+    """Wait for SPA hydration, then resolve a semantic or text participation control."""
+
+    wait_ms = max(2500, min(timeout_ms, 12000))
+    try:
+        page.get_by_text(_BUTTON_RE, exact=True).first.wait_for(
+            state="visible",
+            timeout=wait_ms,
+        )
+    except Exception:
+        pass
+    return _visible_participation_control(page)
+
+
 def participate(url: str) -> ParticipationResult:
     """Open one BetBoom wheel and make exactly one participation attempt."""
 
@@ -108,8 +153,8 @@ def participate(url: str) -> ParticipationResult:
             page.set_default_timeout(timeout_ms)
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
 
-            before = _body_text(page)
-            if _SUCCESS_RE.search(before):
+            last_body = _body_text(page)
+            if _SUCCESS_RE.search(last_body):
                 browser.close()
                 return ParticipationResult(
                     True,
@@ -117,19 +162,35 @@ def participate(url: str) -> ParticipationResult:
                     "BetBoom уже показывает подтверждённое участие",
                 )
 
-            buttons = page.get_by_role("button", name=_BUTTON_RE)
-            if buttons.count() == 0:
+            control = _wait_for_participation_control(page, timeout_ms)
+            if control is None:
+                try:
+                    page.reload(wait_until="domcontentloaded", timeout=timeout_ms)
+                except Exception:
+                    pass
+                last_body = _body_text(page)
+                if _SUCCESS_RE.search(last_body):
+                    browser.close()
+                    return ParticipationResult(
+                        True,
+                        "already_participating",
+                        "BetBoom уже показывает подтверждённое участие после повторной загрузки",
+                    )
+                control = _wait_for_participation_control(page, timeout_ms)
+
+            if control is None:
+                hint = _page_state_hint(page, _body_text(page) or last_body)
                 browser.close()
                 return ParticipationResult(
                     False,
                     "button_not_found",
-                    "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
+                    f"кнопка участия не найдена после ожидания и повторной загрузки; {hint}"[:300],
                 )
 
-            buttons.first.click(timeout=timeout_ms)
+            control.click(timeout=timeout_ms)
             try:
                 page.wait_for_function(
-                    """() => /участие\s+(принято|подтверждено|зарегистрировано)|вы\s+(уже\s+)?участвуете|уже\s+участвуете|участие\s+отмечено|теперь\s+ты\s+участвуешь\s+в\s+розыгрыше/i.test(document.body?.innerText || '')""",
+                    """() => /участие\s+(принято|подтверждено|зарегистрировано)|вы\s+(уже\s+)?участвуете|уже\s+участвуете|участие\s+отмечено|теперь\s+ты\s+участвуешь\s+в\s+розыгрыше|вы\s+в\s+розыгрыше/i.test(document.body?.innerText || '')""",
                     timeout=timeout_ms,
                 )
             except PlaywrightTimeoutError:
@@ -306,10 +367,60 @@ def _notify_manual_participation(
     return False, f"telegram_rejected:{str(response)[:220]}"
 
 
+def _attempt_version(record: Any) -> int:
+    if not isinstance(record, dict):
+        return 0
+    try:
+        return int(record.get("attempt_version", 1) or 1)
+    except (TypeError, ValueError):
+        return 1
+
+
+def _rearm_legacy_button_not_found(
+    events: dict[str, Any],
+    token: str,
+    entry: dict[str, Any],
+    monitor: Any,
+    current: Any,
+) -> tuple[bool, bool, str]:
+    """Retry one old button_not_found event once under the improved SPA-aware finder."""
+
+    previous = events.get(token)
+    if not isinstance(previous, dict):
+        return False, False, ""
+    if str(previous.get("status") or "") != "button_not_found":
+        return False, False, ""
+    if _attempt_version(previous) >= _PARTICIPATION_ATTEMPT_VERSION:
+        return False, False, ""
+    if not _eligible_for_event_attempt(entry, monitor, current):
+        return False, False, ""
+
+    previous_notified = bool(
+        previous.get("manual_notification_sent")
+        or entry.get("auto_participation_manual_notification_at")
+    )
+    previous_notification_at = str(
+        previous.get("manual_notification_at")
+        or entry.get("auto_participation_manual_notification_at")
+        or ""
+    )
+    events.pop(token, None)
+    for field in (
+        "auto_participation_status",
+        "auto_participation_checked_at",
+        "auto_participation_retry_allowed",
+        "auto_participation_error",
+        "auto_participation_manual_notification_error",
+    ):
+        entry.pop(field, None)
+    entry["auto_participation_rearmed_at"] = current.isoformat()
+    return True, previous_notified, previous_notification_at
+
+
 def process_new_wheel_events(
     state: dict[str, Any], monitor: Any
 ) -> dict[str, int | bool]:
-    """Attempt each new wheel event exactly once; failures require manual action."""
+    """Attempt each new wheel event once per browser-attempt version."""
 
     if not configured():
         return {"changed": False, "attempted": 0, "succeeded": 0, "failed": 0}
@@ -345,14 +456,36 @@ def process_new_wheel_events(
             continue
         normalized = str(key).casefold()
         token = _event_token(normalized, entry)
-        if not token or token in events:
+        if not token:
             continue
+
+        previous_notification_sent = False
+        previous_notification_at = ""
+        if token in events:
+            rearmed, previous_notification_sent, previous_notification_at = (
+                _rearm_legacy_button_not_found(
+                    events,
+                    token,
+                    entry,
+                    monitor,
+                    current,
+                )
+            )
+            if rearmed:
+                changed = True
+                print(
+                    "Rearmed button_not_found event for SPA-aware participation retry: "
+                    f"wheel={normalized} token={token}"
+                )
+            else:
+                continue
 
         if monitor.is_participating(state, normalized):
             events[token] = {
                 "wheel_key": normalized,
                 "status": "already_marked_in_bot",
                 "recorded_at": current.isoformat(),
+                "attempt_version": _PARTICIPATION_ATTEMPT_VERSION,
             }
             changed = True
             continue
@@ -363,14 +496,13 @@ def process_new_wheel_events(
         attempted += 1
         result = participate(str(entry.get("url") or ""))
 
-        # Record the event immediately. This is the hard no-retry boundary:
-        # success or failure, the same event token is never attempted again.
         event_record: dict[str, Any] = {
             "wheel_key": normalized,
             "attempted_at": current.isoformat(),
             "status": result.status,
             "detail": result.detail[:300],
             "retry_allowed": False,
+            "attempt_version": _PARTICIPATION_ATTEMPT_VERSION,
         }
         events[token] = event_record
         entry["auto_participation_status"] = result.status
@@ -381,18 +513,24 @@ def process_new_wheel_events(
         if not result.success:
             failed += 1
             entry["auto_participation_error"] = result.detail[:300]
-            notified, notification_detail = _notify_manual_participation(
-                monitor, entry, result
-            )
-            event_record["manual_notification_sent"] = notified
-            event_record["manual_notification_detail"] = notification_detail[:300]
-            if notified:
-                event_record["manual_notification_at"] = current.isoformat()
-                entry["auto_participation_manual_notification_at"] = current.isoformat()
+            if previous_notification_sent:
+                event_record["manual_notification_sent"] = True
+                event_record["manual_notification_detail"] = "previously_sent"
+                if previous_notification_at:
+                    event_record["manual_notification_at"] = previous_notification_at
             else:
-                entry["auto_participation_manual_notification_error"] = (
-                    notification_detail[:300]
+                notified, notification_detail = _notify_manual_participation(
+                    monitor, entry, result
                 )
+                event_record["manual_notification_sent"] = notified
+                event_record["manual_notification_detail"] = notification_detail[:300]
+                if notified:
+                    event_record["manual_notification_at"] = current.isoformat()
+                    entry["auto_participation_manual_notification_at"] = current.isoformat()
+                else:
+                    entry["auto_participation_manual_notification_error"] = (
+                        notification_detail[:300]
+                    )
             continue
 
         _mark_confirmed_participation(state, monitor, normalized, entry, result, current)
@@ -407,6 +545,6 @@ def process_new_wheel_events(
 
 
 def process_active_wheels(state: dict[str, Any], monitor: Any) -> dict[str, int | bool]:
-    """Compatibility entry point; intentionally uses the same one-attempt policy."""
+    """Compatibility entry point; intentionally uses the same event policy."""
 
     return process_new_wheel_events(state, monitor)
