@@ -1,7 +1,7 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 0,
+    "age_minutes": 2,
     "last_heartbeat_at": "2026-07-21T11:19:07.497107+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "3b6cfec4a9804b3191c988febfb3f329",
+    "decision_id": "80814ef6a1b346afbb9b74c3007548e4",
     "finding_count": 1,
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-21T11:19:26.796607+00:00",
-    "impact": "Система мониторинга не предоставляет актуальных данных, что может привести к пропуску инцидентов в реальном времени.",
+    "generated_at": "2026-07-21T11:21:23.755629+00:00",
+    "impact": "Система мониторинга не обновляет данные, что делает невозможным оперативное обнаружение новых инцидентов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 31 минуту назад.",
+    "summary": "Критическая задержка обновления мониторинга: последняя итерация была 33 минуты назад.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T11:19:24.649567+00:00",
+  "checked_at": "2026-07-21T11:21:21.793767+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -104,7 +104,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последняя итерация была 31 минут назад.",
+      "detail": "Последняя итерация была 33 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -164,7 +164,7 @@
     "checks_total": 612150,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "5eef5f76be5ee3ef29feaf283f9fc7db37bc7a9e",
+    "head_sha": "da9ea723de63cb1c2aa783ed54703f1e3390a94c",
     "iteration": 1,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
     "last_iteration_at": "2026-07-21T10:47:27.491601+00:00",
@@ -177,15 +177,15 @@
     "reachable_sources": 167,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29823538681",
-    "run_started_at": "2026-07-21T10:47:14.854894+00:00",
+    "run_id": "29825631542",
+    "run_started_at": "2026-07-21T11:19:17.768893938Z",
     "source_errors": 0,
     "stats_counter_reset": false,
-    "status": "running",
+    "status": "starting",
     "version": 3,
-    "workflow_run_id": "29823538681"
+    "workflow_run_id": "29825631542"
   },
-  "monitor_age_minutes": 31,
+  "monitor_age_minutes": 33,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
