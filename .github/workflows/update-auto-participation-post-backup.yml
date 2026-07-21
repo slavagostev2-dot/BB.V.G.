@@ -1,0 +1,49 @@
+name: BB V.G. record auto participation post backup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-auto-participation-post-backup.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Record post-update backup and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("docs/PROJECT_CHANGELOG_RU.md")
+          text = path.read_text(encoding="utf-8")
+          pre = '**Pre-update backup:** `backup/2026-07-21-before-auto-participation-success-vote` → `ba15f7aba4c7d9ebdd77fb468ca84c20f7ef3224`.\n'
+          post = '**Post-update backup:** `backup/2026-07-21-after-auto-participation-success-vote` → `e1206153185ad9d0714d938cf19e80150ac9b86d`.\n'
+          if post not in text:
+              if pre not in text:
+                  raise SystemExit("Pre-update backup entry not found")
+              text = text.replace(pre, pre + "\n" + post, 1)
+              path.write_text(text, encoding="utf-8")
+          PY
+          rm -f .github/workflows/update-auto-participation-post-backup.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Зафиксировать post-update backup автоучастия"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+          done
+          exit 1
