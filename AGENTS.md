@@ -66,6 +66,7 @@ docs/
   runtime запрещено; необходимые совместимости реализуются в действующих
   предметных владельцах и покрываются regression-контрактами.
 - Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические модули.
+- VK-уведомления о новых колёсах отправляются напрямую из monitor-runtime: `vk_wheel_notifications.py` определяет событие и дедупликацию, `vk_dynamic_subscribers.py` получает доступные диалоги и вызывает VK API. `vk-wheel-notification.yml` остаётся только ручным fallback/диагностикой.
 
 Не добавляйте параллельный runtime или второго consumer Telegram `getUpdates`.
 
