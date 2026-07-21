@@ -1,7 +1,7 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 3,
+    "age_minutes": 4,
     "last_heartbeat_at": "2026-07-21T03:27:02.844421+00:00",
     "started_at": "2026-07-21T00:00:17.008446+00:00",
     "status": "running",
@@ -16,7 +16,7 @@
     "decision_id": "",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-21T03:30:45.210661+00:00",
+    "generated_at": "2026-07-21T03:31:11.419874+00:00",
     "impact": "Мониторинг и связанные контуры могут продолжать штатную работу.",
     "mode": "rules",
     "model": "",
@@ -61,13 +61,13 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T03:30:43.932439+00:00",
+  "checked_at": "2026-07-21T03:31:09.256057+00:00",
   "discovery": {
-    "active_size": 165,
+    "active_size": 166,
     "candidate_count": 470,
     "catalog_size": 2,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-20T23:42:23.417038+00:00",
+    "discovery_last_run_at": "2026-07-21T03:30:47.013139+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
     "intelligence_last_run_at": "2026-07-20T21:53:52.982730+00:00",
@@ -84,11 +84,7 @@
       "unique_candidates": 157,
       "verified_candidates": 150,
       "workers": 12
-    },
-    "inventory_confirmation_window_hours": 6,
-    "inventory_registry_generated_at": "2026-07-21T00:56:27.846317+00:00",
-    "inventory_sync_age_minutes": 154,
-    "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
+    }
   },
   "domain_compliance": {
     "checked_files": [
@@ -124,12 +120,12 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "rules",
     "health_inspector_status": "not_configured",
-    "messages_attempted": 1,
+    "messages_attempted": 0,
     "opened": 0,
-    "resolved": 1
+    "resolved": 0
   },
   "incident_sequence": 70,
   "inventory": {
