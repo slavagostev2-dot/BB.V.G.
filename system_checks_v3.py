@@ -119,17 +119,24 @@ def self_test() -> None:
         assert fixed_now is not None
         legacy.now_utc = lambda: fixed_now  # type: ignore[assignment]
 
-        def mismatch(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
-            details["discovery"] = {
-                "discovery_last_run_at": "2026-07-21T00:00:00+00:00"
-            }
-            findings.append(legacy.finding(
-                "discovery_inventory",
-                "Ночная проверка видит не весь утверждённый пул",
-                "В состоянии поиска записано 167, текущий inventory содержит 168.",
-            ))
+        def mismatch_at(last_run_at: str):
+            def mismatch(
+                details: dict[str, Any], findings: list[dict[str, Any]]
+            ) -> None:
+                details["discovery"] = {
+                    "discovery_last_run_at": last_run_at
+                }
+                findings.append(legacy.finding(
+                    "discovery_inventory",
+                    "Ночная проверка видит не весь утверждённый пул",
+                    "В состоянии поиска записано 167, текущий inventory содержит 168.",
+                ))
 
-        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = mismatch
+            return mismatch
+
+        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = mismatch_at(
+            "2026-07-21T00:00:00+00:00"
+        )
         globals()["_source_registry_generated_at"] = lambda: legacy.parse_datetime(
             "2026-07-21T01:00:00+00:00"
         )
@@ -141,8 +148,11 @@ def self_test() -> None:
             "waiting_for_discovery_after_inventory_change"
         )
 
-        globals()["_source_registry_generated_at"] = lambda: legacy.parse_datetime(
+        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = mismatch_at(
             "2026-07-20T18:00:00+00:00"
+        )
+        globals()["_source_registry_generated_at"] = lambda: legacy.parse_datetime(
+            "2026-07-20T19:00:00+00:00"
         )
         details = {}
         findings = []
@@ -152,8 +162,11 @@ def self_test() -> None:
             "discovery_sync_overdue"
         )
 
+        globals()["_ORIGINAL_CHECK_DISCOVERY_RUNTIME"] = mismatch_at(
+            "2026-07-21T02:00:00+00:00"
+        )
         globals()["_source_registry_generated_at"] = lambda: legacy.parse_datetime(
-            "2026-07-20T23:00:00+00:00"
+            "2026-07-21T01:00:00+00:00"
         )
         details = {}
         findings = []
