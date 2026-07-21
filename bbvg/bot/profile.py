@@ -4,7 +4,7 @@ import html
 import os
 from collections import Counter
 from datetime import datetime, timedelta, timezone
-from typing import Any, Callable
+from typing import Any
 from zoneinfo import ZoneInfo
 
 UTC = timezone.utc
@@ -182,54 +182,6 @@ def _best_month(events: list[dict[str, Any]]) -> tuple[str, int]:
     return month, count
 
 
-def _active_event_keys(
-    state: dict[str, Any], event_key_fn: Callable[[str, dict[str, Any]], str]
-) -> set[str]:
-    active = state.get("active_wheels")
-    active = active if isinstance(active, dict) else {}
-    result: set[str] = set()
-    for key, raw in active.items():
-        if not isinstance(raw, dict):
-            continue
-        result.add(canonical_event_key(event_key_fn(str(key), raw)))
-    return {value for value in result if value}
-
-
-def current_active_participations(
-    state: dict[str, Any],
-    user_record: dict[str, Any],
-    *,
-    include_auto: bool,
-    event_key_fn: Callable[[str, dict[str, Any]], str],
-) -> int:
-    active_keys = _active_event_keys(state, event_key_fn)
-    if not active_keys:
-        return 0
-
-    personal = user_record.get("participating_wheels")
-    if isinstance(personal, list):
-        personal_keys = {canonical_event_key(value) for value in personal}
-    elif isinstance(personal, dict):
-        personal_keys = {canonical_event_key(value) for value in personal}
-    else:
-        personal_keys = set()
-    matched = {value for value in personal_keys if value in active_keys}
-
-    if include_auto:
-        global_rows = state.get("participating_wheels")
-        global_rows = global_rows if isinstance(global_rows, dict) else {}
-        active_by_wheel = {value.split("#", 1)[0]: value for value in active_keys}
-        for wheel, row in global_rows.items():
-            if not isinstance(row, dict):
-                continue
-            if str(row.get("participation_source") or "") != "betboom_browser":
-                continue
-            normalized = str(wheel).casefold()
-            if normalized in active_by_wheel:
-                matched.add(active_by_wheel[normalized])
-    return len(matched)
-
-
 def achievements(total: int, auto_count: int, best_streak: int) -> list[str]:
     result: list[str] = []
     if total >= 10:
@@ -254,7 +206,6 @@ def build_profile(
     *,
     actor: str,
     include_auto: bool,
-    event_key_fn: Callable[[str, dict[str, Any]], str],
     current: datetime | None = None,
 ) -> dict[str, Any]:
     events = collect_participation_events(
@@ -271,12 +222,6 @@ def build_profile(
         "total": len(events),
         "manual": manual_count,
         "auto": auto_count,
-        "active": current_active_participations(
-            state,
-            user_record,
-            include_auto=include_auto,
-            event_key_fn=event_key_fn,
-        ),
         "current_streak": current_streak,
         "best_streak": best_streak,
         "best_month": best_month,
@@ -292,7 +237,8 @@ def format_profile(profile: dict[str, Any], *, include_auto: bool) -> str:
     lines = [
         "👤 <b>Мой профиль охотника за колёсами</b>",
         "",
-        f"🎡 Участий по сохранённым событиям: <b>{int(profile.get('total', 0) or 0)}</b>",
+        "<b>Участие</b>",
+        f"🎡 Всего участий: <b>{int(profile.get('total', 0) or 0)}</b>",
         f"✋ Отмечено вручную: <b>{int(profile.get('manual', 0) or 0)}</b>",
     ]
     if include_auto:
@@ -301,8 +247,8 @@ def format_profile(profile: dict[str, Any], *, include_auto: bool) -> str:
         )
     lines.extend(
         [
-            f"🔥 Сейчас активных с участием: <b>{int(profile.get('active', 0) or 0)}</b>",
             "",
+            "<b>Личная активность</b>",
             f"📅 Текущая серия дней: <b>{int(profile.get('current_streak', 0) or 0)}</b>",
             f"🏆 Лучшая серия дней: <b>{int(profile.get('best_streak', 0) or 0)}</b>",
         ]
@@ -328,15 +274,139 @@ def format_profile(profile: dict[str, Any], *, include_auto: bool) -> str:
     lines.extend(
         [
             "",
-            "Статистика пересчитывается из сохранённого журнала конкретных событий, а не из вручную увеличиваемого счётчика.",
+            "Профиль строится только по вашим сохранённым отметкам участия.",
         ]
     )
     return "\n".join(lines)[:4000]
 
 
+_ANALYTICS_SECTION_CUTOFFS = frozenset({
+    "<b>Участие и рейтинг</b>",
+    "<b>Сейчас</b>",
+    "<b>Покрытие источников</b>",
+})
+_ANALYTICS_DETAIL_CALLBACKS = frozenset({
+    "page:ranking",
+    "page:sources",
+    "page:report:inactive",
+})
+
+
+def analytics_text_for_section(text: str) -> str:
+    """Keep period analytics in Analytics; detailed live data has its own pages."""
+
+    lines: list[str] = []
+    for line in str(text or "").splitlines():
+        if line.strip() in _ANALYTICS_SECTION_CUTOFFS:
+            break
+        if "Проблемных источников сейчас:" in line:
+            continue
+        lines.append(
+            line.replace(
+                "⚠️ Ошибок источников:",
+                "ℹ️ Разовых ошибок проверок за период:",
+            )
+        )
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return "\n".join(lines)[:4000]
+
+
+def analytics_markup_for_section(
+    reply_markup: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if not isinstance(reply_markup, dict):
+        return reply_markup
+
+    content_rows: list[list[dict[str, Any]]] = []
+    navigation_rows: list[list[dict[str, Any]]] = []
+    for raw_row in reply_markup.get("inline_keyboard", []):
+        if not isinstance(raw_row, list):
+            continue
+        row: list[dict[str, Any]] = []
+        is_navigation = False
+        for raw_button in raw_row:
+            if not isinstance(raw_button, dict):
+                continue
+            button = dict(raw_button)
+            callback = str(button.get("callback_data") or "")
+            if callback in {"nav:back", "nav:home"}:
+                is_navigation = True
+            if callback in _ANALYTICS_DETAIL_CALLBACKS:
+                continue
+            row.append(button)
+        if not row:
+            continue
+        (navigation_rows if is_navigation else content_rows).append(row)
+
+    content_rows.append(
+        [
+            {"text": "🏆 Рейтинг источников", "callback_data": "page:ranking"},
+            {"text": "📡 Покрытие источников", "callback_data": "page:sources"},
+        ]
+    )
+    result = dict(reply_markup)
+    result["inline_keyboard"] = content_rows + navigation_rows
+    return result
+
+
+def _analytics_renderer_wrapper(renderer):
+    if getattr(renderer, "_bbvg_section_ownership_wrapped", False):
+        return renderer
+
+    def wrapped(self, *args, **kwargs):
+        original_send = self.send
+
+        def section_send(
+            text: str,
+            *,
+            reply_markup: dict[str, Any] | None = None,
+            chat_id: str | None = None,
+        ) -> dict:
+            return original_send(
+                analytics_text_for_section(text),
+                reply_markup=analytics_markup_for_section(reply_markup),
+                chat_id=chat_id,
+            )
+
+        self.send = section_send  # type: ignore[method-assign]
+        try:
+            return renderer(self, *args, **kwargs)
+        finally:
+            self.send = original_send  # type: ignore[method-assign]
+
+    wrapped._bbvg_section_ownership_wrapped = True
+    wrapped.__name__ = getattr(renderer, "__name__", "show_analytics")
+    wrapped.__doc__ = getattr(renderer, "__doc__", None)
+    return wrapped
+
+
+def _install_analytics_section_ownership(mixin_cls: type) -> None:
+    """Wrap future runtime subclasses after their own show_analytics is defined."""
+
+    if getattr(mixin_cls, "_bbvg_analytics_section_ownership_installed", False):
+        return
+    original_init_subclass = mixin_cls.__dict__.get("__init_subclass__")
+
+    @classmethod
+    def init_subclass_with_analytics(cls, **kwargs):
+        if original_init_subclass is not None:
+            original_init_subclass.__func__(cls, **kwargs)
+        else:
+            super(mixin_cls, cls).__init_subclass__(**kwargs)
+        renderer = cls.__dict__.get("show_analytics")
+        if callable(renderer):
+            cls.show_analytics = _analytics_renderer_wrapper(renderer)
+
+    mixin_cls.__init_subclass__ = init_subclass_with_analytics
+    mixin_cls._bbvg_analytics_section_ownership_installed = True
+
+
 def install(mixin_cls: type) -> None:
     if getattr(mixin_cls, "_bbvg_hunter_profile_installed", False):
         return
+
+    _install_analytics_section_ownership(mixin_cls)
 
     def compact_menu_rows_with_profile(
         self, admin: bool
@@ -368,13 +438,11 @@ def install(mixin_cls: type) -> None:
             record,
             actor=actor,
             include_auto=include_auto,
-            event_key_fn=personal_wheel_voting.wheel_event_key,
         )
         self.send(
             format_profile(profile, include_auto=include_auto),
             reply_markup=self.with_nav(
                 [
-                    [{"text": "🔥 Активные колёса", "callback_data": "page:active"}],
                     [
                         {
                             "text": "🔄 Обновить профиль",
@@ -388,9 +456,18 @@ def install(mixin_cls: type) -> None:
     def handle_callback_with_profile(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
         if data in {"page:profile", "profile:refresh"}:
-            self._prepare_callback_user(query)
-            self.answer(str(query.get("id") or ""), "Обновляю профиль")
-            self.show_profile()
+            message = query.get("message") if isinstance(query, dict) else None
+            message = message if isinstance(message, dict) else {}
+            previous_edit_message_id = getattr(self, "_edit_message_id", None)
+            callback_message_id = int(message.get("message_id") or 0) or None
+            if callback_message_id is not None:
+                self._edit_message_id = callback_message_id
+            try:
+                self._prepare_callback_user(query)
+                self.answer(str(query.get("id") or ""), "Обновляю профиль")
+                self.show_profile()
+            finally:
+                self._edit_message_id = previous_edit_message_id
             return
         super(mixin_cls, self).handle_callback(query)
 
