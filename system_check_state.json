@@ -1,38 +1,43 @@
 {
-  "active_incidents": 0,
+  "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 0,
-    "last_heartbeat_at": "2026-07-21T14:30:17.980365+00:00",
-    "started_at": "2026-07-21T13:43:56.936780+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-07-21T16:03:20.714299+00:00",
+    "started_at": "2026-07-21T15:53:12.674345+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": true,
+    "cached": false,
     "confidence": 0.0,
-    "critical_count": 0,
-    "decision_id": "27f838c350bb489988f0d6e7c9ad0f9d",
-    "finding_count": 0,
-    "finding_kinds": [],
-    "generated_at": "2026-07-21T14:31:00.344161+00:00",
-    "impact": "Отсутствует; система работает в нормальном режиме без деградации производительности.",
+    "critical_count": 3,
+    "decision_id": "2d9d990f92a34816b102086a1f7f75d9",
+    "finding_count": 4,
+    "finding_kinds": [
+      "monitor_source_count",
+      "monitor_stale",
+      "source_health_missing",
+      "source_transport_smoke"
+    ],
+    "generated_at": "2026-07-21T16:05:31.211057+00:00",
+    "impact": "Данные мониторинга устарели, что может привести к задержкам в обнаружении инцидентов и потере актуальности информации по источнику @cct_betboom.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Вмешательство не требуется, продолжайте штатный мониторинг.",
-    "requires_human_attention": false,
-    "severity": "ok",
-    "summary": "Система функционирует штатно: все 167 источников доступны, ошибок не зафиксировано.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: основной монитор не обновлялся 21 минуту и не опрашивает один из источников (@cct_betboom), что привело к неполному покрытию (167/168).",
     "used_fallback": false,
     "version": 1,
-    "warning_count": 0
+    "warning_count": 1
   },
   "automation_state": {
     "expected_nightly_sources": 1,
-    "expected_primary_sources": 167,
-    "expected_total_sources": 168,
+    "expected_primary_sources": 168,
+    "expected_total_sources": 169,
     "missing_sources": 0,
     "recorded_configured_sources": 168,
     "recorded_nightly_sources": 1,
@@ -49,19 +54,19 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "ok",
+    "automations": "failed",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "ok",
+    "monitor": "failed",
     "notifications": "ok",
     "ratings": "ok",
-    "source_health": "ok",
+    "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T14:30:59.120144+00:00",
+  "checked_at": "2026-07-21T16:05:21.611839+00:00",
   "discovery": {
     "active_size": 167,
     "candidate_count": 478,
@@ -84,7 +89,11 @@
       "unique_candidates": 160,
       "verified_candidates": 150,
       "workers": 12
-    }
+    },
+    "inventory_confirmation_window_hours": 6,
+    "inventory_registry_generated_at": "2026-07-21T15:45:24.849679+00:00",
+    "inventory_sync_age_minutes": 19,
+    "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
   },
   "domain_compliance": {
     "checked_files": [
@@ -99,17 +108,46 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 0,
-  "findings": [],
+  "finding_count": 4,
+  "findings": [
+    {
+      "detail": "Последняя итерация была 21 минут назад.",
+      "kind": "monitor_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор давно не обновлялся"
+    },
+    {
+      "detail": "В последней итерации проверено 167 из 168 источников основного режима.",
+      "kind": "monitor_source_count",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор проверяет не все источники"
+    },
+    {
+      "detail": "Нет записей для 1 источников: @cct_betboom.",
+      "kind": "source_health_missing",
+      "severity": "warning",
+      "subject": "",
+      "title": "Не для всех источников есть данные здоровья"
+    },
+    {
+      "detail": "status=success; domain=telegram.me; primary=167/168; nightly=1/1; accounted=168/169; missing=0.",
+      "kind": "source_transport_smoke",
+      "severity": "critical",
+      "subject": "",
+      "title": "Транспортная проверка текущего inventory не подтверждена"
+    }
+  ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-21T14:30:17.980365+00:00",
+    "active_incidents": 4,
+    "bot_panel_heartbeat": "2026-07-21T16:03:20.714299+00:00",
     "checked_sources": 167,
-    "configured_sources": 168,
+    "configured_sources": 169,
     "domain": "telegram.me",
     "reachable_sources": 167,
     "single_source": "system_check_state.json",
-    "status": "ok",
+    "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
@@ -120,27 +158,27 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
-    "opened": 0,
+    "messages_attempted": 1,
+    "opened": 4,
     "resolved": 0
   },
-  "incident_sequence": 82,
+  "incident_sequence": 86,
   "inventory": {
-    "configured": 167,
-    "configured_total": 168,
+    "configured": 168,
+    "configured_total": 169,
     "domain": "telegram.me",
     "duplicates": 0,
-    "expected": 168,
+    "expected": 169,
     "nightly": 1,
     "nightly_configured": 1,
     "nightly_operational": 1,
-    "operational": 167,
-    "primary_configured": 167,
-    "primary_operational": 167,
-    "total": 168
+    "operational": 168,
+    "primary_configured": 168,
+    "primary_operational": 168,
+    "total": 169
   },
   "miniapp": {
     "checked": false,
@@ -151,35 +189,35 @@
     "brand": "BB V.G.",
     "checked_sources": 167,
     "checks_delta": 167,
-    "checks_total": 634194,
+    "checks_total": 646886,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "e73a5ed1812867e942fce63a2eac395d0ffbcbfd",
-    "iteration": 132,
+    "head_sha": "8eac1e0dc3da468531f0b0b4608a29c28e97e804",
+    "iteration": 208,
     "last_failure_at": "2026-07-21T12:13:02.326632+00:00",
-    "last_iteration_at": "2026-07-21T14:26:42.194743+00:00",
-    "last_iteration_duration_seconds": 15,
+    "last_iteration_at": "2026-07-21T15:44:17.195909+00:00",
+    "last_iteration_duration_seconds": 12,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T14:26:42.194743+00:00",
-    "last_successful_checks_total": 634194,
-    "last_successful_iteration_at": "2026-07-21T14:26:42.194743+00:00",
-    "pending_wheels": 1,
+    "last_process_heartbeat_at": "2026-07-21T15:44:17.195909+00:00",
+    "last_successful_checks_total": 646886,
+    "last_successful_iteration_at": "2026-07-21T15:44:17.195909+00:00",
+    "pending_wheels": 0,
     "reachable_sources": 167,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29829155720",
-    "run_started_at": "2026-07-21T12:12:49.750612+00:00",
+    "run_id": "29846873520",
+    "run_started_at": "2026-07-21T16:03:47.203478890Z",
     "source_errors": 0,
     "stats_counter_reset": false,
-    "status": "running",
+    "status": "starting",
     "version": 3,
-    "workflow_run_id": "29829155720"
+    "workflow_run_id": "29846873520"
   },
-  "monitor_age_minutes": 4,
+  "monitor_age_minutes": 21,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 62,
+    "entry_count": 95,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -215,7 +253,9 @@
   },
   "source_health_summary": {
     "configured_records": 168,
-    "missing_sources": [],
+    "missing_sources": [
+      "cct_betboom"
+    ],
     "nightly_pending_first_check": [],
     "problem_details": [],
     "problem_sources": [],
@@ -233,7 +273,7 @@
       "tls": 0
     }
   },
-  "status": "ok",
+  "status": "degraded",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
