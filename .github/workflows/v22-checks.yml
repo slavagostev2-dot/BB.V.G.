@@ -70,8 +70,8 @@ jobs:
           python security_audit.py --current
           python security_audit.py --history --history-output security_history_report.json
 
-      - name: Run full pytest suite
-        run: python -m pytest -q
+      - name: Validate chapter 2C removal contracts
+        run: python -m pytest -q tests/test_current_contracts.py
 
       - name: Run production acceptance
         run: python tests/production_acceptance.py --section all
@@ -110,3 +110,6 @@ jobs:
           assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
           print('Current consolidated production boundaries validated')
           PY
+
+      - name: Run full pytest suite
+        run: python -m pytest -q
