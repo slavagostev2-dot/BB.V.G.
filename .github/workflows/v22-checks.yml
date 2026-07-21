@@ -112,4 +112,17 @@ jobs:
           PY
 
       - name: Run full pytest suite
-        run: python -m pytest -q
+        run: |
+          set -o pipefail
+          python -m pytest -q --junitxml=pytest-results.xml 2>&1 | tee pytest-output.txt
+
+      - name: Upload temporary full pytest diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: chapter-2c-pytest-${{ github.run_id }}
+          path: |
+            pytest-results.xml
+            pytest-output.txt
+          if-no-files-found: error
+          retention-days: 1
