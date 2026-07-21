@@ -1,8 +1,16 @@
 {
   "cache": {
-    "dff47bb079591845a7b3390156f347da41c9cba636d060ec4a5b3a6b5e786be1": {
-      "expires_at": 1784624341.7362232,
-      "text": "{\n  \"summary\": \"Система функционирует штатно: все 167 источников доступны, ошибок не зафиксировано.\",\n  \"impact\": \"Отсутствует. Все сервисы работают в нормальном режиме.\",\n  \"recommended_action\": \"Вмешательство не требуется, продолжайте штатный мониторинг.\",\n  \"confidence\": \"100%\"\n}"
+    "3c08af836a9d465c9361d8471811268f4595d327a5c4623c778c9a9f737458ab": {
+      "expires_at": 1784626393.6819317,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly mentions a giveaway in collaboration with BetBoom, includes free bet prizes, and provides a direct link to participate in a promotional event.\"\n}"
+    },
+    "e1a7dc220de97892a1dc8799a1b9ea9c8bff21ebe0634712190b8bed39f3d38f": {
+      "expires_at": 1784626273.7945018,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly mentions a giveaway in partnership with BetBoom, includes free bet prizes, and provides a direct link to a BetBoom-related promotion.\"\n}"
+    },
+    "e6c0437f18208012c9731583e0a496953e61897e7927210978bfe3a3e89d2064": {
+      "expires_at": 1784626152.345399,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly mentions a giveaway in collaboration with BetBoom, includes free bet prizes, and provides a direct link to participate in the promotion.\"\n}"
     }
   },
   "decisions": [
@@ -201,10 +209,49 @@
       "output_sha256": "3eb579c656c49e36bb876fd5ee6452d4d514399ad336cad9845bb7d8d3f436fe",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 1.0,
+      "created_at": 1784625252.345399,
+      "feature": "suspicious_post_analysis",
+      "id": "b80178a5328443a5bd9901c4e92cb0ef",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "87973aa1c5b09acdc404cecf35b47705a08ab0c866107c5d20e5460e396d7569",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions a giveaway in collaboration with BetBoom, includes free bet prizes, and provides a direct link to participate in the promotion.",
+      "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 1.0,
+      "created_at": 1784625373.7945018,
+      "feature": "suspicious_post_analysis",
+      "id": "eaad4585aedf48679efe156e7d7610c0",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "ecfc3b183b4989b22cc682d30cfcfbb7cfbb42bfc9048928ba9bd1ce3933b6a9",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions a giveaway in partnership with BetBoom, includes free bet prizes, and provides a direct link to a BetBoom-related promotion.",
+      "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 1.0,
+      "created_at": 1784625493.6819317,
+      "feature": "suspicious_post_analysis",
+      "id": "7b2a33376cbf4ed28027b2bcc7de7d39",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "5dc2b8c30bc84deb9b50cd686b9e165751689e683d8dfec92206817fabe2be48",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions a giveaway in collaboration with BetBoom, includes free bet prizes, and provides a direct link to participate in a promotional event.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784623441.7362232
+    1784625493.6819317
   ],
   "version": 1
 }
