@@ -252,11 +252,7 @@
   "active_wheels": {
     "zonertg12": {
       "action_id": 697,
-      "auto_participation_checked_at": "2026-07-21T08:27:47.907788+00:00",
-      "auto_participation_error": "dispatcher_exit_1: Auto participation dispatch failed: repository=slavagostev2-dot/BB.V.G. ref=main workflow=auto-participation.yml HTTP 422 {\"message\":\"Cannot trigger a 'workflow_dispatch' on a disabled workflow\",\"documentation_url\":\"https://docs.github.com/rest/actions/workflows#create-a-workflow-",
-      "auto_participation_manual_notification_at": "2026-07-21T08:27:47.907788+00:00",
-      "auto_participation_retry_allowed": false,
-      "auto_participation_status": "workflow_dispatch_failed",
+      "auto_participation_rearmed_at": "2026-07-21T09:36:22.078599+00:00",
       "availability_status": "available",
       "button_token": "b5b428be2360d5",
       "deadline": "2026-07-21T18:05:58.421000+00:00",
@@ -266,9 +262,9 @@
       "first_notified_at": "2026-07-21T08:26:56.555850+00:00",
       "generation_id": "3385cc03ed657edff57e",
       "identifier": "zonertg12",
-      "last_checked_at": "2026-07-21T09:29:09.478170+00:00",
+      "last_checked_at": "2026-07-21T09:36:22.078535+00:00",
       "last_notification_at": "2026-07-21T08:26:56.555850+00:00",
-      "last_verification_at": "2026-07-21T09:29:09.331522+00:00",
+      "last_verification_at": "2026-07-21T09:36:21.663146+00:00",
       "lifecycle_changed_at": "2026-07-21T08:27:45.878633+00:00",
       "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-21T08:06:00+00:00",
@@ -1833,14 +1829,8 @@
       "wheel_key": "zonertg11"
     },
     "zonertg12#event:3385cc03ed657edff57e": {
-      "alert_attempted_at": "2026-07-21T08:27:47.907788+00:00",
-      "dispatch_error": "dispatcher_exit_1: Auto participation dispatch failed: repository=slavagostev2-dot/BB.V.G. ref=main workflow=auto-participation.yml HTTP 422 {\"message\":\"Cannot trigger a 'workflow_dispatch' on a disabled workflow\",\"documentation_url\":\"https://docs.github.com/rest/actions/workflows#create-a-workflow-dispatch-event\",\"status\":\"422\"}",
-      "dispatch_failed_at": "2026-07-21T08:27:47.882182+00:00",
-      "manual_notification_at": "2026-07-21T08:27:47.907788+00:00",
-      "manual_notification_detail": "801600922",
-      "manual_notification_sent": true,
-      "scheduled_at": "2026-07-21T08:27:46.203375+00:00",
-      "status": "workflow_dispatch_failed_notified",
+      "scheduled_at": "2026-07-21T09:36:22.078599+00:00",
+      "status": "workflow_dispatch_scheduled",
       "wheel_key": "zonertg12"
     }
   },
@@ -1890,16 +1880,6 @@
       "recorded_at": "2026-07-19T17:14:18.523241+00:00",
       "status": "baseline_existing",
       "wheel_key": "zonertg10"
-    },
-    "zonertg12#event:3385cc03ed657edff57e": {
-      "detail": "dispatcher_exit_1: Auto participation dispatch failed: repository=slavagostev2-dot/BB.V.G. ref=main workflow=auto-participation.yml HTTP 422 {\"message\":\"Cannot trigger a 'workflow_dispatch' on a disabled workflow\",\"documentation_url\":\"https://docs.github.com/rest/actions/workflows#create-a-workflow-",
-      "dispatch_failed_at": "2026-07-21T08:27:47.907788+00:00",
-      "manual_notification_at": "2026-07-21T08:27:47.907788+00:00",
-      "manual_notification_detail": "801600922",
-      "manual_notification_sent": true,
-      "retry_allowed": false,
-      "status": "workflow_dispatch_failed",
-      "wheel_key": "zonertg12"
     }
   },
   "bot_commands_version": 1,
@@ -3339,7 +3319,7 @@
     "zonertg12": {
       "action_id": 697,
       "generation_id": "3385cc03ed657edff57e",
-      "seen_at": "2026-07-21T09:29:09.331522+00:00",
+      "seen_at": "2026-07-21T09:36:21.663146+00:00",
       "server_start_at": "2026-07-21T08:05:58.421000+00:00",
       "state": "active"
     },
@@ -3379,9 +3359,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T09:29:09.331522+00:00",
+    "last_checked_at": "2026-07-21T09:36:21.663146+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T09:29:09.331522+00:00",
+    "last_success_at": "2026-07-21T09:36:21.663146+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -3564,11 +3544,11 @@
       "action_id": 697,
       "first_seen_at": "2026-07-21T08:26:56.555978+00:00",
       "generation_id": "3385cc03ed657edff57e",
-      "last_seen_at": "2026-07-21T09:29:09.331522+00:00",
-      "observations": 125,
+      "last_seen_at": "2026-07-21T09:36:21.663146+00:00",
+      "observations": 127,
       "server_start_at": "2026-07-21T08:05:58.421000+00:00",
       "statuses": {
-        "active": 125
+        "active": 127
       },
       "wheel_key": "zonertg12"
     },
