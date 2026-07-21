@@ -1,0 +1,64 @@
+name: Apply analytics button order repair
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: fix/analytics-buttons-pre-update-order
+          fetch-depth: 0
+      - name: Restore pre-update analytics button order
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          profile = Path('bbvg/bot/profile.py')
+          text = profile.read_text(encoding='utf-8')
+          old = '''    content_rows.append(\n        [\n            {"text": "🏆 Рейтинг источников", "callback_data": "page:ranking"},\n            {"text": "📡 Покрытие источников", "callback_data": "page:sources"},\n        ]\n    )\n'''
+          if old in text:
+              profile.write_text(text.replace(old, '', 1), encoding='utf-8')
+          elif 'content_rows.append(\n        [\n            {"text": "🏆 Рейтинг источников"' in text:
+              raise SystemExit('Unexpected analytics button block shape')
+
+          tests = Path('tests/test_hunter_profile.py')
+          text = tests.read_text(encoding='utf-8')
+          text = text.replace(
+              '    assert callbacks.count("page:ranking") == 1\n    assert callbacks.count("page:sources") == 1\n',
+              '    assert callbacks.count("page:ranking") == 0\n    assert callbacks.count("page:sources") == 0\n',
+              1,
+          )
+          text = text.replace(
+              '    assert "page:ranking" in str(markup)\n    assert "page:sources" in str(markup)\n',
+              '    assert "page:ranking" not in str(markup)\n    assert "page:sources" not in str(markup)\n',
+              1,
+          )
+          tests.write_text(text, encoding='utf-8')
+
+          changelog = Path('docs/PROJECT_CHANGELOG_RU.md')
+          text = changelog.read_text(encoding='utf-8')
+          title = '## 2026-07-21 — Сохранён прежний порядок кнопок аналитики'
+          entry = '''## 2026-07-21 — Сохранён прежний порядок кнопок аналитики\n\nМодуль профиля повторно добавлял в экран аналитики отдельный ряд «Рейтинг источников / Покрытие источников», хотя regression-контракт `test_button_matrix` закрепляет прежний порядок кнопок после восстановления интерфейса. Дополнительный ряд удалён из analytics-wrapper; существующие отдельные страницы рейтинга и источников не удалялись и остаются доступны через штатную навигацию. Тест профиля приведён к тому же единому UI-контракту.\n\n**Откат:** вернуть commit целиком; состояние и callback-форматы не менялись.\n\n'''
+          if title not in text:
+              marker = '---\n\n'
+              if marker not in text:
+                  raise SystemExit('changelog marker not found')
+              changelog.write_text(text.replace(marker, marker + entry, 1), encoding='utf-8')
+          PY
+          python -m pytest -q tests/test_button_matrix.py tests/test_hunter_profile.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bbvg/bot/profile.py tests/test_hunter_profile.py docs/PROJECT_CHANGELOG_RU.md
+          git commit -m "Restore analytics button order"
+          git push origin HEAD:fix/analytics-buttons-pre-update-order
