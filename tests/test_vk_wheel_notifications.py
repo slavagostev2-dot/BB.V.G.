@@ -147,6 +147,44 @@ def test_reminders_draw_alerts_and_active_menu_do_not_dispatch_to_vk() -> None:
     assert calls == []
 
 
+# Production regression from the missed CTOM05 night-wheel notification.
+def test_ctom05_style_initial_notification_dispatches_without_exact_title() -> None:
+    class StrictRouter(FakeRouter):
+        @staticmethod
+        def notification_kind(text: str) -> str:
+            return "admin_system"
+
+    calls: list[dict[str, str]] = []
+    result = vk_wheel_notifications.dispatch_vk_wheel_notification(
+        StrictRouter,
+        (
+            "Колесо для всех ->\n"
+            "https://betboom.ru/freestream/CTOM05\n"
+            "BetBoom промокод CTOM до 10000 фрибетов"
+        ),
+        url="https://betboom.ru/freestream/CTOM05",
+        dispatcher=lambda **kwargs: calls.append(dict(kwargs)) or True,
+    )
+
+    assert result["eligible"] is True
+    assert result["dispatched"] is True
+    assert len(calls) == 1
+    assert calls[0]["event_identity"] == "wheel:wheels:CTOM05:detected"
+    assert "https://betboom.ru/freestream/CTOM05" in calls[0]["message"]
+
+
+def test_wheel_url_inside_system_error_does_not_dispatch_to_vk() -> None:
+    calls: list[str] = []
+    result = vk_wheel_notifications.dispatch_vk_wheel_notification(
+        FakeRouter,
+        "Ошибка проверки колеса https://betboom.ru/freestream/broken",
+        dispatcher=lambda **kwargs: calls.append("dispatch") or True,
+    )
+
+    assert result["eligible"] is False
+    assert calls == []
+
+
 def test_vk_dispatch_failure_cannot_break_successful_telegram(monkeypatch) -> None:
     class FakeMonitor:
         sent = 0
