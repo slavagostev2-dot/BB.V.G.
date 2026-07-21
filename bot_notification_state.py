@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
+import auto_participation_owner_sync
 import bot_private_state
 import notification_integrity_v2
 import notification_remote_checkpoint
@@ -17,6 +18,7 @@ notification_remote_checkpoint.install(notification_router, notification_integri
 if "bbvg.bot.runtime" in sys.modules:
     import admin_bot as legacy_admin
     import personal_wheel_voting
+    from admin_panel_v2 import TelegramPanelV2
     from bbvg.bot import natural_language_admin
     from bbvg.bot import profile as hunter_profile
     from bbvg.bot.users import UserManagementRuntime
@@ -47,6 +49,10 @@ if "bbvg.bot.runtime" in sys.modules:
         UserManagementRuntime.compact_menu_rows = staticmethod(_compact_menu_rows_with_profile)
         UserManagementRuntime._bbvg_hunter_profile_menu_installed = True
 
+    # Keep encrypted personal participation owned by the single live Control Center.
+    # The auto-participation workflow only places a pending marker in public state.json;
+    # this installer makes the running panel consume it through the normal personal vote path.
+    auto_participation_owner_sync.install(TelegramPanelV2)
     natural_language_admin.install(legacy_admin.AdminBot)
 
 
@@ -129,6 +135,7 @@ def self_test() -> None:
             assert notification_router._bbvg_remote_notification_checkpoint_installed is True
             assert callable(notification_router.notification_event_identity)
             notification_remote_checkpoint.self_test()
+            auto_participation_owner_sync.self_test()
     finally:
         bot_private_state.STATE_PATH = original
     print("BB V.G. bot notification state self-test passed")
