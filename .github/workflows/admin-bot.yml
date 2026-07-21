@@ -46,6 +46,24 @@ jobs:
           BBVG_TEST_MODE: "1"
         run: bash scripts/validate_control_center.sh
 
+      - name: Verify configured AI provider
+        env:
+          BBVG_AI_ENABLED: "true"
+          BBVG_AI_FEATURES: "natural_language_admin"
+          BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
+          BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python - <<'PY'
+          from bbvg.ai_core import AIConfig
+          config = AIConfig.from_env()
+          assert config.provider in {"gemini", "openai"}, "Unsupported BBVG_AI_PROVIDER"
+          assert config.model, "BBVG_AI_MODEL is empty"
+          assert config.provider_configured(), "Selected AI provider key is missing"
+          print(f"AI provider configured: {config.provider}/{config.model}")
+          PY
+
       - name: Preserve role fingerprint and migrate state
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -204,7 +222,9 @@ jobs:
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
           BBVG_AI_ENABLED: "true"
           BBVG_AI_FEATURES: "natural_language_admin"
+          BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
           BBVG_AI_MODEL: ${{ vars.BBVG_AI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python admin_panel_runtime_v41.py
 
@@ -217,4 +237,4 @@ jobs:
           sleep 20
           gh workflow run admin-bot.yml --ref main
 
-# v41: candidate release is validated before the live runtime is replaced.
+# v41: Gemini/OpenAI configuration is verified before the live runtime is replaced.
