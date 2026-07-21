@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   diagnose:
@@ -34,11 +35,24 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: python -m pip install -r requirements.txt -r requirements-dev.txt
-      - name: Show first pytest failure
+      - name: Capture first pytest failure
         shell: bash
         run: |
           set +e
           python -m pytest -q --maxfail=1 > /tmp/pytest.log 2>&1
-          status=$?
-          tail -n 100 /tmp/pytest.log
-          exit "$status"
+          echo "$?" > /tmp/pytest-status
+          tail -n 120 /tmp/pytest.log > /tmp/pytest-tail
+          exit 0
+      - name: Publish diagnostic
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          {
+            echo '## Docs-only PR first pytest result'
+            echo '```text'
+            cat /tmp/pytest-tail
+            echo '```'
+            echo "Exit status: $(cat /tmp/pytest-status)"
+          } > /tmp/body.md
+          gh issue edit 111 --repo slavagostev2-dot/BB.V.G. --title "Docs-only pytest diagnostic" --body-file /tmp/body.md
