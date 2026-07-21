@@ -1,8 +1,8 @@
 {
-  "active_incidents": 3,
+  "active_incidents": 0,
   "admin_panel": {
     "age_minutes": 1,
-    "last_heartbeat_at": "2026-07-21T08:11:46.360222+00:00",
+    "last_heartbeat_at": "2026-07-21T08:42:10.319036+00:00",
     "started_at": "2026-07-21T08:01:36.885121+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -10,41 +10,37 @@
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": true,
+    "cached": false,
     "confidence": 0.0,
-    "critical_count": 2,
-    "decision_id": "f4cf1acd80054534ac281d0aaf5d6c91",
-    "finding_count": 3,
-    "finding_kinds": [
-      "monitor_source_count",
-      "source_health_missing",
-      "source_transport_smoke"
-    ],
-    "generated_at": "2026-07-21T08:13:13.218413+00:00",
-    "impact": "Нарушена целостность данных мониторинга; информация по источникам @ayukifunpage и @nucleartigeres отсутствует, что делает текущий отчет неполным.",
+    "critical_count": 0,
+    "decision_id": "74d96a4044514f16acf73c95dd980c34",
+    "finding_count": 0,
+    "finding_kinds": [],
+    "generated_at": "2026-07-21T08:44:02.453733+00:00",
+    "impact": "Отсутствует. Все сервисы работают в нормальном режиме.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Система мониторинга работает частично: зафиксировано 2 критические ошибки и 1 предупреждение. Основной монитор не охватывает 2 источника из 168.",
+    "recommended_action": "Вмешательство не требуется, продолжайте штатный мониторинг.",
+    "requires_human_attention": false,
+    "severity": "ok",
+    "summary": "Система функционирует штатно: все 167 источников доступны, ошибок не зафиксировано.",
     "used_fallback": false,
     "version": 1,
-    "warning_count": 1
+    "warning_count": 0
   },
   "automation_state": {
-    "expected_nightly_sources": 0,
-    "expected_primary_sources": 168,
+    "expected_nightly_sources": 1,
+    "expected_primary_sources": 167,
     "expected_total_sources": 168,
     "missing_sources": 0,
     "recorded_configured_sources": 168,
-    "recorded_nightly_sources": 2,
-    "recorded_primary_sources": 166,
-    "source_tier_last_run_at": "2026-07-20T23:43:34.654196+00:00",
+    "recorded_nightly_sources": 1,
+    "recorded_primary_sources": 167,
+    "source_tier_last_run_at": "2026-07-21T08:30:49.544865+00:00",
     "source_tier_policy": "manual_nightly_only",
     "transport_accounted_sources": 168,
-    "transport_checked_at": "2026-07-21T05:35:00.028584+00:00",
+    "transport_checked_at": "2026-07-21T08:26:34.585222+00:00",
     "transport_domain": "telegram.me",
     "transport_status": "success"
   },
@@ -53,19 +49,19 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "failed",
+    "automations": "ok",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "failed",
+    "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
-    "source_health": "failed",
+    "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T08:13:11.878412+00:00",
+  "checked_at": "2026-07-21T08:44:00.514237+00:00",
   "discovery": {
     "active_size": 166,
     "candidate_count": 470,
@@ -103,70 +99,47 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 3,
-  "findings": [
-    {
-      "detail": "В последней итерации проверено 166 из 168 источников основного режима.",
-      "kind": "monitor_source_count",
-      "severity": "critical",
-      "subject": "",
-      "title": "Основной монитор проверяет не все источники"
-    },
-    {
-      "detail": "Нет записей для 2 источников: @ayukifunpage, @nucleartigeres.",
-      "kind": "source_health_missing",
-      "severity": "warning",
-      "subject": "",
-      "title": "Не для всех источников есть данные здоровья"
-    },
-    {
-      "detail": "status=success; domain=telegram.me; primary=166/168; nightly=2/0; accounted=168/168; missing=0.",
-      "kind": "source_transport_smoke",
-      "severity": "critical",
-      "subject": "",
-      "title": "Транспортная проверка текущего inventory не подтверждена"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 3,
-    "bot_panel_heartbeat": "2026-07-21T08:11:46.360222+00:00",
-    "checked_sources": 166,
+    "active_incidents": 0,
+    "bot_panel_heartbeat": "2026-07-21T08:42:10.319036+00:00",
+    "checked_sources": 167,
     "configured_sources": 168,
     "domain": "telegram.me",
-    "reachable_sources": 166,
+    "reachable_sources": 167,
     "single_source": "system_check_state.json",
-    "status": "degraded",
+    "status": "ok",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T03:42:26.431278+00:00",
+      "last_checked_at": "2026-07-21T08:41:48.564365+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T03:42:26.431278+00:00",
+      "last_success_at": "2026-07-21T08:41:48.564365+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
+    "messages_attempted": 1,
     "opened": 0,
-    "resolved": 0
+    "resolved": 3
   },
-  "incident_sequence": 75,
+  "incident_sequence": 78,
   "inventory": {
-    "configured": 168,
+    "configured": 167,
     "configured_total": 168,
     "domain": "telegram.me",
     "duplicates": 0,
     "expected": 168,
-    "nightly": 0,
-    "nightly_configured": 0,
-    "nightly_operational": 0,
-    "nightly_policy": "optional_empty",
-    "operational": 168,
-    "primary_configured": 168,
-    "primary_operational": 168,
+    "nightly": 1,
+    "nightly_configured": 1,
+    "nightly_operational": 1,
+    "operational": 167,
+    "primary_configured": 167,
+    "primary_operational": 167,
     "total": 168
   },
   "miniapp": {
@@ -176,33 +149,33 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 166,
-    "checks_delta": 166,
-    "checks_total": 601128,
+    "checked_sources": 167,
+    "checks_delta": 167,
+    "checks_total": 603800,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "a62ff2f19129e3d17cf9c9281a7020e4bf6f8481",
-    "iteration": 107,
+    "head_sha": "7b7ed8cb2b7ed0c6a762632e3fc71e5f124c1f9f",
+    "iteration": 16,
     "last_failure_at": "2026-07-14T02:44:12.395838+00:00",
-    "last_iteration_at": "2026-07-21T07:53:27.590336+00:00",
-    "last_iteration_duration_seconds": 10,
+    "last_iteration_at": "2026-07-21T08:41:58.833874+00:00",
+    "last_iteration_duration_seconds": 11,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T07:53:27.590336+00:00",
-    "last_successful_checks_total": 601128,
-    "last_successful_iteration_at": "2026-07-21T07:53:27.590336+00:00",
+    "last_process_heartbeat_at": "2026-07-21T08:41:58.833874+00:00",
+    "last_successful_checks_total": 603800,
+    "last_successful_iteration_at": "2026-07-21T08:41:58.833874+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 166,
+    "reachable_sources": 167,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "29806000685",
-    "run_started_at": "2026-07-21T06:06:49.802144+00:00",
+    "run_id": "29814286986",
+    "run_started_at": "2026-07-21T08:26:42.748854+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "29806000685"
+    "workflow_run_id": "29814286986"
   },
-  "monitor_age_minutes": 19,
+  "monitor_age_minutes": 2,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -241,18 +214,15 @@
     "valid_personal_votes": 104
   },
   "source_health_summary": {
-    "configured_records": 166,
-    "missing_sources": [
-      "ayukifunpage",
-      "nucleartigeres"
-    ],
+    "configured_records": 168,
+    "missing_sources": [],
     "nightly_pending_first_check": [],
     "problem_details": [],
     "problem_sources": [],
-    "records": 166,
-    "required_primary_records": 166,
+    "records": 168,
+    "required_primary_records": 167,
     "statuses": {
-      "ok": 166
+      "ok": 168
     },
     "transport_failure_types": {
       "dns": 0,
@@ -263,7 +233,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
@@ -275,9 +245,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T03:42:26.431278+00:00",
+    "last_checked_at": "2026-07-21T08:41:48.564365+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T03:42:26.431278+00:00",
+    "last_success_at": "2026-07-21T08:41:48.564365+00:00",
     "status": "ok"
   }
 }
