@@ -79,6 +79,15 @@ def _publication_timestamp(monitor_module: Any, row: dict[str, Any]):
     return datetime.max.replace(tzinfo=timezone.utc)
 
 
+def _valid_publication(row: Any) -> bool:
+    if not isinstance(row, dict) or not str(row.get("source") or "").strip():
+        return False
+    try:
+        return int(row.get("message_id") or 0) > 0
+    except (TypeError, ValueError):
+        return False
+
+
 def repair_recovery_attribution(monitor_module: Any, state: dict[str, Any]) -> bool:
     """Restore the original publication after a recovery scan rebuilt an active card.
 
@@ -107,11 +116,7 @@ def repair_recovery_attribution(monitor_module: Any, state: dict[str, Any]) -> b
         if not isinstance(rows, list):
             rows = publications.get(raw_key)
         valid_rows = [
-            row
-            for row in (rows if isinstance(rows, list) else [])
-            if isinstance(row, dict)
-            and str(row.get("source") or "").strip()
-            and int(row.get("message_id") or 0) > 0
+            row for row in (rows if isinstance(rows, list) else []) if _valid_publication(row)
         ]
         if not valid_rows:
             continue
@@ -149,6 +154,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
 
     original_active: Callable = monitor_module.remember_active_wheel
     original_pending: Callable = runtime_module.remember_without_pending
+    original_process_active: Callable = monitor_module.process_active_wheels
 
     def remember_active_preserving_quality(
         state: dict,
@@ -200,9 +206,17 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         )
         _restore_timed_evidence(monitor_module, state, key, previous)
 
+    def process_active_repairing_recovery(state: dict, stats: dict):
+        repaired = repair_recovery_attribution(monitor_module, state)
+        result = original_process_active(state, stats)
+        if repaired:
+            result["changed"] = True
+        return result
+
     monitor_module.remember_active_wheel = remember_active_preserving_quality
     runtime_module.remember_without_pending = remember_pending_preserving_quality
     monitor_module.remember_pending = remember_pending_preserving_quality
+    monitor_module.process_active_wheels = process_active_repairing_recovery
     monitor_module._bbvg_wheel_metadata_quality_installed = True
 
 
@@ -254,6 +268,10 @@ def self_test() -> None:
             else:
                 row["deadline"] = deadline.isoformat()
             state["active_wheels"][key] = row
+
+        @staticmethod
+        def process_active_wheels(state, stats):
+            return {"changed": False}
 
     class FakeRuntime:
         @staticmethod
@@ -336,8 +354,9 @@ def self_test() -> None:
             ]
         },
     }
-    assert repair_recovery_attribution(FakeMonitor, recovery_state)
+    result = FakeMonitor.process_active_wheels(recovery_state, {})
     repaired = recovery_state["active_wheels"]["zonertg12"]
+    assert result["changed"] is True
     assert repaired["source"] == "mechanogun"
     assert repaired["message_id"] == 35659
     assert repaired["participating"] is True
