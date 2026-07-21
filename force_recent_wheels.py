@@ -54,22 +54,39 @@ def _restore_runtime_state(
         key = str(item.get("wheel_key") or "").casefold()
         if not key:
             continue
-        entry = active_wheels.get(key)
-        if not isinstance(entry, dict):
-            entry = {}
+        existing = active_wheels.get(key)
+        is_recovered_missing = not isinstance(existing, dict)
+        entry = {} if is_recovered_missing else existing
+        if is_recovered_missing:
             active_wheels[key] = entry
 
         deadline = monitor.parse_datetime(item.get("deadline"))
-        expires = deadline + timedelta(minutes=30) if deadline is not None else scanned_at + timedelta(hours=2)
+        expires = (
+            deadline + timedelta(minutes=30)
+            if deadline is not None
+            else scanned_at + timedelta(hours=2)
+        )
+
+        if is_recovered_missing:
+            entry.update(
+                {
+                    "identifier": key,
+                    "wheel_key": key,
+                    "url": str(item.get("url") or ""),
+                    "source": str(item.get("source") or ""),
+                    "message_id": int(item.get("message_id") or 0),
+                    "message_date": item.get("message_date"),
+                    "message_url": item.get("message_url"),
+                    "method": "восстановлено аварийной проверкой BetBoom",
+                }
+            )
+        else:
+            entry.setdefault("identifier", key)
+            entry.setdefault("wheel_key", key)
+            entry.setdefault("url", str(item.get("url") or ""))
+
         entry.update(
             {
-                "identifier": key,
-                "wheel_key": key,
-                "url": str(item.get("url") or ""),
-                "source": str(item.get("source") or ""),
-                "message_id": int(item.get("message_id") or 0),
-                "message_date": item.get("message_date"),
-                "message_url": item.get("message_url"),
                 "action_id": int(item.get("action_id") or 0),
                 "deadline": item.get("deadline"),
                 "expires_at": expires.isoformat(),
@@ -77,7 +94,6 @@ def _restore_runtime_state(
                 "page_status": "active",
                 "availability_status": "available",
                 "verification_status": monitor.WHEEL_VERIFICATION_CONFIRMED,
-                "method": "восстановлено аварийной проверкой BetBoom",
                 "last_checked_at": scanned_at.isoformat(),
                 "last_verification_at": scanned_at.isoformat(),
                 "needs_manual_time": deadline is None,
@@ -91,6 +107,11 @@ def _restore_runtime_state(
             continue
 
         status = str(attempt.get("status") or "participated")
+        if status == "already_marked_participating":
+            entry["participating"] = True
+            entry["lifecycle_state"] = "participating"
+            continue
+
         entry.update(
             {
                 "participating": True,
