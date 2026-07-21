@@ -1,0 +1,42 @@
+name: Diagnose direct VK patch
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: fix/direct-vk-wheel-delivery
+          persist-credentials: false
+      - name: Diagnose patch anchors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY' > /tmp/diag.txt 2>&1
+          from pathlib import Path
+          import re
+          vk=Path('vk_wheel_notifications.py').read_text(encoding='utf-8')
+          pattern=re.compile(r"def _github_dispatch\(.*?\n\n(?=def dispatch_vk_wheel_notification\()", re.S)
+          print('github_dispatch_match=', bool(pattern.search(vk)))
+          print('direct_dispatch_present=', 'def _direct_vk_dispatch(' in vk)
+          monitor=Path('.github/workflows/monitor.yml').read_text(encoding='utf-8')
+          print('monitor_env_anchor=', '          GITHUB_BRANCH: main\n' in monitor)
+          agents=Path('AGENTS.md').read_text(encoding='utf-8')
+          print('agents_anchor=', '- Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические модули.\n' in agents)
+          changelog=Path('docs/PROJECT_CHANGELOG_RU.md').read_text(encoding='utf-8')
+          print('changelog_marker=', '---\n\n' in changelog)
+          tests=Path('tests/test_vk_wheel_notifications.py').read_text(encoding='utf-8')
+          print('direct_test_present=', 'test_direct_vk_dispatch_sends_to_every_writable_conversation' in tests)
+          PY
+          gh issue edit 111 --repo slavagostev2-dot/BB.V.G. --title "Direct VK patch anchors" --body-file /tmp/diag.txt
