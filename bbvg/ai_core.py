@@ -9,6 +9,7 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
+from urllib.parse import quote
 
 import requests
 
@@ -28,6 +29,8 @@ KNOWN_FEATURES = frozenset(
 STATE_VERSION = 1
 DEFAULT_STATE_PATH = Path(__file__).resolve().parents[1] / "ai_runtime_state.json"
 OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
+GEMINI_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+SUPPORTED_PROVIDERS = frozenset({"openai", "gemini"})
 
 
 def _bool_env(name: str, default: bool = False) -> bool:
@@ -48,6 +51,14 @@ def _int_env(name: str, default: int, minimum: int, maximum: int) -> int:
 def _feature_env(feature: str) -> str:
     token = re.sub(r"[^A-Z0-9]+", "_", feature.upper()).strip("_")
     return f"BBVG_AI_FEATURE_{token}"
+
+
+def _provider_api_key(provider: str) -> str:
+    if provider == "gemini":
+        return os.getenv("GEMINI_API_KEY", "").strip()
+    if provider == "openai":
+        return os.getenv("OPENAI_API_KEY", "").strip()
+    return ""
 
 
 @dataclass(frozen=True)
@@ -79,24 +90,26 @@ class AIConfig:
                     features.add(feature)
                 else:
                     features.discard(feature)
+
+        provider = os.getenv("BBVG_AI_PROVIDER", "openai").strip().casefold() or "openai"
         return cls(
             enabled=_bool_env("BBVG_AI_ENABLED"),
             enabled_features=frozenset(features & set(KNOWN_FEATURES)),
-            provider=os.getenv("BBVG_AI_PROVIDER", "openai").strip().casefold() or "openai",
+            provider=provider,
             model=os.getenv("BBVG_AI_MODEL", "").strip(),
             timeout_seconds=_int_env("BBVG_AI_TIMEOUT_SECONDS", 20, 3, 120),
             max_calls_per_minute=_int_env("BBVG_AI_MAX_CALLS_PER_MINUTE", 10, 1, 120),
             cache_ttl_seconds=_int_env("BBVG_AI_CACHE_TTL_SECONDS", 900, 0, 86400),
             max_decisions=_int_env("BBVG_AI_MAX_DECISIONS", 500, 50, 5000),
             state_path=Path(os.getenv("BBVG_AI_STATE_PATH", str(DEFAULT_STATE_PATH))),
-            api_key=os.getenv("OPENAI_API_KEY", "").strip(),
+            api_key=_provider_api_key(provider),
         )
 
     def feature_enabled(self, feature: str) -> bool:
         return self.enabled and feature in self.enabled_features
 
     def provider_configured(self) -> bool:
-        return self.provider == "openai" and bool(self.api_key and self.model)
+        return self.provider in SUPPORTED_PROVIDERS and bool(self.api_key and self.model)
 
 
 @dataclass(frozen=True)
@@ -209,7 +222,15 @@ class AIClient:
         if cached is not None:
             decision_id = self._record(state, feature, "cache_hit", cached, now, cached=True)
             self.store.save(state)
-            return AIResult(True, "ok", cached, provider=self.config.provider, model=self.config.model, cached=True, decision_id=decision_id)
+            return AIResult(
+                True,
+                "ok",
+                cached,
+                provider=self.config.provider,
+                model=self.config.model,
+                cached=True,
+                decision_id=decision_id,
+            )
 
         if not self._take_rate_slot(state, now):
             decision_id = self._record(state, feature, "rate_limited", fallback_text, now)
@@ -222,9 +243,22 @@ class AIClient:
                 raise ValueError("AI provider returned empty text")
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"[:500]
-            decision_id = self._record(state, feature, "provider_error", fallback_text, now, error=error)
+            decision_id = self._record(
+                state,
+                feature,
+                "provider_error",
+                fallback_text,
+                now,
+                error=error,
+            )
             self.store.save(state)
-            return AIResult(False, "provider_error", error=error, decision_id=decision_id, **base)
+            return AIResult(
+                False,
+                "provider_error",
+                error=error,
+                decision_id=decision_id,
+                **base,
+            )
 
         if self.config.cache_ttl_seconds:
             state["cache"][cache_key] = {
@@ -234,7 +268,14 @@ class AIClient:
         decision_id = self._record(state, feature, "ok", text, now)
         self._prune_cache(state, now)
         self.store.save(state)
-        return AIResult(True, "ok", text, provider=self.config.provider, model=self.config.model, decision_id=decision_id)
+        return AIResult(
+            True,
+            "ok",
+            text,
+            provider=self.config.provider,
+            model=self.config.model,
+            decision_id=decision_id,
+        )
 
     def ask_json(
         self,
@@ -247,26 +288,72 @@ class AIClient:
         fallback = dict(fallback_data or {})
         result = self.ask_text(
             feature,
-            system_prompt=system_prompt.rstrip() + "\nReturn only one valid JSON object without Markdown fences.",
+            system_prompt=system_prompt.rstrip()
+            + "\nReturn only one valid JSON object without Markdown fences.",
             user_input=user_input,
             fallback_text=json.dumps(fallback, ensure_ascii=False, sort_keys=True),
         )
         if not result.ok:
-            return AIResult(False, result.status, result.text, fallback, result.provider, result.model, result.cached, True, result.error, result.decision_id)
+            return AIResult(
+                False,
+                result.status,
+                result.text,
+                fallback,
+                result.provider,
+                result.model,
+                result.cached,
+                True,
+                result.error,
+                result.decision_id,
+            )
         try:
             data = self._parse_json(result.text)
         except (ValueError, json.JSONDecodeError) as exc:
             error = f"{type(exc).__name__}: {exc}"[:500]
             state = self.store.load()
-            decision_id = self._record(state, feature, "invalid_json", result.text, self.clock(), error=error)
+            decision_id = self._record(
+                state,
+                feature,
+                "invalid_json",
+                result.text,
+                self.clock(),
+                error=error,
+            )
             self.store.save(state)
-            return AIResult(False, "invalid_json", json.dumps(fallback, ensure_ascii=False, sort_keys=True), fallback, result.provider, result.model, result.cached, True, error, decision_id)
+            return AIResult(
+                False,
+                "invalid_json",
+                json.dumps(fallback, ensure_ascii=False, sort_keys=True),
+                fallback,
+                result.provider,
+                result.model,
+                result.cached,
+                True,
+                error,
+                decision_id,
+            )
         self._annotate(result.decision_id, data)
-        return AIResult(True, "ok", result.text, data, result.provider, result.model, result.cached, False, "", result.decision_id)
+        return AIResult(
+            True,
+            "ok",
+            result.text,
+            data,
+            result.provider,
+            result.model,
+            result.cached,
+            False,
+            "",
+            result.decision_id,
+        )
 
     def _cache_key(self, feature: str, prompt: str) -> str:
         raw = json.dumps(
-            {"feature": feature, "provider": self.config.provider, "model": self.config.model, "prompt": prompt},
+            {
+                "feature": feature,
+                "provider": self.config.provider,
+                "model": self.config.model,
+                "prompt": prompt,
+            },
             ensure_ascii=False,
             sort_keys=True,
         ).encode("utf-8")
@@ -351,11 +438,19 @@ class AIClient:
     def _call_provider(self, prompt: str) -> str:
         if self.transport:
             return self.transport(self.config, prompt)
-        if self.config.provider != "openai":
-            raise RuntimeError(f"unsupported AI provider: {self.config.provider}")
+        if self.config.provider == "openai":
+            return self._call_openai(prompt)
+        if self.config.provider == "gemini":
+            return self._call_gemini(prompt)
+        raise RuntimeError(f"unsupported AI provider: {self.config.provider}")
+
+    def _call_openai(self, prompt: str) -> str:
         response = requests.post(
             OPENAI_RESPONSES_URL,
-            headers={"Authorization": f"Bearer {self.config.api_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {self.config.api_key}",
+                "Content-Type": "application/json",
+            },
             json={"model": self.config.model, "input": prompt},
             timeout=self.config.timeout_seconds,
         )
@@ -365,10 +460,36 @@ class AIClient:
             payload = response.json()
         except ValueError as exc:
             raise RuntimeError("OpenAI returned invalid JSON") from exc
-        return self._output_text(payload)
+        return self._openai_output_text(payload)
+
+    def _call_gemini(self, prompt: str) -> str:
+        model = quote(self.config.model, safe="-._")
+        url = f"{GEMINI_MODELS_URL}/{model}:generateContent"
+        generation_config: dict[str, Any] = {"temperature": 0.1}
+        if "Return only one valid JSON object without Markdown fences." in prompt:
+            generation_config["responseMimeType"] = "application/json"
+        response = requests.post(
+            url,
+            headers={
+                "x-goog-api-key": self.config.api_key,
+                "Content-Type": "application/json",
+            },
+            json={
+                "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                "generationConfig": generation_config,
+            },
+            timeout=self.config.timeout_seconds,
+        )
+        if response.status_code >= 400:
+            raise RuntimeError(f"Gemini HTTP {response.status_code}: {response.text[:300]}")
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise RuntimeError("Gemini returned invalid JSON") from exc
+        return self._gemini_output_text(payload)
 
     @staticmethod
-    def _output_text(payload: dict[str, Any]) -> str:
+    def _openai_output_text(payload: dict[str, Any]) -> str:
         if isinstance(payload.get("output_text"), str) and payload["output_text"].strip():
             return payload["output_text"]
         chunks = []
@@ -381,6 +502,35 @@ class AIClient:
         if not chunks:
             raise RuntimeError("OpenAI response contains no output text")
         return "\n".join(chunks)
+
+    @staticmethod
+    def _gemini_output_text(payload: dict[str, Any]) -> str:
+        chunks: list[str] = []
+        candidates = payload.get("candidates")
+        if isinstance(candidates, list):
+            for candidate in candidates:
+                if not isinstance(candidate, dict):
+                    continue
+                content = candidate.get("content")
+                if not isinstance(content, dict):
+                    continue
+                parts = content.get("parts")
+                if not isinstance(parts, list):
+                    continue
+                for part in parts:
+                    if isinstance(part, dict) and isinstance(part.get("text"), str):
+                        chunks.append(part["text"])
+        if chunks:
+            return "\n".join(chunks)
+        block_reason = ""
+        prompt_feedback = payload.get("promptFeedback")
+        if isinstance(prompt_feedback, dict):
+            block_reason = str(prompt_feedback.get("blockReason") or "")
+        suffix = f": {block_reason}" if block_reason else ""
+        raise RuntimeError(f"Gemini response contains no output text{suffix}")
+
+    # Backward-compatible name used by older tests and callers.
+    _output_text = _openai_output_text
 
     @staticmethod
     def _parse_json(text: str) -> dict[str, Any]:
