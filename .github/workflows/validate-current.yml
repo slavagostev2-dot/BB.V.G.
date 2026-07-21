@@ -69,6 +69,11 @@ jobs:
           python chapter4_acceptance.py
           python chapter5_acceptance.py
 
+      - name: Validate source discovery synchronization
+        run: |
+          python admin_runtime.py --self-test
+          python system_checks_v3.py --self-test
+
       - name: Run pytest and enforce critical-core coverage
         run: |
           python -m pytest \
