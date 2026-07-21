@@ -16,14 +16,19 @@ jobs:
         with:
           ref: fix/vk-wheel-delivery-final
           fetch-depth: 0
-      - name: Apply verified VK changes
+
+      - name: Copy verified VK modules
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin fix/vk-detect-all-new-wheels
+          git fetch origin refs/heads/fix/vk-detect-all-new-wheels:refs/remotes/origin/fix/vk-detect-all-new-wheels
           git checkout origin/fix/vk-detect-all-new-wheels -- \
             vk_wheel_notifications.py tests/test_vk_wheel_notifications.py
 
+      - name: Update monitor contract and changelog
+        shell: bash
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
 
@@ -78,6 +83,10 @@ jobs:
           Path(".github/workflows/apply-vk-final.yml").unlink()
           PY
 
+      - name: Commit final VK patch
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
