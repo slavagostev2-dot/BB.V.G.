@@ -74,25 +74,39 @@ jobs:
           python admin_runtime.py --self-test
           python system_checks_v3.py --self-test
 
-      - name: Run pytest AA-AF
+      - name: Run pytest AA
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_a[a-f]*.py' -print | sort)
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_aa*.py' -print | sort)
           printf '%s\n' "${files[@]}"
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
-      - name: Run pytest AG-AM
+      - name: Run pytest AB
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_a[g-m]*.py' -print | sort)
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_ab*.py' -print | sort)
           printf '%s\n' "${files[@]}"
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
-      - name: Run pytest AN-AS
+      - name: Run pytest AC
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_a[n-s]*.py' -print | sort)
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_ac*.py' -print | sort)
           printf '%s\n' "${files[@]}"
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
-      - name: Run pytest AT-AZ
+      - name: Run pytest AD
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_a[t-z]*.py' -print | sort)
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_ad*.py' -print | sort)
           printf '%s\n' "${files[@]}"
+          ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
+      - name: Run pytest AE
+        run: |
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_ae*.py' -print | sort)
+          printf '%s\n' "${files[@]}"
+          ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
+      - name: Run pytest AF
+        run: |
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_af*.py' -print | sort)
+          printf '%s\n' "${files[@]}"
+          ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
+      - name: Run pytest AG-Z
+        run: |
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_a*.py' -print | sort | grep -Ei '/test_a[g-z]')
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
       - name: Run pytest B-Z
         run: |
