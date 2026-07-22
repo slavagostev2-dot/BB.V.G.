@@ -85,8 +85,8 @@ jobs:
             --cov-report=xml \
             --cov-fail-under=80
 
-  deploy-monitor:
-    name: Replace monitor after validation
+  deploy-services:
+    name: Replace live services after validation
     if: github.event_name == 'push'
     needs: test
     permissions:
@@ -104,3 +104,12 @@ jobs:
             --ref main \
             -f continuous=true \
             -f replace=true
+
+      - name: Replace validated Control Center
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh workflow run admin-bot.yml \
+            --repo "$GH_REPO" \
+            --ref main
