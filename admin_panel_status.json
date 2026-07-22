@@ -26,10 +26,13 @@
   "wheel_colors": "callback_payload_unchanged",
   "wheel_link_lifecycle": "timer_or_manual_deadline_else_two_hours",
   "workflow_run_id": "29934912239",
-  "last_validation_at": "2026-07-22T17:43:51.425821883Z",
+  "last_validation_at": "2026-07-22T17:43:52.810701377Z",
   "preflight_failed_stage": "bootstrap",
   "preflight_failed_command": "false",
   "preflight_failure_detail": "stage=bootstrap; command=false; exit=1; release_sha=6595e04d5af65804b43944627b5b66c076a7bafbxflarxx-account-access-cleanup2026-07-22T17:41:51Z",
   "preflight_release_sha": "6595e04d5af65804b43944627b5b66c076a7bafbxflarxx-account-access-cleanup2026-07-22T17:41:51Z",
-  "validation_run_id": "29943572628"
+  "validation_run_id": "29943572628",
+  "validation_error": "dependencies=success; candidate=failure; button_recovery=skipped; owner_sync=skipped; ai_provider=skipped; state_migration=skipped\n\ncontrol_center_release.txt must contain the exact 40-character release commit SHA\nControl Center preflight failed: stage=bootstrap; command=false; exit=1",
+  "validation_head_sha": "6fbe09a2f96e57b301ba4aafc301f45543f42e63",
+  "validation_event": "push"
 }
