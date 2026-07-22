@@ -67,7 +67,11 @@ jobs:
         run: python chapter2_unified_logic.py
       - name: Run chapter 3 acceptance
         run: python chapter3_acceptance.py
-      - name: Run chapter 4 acceptance
+      - name: Run Telegram UI self-test
+        run: python telegram_ui.py
+      - name: Run panel v41 self-test
+        run: python admin_panel_runtime_v41.py --self-test
+      - name: Run remaining chapter 4 acceptance
         run: python chapter4_acceptance.py
       - name: Run chapter 5 acceptance
         run: python chapter5_acceptance.py
