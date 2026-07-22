@@ -27,8 +27,16 @@ def _parse_datetime(value: Any) -> datetime | None:
     return parsed.astimezone(UTC)
 
 
-def _event_token(item: dict[str, Any]) -> str:
-    key = str(item.get("wheel_key") or "").casefold()
+def _event_token(
+    item: dict[str, Any],
+    wheel_key: str = "",
+) -> str:
+    key = str(
+        wheel_key
+        or item.get("wheel_key")
+        or item.get("identifier")
+        or ""
+    ).casefold()
     try:
         action_id = int(item.get("action_id") or 0)
     except (TypeError, ValueError):
@@ -327,7 +335,7 @@ def sync_once(panel: Any) -> dict[str, int]:
         if not key or not isinstance(item, dict):
             failed_count += 1
             continue
-        if _event_token(item) != token:
+        if _event_token(item, key) != token:
             continue
         event_key = personal_wheel_voting.wheel_event_key(key, item)
         previous = success_records.get(event_key)
@@ -383,7 +391,7 @@ def sync_once(panel: Any) -> dict[str, int]:
         item = active.get(key)
         if not key or not isinstance(item, dict):
             continue
-        if _event_token(item) != token:
+        if _event_token(item, key) != token:
             continue
 
         # Revalidate the exact current event after the grace period. Any BetBoom
@@ -535,6 +543,13 @@ def self_test() -> None:
     assert [token for token, _ in failure_values] == [
         "failed#action:2:2026-07-21T14:00:00+00:00"
     ]
+    assert _event_token(
+        {
+            "action_id": 698,
+            "server_start_at": "2026-07-22T08:04:56.849000+00:00",
+        },
+        "zonertg13",
+    ) == "zonertg13#action:698:2026-07-22T08:04:56.849000+00:00"
     assert _event_token(
         {
             "wheel_key": "ctom11",

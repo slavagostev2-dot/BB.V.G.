@@ -16,6 +16,8 @@
 
 **Pre-update backup:** `backup/2026-07-22-before-auto-participation-delivery-repair` → `4f2810554534a966fbe173b2f25880e620f9780d`.
 
+Дополнительная production-диагностика `zonertg13` выявила, что активная карточка может не дублировать `wheel_key` внутри объекта. Owner-sync теперь использует ключ словаря `active_wheels` как authoritative fallback при построении event-token, поэтому точное событие больше не пропускается молча.
+
 ## 2026-07-22 — Ротация хранит семь backup-веток
 
 Лимит обычных веток `backup/*` увеличен с трёх до семи. `backup_rotation.py` и `.github/workflows/bot-state-backup.yml` используют единый fail-closed контракт `KEEP_BACKUPS=7`: только что созданная ветка сохраняется всегда, а удаление начинается только при появлении восьмой проверенной backup-ветки.
