@@ -98,3 +98,56 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-fail-under=80
+
+  discover-workflows:
+    runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.list.outputs.files }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          show-progress: false
+      - id: list
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          print('files=' + json.dumps(sorted(str(path) for path in Path('.github/workflows').glob('*.yml'))))
+          PY
+
+  action-pin:
+    name: pin ${{ matrix.file }}
+    needs: discover-workflows
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        file: ${{ fromJson(needs.discover-workflows.outputs.files) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          show-progress: false
+      - name: Validate action references
+        run: |
+          python - "${{ matrix.file }}" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+          expected = {
+              'actions/checkout': '11bd71901bbe5b1630ceea73d27597364c9af683',
+              'actions/setup-python': 'a26af69be951a213d495a4c3e4e4022e16d87065',
+              'actions/upload-artifact': 'ea165f8d65b6e75b540449e92b4886f43607fa02',
+          }
+          text = Path(sys.argv[1]).read_text(encoding='utf-8')
+          for use in re.findall(r'^\s*-?\s*uses:\s*([^\s#]+)', text, re.MULTILINE):
+              action, separator, reference = use.partition('@')
+              assert separator and re.fullmatch(r'[0-9a-f]{40}', reference), use
+              if action in expected:
+                  assert reference == expected[action], use
+          PY
