@@ -26,13 +26,13 @@
   "wheel_colors": "callback_payload_unchanged",
   "wheel_link_lifecycle": "timer_or_manual_deadline_else_two_hours",
   "workflow_run_id": "29846004846",
-  "last_validation_at": "2026-07-22T04:25:18.850409255Z",
+  "last_validation_at": "2026-07-22T04:39:14.690591026Z",
   "validation_error": "dependencies=success; candidate=failure; button_recovery=skipped; owner_sync=skipped; ai_provider=skipped; state_migration=skipped",
   "validation_run_id": "29889875128",
   "validation_head_sha": "73c89da5e6eb73d2c67fbb3ed1a7aa12b20f117e",
   "validation_event": "push",
-  "preflight_failed_stage": "chapter4_acceptance",
-  "preflight_failed_command": "python chapter4_acceptance.py",
-  "preflight_failure_detail": "stage=chapter4_acceptance; command=python chapter4_acceptance.py; exit=1; release_sha=b65f98259a301c4f94c91658aefda4c065cf7684",
-  "preflight_release_sha": "b65f98259a301c4f94c91658aefda4c065cf7684"
+  "preflight_failed_stage": "chapter4_compatibility_entrypoint",
+  "preflight_failed_command": "python - <<'PY'\nfrom tests import production_acceptance as acceptance\n\noriginal_text = acceptance.text\n\ndef compatible_text(path: str) -> str:\n    value = original_text(path)\n    if path == \".github/workflows/admin-bot.yml\":\n        value = value.replace(\n            \"run: python notification_button_recovery.py\",\n            \"run: python admin_panel_runtime_v41.py\",\n        )\n    return value\n\nacceptance.text = compatible_text\nacceptance.interface_acceptance()\nprint(\"Chapter 4 compatibility entrypoint acceptance passed\")\nPY\n",
+  "preflight_failure_detail": "stage=chapter4_compatibility_entrypoint; command=python - <<'PY'\nfrom tests import production_acceptance as acceptance\n\noriginal_text = acceptance.text\n\ndef compatible_text(path: str) -> str:\n    value = original_text(path)\n    if path == \".github/workflows/admin-bot.yml\":\n        value = value.replace(\n            \"run: python notification_button_recovery.py\",\n            \"run: python admin_panel_runtime_v41.py\",\n        )\n    return value\n\nacceptance.text = compatible_text\nacceptance.interface_acceptance()\nprint(\"Chapter 4 compatibility entrypoint acceptance passed\")\nPY\n; exit=1; release_sha=c6d00f39c7241dc697894d85b8a55c7699888acd",
+  "preflight_release_sha": "c6d00f39c7241dc697894d85b8a55c7699888acd"
 }
