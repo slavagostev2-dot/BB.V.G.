@@ -1,0 +1,33 @@
+"подмешивает результаты изолированного workflow, не теряя локальные "
+    "lifecycle-изменения. Временные результаты `unconfirmed`, browser/network "
+    "timeout и аналогичные transport-сбои остаются retryable и повторяются "
+    "до подтверждения либо терминального ответа BetBoom.\n"
+)
+if "Непрерывный монитор перед каждой итерацией получает актуальный" not in text:
+    text = text[:paragraph_end] + addition + text[paragraph_end:]
+agents.write_text(text, encoding="utf-8")
+
+changelog = Path("docs/PROJECT_CHANGELOG_RU.md")
+text = changelog.read_text(encoding="utf-8")
+title = "## 2026-07-22 — Повтор автоучастия после `unconfirmed` восстановлен"
+if title not in text:
+    marker = "---\n\n"
+    if marker not in text:
+        raise SystemExit("Changelog marker not found")
+    entry = (
+        title + "\n\n"
+        "Инцидент `ctom13` показал гонку состояния: отдельный workflow "
+        "записал `unconfirmed` после запуска долгоживущего монитора, а "
+        "монитор продолжал работать со старой локальной копией `state.json` "
+        "и не мог поставить повторную попытку.\n\n"
+        "Теперь перед каждой итерацией монитор получает `state.json` из "
+        "`main` и безопасно объединяет только новые auto-participation "
+        "исходы с локальным lifecycle-состоянием. `unconfirmed`, browser "
+        "timeout и сетевые ошибки сохраняются как retryable с трёхминутной "
+        "задержкой; пользовательское отрицательное уведомление для них "
+        "по-прежнему запрещено.\n\n"
+        "**Pre-update backup:** "
+        "`backup/2026-07-22-before-auto-participation-retry-sync`.\n\n"
+    )
+    text = text.replace(marker, marker + entry, 1)
+changelog.write_text(text, encoding="utf-8")
