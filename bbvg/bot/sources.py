@@ -32,10 +32,7 @@ class SourceRegistryRuntime(UserManagementRuntime):
     @staticmethod
     def source_menu_rows(admin: bool) -> list[list[dict[str, Any]]]:
         rows: list[list[dict[str, Any]]] = [
-            [
-                {"text": "🔄 Обновить реестр", "callback_data": "page:sources"},
-                {"text": "🏆 Рейтинг источников", "callback_data": "page:ranking"},
-            ]
+            [{"text": "🏆 Рейтинг источников", "callback_data": "page:ranking"}]
         ]
         if admin:
             rows.extend(
@@ -216,6 +213,9 @@ def self_test() -> None:
     assert SourceRegistryRuntime.miniapp_url_for_chat is PanelFoundationMixin.miniapp_url_for_chat
     assert MINIAPP_RELEASE == "5.11.0"
     assert MINIAPP_URL.startswith("https://")
+    menu_text = str(SourceRegistryRuntime.source_menu_rows(True))
+    assert "Обновить реестр" not in menu_text
+    assert "page:ranking" in menu_text
 
     panel = object.__new__(SourceRegistryRuntime)
     snap = SimpleNamespace(
