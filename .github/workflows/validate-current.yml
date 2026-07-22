@@ -32,7 +32,7 @@ jobs:
               for index, line in enumerate(lines)
               if line.startswith('  cancel-in-progress:')
           ]
-          if indexes != [78]:
+          if len(indexes) != 1:
               raise SystemExit(f'Unexpected monitor concurrency lines: {indexes}')
           expression = chr(36) + '{{ '
           lines[indexes[0]] = (
