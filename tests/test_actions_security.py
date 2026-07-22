@@ -48,6 +48,7 @@ ACTIONS_WRITE_WORKFLOWS = {
     "nightly-discovery.yml",
     "rotate-bot-state-key.yml",
     "system-health.yml",
+    "validate-current.yml",
 }
 ACTION_RE = re.compile(r"^\s*-?\s*uses:\s*([^\s#]+)", re.MULTILINE)
 

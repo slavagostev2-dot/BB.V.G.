@@ -84,3 +84,23 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-fail-under=80
+
+  deploy-monitor:
+    name: Replace monitor after validation
+    if: github.event_name == 'push'
+    needs: test
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Start validated continuous monitor
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh workflow run monitor.yml \
+            --repo "$GH_REPO" \
+            --ref main \
+            -f continuous=true \
+            -f replace=true
