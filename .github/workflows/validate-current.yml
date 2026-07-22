@@ -70,17 +70,14 @@ jobs:
         run: |
           python telegram_ui.py
           python admin_panel_runtime_v41.py --self-test
-      - name: Validate wrapper entrypoint
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
-          workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
-          assert TelegramPanelRuntimeV41.RUNTIME_VERSION == 41
-          assert 'run: python notification_button_recovery.py' in workflow
-          assert 'admin_panel_runtime_v41.py' in workflow
-          assert Path('scripts/validate_control_center.sh').is_file()
-          PY
+      - name: Validate runtime version
+        run: python -c "from admin_panel_runtime_v41 import TelegramPanelRuntimeV41; assert TelegramPanelRuntimeV41.RUNTIME_VERSION == 41"
+      - name: Validate production wrapper command
+        run: python -c "from pathlib import Path; assert 'run: python notification_button_recovery.py' in Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')"
+      - name: Validate v41 compatibility owner
+        run: python -c "from pathlib import Path; assert 'admin_panel_runtime_v41.py' in Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')"
+      - name: Validate control center validator file
+        run: python -c "from pathlib import Path; assert Path('scripts/validate_control_center.sh').is_file()"
       - name: Validate chapter 4 menu roles
         run: |
           python - <<'PY'
