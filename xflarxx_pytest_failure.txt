@@ -1,0 +1,83 @@
+.F...................................................................... [ 35%]
+........................................................................ [ 70%]
+...........................................................              [100%]
+=================================== FAILURES ===================================
+______________________ test_permissions_matrix_is_narrow _______________________
+
+    def test_permissions_matrix_is_narrow() -> None:
+        texts = workflow_texts()
+        contents_write = {
+            name for name, text in texts.items() if "contents: write" in text
+        }
+        actions_write = {
+            name for name, text in texts.items() if "actions: write" in text
+        }
+>       assert contents_write == CONTENTS_WRITE_WORKFLOWS
+E       AssertionError: assert {'activate-66...ion.yml', ...} == {'activate-66...tor.yml', ...}
+E         
+E         Extra items in the left set:
+E         'apply-xflarxx-main-final.yml'
+E         'xflarxx-auto-participation.yml'
+E         'apply-xflarxx-main-final2.yml'
+E         'debug-xflarxx-tests.yml'
+E         
+E         Full diff:
+E           {
+E               'activate-66-sources.yml',
+E               'admin-action.yml',
+E               'admin-bot.yml',
+E         +     'apply-xflarxx-main-final.yml',
+E         +     'apply-xflarxx-main-final2.yml',
+E               'auto-participation.yml',
+E               'bot-state-backup.yml',
+E         +     'debug-xflarxx-tests.yml',
+E               'monitor.yml',
+E               'nightly-discovery.yml',
+E               'rotate-bot-state-key.yml',
+E               'source-intelligence.yml',
+E               'source-registry.yml',
+E               'source-tier-maintenance.yml',
+E               'system-health.yml',
+E         +     'xflarxx-auto-participation.yml',
+E           }
+
+tests/test_actions_security.py:85: AssertionError
+=============================== warnings summary ===============================
+betboom_auto_participation.py:193
+  /home/runner/work/BB.V.G./BB.V.G./betboom_auto_participation.py:193: SyntaxWarning: invalid escape sequence '\s'
+    """() => /участие\s+(принято|подтверждено|зарегистрировано)|вы\s+(уже\s+)?участвуете|уже\s+участвуете|участие\s+отмечено|теперь\s+ты\s+участвуешь\s+в\s+розыгрыше|вы\s+в\s+розыгрыше/i.test(document.body?.innerText || '')""",
+
+betboom_participation_browser.py:58
+  /home/runner/work/BB.V.G./BB.V.G./betboom_participation_browser.py:58: SyntaxWarning: invalid escape sequence '\s'
+    const re = /(принять\s+участие|участвовать|участвую)/i;
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_actions_security.py::test_permissions_matrix_is_narrow - AssertionError: assert {'activate-66...ion.yml', ...} == {'activate-66...tor.yml', ...}
+  
+  Extra items in the left set:
+  'apply-xflarxx-main-final.yml'
+  'xflarxx-auto-participation.yml'
+  'apply-xflarxx-main-final2.yml'
+  'debug-xflarxx-tests.yml'
+  
+  Full diff:
+    {
+        'activate-66-sources.yml',
+        'admin-action.yml',
+        'admin-bot.yml',
+  +     'apply-xflarxx-main-final.yml',
+  +     'apply-xflarxx-main-final2.yml',
+        'auto-participation.yml',
+        'bot-state-backup.yml',
+  +     'debug-xflarxx-tests.yml',
+        'monitor.yml',
+        'nightly-discovery.yml',
+        'rotate-bot-state-key.yml',
+        'source-intelligence.yml',
+        'source-registry.yml',
+        'source-tier-maintenance.yml',
+        'system-health.yml',
+  +     'xflarxx-auto-participation.yml',
+    }
+1 failed, 202 passed, 2 warnings in 2.15s
