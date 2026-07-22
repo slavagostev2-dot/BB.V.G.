@@ -2,53 +2,25 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-from datetime import datetime, timezone
 from typing import Any
 
+import admin_panel_v2
 import auto_participation_notifications
 import xflarxx_account_participation
 import xflarxx_runtime_integration
 from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
 
 
-UTC = timezone.utc
 FAST_SYNC_INTERVAL_SECONDS = 5
-FAST_FAILURE_GRACE_SECONDS = 30
-TERMINAL_FAILURE_STATUSES = {
-    "button_not_found",
-    "participation_closed",
-    "not_eligible",
-    "rejected",
-}
+FAST_CACHE_REFRESH_SECONDS = 5
 
 
 def _install_fast_outcome_policy() -> None:
     owner_sync = auto_participation_notifications.auto_participation_owner_sync
     if getattr(owner_sync, "_bbvg_fast_outcome_policy_installed", False):
         return
-
-    original_pending_failure_events = owner_sync.pending_failure_events
-
-    def pending_terminal_failure_events(
-        state: dict[str, Any],
-        *,
-        now: datetime | None = None,
-    ) -> list[tuple[str, dict[str, Any]]]:
-        values = original_pending_failure_events(state, now=now)
-        return [
-            (token, record)
-            for token, record in values
-            if str(
-                record.get("bot_failure_status")
-                or record.get("status")
-                or ""
-            ).casefold()
-            in TERMINAL_FAILURE_STATUSES
-        ]
-
     owner_sync.SYNC_INTERVAL_SECONDS = FAST_SYNC_INTERVAL_SECONDS
-    owner_sync.FAILURE_GRACE_SECONDS = FAST_FAILURE_GRACE_SECONDS
-    owner_sync.pending_failure_events = pending_terminal_failure_events
+    admin_panel_v2.CACHE_REFRESH_SECONDS = FAST_CACHE_REFRESH_SECONDS
     owner_sync._bbvg_fast_outcome_policy_installed = True
 
 
@@ -118,26 +90,8 @@ def self_test() -> None:
     xflarxx_runtime_integration.self_test()
     owner_sync = auto_participation_notifications.auto_participation_owner_sync
     assert owner_sync.SYNC_INTERVAL_SECONDS == FAST_SYNC_INTERVAL_SECONDS
-    assert owner_sync.FAILURE_GRACE_SECONDS == FAST_FAILURE_GRACE_SECONDS
+    assert admin_panel_v2.CACHE_REFRESH_SECONDS == FAST_CACHE_REFRESH_SECONDS
     assert getattr(owner_sync, "_bbvg_fast_outcome_policy_installed", False) is True
-
-    terminal_state = {
-        "auto_participation_events": {
-            "terminal": {
-                "status": "button_not_found",
-                "bot_failure_pending_at": "2026-07-23T00:00:00+00:00",
-            },
-            "transient": {
-                "status": "unconfirmed",
-                "bot_failure_pending_at": "2026-07-23T00:00:00+00:00",
-            },
-        }
-    }
-    terminal = owner_sync.pending_failure_events(
-        terminal_state,
-        now=datetime(2026, 7, 23, 0, 1, tzinfo=UTC),
-    )
-    assert [token for token, _record in terminal] == ["terminal"]
 
     assert getattr(
         owner_sync,
