@@ -1,0 +1,75 @@
+evious:
+                record[field] = previous[field]
+
+    if transient:
+        for field in (
+            "bot_failure_pending_at",
+            "bot_failure_sync_status",
+            "bot_failure_sync_version",
+            "bot_failure_status",
+            "bot_failure_detail",
+        ):
+            record.pop(field, None)
+        record["retry_after_at"] = (
+            scanned_at + _TRANSIENT_RETRY_DELAY
+        ).isoformat()
+        record["user_alert_policy"] = "deferred_transient_failure"
+        return record
+
+    # Legacy recovery may already have sent a failure before this architecture was
+    # introduced. Never queue a second failure for that exact event.
+    if not bool(record.get("manual_notification_sent")):
+        record.setdefault("bot_failure_pending_at", scanned_at.isoformat())
+        record["bot_failure_sync_status"] = "waiting_for_control_center"
+        record["bot_failure_sync_version"] = 1
+        record["bot_failure_status"] = status
+        record["bot_failure_detail"] = detail[:300]
+    return record
+'''
+if "transient = _transient_failure(status, detail)" not in text:
+    if text.count(old_failure) != 1:
+        raise SystemExit("Recovery failure record contract not found")
+    text = text.replace(old_failure, new_failure, 1)
+
+old_entry = '''            entry.update(
+                {
+                    "participating": False,
+                    "lifecycle_state": "active",
+                    "auto_participation_status": status,
+                    "auto_participation_checked_at": scanned_at.isoformat(),
+                    "auto_participation_retry_allowed": False,
+                    "auto_participation_error": detail,
+                }
+            )
+            continue
+'''
+new_entry = '''            transient = _transient_failure(status, detail)
+            entry.update(
+                {
+                    "participating": False,
+                    "lifecycle_state": "active",
+                    "auto_participation_status": status,
+                    "auto_participation_checked_at": scanned_at.isoformat(),
+                    "auto_participation_retry_allowed": transient,
+                    "auto_participation_error": detail,
+                }
+            )
+            if transient:
+                entry["auto_participation_retry_after_at"] = (
+                    scanned_at + _TRANSIENT_RETRY_DELAY
+                ).isoformat()
+                entry["auto_participation_user_alert_policy"] = (
+                    "deferred_transient_failure"
+                )
+            else:
+                entry.pop("auto_participation_retry_after_at", None)
+                entry.pop("auto_participation_user_alert_policy", None)
+            continue
+'''
+if 'entry["auto_participation_retry_after_at"]' not in text:
+    if text.count(old_entry) != 1:
+        raise SystemExit("Recovery active entry contract not found")
+    text = text.replace(old_entry, new_entry, 1)
+recovery.write_text(text, encoding="utf-8")
+
+sync = P
