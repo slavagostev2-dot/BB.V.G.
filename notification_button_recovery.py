@@ -4,6 +4,7 @@ import argparse
 import hashlib
 from typing import Any
 
+import auto_participation_notifications
 from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
 
 
@@ -61,7 +62,18 @@ class TelegramPanelRuntimeButtonRecovery(TelegramPanelRuntimeV41):
         self.mark_personal_participation(unique[0])
 
 
+auto_participation_notifications.install(TelegramPanelRuntimeButtonRecovery)
+
+
 def self_test() -> None:
+    auto_participation_notifications.self_test()
+    assert getattr(
+        auto_participation_notifications.auto_participation_owner_sync,
+        "_bbvg_unified_account_notifications_installed",
+        False,
+    ) is True
+    assert TelegramPanelRuntimeButtonRecovery._bbvg_auto_notification_toggle_installed is True
+
     events: list[str] = []
     panel = TelegramPanelRuntimeButtonRecovery.__new__(TelegramPanelRuntimeButtonRecovery)
     panel.mark_personal_participation = lambda key: events.append(str(key))  # type: ignore[method-assign]

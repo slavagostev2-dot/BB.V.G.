@@ -53,12 +53,6 @@ def entry_is_referral_restricted(entry: Any) -> bool:
     return is_referral_restricted(str(entry.get("message_text") or ""))
 
 
-def auto_participation_allowed(entry: Any) -> bool:
-    """Allow browser dispatch only for wheels without referral restrictions."""
-
-    return not entry_is_referral_restricted(entry)
-
-
 def referral_restriction_notice(text: str, *, html_mode: bool = True) -> str:
     if not is_referral_restricted(text):
         return ""
@@ -229,7 +223,14 @@ def prune_closed_publications(state: dict[str, Any]) -> int:
 
 
 def install(monitor_module: Any, runtime_module: Any) -> None:
-    """Persist publications and stop referral wheels before browser dispatch."""
+    """Persist every Telegram publication for one current wheel event.
+
+    The monitor keeps a single canonical post for notification and deadline
+    extraction. This layer retains all other publications so the active list and
+    source rating can credit every channel that found the same wheel. Duplicate
+    alert checks also persist the newly found source before suppressing a second
+    notification.
+    """
 
     base_runtime = runtime_module.base_runtime
     if getattr(base_runtime, "_bbvg_publication_merge_v2_installed", False):
@@ -285,21 +286,6 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         persist_before_suppression(state, link)
         return bool(original_activation_suppressed(state, link))
 
-    # The normal event dispatcher calls this function before it starts the
-    # auto-participation workflow. Blocking here prevents both configured
-    # BetBoom accounts and recovery from reaching Playwright for referral wheels.
-    import betboom_auto_participation
-
-    original_eligible: Callable = betboom_auto_participation._eligible_for_event_attempt
-
-    def eligible_without_referral(entry: dict[str, Any], monitor: Any, current: Any) -> bool:
-        if not auto_participation_allowed(entry):
-            return False
-        return bool(original_eligible(entry, monitor, current))
-
-    betboom_auto_participation._eligible_for_event_attempt = eligible_without_referral
-    betboom_auto_participation._bbvg_referral_guard_installed = True
-
     base_runtime._persist_publications = persist_merged
     monitor_module.load_state = load_state_without_closed_publications
     monitor_module.is_suppressed = is_suppressed_with_publications
@@ -309,17 +295,9 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
 
 
 def self_test() -> None:
-    referral_entry = {
-        "url": "https://betboom.ru/freestream/CTOM13",
-        "message_text": "Колесо для рефов на BetBoom",
-    }
-    regular_entry = {
-        "url": "https://betboom.ru/freestream/regular",
-        "message_text": "Обычное колесо BetBoom для всех",
-    }
-    assert is_referral_restricted(referral_entry["message_text"])
-    assert not auto_participation_allowed(referral_entry)
-    assert auto_participation_allowed(regular_entry)
+    assert is_referral_restricted(
+        "Колесо для рефов на BetBoom https://betboom.ru/freestream/CTOM13"
+    )
     assert "Колесо только для рефералов" in referral_restriction_notice(
         "Колесо для рефов"
     )
