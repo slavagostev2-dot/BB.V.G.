@@ -1,0 +1,39 @@
+name: Cleanup temporary xFLARXx branches
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/cleanup-xflarxx-branches.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Delete temporary branches and self-remove
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git push origin --delete feature/xflarxx-clean || true
+          git push origin --delete feature/xflarxx-account-access-cleanup || true
+          rm -f .github/workflows/cleanup-xflarxx-branches.yml
+          git add -A
+          git commit -m "Remove temporary xFLARXx branches [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase origin main
+            sleep $((attempt * 2))
+          done
+          exit 1
