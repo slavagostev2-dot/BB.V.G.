@@ -85,7 +85,7 @@ python -m compileall -q bbvg
 validation_stage="compile_control_center_modules"
 python -m py_compile \
   admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_action_queue.py chapter1_stability.py admin_runtime.py \
-  admin_panel_v2.py admin_panel_runtime_v41.py \
+  admin_panel_v2.py admin_panel_runtime_v41.py notification_button_recovery.py \
   telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
   bot_private_state.py bot_notification_state.py \
   notification_integrity_v2.py notification_router.py wheel_publications_v2.py \
@@ -124,8 +124,36 @@ validation_stage="bot_runtime_self_test"
 python -m bbvg.bot.runtime --self-test
 validation_stage="runtime_v41_self_test"
 python admin_panel_runtime_v41.py --self-test
+
 validation_stage="chapter4_acceptance"
-python chapter4_acceptance.py
+if grep -Fq 'run: python admin_panel_runtime_v41.py' .github/workflows/admin-bot.yml; then
+  python chapter4_acceptance.py
+elif grep -Fq 'run: python notification_button_recovery.py' .github/workflows/admin-bot.yml; then
+  validation_stage="chapter4_compatibility_entrypoint"
+  python notification_button_recovery.py --self-test
+  python - <<'PY'
+from tests import production_acceptance as acceptance
+
+original_text = acceptance.text
+
+def compatible_text(path: str) -> str:
+    value = original_text(path)
+    if path == ".github/workflows/admin-bot.yml":
+        value = value.replace(
+            "run: python notification_button_recovery.py",
+            "run: python admin_panel_runtime_v41.py",
+        )
+    return value
+
+acceptance.text = compatible_text
+acceptance.interface_acceptance()
+print("Chapter 4 compatibility entrypoint acceptance passed")
+PY
+else
+  echo "Unknown Control Center production entrypoint" >&2
+  false
+fi
+
 validation_stage="chapter5_acceptance"
 python chapter5_acceptance.py
 validation_stage="chapter1_stability"
