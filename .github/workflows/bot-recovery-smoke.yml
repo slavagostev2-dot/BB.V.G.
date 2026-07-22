@@ -11,7 +11,17 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
+    env:
+      BOT_TOKEN: "test-bot-token"
+      BOT_STATE_KEY: "test-state-key"
+      BOT_CHAT_ID: "1"
+      ADMIN_USER_ID: "1"
+      BBVG_TEST_MODE: "1"
+      TELEGRAM_WEB_DOMAIN: telegram.me
+      FINAL_REMINDER_BEFORE_MINUTES: "5"
+      ACTIVE_REMOVE_GRACE_MINUTES: "0"
+
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -22,66 +32,128 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
+          cache: pip
 
-      - name: Audit bot access state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'bot_access.json']); assert not f,f"
-      - name: Audit source request state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'source_requests.json']); assert not f,f"
-      - name: Audit system check state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'system_check_state.json']); assert not f,f"
-      - name: Audit notification delivery state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'notification_delivery_state.json']); assert not f,f"
-      - name: Audit encrypted bot state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'bot_private_state.enc.json']); assert not f,f"
-      - name: Audit wheel state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'state.json']); assert not f,f"
-      - name: Audit source statistics state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'source_stats.json']); assert not f,f"
-      - name: Audit candidate moderation state
-        run: python -c "from security_audit import ROOT,scan_current; f=scan_current([ROOT/'candidate_moderation.json']); assert not f,f"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
 
-      - name: Audit remaining root files
+      - name: Validate recovery core
         run: |
+          set -euo pipefail
+          for version in $(seq 25 40); do
+            test ! -e "admin_panel_runtime_v${version}.py" || {
+              echo "Historical panel runtime remains: admin_panel_runtime_v${version}.py" >&2
+              exit 1
+            }
+          done
+          python -m compileall -q bbvg tests
+          python -m py_compile \
+            admin_panel_runtime_v41.py telegram_ui.py \
+            bot_private_state.py bot_notification_state.py notification_integrity_v2.py \
+            privacy_retention.py security_audit.py migrate_bot_private_state.py \
+            notification_preferences_v2.py admin_action_v2.py admin_action_v3.py \
+            rating_policy.py bbvg_monitor_main.py recurring_wheel_events.py \
+            wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py \
+            wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
+            personal_reminder_filter.py daily_report.py source_intelligence_alerts.py \
+            system_checks_v2.py source_tier_maintenance_v2.py
+          python -m bbvg.bot.storage
+          python -m bbvg.bot.users
+          python -m bbvg.bot.runtime --self-test
+          python bot_private_state.py
+          python notification_integrity_v2.py --self-test
+          python bot_notification_state.py
+          python privacy_retention.py
+          python security_audit.py --current
+          python migrate_bot_private_state.py --check
+          python notification_preferences_v2.py
+
+      - name: Validate stable production runtime
+        run: |
+          set -euo pipefail
+          python -m bbvg.bot.storage
+          python -m bbvg.bot.users
+          python -m bbvg.bot.runtime --self-test
+          python admin_panel_runtime_v41.py --self-test
+
+      - name: Validate recovery domain commands
+        run: |
+          set -euo pipefail
+          python recurring_wheel_events.py
+          python wheel_event_runtime.py
+          python wheel_metadata_quality.py
+          python wheel_publications_v2.py
+          python wheel_lifecycle_v2.py
+          python wheel_link_lifecycle.py
+          python wheel_scenario_suite.py
+          python personal_reminder_filter.py
+          python source_intelligence_alerts.py
+          python -c "import daily_report; daily_report.self_test()"
+          python admin_action_v2.py --self-test
+          python admin_action_v3.py --self-test
+          python system_checks_v2.py --self-test
+          python source_tier_maintenance_v2.py --self-test
+
+      - name: Validate recovery architecture and monitor patches
+        run: |
+          set -euo pipefail
           python - <<'PY'
-          from security_audit import ROOT, scan_current, tracked_files
-          excluded = {
-              'bot_access.json', 'source_requests.json', 'system_check_state.json',
-              'notification_delivery_state.json', 'bot_private_state.enc.json',
-              'state.json', 'source_stats.json', 'candidate_moderation.json',
+          import json
+          from pathlib import Path
+          import bbvg_monitor_main
+          import bot_notification_state
+          import notification_router
+          from bbvg.bot.runtime import TelegramPanelRuntime
+          from bbvg.bot.users import WHEEL_NOTIFICATION_OPTIONS
+
+          assert not any(
+              cls.__module__.startswith('admin_panel_runtime_v')
+              for cls in TelegramPanelRuntime.__mro__
+          )
+          assert notification_router.load_config is bot_notification_state.load_config
+          assert notification_router._bbvg_notification_preferences_v2_installed is True
+          assert notification_router._bbvg_notification_integrity_v2_installed is True
+          assert bbvg_monitor_main.monitor.data_store.record_admin_wheel_decision.__module__ == 'bbvg_monitor_main'
+          assert bbvg_monitor_main.monitor._bbvg_wheel_metadata_quality_installed is True
+          assert bbvg_monitor_main.monitor._bbvg_wheel_event_runtime_installed is True
+          assert bbvg_monitor_main.monitor._bbvg_publication_merge_v2_installed is True
+          assert bbvg_monitor_main.monitor._bbvg_wheel_lifecycle_v2_installed is True
+          assert bbvg_monitor_main.monitor._bbvg_personal_reminder_filter_installed is True
+
+          panel = TelegramPanelRuntime
+          callbacks = lambda rows: [button.get('callback_data') for row in rows for button in row]
+          admin_main = callbacks(panel.compact_menu_rows(True))
+          user_main = callbacks(panel.compact_menu_rows(False))
+          assert len(admin_main) == len(set(admin_main))
+          assert len(user_main) == len(set(user_main))
+          assert 'page:control' in admin_main
+          assert 'page:settings' in user_main
+          assert 'page:status' in user_main
+          assert 'page:reports' not in admin_main
+          assert 'control:daily' not in callbacks(panel.control_menu_rows())
+          assert {key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS} == {
+              'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'
           }
-          paths = [p for p in tracked_files() if '/' not in p.relative_to(ROOT).as_posix() and p.name not in excluded]
-          findings = scan_current(paths)
-          assert not findings, findings
-          PY
-      - name: Audit bbvg package
-        run: |
-          python - <<'PY'
-          from security_audit import ROOT, scan_current, tracked_files
-          paths = [p for p in tracked_files() if p.relative_to(ROOT).as_posix().startswith('bbvg/')]
-          findings = scan_current(paths)
-          assert not findings, findings
-          PY
-      - name: Audit tests
-        run: |
-          python - <<'PY'
-          from security_audit import ROOT, scan_current, tracked_files
-          paths = [p for p in tracked_files() if p.relative_to(ROOT).as_posix().startswith('tests/')]
-          findings = scan_current(paths)
-          assert not findings, findings
-          PY
-      - name: Audit documentation
-        run: |
-          python - <<'PY'
-          from security_audit import ROOT, scan_current, tracked_files
-          paths = [p for p in tracked_files() if p.relative_to(ROOT).as_posix().startswith('docs/')]
-          findings = scan_current(paths)
-          assert not findings, findings
-          PY
-      - name: Audit workflows
-        run: |
-          python - <<'PY'
-          from security_audit import ROOT, scan_current, tracked_files
-          paths = [p for p in tracked_files() if p.relative_to(ROOT).as_posix().startswith('.github/')]
-          findings = scan_current(paths)
-          assert not findings, findings
+          assert 'access_signature' not in panel().normalize_access({'owner_id': '1'})
+
+          ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
+          assert ledger.get('format') in {
+              'bbvg-notification-delivery-v2',
+              'bbvg-notification-delivery-v3',
+          }
+          assert isinstance(ledger.get('entries'), dict)
+          primary = [
+              line.split('#', 1)[0].strip().lstrip('@')
+              for line in Path('public_sources.txt').read_text(encoding='utf-8').splitlines()
+              if line.split('#', 1)[0].strip()
+          ]
+          nightly = [
+              line.split('#', 1)[0].strip().lstrip('@')
+              for line in Path('source_catalog.txt').read_text(encoding='utf-8').splitlines()
+              if line.split('#', 1)[0].strip()
+          ]
+          combined = [value.casefold() for value in primary + nightly]
+          assert len(combined) == len(set(combined))
+          assert {'mariomaxtv', 'adekvatik', 'jestercast'} <= set(combined)
+          print('Consolidated recovery and monitor smoke test passed')
           PY
