@@ -18,6 +18,10 @@
 
 Дополнительная production-диагностика `zonertg13` выявила, что активная карточка может не дублировать `wheel_key` внутри объекта. Owner-sync теперь использует ключ словаря `active_wheels` как authoritative fallback при построении event-token, поэтому точное событие больше не пропускается молча.
 
+**Production-проверка:** `zonertg13`, `action_id=698`, подтверждено BetBoom; личное участие владельца сохранено, стандартный `record_personal_vote` поставлен с `role=owner`, `weight=5`, источником `mechanogun`, а отправка отдельного Telegram-подтверждения зафиксирована owner-completion. Исправленный monitor run `29908357831` работает на актуальном коде с `168/168` доступными источниками и нулём ошибок.
+
+**Post-update backup:** `backup/2026-07-22-after-auto-participation-delivery-repair-final` → `9ab0fbe08e162e7b32b04261112a684f4df20c9e`.
+
 ## 2026-07-22 — Ротация хранит семь backup-веток
 
 Лимит обычных веток `backup/*` увеличен с трёх до семи. `backup_rotation.py` и `.github/workflows/bot-state-backup.yml` используют единый fail-closed контракт `KEEP_BACKUPS=7`: только что созданная ветка сохраняется всегда, а удаление начинается только при появлении восьмой проверенной backup-ветки.
