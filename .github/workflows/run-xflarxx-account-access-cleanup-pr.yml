@@ -40,6 +40,27 @@ jobs:
           script = text.split(start_marker, 1)[1].split(end_marker, 1)[0]
           lines = script.splitlines()
           script = '\n'.join(line[10:] if line.startswith('          ') else line for line in lines)
+          script = script.replace(
+              "text = text.replace('ACCOUNT_KEY', 'DEFAULT_ACCOUNT_KEY')",
+              '''text = text.replace(
+    'str(raw.get("account_key") or "") != ACCOUNT_KEY',
+    'str(raw.get("account_key") or "") != DEFAULT_ACCOUNT_KEY',
+)
+text = text.replace(
+    'f"#account:{ACCOUNT_KEY}"',
+    'f"#account:{DEFAULT_ACCOUNT_KEY}"',
+)
+text = text.replace(
+    '"account_key": ACCOUNT_KEY,',
+    '"account_key": DEFAULT_ACCOUNT_KEY,',
+)''',
+          )
+          script = script.replace(
+              '''if "ACCOUNT_KEY" in text:
+    raise SystemExit("betboom_account_participation.py: stale ACCOUNT_KEY reference remains")''',
+              '''if "\nACCOUNT_KEY =" in text:
+    raise SystemExit("betboom_account_participation.py: stale ACCOUNT_KEY constant remains")''',
+          )
           exec(compile(script, str(workflow), 'exec'), {})
           PY
 
