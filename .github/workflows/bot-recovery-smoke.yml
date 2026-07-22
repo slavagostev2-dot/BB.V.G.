@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Validate recovery core
+      - name: Validate recovery compilation
         run: |
           set -euo pipefail
           for version in $(seq 25 40); do
@@ -57,12 +57,24 @@ jobs:
             wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
             personal_reminder_filter.py daily_report.py source_intelligence_alerts.py \
             system_checks_v2.py source_tier_maintenance_v2.py
+
+      - name: Validate consolidated runtime self-tests
+        run: |
+          set -euo pipefail
           python -m bbvg.bot.storage
           python -m bbvg.bot.users
           python -m bbvg.bot.runtime --self-test
+
+      - name: Validate notification state self-tests
+        run: |
+          set -euo pipefail
           python bot_private_state.py
           python notification_integrity_v2.py --self-test
           python bot_notification_state.py
+
+      - name: Validate remaining recovery core
+        run: |
+          set -euo pipefail
           python privacy_retention.py
           python security_audit.py --current
           python migrate_bot_private_state.py --check
@@ -107,8 +119,8 @@ jobs:
           from bbvg.bot.users import WHEEL_NOTIFICATION_OPTIONS
 
           assert not any(
-            cls.__module__.startswith('admin_panel_runtime_v')
-            for cls in TelegramPanelRuntime.__mro__
+              cls.__module__.startswith('admin_panel_runtime_v')
+              for cls in TelegramPanelRuntime.__mro__
           )
           assert notification_router.load_config is bot_notification_state.load_config
           assert notification_router._bbvg_notification_preferences_v2_installed is True
@@ -132,25 +144,25 @@ jobs:
           assert 'page:reports' not in admin_main
           assert 'control:daily' not in callbacks(panel.control_menu_rows())
           assert {key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS} == {
-            'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'
+              'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'
           }
           assert 'access_signature' not in panel().normalize_access({'owner_id': '1'})
 
           ledger = json.loads(Path('notification_delivery_state.json').read_text(encoding='utf-8'))
           assert ledger.get('format') in {
-            'bbvg-notification-delivery-v2',
-            'bbvg-notification-delivery-v3',
+              'bbvg-notification-delivery-v2',
+              'bbvg-notification-delivery-v3',
           }
           assert isinstance(ledger.get('entries'), dict)
           primary = [
-            line.split('#', 1)[0].strip().lstrip('@')
-            for line in Path('public_sources.txt').read_text(encoding='utf-8').splitlines()
-            if line.split('#', 1)[0].strip()
+              line.split('#', 1)[0].strip().lstrip('@')
+              for line in Path('public_sources.txt').read_text(encoding='utf-8').splitlines()
+              if line.split('#', 1)[0].strip()
           ]
           nightly = [
-            line.split('#', 1)[0].strip().lstrip('@')
-            for line in Path('source_catalog.txt').read_text(encoding='utf-8').splitlines()
-            if line.split('#', 1)[0].strip()
+              line.split('#', 1)[0].strip().lstrip('@')
+              for line in Path('source_catalog.txt').read_text(encoding='utf-8').splitlines()
+              if line.split('#', 1)[0].strip()
           ]
           combined = [value.casefold() for value in primary + nightly]
           assert len(combined) == len(set(combined))
