@@ -10,6 +10,7 @@ from typing import Any
 
 import auto_participation_owner_sync
 import betboom_auto_participation
+import betboom_account_participation
 import bot_private_state
 import notification_integrity_v2
 import notification_remote_checkpoint
@@ -344,6 +345,7 @@ if "bbvg.bot.runtime" in sys.modules:
         PanelInterfaceRuntime.period_overview = _period_overview_without_top_find_sources
         PanelInterfaceRuntime._bbvg_top_find_sources_removed = True
 
+    betboom_account_participation.install_owner_sync()
     auto_participation_owner_sync.install(TelegramPanelV2)
     natural_language_admin.install(legacy_admin.AdminBot)
 
