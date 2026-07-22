@@ -64,7 +64,9 @@ jobs:
             .github/workflows/apply-xflarxx-main-final.yml
 
       - name: Validate changed contracts and full suite
+        id: validation
         if: steps.pending.outputs.apply == 'true'
+        continue-on-error: true
         env:
           BBVG_TEST_MODE: "1"
           BOT_TOKEN: "test-token"
@@ -72,25 +74,41 @@ jobs:
           BOT_CHAT_ID: "1"
           ADMIN_USER_ID: "1"
         run: |
-          set -euo pipefail
-          python -m py_compile \
-            betboom_account_participation.py \
-            auto_participation_notifications.py \
-            notification_button_recovery.py \
-            bbvg/bot/runtime.py \
-            tests/test_button_matrix.py
-          python betboom_account_participation.py --self-test
-          python auto_participation_notifications.py
-          python notification_button_recovery.py --self-test
-          python -m bbvg.bot.runtime --self-test
-          python admin_panel_runtime_v41.py --self-test
-          python -m pytest -q
+          set -o pipefail
+          {
+            python -m py_compile \
+              betboom_account_participation.py \
+              auto_participation_notifications.py \
+              notification_button_recovery.py \
+              bbvg/bot/runtime.py \
+              tests/test_button_matrix.py
+            python betboom_account_participation.py --self-test
+            python auto_participation_notifications.py
+            python notification_button_recovery.py --self-test
+            python -m bbvg.bot.runtime --self-test
+            python admin_panel_runtime_v41.py --self-test
+            python -m pytest -q
+          } 2>&1 | tee xflarxx_validation.log
 
-      - name: Commit verified result
-        if: steps.pending.outputs.apply == 'true'
+      - name: Persist validation diagnostic
+        if: steps.pending.outputs.apply == 'true' && steps.validation.outcome == 'failure'
         shell: bash
         run: |
           set -euo pipefail
+          git reset --hard HEAD
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f xflarxx_validation.log
+          git commit -m "Record xFLARXx validation failure [skip ci]"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          exit 1
+
+      - name: Commit verified result
+        if: steps.pending.outputs.apply == 'true' && steps.validation.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f xflarxx_validation.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
