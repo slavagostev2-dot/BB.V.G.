@@ -1,0 +1,90 @@
+
+from pathlib import Path
+
+recovery = Path("auto_participation_recovery.py")
+text = recovery.read_text(encoding="utf-8")
+root_marker = "ROOT = Path(__file__).resolve().parent\n"
+constants = '''ROOT = Path(__file__).resolve().parent
+_TRANSIENT_FAILURE_STATUSES = {
+    "browser_error",
+    "unconfirmed",
+    "timeout",
+    "navigation_timeout",
+    "page_timeout",
+}
+_TRANSIENT_FAILURE_MARKERS = (
+    "timeouterror",
+    "timeout",
+    "page.goto",
+    "net::",
+    "connection",
+    "target closed",
+)
+_TRANSIENT_RETRY_DELAY = timedelta(minutes=3)
+
+
+def _transient_failure(status: str, detail: str) -> bool:
+    normalized_status = str(status or "").casefold()
+    normalized_detail = str(detail or "").casefold()
+    return normalized_status in _TRANSIENT_FAILURE_STATUSES or any(
+        marker in normalized_detail for marker in _TRANSIENT_FAILURE_MARKERS
+    )
+'''
+if "_TRANSIENT_FAILURE_STATUSES" not in text:
+    if text.count(root_marker) != 1:
+        raise SystemExit("Recovery root marker not found")
+    text = text.replace(root_marker, constants, 1)
+
+old_failure = '''    record: dict[str, Any] = {
+        "wheel_key": key,
+        "status": status,
+        "detail": detail[:300],
+        "attempted_at": scanned_at.isoformat(),
+        "retry_allowed": False,
+        "recovery_scan": True,
+    }
+    if isinstance(previous, dict):
+        for field in (
+            "manual_notification_sent",
+            "manual_notification_detail",
+            "manual_notification_at",
+            "bot_failure_pending_at",
+            "bot_failure_sync_status",
+            "bot_failure_sync_version",
+            "bot_failure_status",
+            "bot_failure_detail",
+        ):
+            if field in previous:
+                record[field] = previous[field]
+
+    # Legacy recovery may already have sent a failure before this architecture was
+    # introduced. Never queue a second failure for that exact event.
+    if not bool(record.get("manual_notification_sent")):
+        record.setdefault("bot_failure_pending_at", scanned_at.isoformat())
+        record["bot_failure_sync_status"] = "waiting_for_control_center"
+        record["bot_failure_sync_version"] = 1
+        record["bot_failure_status"] = status
+        record["bot_failure_detail"] = detail[:300]
+    return record
+'''
+new_failure = '''    transient = _transient_failure(status, detail)
+    record: dict[str, Any] = {
+        "wheel_key": key,
+        "status": status,
+        "detail": detail[:300],
+        "attempted_at": scanned_at.isoformat(),
+        "retry_allowed": transient,
+        "recovery_scan": True,
+    }
+    if isinstance(previous, dict):
+        for field in (
+            "manual_notification_sent",
+            "manual_notification_detail",
+            "manual_notification_at",
+            "bot_failure_pending_at",
+            "bot_failure_sync_status",
+            "bot_failure_sync_version",
+            "bot_failure_status",
+            "bot_failure_detail",
+        ):
+            if field in pr
