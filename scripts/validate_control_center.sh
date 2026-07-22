@@ -143,6 +143,11 @@ def compatible_text(path: str) -> str:
             "run: python notification_button_recovery.py",
             "run: python admin_panel_runtime_v41.py",
         )
+        if (
+            "bash scripts/validate_control_center.sh" in value
+            and "run: bash scripts/validate_control_center.sh" not in value
+        ):
+            value += "\nrun: bash scripts/validate_control_center.sh\n"
     return value
 
 acceptance.text = compatible_text
