@@ -38,9 +38,11 @@ jobs:
           cache: pip
 
       - name: Install dependencies
+        id: dependencies
         run: python -m pip install -r requirements.txt
 
       - name: Validate candidate Control Center release
+        id: candidate
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -50,6 +52,7 @@ jobs:
         run: bash scripts/validate_control_center.sh
 
       - name: Validate notification participation recovery
+        id: button_recovery
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -59,6 +62,7 @@ jobs:
         run: python notification_button_recovery.py --self-test
 
       - name: Validate automatic participation owner sync
+        id: owner_sync
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -79,6 +83,7 @@ jobs:
           PY
 
       - name: Verify configured AI provider
+        id: ai_provider
         env:
           BBVG_AI_ENABLED: "true"
           BBVG_AI_FEATURES: "natural_language_admin"
@@ -97,6 +102,7 @@ jobs:
           PY
 
       - name: Preserve role fingerprint and migrate state
+        id: state_migration
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -148,6 +154,49 @@ jobs:
               git pull --rebase origin main || { git rebase --abort || true; exit 1; }
             done
           fi
+
+      - name: Record Control Center validation failure
+        if: ${{ failure() }}
+        env:
+          DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
+          CANDIDATE_OUTCOME: ${{ steps.candidate.outcome }}
+          BUTTON_RECOVERY_OUTCOME: ${{ steps.button_recovery.outcome }}
+          OWNER_SYNC_OUTCOME: ${{ steps.owner_sync.outcome }}
+          AI_PROVIDER_OUTCOME: ${{ steps.ai_provider.outcome }}
+          STATE_MIGRATION_OUTCOME: ${{ steps.state_migration.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+          now=$(date -u +%FT%T.%NZ)
+          stages="dependencies=${DEPENDENCIES_OUTCOME:-unknown}; candidate=${CANDIDATE_OUTCOME:-unknown}; button_recovery=${BUTTON_RECOVERY_OUTCOME:-unknown}; owner_sync=${OWNER_SYNC_OUTCOME:-unknown}; ai_provider=${AI_PROVIDER_OUTCOME:-unknown}; state_migration=${STATE_MIGRATION_OUTCOME:-unknown}"
+          tmp=$(mktemp)
+          jq \
+            --arg now "$now" \
+            --arg run_id "${GITHUB_RUN_ID:-}" \
+            --arg head_sha "${GITHUB_SHA:-}" \
+            --arg event "${GITHUB_EVENT_NAME:-}" \
+            --arg stages "$stages" \
+            '.status = "validation_failed"
+             | .last_validation_at = $now
+             | .validation_error = $stages
+             | .validation_run_id = $run_id
+             | .validation_head_sha = $head_sha
+             | .validation_event = $event' \
+            admin_panel_status.json > "$tmp"
+          mv "$tmp" admin_panel_status.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add admin_panel_status.json
+          git commit -m "Record BB V.G. Control Center validation failure [skip ci]" || exit 0
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+          done
+          exit 1
 
   control-center:
     needs: validate-control-center
