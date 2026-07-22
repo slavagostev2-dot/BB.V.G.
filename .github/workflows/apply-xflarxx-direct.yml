@@ -1,0 +1,77 @@
+name: Apply xFLARXx cleanup directly
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-xflarxx-direct.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WORK_BRANCH: feature/xflarxx-account-access-cleanup-final
+      TEMP_WORKFLOW: .github/workflows/apply-xflarxx-direct.yml
+    steps:
+      - name: Checkout working branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: feature/xflarxx-account-access-cleanup-final
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply scripts and push
+        shell: bash
+        run: |
+          set -uo pipefail
+          exec > >(tee /tmp/xflarxx-direct.log) 2>&1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          original_sha="$(git rev-parse HEAD)"
+          failed=0
+          stage="primary-patch"
+          python scripts/apply_xflarxx_account_access_cleanup.py || failed=1
+          if [[ "$failed" == 0 ]]; then
+            stage="finalize-patch"
+            python scripts/finalize_xflarxx_account_access_cleanup.py || failed=1
+          fi
+          if [[ "$failed" == 0 ]]; then
+            stage="compile"
+            rm -f scripts/apply_xflarxx_account_access_cleanup.py scripts/finalize_xflarxx_account_access_cleanup.py
+            python -m py_compile betboom_account_participation.py auto_participation_notifications.py notification_button_recovery.py bbvg/bot/runtime.py || failed=1
+          fi
+          if [[ "$failed" != 0 ]]; then
+            echo "FAILED_STAGE=${stage}"
+            git reset --hard "$original_sha"
+            cp /tmp/xflarxx-direct.log xflarxx_cleanup_failure.log
+            git add xflarxx_cleanup_failure.log
+            git commit -m "Record xFLARXx direct patch failure at ${stage} [skip ci]" || true
+            git push origin "HEAD:${WORK_BRANCH}"
+            exit 1
+          fi
+          git add -A
+          git commit -m "Подключить xFLARXx и исправить управление пользователями"
+          git push origin "HEAD:${WORK_BRANCH}"
+          git push origin --delete fix/control-center-unified-notification-release || true
+
+      - name: Remove direct workflow from main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B cleanup-main origin/main
+          if [[ -f "$TEMP_WORKFLOW" ]]; then
+            git rm "$TEMP_WORKFLOW"
+            git commit -m "Remove completed xFLARXx direct workflow [skip ci]"
+            for attempt in 1 2 3 4 5; do
+              if git push origin HEAD:main; then exit 0; fi
+              git pull --rebase origin main
+              sleep $((attempt * 2))
+            done
+            exit 1
+          fi
