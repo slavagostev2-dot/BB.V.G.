@@ -1,0 +1,55 @@
+{
+  "backup_count": 4,
+  "default_branch": "main",
+  "default_sha": "98b9fc585862b03991db8970d87740223aab31de",
+  "generated_at": "2026-07-22T07:50:10.938679+00:00",
+  "obsolete": [],
+  "policy_keep_count": 7,
+  "records": [
+    {
+      "committed_at": "2026-07-22T07:12:59Z",
+      "compare_status": "ahead",
+      "merge_base_sha": "cf0ba60ebd375b42e170e4605cb361bc3c91ada0",
+      "name": "backup/2026-07-22-validate-seven-backups",
+      "planned_action": "keep",
+      "safe_ancestor": true,
+      "sha": "cf0ba60ebd375b42e170e4605cb361bc3c91ada0"
+    },
+    {
+      "committed_at": "2026-07-22T06:14:32Z",
+      "compare_status": "ahead",
+      "merge_base_sha": "07af67a3d9fe6dbf83691ebe45574987d3c759b1",
+      "name": "backup/2026-07-22-after-referral-wheel-label",
+      "planned_action": "keep",
+      "safe_ancestor": true,
+      "sha": "07af67a3d9fe6dbf83691ebe45574987d3c759b1"
+    },
+    {
+      "committed_at": "2026-07-22T05:38:52Z",
+      "compare_status": "ahead",
+      "merge_base_sha": "cab645a3e3fdd2dc838b6cf156c23e7ef689c3e6",
+      "name": "backup/2026-07-22-before-referral-wheel-label",
+      "planned_action": "keep",
+      "safe_ancestor": true,
+      "sha": "cab645a3e3fdd2dc838b6cf156c23e7ef689c3e6"
+    },
+    {
+      "committed_at": "2026-07-22T05:03:21Z",
+      "compare_status": "ahead",
+      "merge_base_sha": "10d0b67d3d9fdbebfcf58c7fbf855c7e95ed87f8",
+      "name": "backup/2026-07-22-after-auto-participation-and-panel-recovery",
+      "planned_action": "keep",
+      "safe_ancestor": true,
+      "sha": "10d0b67d3d9fdbebfcf58c7fbf855c7e95ed87f8"
+    }
+  ],
+  "repository": "slavagostev2-dot/BB.V.G.",
+  "retained": [
+    "backup/2026-07-22-validate-seven-backups",
+    "backup/2026-07-22-after-referral-wheel-label",
+    "backup/2026-07-22-before-referral-wheel-label",
+    "backup/2026-07-22-after-auto-participation-and-panel-recovery"
+  ],
+  "safe_count": 4,
+  "unsafe_count": 0
+}
