@@ -72,13 +72,17 @@ jobs:
           python notification_integrity_v2.py --self-test
           python bot_notification_state.py
 
-      - name: Validate remaining recovery core
-        run: |
-          set -euo pipefail
-          python privacy_retention.py
-          python security_audit.py --current
-          python migrate_bot_private_state.py --check
-          python notification_preferences_v2.py
+      - name: Validate privacy retention
+        run: python privacy_retention.py
+
+      - name: Validate current security audit
+        run: python security_audit.py --current
+
+      - name: Validate private-state migration
+        run: python migrate_bot_private_state.py --check
+
+      - name: Validate notification preferences
+        run: python notification_preferences_v2.py
 
       - name: Validate stable production runtime
         run: |
