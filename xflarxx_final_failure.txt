@@ -1,6 +1,9 @@
 From https://github.com/slavagostev2-dot/BB.V.G.
  * branch              main       -> FETCH_HEAD
-Rebasing (1/6)Rebasing (2/6)Rebasing (3/6)Rebasing (4/6)Rebasing (5/6)Rebasing (6/6)Successfully rebased and updated refs/heads/feature/xflarxx-account-access-cleanup-final.
-.github/workflows/auto-participation.yml: expected one marker, found 0: '           if not betboom_account_participation.configured():\n               raise SystemExit("Vyacheslav second BetBoom'
+Rebasing (1/8)Rebasing (2/8)Rebasing (3/8)Rebasing (4/8)Rebasing (5/8)Rebasing (6/8)Rebasing (7/8)Rebasing (8/8)Successfully rebased and updated refs/heads/feature/xflarxx-account-access-cleanup-final.
+  File "/home/runner/work/BB.V.G./BB.V.G./scripts/apply_xflarxx_account_access_cleanup.py", line 191
+    old_message = '          print("Auto participation preflight OK for both BetBoom accounts")
+                  ^
+SyntaxError: unterminated string literal (detected at line 191)
 FAILED_STAGE=patch
-HEAD is now at 2af07733 Сделать подготовку PART5/PART6 устойчивой к форматированию
+HEAD is now at f30f00d1 Исправить отступы preflight автоучастия
