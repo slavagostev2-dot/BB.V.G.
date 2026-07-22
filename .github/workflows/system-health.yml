@@ -231,6 +231,64 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python system_checks_v3.py
 
+      # BEGIN PARTICIPATION_RECOVERY_CHANGELOG_ONCE
+      - name: Record participation recovery changelog once
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+          python - <<'PY'
+          from pathlib import Path
+
+          changelog_path = Path("docs/PROJECT_CHANGELOG_RU.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          heading = "## 2026-07-22 — Единый исход автоучастия и восстановление Control Center"
+          if heading not in changelog:
+              marker = "---\n\n"
+              entry = '''## 2026-07-22 — Единый исход автоучастия и восстановление Control Center
+
+Скриншоты production подтвердили три связанных сбоя: после подтверждённого участия `chopper`, `pomidor2` и `MAGER01` старый monitor-dispatcher отправлял ложное сообщение «не сработало»; временный Playwright `TimeoutError/Page.goto` по `little` показывался пользователю как финальный отказ; Control Center завершился по job timeout до запуска следующей смены.
+
+Прямой failure через legacy `_notify_manual_participation` запрещён глобально. GitHub dispatch, очередь Actions, сетевые и browser timeout сохраняются как бесшумно повторяемое техническое состояние. Единственный Control Center ждёт пять минут, повторно сверяет точное событие `wheel_key + action_id + server_start_at`, отдаёт безусловный приоритет уже подтверждённому успеху и показывает только нормализованную причину без stack trace.
+
+Control Center ограничен 4,5 часами при job timeout 350 минут и получил почасовой страховочный запуск; schedule не отменяет здоровый процесс. Полные system-health проверки сериализованы отдельно от пятиминутного monitor-watchdog. Production compatibility entrypoint `notification_button_recovery.py` наследует основной v41, не создаёт второго Telegram consumer и сохраняет regression fallback старых callback-кнопок по точному сценарию `hooch07 → cba7abb40c5b77`.
+
+Production-проверка: exact preflight прошёл полностью в run `29889875128`, после чего Control Center записал новый статус `running` и продолжает публиковать heartbeat. Монитор работает с `168/168` доступными источниками и нулём ошибок.
+
+**Pre-update backup:** `backup/2026-07-22-before-auto-participation-and-panel-recovery` → `5548817ce2d956b1256f2367dc18ff815034f9ef`.
+
+**Post-update backup:** `backup/2026-07-22-after-auto-participation-and-panel-recovery` → `10d0b67d3d9fdbebfcf58c7fbf855c7e95ed87f8`.
+
+'''
+              if marker not in changelog:
+                  raise SystemExit("PROJECT_CHANGELOG_RU.md insertion marker not found")
+              changelog_path.write_text(changelog.replace(marker, marker + entry, 1), encoding="utf-8")
+
+          workflow_path = Path(".github/workflows/system-health.yml")
+          workflow = workflow_path.read_text(encoding="utf-8")
+          start_marker = "      # BEGIN PARTICIPATION_RECOVERY_CHANGELOG_ONCE\n"
+          end_marker = "      # END PARTICIPATION_RECOVERY_CHANGELOG_ONCE\n"
+          start = workflow.find(start_marker)
+          end = workflow.find(end_marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit("One-shot changelog markers not found")
+          end += len(end_marker)
+          workflow_path.write_text(workflow[:start] + workflow[end:], encoding="utf-8")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PROJECT_CHANGELOG_RU.md .github/workflows/system-health.yml
+          git commit -m "Задокументировать восстановление автоучастия и Control Center"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+          done
+          exit 1
+      # END PARTICIPATION_RECOVERY_CHANGELOG_ONCE
+
       - name: Save incident state
         shell: bash
         run: |
