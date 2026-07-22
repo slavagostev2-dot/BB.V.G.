@@ -1,0 +1,88 @@
+name: BB V.G. diagnose Control Center once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/diagnose-control-center-once.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Diagnose and persist result
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
+          BBVG_TEST_MODE: "1"
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set +e
+          output=$({
+            bash scripts/validate_control_center.sh
+            python notification_button_recovery.py --self-test
+            python auto_participation_owner_sync.py
+            python bot_notification_state.py
+            python - <<'PY'
+          import admin_panel_runtime_v41  # noqa: F401
+          from admin_panel_v2 import TelegramPanelV2
+          assert getattr(TelegramPanelV2, "_bbvg_auto_participation_owner_sync_installed", False)
+          print("Control Center runtime import and owner sync verified")
+          PY
+          } 2>&1)
+          code=$?
+          set -e
+
+          printf '%s\n' "$output"
+          now=$(date -u +%FT%T.%NZ)
+          tmp=$(mktemp)
+          if (( code == 0 )); then
+            jq --arg now "$now" \
+              '.status = "validation_passed" | .last_validation_at = $now | del(.validation_error)' \
+              admin_panel_status.json > "$tmp"
+          else
+            jq --arg now "$now" --arg error "$output" \
+              '.status = "validation_failed" | .last_validation_at = $now | .validation_error = ($error[0:3500])' \
+              admin_panel_status.json > "$tmp"
+          fi
+          mv "$tmp" admin_panel_status.json
+
+          if (( code == 0 )); then
+            gh workflow run admin-bot.yml --ref main
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/diagnose-control-center-once.yml
+          git add admin_panel_status.json
+          git commit -m "Записать результат диагностики Control Center [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+          done
+          exit 1
