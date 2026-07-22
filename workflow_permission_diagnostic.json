@@ -20,7 +20,8 @@
     "source-intelligence.yml",
     "source-registry.yml",
     "source-tier-maintenance.yml",
-    "system-health.yml"
+    "system-health.yml",
+    "write-seven-backup-changelog.yml"
   ],
   "expected_actions_write": [
     "admin-bot.yml",
@@ -48,6 +49,7 @@
   "missing_contents_write": [],
   "unexpected_actions_write": [],
   "unexpected_contents_write": [
-    "finish-seven-backup-policy.yml"
+    "finish-seven-backup-policy.yml",
+    "write-seven-backup-changelog.yml"
   ]
 }
