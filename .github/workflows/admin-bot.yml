@@ -9,6 +9,7 @@ on:
       - ".github/workflows/admin-bot.yml"
       - "notification_button_recovery.py"
       - "auto_participation_owner_sync.py"
+      - "auto_participation_notifications.py"
       - "bot_notification_state.py"
   workflow_dispatch:
   schedule:
@@ -22,7 +23,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -78,14 +79,24 @@ jobs:
         run: |
           python auto_participation_owner_sync.py
           python - <<'PY'
-          import admin_panel_runtime_v41  # noqa: F401
-          from admin_panel_v2 import TelegramPanelV2
+          import notification_button_recovery  # noqa: F401
+          from notification_button_recovery import TelegramPanelRuntimeButtonRecovery
           assert getattr(
-              TelegramPanelV2,
+              TelegramPanelRuntimeButtonRecovery,
               "_bbvg_auto_participation_owner_sync_installed",
               False,
           ), "Automatic participation owner sync is not installed"
-          print("Automatic participation owner sync installed")
+          assert getattr(
+              TelegramPanelRuntimeButtonRecovery,
+              "_bbvg_auto_notification_toggle_installed",
+              False,
+          ), "Automatic participation notification toggle is not installed"
+          assert getattr(
+              notification_button_recovery.auto_participation_notifications.auto_participation_owner_sync,
+              "_bbvg_unified_account_notifications_installed",
+              False,
+          ), "Unified two-account outcome aggregator is not installed"
+          print("Unified automatic participation outcome sync installed")
           PY
 
       - name: Verify configured AI provider
@@ -182,7 +193,7 @@ jobs:
           if [[ -n "$candidate_log" ]]; then
             error="$stages
 
-$candidate_log"
+          $candidate_log"
           fi
           tmp=$(mktemp)
           jq \
@@ -275,7 +286,7 @@ $candidate_log"
               "role_persistence": "aes_gcm_three_way_remote_merge",
               "notification_integrity": "persistent_hmac_delivery_ledger",
               "notification_button_recovery": "active_wheel_token_fallback",
-              "auto_participation_owner_sync": "control_center_personal_vote",
+              "auto_participation_owner_sync": "unified_two_account_outcome",
               "source_rating": "administrator_decisions_additive_finished_and_participating",
               "summary_delivery": "direct_in_process",
               "wheel_colors": "callback_payload_unchanged",
