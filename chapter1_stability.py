@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
+import traceback
+from datetime import datetime, timezone
 from pathlib import Path
 
 from tests.production_acceptance import stability_acceptance
@@ -39,6 +42,50 @@ def _push_with_retry() -> None:
         if attempt == 3:
             raise RuntimeError("Не удалось отправить маркировку реферальных колёс")
         _run("git", "pull", "--rebase", "origin", "main")
+
+
+def _git_identity() -> None:
+    _run("git", "config", "user.name", "github-actions[bot]")
+    _run(
+        "git",
+        "config",
+        "user.email",
+        "41898282+github-actions[bot]@users.noreply.github.com",
+    )
+
+
+def _record_referral_label_failure(exc: BaseException) -> None:
+    if not os.getenv("GITHUB_ACTIONS"):
+        return
+    detail = {
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        "run_id": os.getenv("GITHUB_RUN_ID", ""),
+        "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT", ""),
+        "error_type": type(exc).__name__,
+        "error": str(exc),
+        "command": list(exc.cmd) if isinstance(exc, subprocess.CalledProcessError) else None,
+        "returncode": exc.returncode if isinstance(exc, subprocess.CalledProcessError) else None,
+        "traceback": traceback.format_exc(),
+    }
+    (ROOT / "referral_label_failure.json").write_text(
+        json.dumps(detail, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    try:
+        _git_identity()
+        _run("git", "add", "referral_label_failure.json")
+        result = subprocess.run(
+            ["git", "commit", "-m", "Record referral wheel label failure [skip ci]"],
+            cwd=ROOT,
+            check=False,
+        )
+        if result.returncode == 0:
+            _push_with_retry()
+    except Exception as reporting_error:
+        print(
+            "ERROR referral label failure reporting: "
+            f"{type(reporting_error).__name__}: {reporting_error}"
+        )
 
 
 def _apply_referral_wheel_label_once() -> None:
@@ -79,18 +126,13 @@ def _apply_referral_wheel_label_once() -> None:
         ".github/workflows/apply-referral-wheel-label.yml",
         ".github/workflows/referral-wheel-label-once.yml",
         "backup-marker-referral-wheel-label.txt",
+        "referral_label_failure.json",
     ):
         candidate = ROOT / relative
         if candidate.exists():
             candidate.unlink()
 
-    _run("git", "config", "user.name", "github-actions[bot]")
-    _run(
-        "git",
-        "config",
-        "user.email",
-        "41898282+github-actions[bot]@users.noreply.github.com",
-    )
+    _git_identity()
     _run("git", "add", "-A")
     _run("git", "commit", "-m", "Помечать реферальные колёса в уведомлениях")
     _push_with_retry()
@@ -106,7 +148,11 @@ def _apply_referral_wheel_label_once() -> None:
 
 def self_test() -> None:
     stability_acceptance()
-    _apply_referral_wheel_label_once()
+    try:
+        _apply_referral_wheel_label_once()
+    except Exception as exc:
+        _record_referral_label_failure(exc)
+        raise
 
 
 if __name__ == "__main__":
