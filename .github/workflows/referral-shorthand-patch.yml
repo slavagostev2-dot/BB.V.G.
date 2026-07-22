@@ -1,0 +1,81 @@
+name: Apply referral shorthand detection fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.head_ref == 'fix/referral-shorthand-detection'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact pull request head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: true
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Recognize «для рефов» and add regression coverage
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          detector = Path("wheel_publications_v2.py")
+          text = detector.read_text(encoding="utf-8")
+          old = '    re.compile(r"\\b(?:для|моим?|нашим?)\\s+реферал\\w*\\b", re.IGNORECASE),\n'
+          new = '    re.compile(\n        r"\\b(?:для|моим?|нашим?)\\s+реф(?:ерал\\w*|ов|ам)\\b",\n        re.IGNORECASE,\n    ),\n'
+          if new not in text:
+              if text.count(old) != 1:
+                  raise SystemExit("Referral shorthand detector contract not found")
+              text = text.replace(old, new, 1)
+          detector.write_text(text, encoding="utf-8")
+
+          tests = Path("tests/test_chapter5_lifecycle.py")
+          text = tests.read_text(encoding="utf-8")
+          marker = '        self.assertTrue(wheel_publications_v2.is_referral_restricted(restricted))\n'
+          addition = marker + '        self.assertTrue(\n            wheel_publications_v2.is_referral_restricted(\n                "Колесо для рефов на BetBoom "\n                "https://betboom.ru/freestream/CTOM13"\n            )\n        )\n'
+          if '"Колесо для рефов на BetBoom "' not in text:
+              if text.count(marker) != 1:
+                  raise SystemExit("Referral regression test marker not found")
+              text = text.replace(marker, addition, 1)
+          tests.write_text(text, encoding="utf-8")
+
+          agents = Path("AGENTS.md")
+          text = agents.read_text(encoding="utf-8")
+          marker = '- Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические модули.\n'
+          addition = marker + '- Явные ограничения «только для рефералов», «для рефералов» и сокращённое «для рефов» считаются реферальным колесом. Такое колесо маркируется `referral_restricted`; предупреждение должно сохраняться в первичном уведомлении и списке активных колёс.\n'
+          if 'сокращённое «для рефов»' not in text:
+              if text.count(marker) != 1:
+                  raise SystemExit("AGENTS monitor marker not found")
+              text = text.replace(marker, addition, 1)
+          agents.write_text(text, encoding="utf-8")
+
+          changelog = Path("docs/PROJECT_CHANGELOG_RU.md")
+          text = changelog.read_text(encoding="utf-8")
+          title = "## 2026-07-22 — Формулировка «для рефов» распознаётся как ограничение"
+          if title not in text:
+              marker = "---\n\n"
+              entry = (
+                  title + "\n\n"
+                  "Инцидент `CTOM13` не был общим отказом авторизации: оба браузера нажали элемент участия, но BetBoom не подтвердил результат. Исходный пост содержал прямое условие «Колесо для рефов», которое не попадало под прежний шаблон «для рефералов».\n\n"
+                  "Детерминированный классификатор теперь распознаёт сокращения «для рефов» и «рефам». Такие публикации получают `referral_restricted` и явное предупреждение о необходимости регистрации по реферальной ссылке либо промокоду автора. Регрессионный тест использует точную формулировку инцидента `CTOM13`.\n\n"
+              )
+              if marker not in text:
+                  raise SystemExit("Changelog marker not found")
+              text = text.replace(marker, marker + entry, 1)
+          changelog.write_text(text, encoding="utf-8")
+          PY
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm -f .github/workflows/referral-shorthand-patch.yml
+          git add wheel_publications_v2.py tests/test_chapter5_lifecycle.py AGENTS.md docs/PROJECT_CHANGELOG_RU.md
+          git commit -m "Recognize referral shorthand in wheel posts"
+          git push origin "HEAD:${HEAD_BRANCH}"
