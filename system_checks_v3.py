@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from datetime import timedelta
 from typing import Any
 
@@ -81,9 +82,45 @@ def check_discovery_runtime_with_sync_grace(
     )
 
 
+def _deployment_notification_suppressed() -> bool:
+    """Do not alarm administrators while a code push is still converging."""
+
+    return os.getenv("GITHUB_EVENT_NAME", "").strip().casefold() == "push"
+
+
 def deliver_pending_notifications_with_ai(
     state: dict[str, Any], details: dict[str, Any]
 ) -> None:
+    opened = legacy.incident_manager.pending_open(state)
+    resolved = legacy.incident_manager.pending_resolved(state)
+    delivery = {
+        "opened": len(opened),
+        "resolved": len(resolved),
+        "digest_sent": False,
+        "messages_attempted": 1 if opened or resolved else 0,
+    }
+
+    if _deployment_notification_suppressed() and (opened or resolved):
+        # Leave incident pending. A later scheduled health pass either sees a
+        # recovered system and suppresses the transient lifecycle, or sends the
+        # still-current incident after production has stabilized.
+        delivery.update(
+            {
+                "messages_attempted": 0,
+                "suppressed": True,
+                "suppressed_reason": "code_update_push_grace",
+                "health_inspector_mode": "suppressed",
+                "health_inspector_status": "deployment_grace",
+            }
+        )
+        details["ai_health_inspector"] = {
+            "mode": "suppressed",
+            "ai_status": "deployment_grace",
+            "reason": "system-health started from a code push",
+        }
+        details["incident_delivery"] = delivery
+        return
+
     incidents = state.get("incidents") if isinstance(state.get("incidents"), dict) else {}
     active_findings = [
         entry
@@ -94,22 +131,15 @@ def deliver_pending_notifications_with_ai(
     ]
     insight = ai_health_inspector.inspect(details, active_findings)
     details["ai_health_inspector"] = insight
+    delivery["health_inspector_mode"] = insight.get("mode")
+    delivery["health_inspector_status"] = insight.get("ai_status")
 
-    opened = legacy.incident_manager.pending_open(state)
-    resolved = legacy.incident_manager.pending_resolved(state)
-    delivery = {
-        "opened": len(opened),
-        "resolved": len(resolved),
-        "digest_sent": False,
-        "messages_attempted": 1 if opened or resolved else 0,
-        "health_inspector_mode": insight.get("mode"),
-        "health_inspector_status": insight.get("ai_status"),
-    }
     if opened or resolved:
+        # The AI inspector remains available in system_check_state.json, but its
+        # variable prose is intentionally excluded from Telegram. Incident
+        # identity and user-facing delivery now depend only on the stable
+        # incident lifecycle.
         message = legacy.incident_manager.format_digest_message(opened, resolved)
-        note = ai_health_inspector.admin_note(insight) if opened else ""
-        if note:
-            message = f"{message}\n\n{note}"[:4000]
         try:
             legacy.monitor.send_message(message)
         except Exception as exc:
@@ -226,11 +256,23 @@ def self_test() -> None:
         globals()["_source_registry_generated_at"] = original_registry_time
         legacy.now_utc = original_now  # type: ignore[assignment]
 
+    previous_event = os.environ.get("GITHUB_EVENT_NAME")
+    try:
+        os.environ["GITHUB_EVENT_NAME"] = "push"
+        assert _deployment_notification_suppressed()
+        os.environ["GITHUB_EVENT_NAME"] = "schedule"
+        assert not _deployment_notification_suppressed()
+    finally:
+        if previous_event is None:
+            os.environ.pop("GITHUB_EVENT_NAME", None)
+        else:
+            os.environ["GITHUB_EVENT_NAME"] = previous_event
+
     assert legacy.check_inventory is check_inventory_allow_empty_nightly
     assert legacy.deliver_pending_notifications is deliver_pending_notifications_with_ai
     ai_health_inspector.self_test()
     current.self_test()
-    print("BB V.G. primary-only inventory, discovery sync-grace and AI health inspector self-test passed")
+    print("BB V.G. primary-only inventory, deployment grace and stable health delivery self-test passed")
 
 
 def main() -> int:
