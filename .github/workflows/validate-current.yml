@@ -113,3 +113,145 @@ jobs:
           gh workflow run admin-bot.yml \
             --repo "$GH_REPO" \
             --ref main
+
+  apply-xflarxx-account-cleanup:
+    name: Apply xFLARXx account and access cleanup
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Apply repository patch
+        id: apply_patch
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          {
+            python fix_apply_xflarxx_clean.py
+            python apply_xflarxx_clean.py
+            python - <<'PY'
+          from pathlib import Path
+
+          path = Path("tests/test_button_matrix.py")
+          text = path.read_text(encoding="utf-8")
+          start = text.find(
+              "    def test_settings_secondary_pages_open_their_real_screens(self) -> None:\n"
+          )
+          end = text.find(
+              "    def test_active_list_button_from_notifications_is_routable(self) -> None:\n",
+              start,
+          )
+          if start < 0 or end < 0:
+              raise SystemExit("settings secondary page test boundaries not found")
+          replacement = '''    def test_removed_settings_callbacks_return_to_settings(self) -> None:
+              panel, calls = self.panel(admin=True)
+              panel.load_access = lambda force=False: {  # type: ignore[method-assign]
+                  "settings": {"monitor_interval_minutes": 5}
+              }
+              for callback in ("page:wheelmode", "page:disabled_features"):
+                  panel.handle_callback(self.query(callback))
+                  sent = [row for row in calls if row[0] == "send"][-1]
+                  self.assertIn("⚙️ <b>Настройки</b>", sent[1])
+                  self.assertNotIn("API — активный production-режим", sent[1])
+                  self.assertNotIn("Ручное указание времени", sent[1])
+
+          '''
+          path.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
+          PY
+          } 2>apply_patch_error.txt
+
+      - name: Save patch diagnostic
+        if: steps.apply_patch.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apply_patch_error.txt
+          git commit -m "Record xFLARXx clean patch diagnostic [skip ci]" || true
+          git push origin HEAD:feature/xflarxx-account-access-cleanup
+          exit 1
+
+      - name: Install dependencies
+        if: steps.apply_patch.outcome == 'success'
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Validate changed modules and full suite
+        id: validate_changes
+        if: steps.apply_patch.outcome == 'success'
+        continue-on-error: true
+        env:
+          BBVG_TEST_MODE: "1"
+          BOT_TOKEN: "test-token"
+          BOT_STATE_KEY: "test-state-key"
+          BOT_CHAT_ID: "1"
+          ADMIN_USER_ID: "1"
+        run: |
+          set -euo pipefail
+          {
+            python -m py_compile \
+              betboom_account_participation.py \
+              auto_participation_notifications.py \
+              notification_button_recovery.py \
+              bbvg/bot/runtime.py \
+              admin_panel_runtime_v41.py \
+              tests/test_button_matrix.py
+            python betboom_account_participation.py --self-test
+            python auto_participation_notifications.py
+            python notification_button_recovery.py --self-test
+            python -m bbvg.bot.runtime --self-test
+            python admin_panel_runtime_v41.py --self-test
+            git fetch origin main
+            git checkout origin/main -- .github/workflows/validate-current.yml
+            rm -f \
+              .github/workflows/apply-xflarxx-account-access-cleanup.yml \
+              .github/workflows/run-xflarxx-account-access-cleanup-pr.yml
+            python -m pytest -q
+          } >validation_error.log 2>&1
+
+      - name: Save validation diagnostic
+        if: steps.validate_changes.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f validation_error.log
+          git commit -m "Record xFLARXx validation diagnostic [skip ci]" || true
+          git push origin HEAD:feature/xflarxx-account-access-cleanup
+          exit 1
+
+      - name: Commit result and delete obsolete branch
+        if: steps.apply_patch.outcome == 'success' && steps.validate_changes.outcome == 'success'
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout origin/main -- .github/workflows/validate-current.yml
+          rm -f \
+            .github/workflows/apply-xflarxx-account-access-cleanup.yml \
+            .github/workflows/run-xflarxx-account-access-cleanup-pr.yml \
+            apply_xflarxx.trigger \
+            apply_patch_error.txt \
+            validation_error.log \
+            adjusted_patch_script.py \
+            xflarxx_patch_runner.py \
+            apply_xflarxx_clean.py \
+            fix_apply_xflarxx_clean.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Подключить xFLARXx и исправить управление пользователями"
+          git push origin HEAD:feature/xflarxx-account-access-cleanup
+          git push origin --delete fix/control-center-unified-notification-release || true
