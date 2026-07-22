@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import os
 import sys
 from datetime import timedelta
@@ -18,12 +19,19 @@ import personal_reminder_filter
 
 _TRANSIENT_PARTICIPATION_STATUSES = {
     "browser_error",
+    "unconfirmed",
     "timeout",
     "navigation_timeout",
     "page_timeout",
     "workflow_dispatch_failed",
     "workflow_dispatch_timeout",
     "workflow_dispatch_retry_wait",
+}
+_TERMINAL_PARTICIPATION_FAILURE_STATUSES = {
+    "button_not_found",
+    "participation_closed",
+    "not_eligible",
+    "rejected",
 }
 _TRANSIENT_PARTICIPATION_MARKERS = (
     "timeouterror",
@@ -34,6 +42,8 @@ _TRANSIENT_PARTICIPATION_MARKERS = (
     "target closed",
     "dispatcher_exit",
     "workflow_dispatch",
+    "авторизац",
+    "войти",
 )
 
 
@@ -187,11 +197,10 @@ personal_reminder_filter._record_dispatch_failure = (
 )
 
 
-# A single browser/network timeout is not a final result. Give recovery and state
-# convergence five minutes, then allow only a genuine BetBoom rejection to surface.
+# A single browser/network result is not final. Give recovery and state
+# convergence five minutes, then surface only an explicit terminal outcome.
 auto_participation_owner_sync.FAILURE_GRACE_SECONDS = 300
 _original_pending_failure_events = auto_participation_owner_sync.pending_failure_events
-_original_failure_message = auto_participation_owner_sync._failure_message
 
 
 def _pending_failure_events_authoritative(
@@ -200,37 +209,69 @@ def _pending_failure_events_authoritative(
     now: Any = None,
 ) -> list[tuple[str, dict[str, Any]]]:
     values = _original_pending_failure_events(state, now=now)
-    return [
-        (token, record)
-        for token, record in values
-        if not _transient_participation_failure(record)
-    ]
+    result: list[tuple[str, dict[str, Any]]] = []
+    for token, record in values:
+        status = str(
+            record.get("status") or record.get("bot_failure_status") or ""
+        ).casefold()
+        if _transient_participation_failure(record):
+            continue
+        if status not in _TERMINAL_PARTICIPATION_FAILURE_STATUSES:
+            continue
+        result.append((token, record))
+    return result
 
 
-def _sanitized_failure_message(
+def _outcome_navigation() -> dict[str, Any]:
+    return {
+        "inline_keyboard": [
+            [
+                {
+                    "text": "🔥 Активные колёса",
+                    "callback_data": "bb:l:active",
+                },
+                {
+                    "text": "🏠 Главное меню",
+                    "callback_data": "page:menu",
+                },
+            ]
+        ]
+    }
+
+
+def _short_success_message(
     key: str,
     item: dict[str, Any],
-    record: dict[str, Any],
-) -> tuple[str, dict[str, Any] | None]:
-    clean = dict(record)
-    status = str(
-        clean.get("status") or clean.get("bot_failure_status") or ""
-    ).casefold()
-    if status == "unconfirmed":
-        detail = "BetBoom не показал подтверждение участия после нажатия кнопки"
-    elif status == "button_not_found":
-        detail = "на странице BetBoom не найдена доступная кнопка участия"
-    else:
-        detail = "BetBoom не подтвердил автоматическое участие после повторной проверки"
-    clean["detail"] = detail
-    clean["bot_failure_detail"] = detail
-    return _original_failure_message(key, item, clean)
+    _sources: list[str],
+    _weight: int,
+    _changed: bool,
+) -> tuple[str, dict[str, Any]]:
+    identifier = html.escape(str(item.get("identifier") or key))
+    return (
+        "✅ <b>Участие принято</b>\n\n"
+        f"Колесо: <code>{identifier}</code>",
+        _outcome_navigation(),
+    )
+
+
+def _short_failure_message(
+    key: str,
+    item: dict[str, Any],
+    _record: dict[str, Any],
+) -> tuple[str, dict[str, Any]]:
+    identifier = html.escape(str(item.get("identifier") or key))
+    return (
+        "⚠️ <b>Участие не принято</b>\n\n"
+        f"Колесо: <code>{identifier}</code>",
+        _outcome_navigation(),
+    )
 
 
 auto_participation_owner_sync.pending_failure_events = (
     _pending_failure_events_authoritative
 )
-auto_participation_owner_sync._failure_message = _sanitized_failure_message
+auto_participation_owner_sync._success_message = _short_success_message
+auto_participation_owner_sync._failure_message = _short_failure_message
 
 
 notification_integrity_v2.install(notification_router)
@@ -242,6 +283,8 @@ if "bbvg.bot.runtime" in sys.modules:
     from admin_panel_v2 import TelegramPanelV2
     from bbvg.bot import natural_language_admin
     from bbvg.bot import profile as hunter_profile
+    from bbvg.bot.interface import PanelInterfaceRuntime
+    from bbvg.bot.sources import SourceRegistryRuntime
     from bbvg.bot.users import UserManagementRuntime
 
     _previous_profile_handler = personal_wheel_voting.PersonalWheelVotingMixin.handle_callback
@@ -269,6 +312,41 @@ if "bbvg.bot.runtime" in sys.modules:
 
         UserManagementRuntime.compact_menu_rows = staticmethod(_compact_menu_rows_with_profile)
         UserManagementRuntime._bbvg_hunter_profile_menu_installed = True
+
+    if not getattr(SourceRegistryRuntime, "_bbvg_sources_refresh_removed", False):
+        _base_source_menu_rows = SourceRegistryRuntime.source_menu_rows
+
+        def _source_menu_rows_without_registry_refresh(
+            admin: bool,
+        ) -> list[list[dict[str, Any]]]:
+            rows: list[list[dict[str, Any]]] = []
+            for row in _base_source_menu_rows(admin):
+                filtered = [
+                    dict(button)
+                    for button in row
+                    if str(button.get("callback_data") or "") != "page:sources"
+                ]
+                if filtered:
+                    rows.append(filtered)
+            return rows
+
+        SourceRegistryRuntime.source_menu_rows = staticmethod(
+            _source_menu_rows_without_registry_refresh
+        )
+        SourceRegistryRuntime._bbvg_sources_refresh_removed = True
+
+    if not getattr(PanelInterfaceRuntime, "_bbvg_top_find_sources_removed", False):
+        _base_period_overview = PanelInterfaceRuntime.period_overview
+
+        def _period_overview_without_top_find_sources(
+            self: Any, snap: Any, days: int
+        ) -> dict[str, Any]:
+            result = dict(_base_period_overview(self, snap, days))
+            result["top_sources"] = []
+            return result
+
+        PanelInterfaceRuntime.period_overview = _period_overview_without_top_find_sources
+        PanelInterfaceRuntime._bbvg_top_find_sources_removed = True
 
     # Keep encrypted personal participation owned by the single live Control Center.
     # The auto-participation workflow only places a pending marker in public state.json;
@@ -370,8 +448,8 @@ def self_test() -> None:
                 "auto_participation_events": {
                     "little#action:1:now": {
                         "wheel_key": "little",
-                        "status": "browser_error",
-                        "detail": "TimeoutError: Page.goto",
+                        "status": "unconfirmed",
+                        "detail": "кнопка нажата, но подтверждение пока не найдено",
                         "bot_failure_pending_at": "2026-07-21T00:00:00+00:00",
                     }
                 }
@@ -382,6 +460,38 @@ def self_test() -> None:
                     2026, 7, 22, tzinfo=auto_participation_owner_sync.UTC
                 ),
             ) == []
+
+            terminal_state = {
+                "auto_participation_events": {
+                    "wheel#action:2:now": {
+                        "wheel_key": "wheel",
+                        "status": "button_not_found",
+                        "detail": "кнопка участия не найдена после повторной проверки",
+                        "bot_failure_pending_at": "2026-07-21T00:00:00+00:00",
+                    }
+                }
+            }
+            assert [
+                token
+                for token, _record in _pending_failure_events_authoritative(
+                    terminal_state,
+                    now=auto_participation_owner_sync.datetime(
+                        2026, 7, 22, tzinfo=auto_participation_owner_sync.UTC
+                    ),
+                )
+            ] == ["wheel#action:2:now"]
+
+            success_text, success_markup = _short_success_message(
+                "wheel", {"identifier": "wheel"}, [], 5, True
+            )
+            failure_text, failure_markup = _short_failure_message(
+                "wheel", {"identifier": "wheel"}, {}
+            )
+            assert "Участие принято" in success_text
+            assert "Участие не принято" in failure_text
+            assert "bb:l:active" in str(success_markup)
+            assert "page:menu" in str(success_markup)
+            assert success_markup == failure_markup
 
             class _Monitor:
                 @staticmethod
@@ -407,6 +517,11 @@ def self_test() -> None:
             assert dispatch["status"] == "workflow_dispatch_retry_wait"
             assert dispatch["manual_notification_sent"] is False
             assert "auto_participation_events" not in dispatch_state
+
+            if "bbvg.bot.runtime" in sys.modules:
+                source_rows = SourceRegistryRuntime.source_menu_rows(True)
+                assert "page:sources" not in str(source_rows)
+                assert "page:ranking" in str(source_rows)
     finally:
         bot_private_state.STATE_PATH = original
     print("BB V.G. bot notification state self-test passed")
