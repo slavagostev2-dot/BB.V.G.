@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import os
 import re
 from datetime import datetime
 from typing import Any
@@ -10,6 +11,21 @@ from bs4 import BeautifulSoup
 
 MINIMUM_FRESH_UNKNOWN_MINUTES = 360
 POST_MARKER_RE = re.compile(r'data-post="([^"/]+)/(\d+)"', re.IGNORECASE)
+WHEEL_CONTEXT_RE = re.compile(r"\b(?:колес\w*|крутил\w*|прокрут\w*|wheel\w*|spin\w*)\b", re.IGNORECASE)
+BETBOOM_CONTEXT_RE = re.compile(r"\b(?:betboom|bet\s*boom|бетбум|бэтбум)\b", re.IGNORECASE)
+ANNOUNCEMENT_ACTION_RE = re.compile(
+    r"\b(?:сегодня|завтра|скоро|сейчас|начал\w*|старт\w*|крутим\w*|"
+    r"прокрут\w*|розыгрыш\w*|участв\w*|ссылк\w*|позже)\b",
+    re.IGNORECASE,
+)
+CURRENT_ACTION_RE = re.compile(
+    r"\b(?:сейчас|уже|начал\w*|ид[её]т|крутим\w*|стартовал\w*)\b",
+    re.IGNORECASE,
+)
+PARTICIPATION_EVIDENCE_RE = re.compile(
+    r"\b(?:участв\w*|ссылк\w*|розыгрыш\w*|приз\w*)\b",
+    re.IGNORECASE,
+)
 
 
 def _post_segments(page: str):
@@ -78,6 +94,92 @@ def parse_public_channel_html(monitor_module: Any, username: str, page: str):
     return sorted(result, key=lambda item: item.message_id)
 
 
+def _ai_wheel_evidence_cap(text: str, classification: str = "") -> float:
+    """Cap AI confidence by explicit, independently verifiable post evidence."""
+
+    value = str(text or "")
+    if not WHEEL_CONTEXT_RE.search(value) or not ANNOUNCEMENT_ACTION_RE.search(value):
+        return 0.0
+
+    has_brand = bool(BETBOOM_CONTEXT_RE.search(value))
+    has_participation = bool(PARTICIPATION_EVIDENCE_RE.search(value))
+    has_current_action = bool(CURRENT_ACTION_RE.search(value))
+    category = str(classification or "").casefold()
+
+    # A generic reference such as “the wheel will be on stream” is context, not
+    # evidence of a BetBoom event. It must not reach the AI provider or produce
+    # a high-confidence alert.
+    if not has_brand:
+        return 0.79 if has_participation else 0.49
+    if category == "active_wheel" and not has_current_action:
+        return 0.69
+    if has_current_action and has_participation:
+        return 0.96
+    if has_participation:
+        return 0.93
+    return 0.90
+
+
+def _install_suspicious_post_policy(suspicious_posts: Any) -> None:
+    if getattr(suspicious_posts, "_bbvg_strict_evidence_policy_installed", False):
+        return
+
+    os.environ.setdefault("AI_SUSPICIOUS_POST_MIN_CONFIDENCE", "0.90")
+    os.environ.setdefault("AI_SUSPICIOUS_ACTIVE_MIN_CONFIDENCE", "0.93")
+    original_is_candidate = suspicious_posts.is_candidate
+    original_analyze_posts = suspicious_posts.analyze_posts
+
+    def strict_is_candidate(text: str) -> bool:
+        return bool(
+            original_is_candidate(text)
+            and _ai_wheel_evidence_cap(text, "possible_wheel_announcement") >= 0.90
+        )
+
+    def analyze_posts_with_evidence(posts: Any, state: dict[str, Any], **kwargs: Any):
+        post_rows = list(posts)
+        summary = original_analyze_posts(post_rows, state, **kwargs)
+        by_key = {suspicious_posts._key(post): post for post in post_rows}
+        kept: list[dict[str, Any]] = []
+        records = state.get("posts") if isinstance(state.get("posts"), dict) else {}
+        base_threshold = suspicious_posts._float_env(
+            "AI_SUSPICIOUS_POST_MIN_CONFIDENCE", 0.90, 0.50, 0.99
+        )
+        active_threshold = max(
+            base_threshold,
+            suspicious_posts._float_env(
+                "AI_SUSPICIOUS_ACTIVE_MIN_CONFIDENCE", 0.93, 0.50, 0.99
+            ),
+        )
+
+        for alert in list(summary.get("alerts", [])):
+            record_key = str(alert.get("record_key") or "")
+            post = by_key.get(record_key)
+            if post is None:
+                continue
+            classification = str(alert.get("classification") or "uncertain")
+            cap = _ai_wheel_evidence_cap(post.text, classification)
+            confidence = min(float(alert.get("confidence", 0.0) or 0.0), cap)
+            required = active_threshold if classification == "active_wheel" else base_threshold
+            row = records.get(record_key) if isinstance(records, dict) else None
+            if isinstance(row, dict):
+                row["confidence"] = confidence
+                row["evidence_confidence_cap"] = cap
+                row["evidence_policy"] = "explicit_betboom_action_v1"
+            alert["confidence"] = confidence
+            if confidence >= required:
+                kept.append(alert)
+
+        summary["alerts"] = kept
+        summary["alerts_suppressed_by_evidence"] = max(
+            0, len(list(summary.get("alerts", []))) - len(kept)
+        )
+        return summary
+
+    suspicious_posts.is_candidate = strict_is_candidate
+    suspicious_posts.analyze_posts = analyze_posts_with_evidence
+    suspicious_posts._bbvg_strict_evidence_policy_installed = True
+
+
 def install(monitor_module: Any) -> None:
     if getattr(monitor_module, "_bbvg_telegram_button_links_installed", False):
         return
@@ -105,6 +207,7 @@ def install(monitor_module: Any) -> None:
     try:
         from bbvg.monitor import suspicious_posts
 
+        _install_suspicious_post_policy(suspicious_posts)
         suspicious_posts.install(monitor_module)
         # Production validation treats telegram_transport as the stable owner of
         # source fetching. Preserve that public integration identity even though
@@ -142,11 +245,16 @@ def self_test() -> None:
         "https://betboom.ru/freestream/cct1"
     ]
     assert monitor.extract_links(messages[1].text) == []
+    assert _ai_wheel_evidence_cap("Колесо будет на стриме", "active_wheel") < 0.50
+    assert _ai_wheel_evidence_cap(
+        "BetBoom: сейчас крутим колесо, участвуйте в розыгрыше",
+        "active_wheel",
+    ) >= 0.93
     install(monitor)
     assert monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
     assert monitor._bbvg_ai_suspicious_post_analysis_installed is True
     assert monitor.fetch_all_sources.__module__ == "telegram_transport"
-    print("telegram_post_links_v2 segment parser self-test passed")
+    print("telegram_post_links_v2 parser and strict AI evidence self-test passed")
 
 
 if __name__ == "__main__":
