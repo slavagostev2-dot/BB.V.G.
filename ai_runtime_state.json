@@ -1,8 +1,8 @@
 {
   "cache": {
-    "1c4812b666a08d40ebded6e54b34c7de3de1c5f8045434794132ee6ad3a69f32": {
-      "expires_at": 1784679488.7006922,
-      "text": "{\n  \"summary\": \"Критическая ошибка: панель управления не обновляла статус более 2.5 часов (162 минуты).\",\n  \"impact\": \"Бот перестал принимать и обрабатывать команды пользователей, так как связь с Control Center прервана.\",\n  \"recommended_action\": \"Проверить heartbeat Control Center и последний workflow панели для восстановления связи.\",\n  \"confidence\": \"high\"\n}"
+    "64d1bec68bab788991415dfefcdc65585221eb5e734edbda101602c6886bd711": {
+      "expires_at": 1784683884.04842,
+      "text": "{\n  \"summary\": \"Критический сбой: панель управления не обновляла статус в течение 235 минут.\",\n  \"impact\": \"Бот перестал принимать и обрабатывать команды пользователей, несмотря на нормальную работу источников данных.\",\n  \"recommended_action\": \"Проверить heartbeat Control Center и последний workflow панели.\",\n  \"confidence\": \"high\"\n}"
     }
   },
   "decisions": [
@@ -749,10 +749,20 @@
       "output_sha256": "92d3105c123574bf5ae0b7d1def8391151a004a17784b0368081b223b2534f6c",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1784682984.04842,
+      "feature": "health_inspector",
+      "id": "7ab214ac7c3341c08e0d275f140b0f73",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "cab7d39586b3ca4498ad6b62ab406fbe68319503b4edf7da2550b2c0bd73ac3c",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784678588.7006922
+    1784682984.04842
   ],
   "version": 1
 }

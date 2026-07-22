@@ -1,7 +1,7 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 162,
+    "age_minutes": 235,
     "last_heartbeat_at": "2026-07-21T21:21:03.986713+00:00",
     "started_at": "2026-07-21T15:53:12.674345+00:00",
     "status": "running",
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "1aa60cb575d24b85a7b74ab1fd8efd1b",
+    "decision_id": "7ab214ac7c3341c08e0d275f140b0f73",
     "finding_count": 1,
     "finding_kinds": [
       "admin_panel_stale"
     ],
-    "generated_at": "2026-07-22T00:03:09.600551+00:00",
-    "impact": "Бот перестал принимать и обрабатывать команды пользователей, так как связь с Control Center прервана.",
+    "generated_at": "2026-07-22T01:16:24.865712+00:00",
+    "impact": "Бот перестал принимать и обрабатывать команды пользователей, несмотря на нормальную работу источников данных.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить heartbeat Control Center и последний workflow панели для восстановления связи.",
+    "recommended_action": "Проверить heartbeat Control Center и последний workflow панели.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая ошибка: панель управления не обновляла статус более 2.5 часов (162 минуты).",
+    "summary": "Критический сбой: панель управления не обновляла статус в течение 235 минут.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-22T00:03:07.509075+00:00",
+  "checked_at": "2026-07-22T01:16:23.314243+00:00",
   "discovery": {
     "active_size": 168,
     "candidate_count": 484,
@@ -104,7 +104,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последний живой сигнал был 162 минут назад.",
+      "detail": "Последний живой сигнал был 235 минут назад.",
       "kind": "admin_panel_stale",
       "severity": "critical",
       "subject": "",
@@ -123,9 +123,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T23:57:54.751061+00:00",
+      "last_checked_at": "2026-07-22T01:14:08.698462+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T23:57:54.751061+00:00",
+      "last_success_at": "2026-07-22T01:14:08.698462+00:00",
       "status": "ok"
     }
   },
@@ -161,18 +161,18 @@
     "brand": "BB V.G.",
     "checked_sources": 168,
     "checks_delta": 168,
-    "checks_total": 634158,
+    "checks_total": 646758,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "45943714b1f4fd08f1d964df06da369427e99c74",
-    "iteration": 131,
+    "iteration": 206,
     "last_failure_at": "2026-07-21T12:13:02.326632+00:00",
-    "last_iteration_at": "2026-07-21T23:57:54.913761+00:00",
-    "last_iteration_duration_seconds": 13,
+    "last_iteration_at": "2026-07-22T01:14:08.863306+00:00",
+    "last_iteration_duration_seconds": 12,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T23:57:54.913761+00:00",
-    "last_successful_checks_total": 634158,
-    "last_successful_iteration_at": "2026-07-21T23:57:54.913761+00:00",
+    "last_process_heartbeat_at": "2026-07-22T01:14:08.863306+00:00",
+    "last_successful_checks_total": 646758,
+    "last_successful_iteration_at": "2026-07-22T01:14:08.863306+00:00",
     "pending_wheels": 0,
     "reachable_sources": 168,
     "restart_recommended": false,
@@ -185,7 +185,7 @@
     "version": 3,
     "workflow_run_id": "29871199987"
   },
-  "monitor_age_minutes": 5,
+  "monitor_age_minutes": 2,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -255,9 +255,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T23:57:54.751061+00:00",
+    "last_checked_at": "2026-07-22T01:14:08.698462+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T23:57:54.751061+00:00",
+    "last_success_at": "2026-07-22T01:14:08.698462+00:00",
     "status": "ok"
   }
 }
