@@ -57,30 +57,32 @@ def _git_identity() -> None:
 def _record_referral_label_failure(exc: BaseException) -> None:
     if not os.getenv("GITHUB_ACTIONS"):
         return
-    detail = {
-        "recorded_at": datetime.now(timezone.utc).isoformat(),
-        "run_id": os.getenv("GITHUB_RUN_ID", ""),
-        "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT", ""),
-        "error_type": type(exc).__name__,
-        "error": str(exc),
-        "command": list(exc.cmd) if isinstance(exc, subprocess.CalledProcessError) else None,
-        "returncode": exc.returncode if isinstance(exc, subprocess.CalledProcessError) else None,
-        "traceback": traceback.format_exc(),
-    }
-    (ROOT / "referral_label_failure.json").write_text(
-        json.dumps(detail, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
     try:
+        _run("git", "fetch", "origin", "main")
+        _run("git", "reset", "--hard", "origin/main")
+        detail = {
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "run_id": os.getenv("GITHUB_RUN_ID", ""),
+            "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT", ""),
+            "error_type": type(exc).__name__,
+            "error": str(exc),
+            "command": list(exc.cmd) if isinstance(exc, subprocess.CalledProcessError) else None,
+            "returncode": exc.returncode if isinstance(exc, subprocess.CalledProcessError) else None,
+            "traceback": traceback.format_exc(),
+        }
+        (ROOT / "referral_label_failure.json").write_text(
+            json.dumps(detail, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
         _git_identity()
         _run("git", "add", "referral_label_failure.json")
-        result = subprocess.run(
-            ["git", "commit", "-m", "Record referral wheel label failure [skip ci]"],
-            cwd=ROOT,
-            check=False,
+        _run(
+            "git",
+            "commit",
+            "-m",
+            "Record referral wheel label failure [skip ci]",
         )
-        if result.returncode == 0:
-            _push_with_retry()
+        _push_with_retry()
     except Exception as reporting_error:
         print(
             "ERROR referral label failure reporting: "
@@ -94,7 +96,7 @@ def _apply_referral_wheel_label_once() -> None:
         return
 
     _run("git", "fetch", "origin", "main")
-    _run("git", "pull", "--rebase", "origin", "main")
+    _run("git", "reset", "--hard", "origin/main")
     _run(sys.executable, str(patch_script))
 
     _run(
@@ -107,14 +109,12 @@ def _apply_referral_wheel_label_once() -> None:
         "wheel_lifecycle_v2.py",
         "bbvg/bot/wheels.py",
     )
-    _run(sys.executable, "-m", "unittest", "tests.test_chapter5_lifecycle")
     _run(
         sys.executable,
         "-m",
-        "pytest",
-        "-q",
-        "tests/test_chapter5_lifecycle.py",
-        "tests/test_button_matrix.py",
+        "unittest",
+        "tests.test_chapter5_lifecycle",
+        "tests.test_button_matrix",
     )
     _run(sys.executable, "wheel_publications_v2.py")
     _run(sys.executable, "chapter4_acceptance.py")
