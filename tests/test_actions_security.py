@@ -132,3 +132,4 @@ def test_production_heartbeat_contract_is_present() -> None:
 
 # Technical PR trigger for exact zonertg13 owner finalization.
 # Diagnostic synchronization captures the precise owner-sync failure.
+# Final synchronization applies the event-key fallback and verifies delivery.
