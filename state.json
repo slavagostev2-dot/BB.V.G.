@@ -290,13 +290,17 @@
       "needs_manual_time": false,
       "page_excerpt": "",
       "page_status": "active",
-      "participating": false,
+      "participating": true,
       "referral_restricted": false,
       "server_start_at": "2026-07-22T12:49:31.416000+00:00",
       "source": "aunkereEZ",
       "status": "unknown",
       "url": "https://betboom.ru/freestream/aunkere",
-      "verification_status": "confirmed"
+      "verification_status": "confirmed",
+      "auto_participation_checked_at": "2026-07-22T12:53:33.697831+00:00",
+      "auto_participation_confirmed_at": "2026-07-22T12:53:33.697831+00:00",
+      "auto_participation_status": "participated",
+      "auto_participation_retry_allowed": false
     },
     "zonertg13": {
       "action_id": 698,
@@ -1970,27 +1974,12 @@
     "ff489dda652d46218be7d851ba804fdf": "2026-07-18T12:14:38.283686+00:00"
   },
   "auto_participation_attempts": {
-    "koma": {
-      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
-      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
-      "status": "button_not_found"
-    },
-    "mael": {
-      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
-      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
-      "status": "button_not_found"
-    },
-    "neret": {
-      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
-      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
-      "status": "button_not_found"
-    },
-    "papa": {
-      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
-      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
-      "status": "button_not_found"
-    },
     "risen": {
+      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
+      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
+      "status": "button_not_found"
+    },
+    "koma": {
       "attempted_at": "2026-07-19T16:31:57.086771+00:00",
       "detail": "кнопка «Участвую»/«Принять участие» не найдена",
       "status": "button_not_found"
@@ -2000,27 +1989,108 @@
       "detail": "кнопка «Участвую»/«Принять участие» не найдена",
       "status": "button_not_found"
     },
-    "shoke": {
+    "zonertg10": {
       "attempted_at": "2026-07-19T16:31:57.086771+00:00",
       "detail": "кнопка «Участвую»/«Принять участие» не найдена",
       "status": "button_not_found"
     },
-    "zonertg10": {
+    "papa": {
+      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
+      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
+      "status": "button_not_found"
+    },
+    "neret": {
+      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
+      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
+      "status": "button_not_found"
+    },
+    "mael": {
+      "attempted_at": "2026-07-19T16:31:57.086771+00:00",
+      "detail": "кнопка «Участвую»/«Принять участие» не найдена",
+      "status": "button_not_found"
+    },
+    "shoke": {
       "attempted_at": "2026-07-19T16:31:57.086771+00:00",
       "detail": "кнопка «Участвую»/«Принять участие» не найдена",
       "status": "button_not_found"
     }
   },
   "auto_participation_dispatch_events": {
+    "aunkere#event:289a6bdac05f1ade33bd": {
+      "dispatched_at": "2026-07-22T08:06:44.770525+00:00",
+      "scheduled_at": "2026-07-21T12:11:37.590063+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "aunkere"
+    },
+    "muggy05": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-19T19:02:24.864803+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "muggy05"
+    },
+    "staya": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-19T19:02:24.864803+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "staya"
+    },
+    "lent#event:0bfab1be3ee2a251b3e6": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-20T04:01:53.487028+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "lent"
+    },
+    "zonertg13#event:ce916a36d3a5131f3374": {
+      "dispatched_at": "2026-07-22T08:06:44.770525+00:00",
+      "scheduled_at": "2026-07-22T08:06:42.278514+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "zonertg13"
+    },
+    "ctom05#event:f5f7e69fd74b16023a7b": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-20T21:45:04.472579+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "ctom05"
+    },
+    "zonertg12#event:3385cc03ed657edff57e": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-21T09:48:30.890759+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "zonertg12"
+    },
+    "dyrachyo#event:29763481e1d505cf5829": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-19T17:50:54.752755+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "dyrachyo"
+    },
+    "ctom12#event:4922f0ec2c050254503f": {
+      "dispatched_at": "2026-07-22T11:17:30.354189+00:00",
+      "scheduled_at": "2026-07-22T11:17:27.712163+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "ctom12"
+    },
+    "zonertw1#event:835c42c994536c32c3fb": {
+      "dispatched_at": "2026-07-22T11:17:30.354189+00:00",
+      "scheduled_at": "2026-07-22T11:17:27.712163+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "zonertw1"
+    },
     "acool5": {
       "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
       "scheduled_at": "2026-07-19T20:48:01.090097+00:00",
       "status": "workflow_dispatch_sent",
       "wheel_key": "acool5"
     },
-    "aunkere#event:289a6bdac05f1ade33bd": {
-      "dispatched_at": "2026-07-22T08:06:44.770525+00:00",
-      "scheduled_at": "2026-07-21T12:11:37.590063+00:00",
+    "brokeboys": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-19T20:09:48.069009+00:00",
+      "status": "workflow_dispatch_sent",
+      "wheel_key": "brokeboys"
+    },
+    "aunkere#event:ef82ebd7b7f693e7388b": {
+      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
+      "scheduled_at": "2026-07-19T17:59:02.259121+00:00",
       "status": "workflow_dispatch_sent",
       "wheel_key": "aunkere"
     },
@@ -2030,41 +2100,11 @@
       "wheel_key": "aunkere",
       "dispatched_at": "2026-07-22T12:53:59.749526+00:00"
     },
-    "aunkere#event:ef82ebd7b7f693e7388b": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-19T17:59:02.259121+00:00",
+    "over#event:be81b6580df642f5d7fe": {
+      "dispatched_at": "2026-07-22T09:38:10.722586+00:00",
+      "scheduled_at": "2026-07-22T09:38:07.124311+00:00",
       "status": "workflow_dispatch_sent",
-      "wheel_key": "aunkere"
-    },
-    "brokeboys": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-19T20:09:48.069009+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "brokeboys"
-    },
-    "ctom05#event:f5f7e69fd74b16023a7b": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-20T21:45:04.472579+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "ctom05"
-    },
-    "ctom12#event:4922f0ec2c050254503f": {
-      "dispatched_at": "2026-07-22T11:17:30.354189+00:00",
-      "scheduled_at": "2026-07-22T11:17:27.712163+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "ctom12"
-    },
-    "dyrachyo#event:29763481e1d505cf5829": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-19T17:50:54.752755+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "dyrachyo"
-    },
-    "lent#event:0bfab1be3ee2a251b3e6": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-20T04:01:53.487028+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "lent"
+      "wheel_key": "over"
     },
     "lolly12#event:0956b28d728ea096d8e9": {
       "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
@@ -2072,11 +2112,11 @@
       "status": "workflow_dispatch_sent",
       "wheel_key": "lolly12"
     },
-    "muggy05": {
+    "staya1": {
       "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-19T19:02:24.864803+00:00",
+      "scheduled_at": "2026-07-19T19:57:43.637685+00:00",
       "status": "workflow_dispatch_sent",
-      "wheel_key": "muggy05"
+      "wheel_key": "staya1"
     },
     "neret": {
       "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
@@ -2084,58 +2124,33 @@
       "status": "workflow_dispatch_sent",
       "wheel_key": "neret"
     },
-    "over#event:be81b6580df642f5d7fe": {
-      "dispatched_at": "2026-07-22T09:38:10.722586+00:00",
-      "scheduled_at": "2026-07-22T09:38:07.124311+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "over"
-    },
-    "staya": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-19T19:02:24.864803+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "staya"
-    },
-    "staya1": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-19T19:57:43.637685+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "staya1"
-    },
     "zonertg11#event:fbf258932f13c53957aa": {
       "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
       "scheduled_at": "2026-07-20T17:53:51.337179+00:00",
       "status": "workflow_dispatch_sent",
       "wheel_key": "zonertg11"
-    },
-    "zonertg12#event:3385cc03ed657edff57e": {
-      "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
-      "scheduled_at": "2026-07-21T09:48:30.890759+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "zonertg12"
-    },
-    "zonertg13#event:ce916a36d3a5131f3374": {
-      "dispatched_at": "2026-07-22T08:06:44.770525+00:00",
-      "scheduled_at": "2026-07-22T08:06:42.278514+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "zonertg13"
-    },
-    "zonertw1#event:835c42c994536c32c3fb": {
-      "dispatched_at": "2026-07-22T11:17:30.354189+00:00",
-      "scheduled_at": "2026-07-22T11:17:27.712163+00:00",
-      "status": "workflow_dispatch_sent",
-      "wheel_key": "zonertw1"
     }
   },
   "auto_participation_event_mode_initialized_at": "2026-07-19T17:14:18.523241+00:00",
   "auto_participation_events": {
-    "aunkere#action:951:2026-07-21T12:05:02.320000+00:00": {
-      "attempted_at": "2026-07-21T12:08:02.467938+00:00",
+    "zonertw1#action:959:2026-07-22T11:02:45.246000+00:00": {
+      "attempted_at": "2026-07-22T11:05:43.552679+00:00",
+      "bot_success_pending_at": "2026-07-22T11:06:03.420445+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
       "detail": "BetBoom подтвердил участие после нажатия",
       "recovery_scan": true,
       "retry_allowed": false,
       "status": "participated",
-      "wheel_key": "aunkere"
+      "wheel_key": "zonertw1"
+    },
+    "lent#action:952:2026-07-21T14:01:28.861000+00:00": {
+      "attempted_at": "2026-07-21T14:02:36.880572+00:00",
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "lent"
     },
     "aunkere#event:289a6bdac05f1ade33bd": {
       "attempt_version": 2,
@@ -2143,15 +2158,148 @@
       "status": "already_marked_in_bot",
       "wheel_key": "aunkere"
     },
-    "aunkere#event:ef82ebd7b7f693e7388b": {
-      "attempted_at": "2026-07-19T17:59:34.399275+00:00",
-      "detail": "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
-      "manual_notification_at": "2026-07-19T17:59:34.399275+00:00",
-      "manual_notification_detail": "801600922",
-      "manual_notification_sent": true,
+    "chopper#action:964:2026-07-21T16:48:24.600000+00:00": {
+      "attempted_at": "2026-07-21T16:57:11.834061+00:00",
+      "bot_success_pending_at": "2026-07-21T16:57:45.399809+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
       "retry_allowed": false,
-      "status": "button_not_found",
+      "status": "participated",
+      "wheel_key": "chopper"
+    },
+    "pomidor2#action:963:2026-07-21T17:24:52.354000+00:00": {
+      "attempted_at": "2026-07-21T17:31:05.048872+00:00",
+      "bot_success_pending_at": "2026-07-21T17:31:33.195694+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "pomidor2"
+    },
+    "papa#event:87cace99c097471fd48e": {
+      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
+      "status": "baseline_existing",
+      "wheel_key": "papa"
+    },
+    "hooch07#action:953:2026-07-21T13:23:36.601000+00:00": {
+      "attempted_at": "2026-07-21T13:24:50.371533+00:00",
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "hooch07"
+    },
+    "kekw#action:955:2026-07-21T15:24:48.954000+00:00": {
+      "attempted_at": "2026-07-21T15:26:28.537304+00:00",
+      "bot_success_pending_at": "2026-07-21T15:26:49.424927+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "kekw"
+    },
+    "ctom12#event:4922f0ec2c050254503f": {
+      "attempt_version": 2,
+      "recorded_at": "2026-07-22T11:17:48.731568+00:00",
+      "status": "already_marked_in_bot",
+      "wheel_key": "ctom12"
+    },
+    "aunkere#action:975:2026-07-22T12:49:31.416000+00:00#account:vyacheslav_secondary": {
+      "account_key": "vyacheslav_secondary",
+      "account_label": "Аккаунт 2",
+      "alert_user": "Вячеслав",
+      "attempted_at": "2026-07-22T12:53:59.126040+00:00",
+      "bot_success_pending_at": "2026-07-22T12:53:59.126040+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "event_token": "aunkere#action:975:2026-07-22T12:49:31.416000+00:00",
+      "multi_account_version": 1,
+      "retry_allowed": false,
+      "status": "participated",
       "wheel_key": "aunkere"
+    },
+    "zonertg13#action:698:2026-07-22T08:04:56.849000+00:00#account:vyacheslav_secondary": {
+      "account_key": "vyacheslav_secondary",
+      "account_label": "Аккаунт 2",
+      "alert_user": "Вячеслав",
+      "attempted_at": "2026-07-22T12:53:59.126040+00:00",
+      "bot_success_pending_at": "2026-07-22T12:53:59.126040+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom уже показывает подтверждённое участие",
+      "event_token": "zonertg13#action:698:2026-07-22T08:04:56.849000+00:00",
+      "multi_account_version": 1,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "zonertg13"
+    },
+    "dayneez#action:950:2026-07-21T15:28:40.658000+00:00": {
+      "attempted_at": "2026-07-21T15:32:32.575645+00:00",
+      "bot_success_pending_at": "2026-07-21T15:33:23.372474+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "dayneez"
+    },
+    "over#event:be81b6580df642f5d7fe": {
+      "attempt_version": 2,
+      "recorded_at": "2026-07-22T09:38:37.072511+00:00",
+      "status": "already_marked_in_bot",
+      "wheel_key": "over"
+    },
+    "zonertw5#action:685:2026-07-21T14:27:00.824000+00:00": {
+      "attempted_at": "2026-07-21T14:29:14.232613+00:00",
+      "bot_success_pending_at": "2026-07-21T14:29:41.522743+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "zonertw5"
+    },
+    "ctom12#action:970:2026-07-22T11:02:55.452000+00:00": {
+      "attempted_at": "2026-07-22T11:04:37.053033+00:00",
+      "bot_success_pending_at": "2026-07-22T11:04:58.548567+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "ctom12"
+    },
+    "mager01#action:966:2026-07-21T18:21:11.966000+00:00": {
+      "attempted_at": "2026-07-21T18:24:35.501598+00:00",
+      "bot_success_pending_at": "2026-07-21T18:25:00.739555+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "mager01"
+    },
+    "zonertw17#action:655:2026-07-21T15:27:28.264000+00:00": {
+      "attempted_at": "2026-07-21T15:38:37.005921+00:00",
+      "bot_success_pending_at": "2026-07-21T15:39:28.277852+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "zonertw17"
     },
     "aunkereref#action:968:2026-07-21T19:04:52.684000+00:00": {
       "attempted_at": "2026-07-21T19:22:00.289412+00:00",
@@ -2166,16 +2314,137 @@
       "status": "unconfirmed",
       "wheel_key": "aunkereref"
     },
-    "chopper#action:964:2026-07-21T16:48:24.600000+00:00": {
-      "attempted_at": "2026-07-21T16:57:11.834061+00:00",
-      "bot_success_pending_at": "2026-07-21T16:57:45.399809+00:00",
+    "shik6#event:c37870280420a4b5fb6d": {
+      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
+      "status": "baseline_existing",
+      "wheel_key": "shik6"
+    },
+    "pomidor1#action:962:2026-07-21T16:00:57.100000+00:00": {
+      "attempted_at": "2026-07-21T16:15:10.347490+00:00",
+      "bot_success_pending_at": "2026-07-21T16:15:30.592285+00:00",
       "bot_success_sync_status": "waiting_for_control_center",
       "bot_success_sync_version": 1,
       "detail": "BetBoom подтвердил участие после нажатия",
       "recovery_scan": true,
       "retry_allowed": false,
       "status": "participated",
-      "wheel_key": "chopper"
+      "wheel_key": "pomidor1"
+    },
+    "shadowkekw#event:c8933345a9fc43f215f0": {
+      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
+      "status": "baseline_existing",
+      "wheel_key": "shadowkekw"
+    },
+    "zonertg13#event:ce916a36d3a5131f3374": {
+      "attempt_version": 2,
+      "attempted_at": "2026-07-22T08:57:29.248638+00:00",
+      "detail": "кнопка участия не найдена после ожидания и повторной загрузки; страница колеса загрузилась, но кнопка участия не появилась",
+      "manual_notification_detail": "deferred_to_recovery",
+      "manual_notification_sent": false,
+      "retry_allowed": false,
+      "status": "button_not_found",
+      "wheel_key": "zonertg13"
+    },
+    "kekw#action:954:2026-07-21T13:17:43.652000+00:00": {
+      "attempted_at": "2026-07-21T13:27:51.866614+00:00",
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "kekw"
+    },
+    "aunkere#action:951:2026-07-21T12:05:02.320000+00:00": {
+      "attempted_at": "2026-07-21T12:08:02.467938+00:00",
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "aunkere"
+    },
+    "dyrachyo#event:29763481e1d505cf5829": {
+      "attempted_at": "2026-07-19T17:51:27.703921+00:00",
+      "detail": "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
+      "manual_notification_at": "2026-07-19T17:51:27.703921+00:00",
+      "manual_notification_detail": "801600922",
+      "manual_notification_sent": true,
+      "retry_allowed": false,
+      "status": "button_not_found",
+      "wheel_key": "dyrachyo"
+    },
+    "zonertg12#event:3385cc03ed657edff57e": {
+      "attempt_version": 2,
+      "attempted_at": "2026-07-21T09:49:09.798660+00:00",
+      "detail": "BetBoom подтвердил участие после нажатия кнопки",
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "zonertg12"
+    },
+    "zonertw1#event:835c42c994536c32c3fb": {
+      "attempt_version": 2,
+      "recorded_at": "2026-07-22T11:17:48.731568+00:00",
+      "status": "already_marked_in_bot",
+      "wheel_key": "zonertw1"
+    },
+    "zonertg10#event:221ef4ffd15b304f6a03": {
+      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
+      "status": "baseline_existing",
+      "wheel_key": "zonertg10"
+    },
+    "zonertg12#action:697:2026-07-21T08:05:58.421000+00:00": {
+      "attempted_at": "2026-07-21T11:41:51.056211+00:00",
+      "detail": "BetBoom подтвердил участие",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "zonertg12"
+    },
+    "over#action:969:2026-07-22T09:36:53.493000+00:00": {
+      "attempted_at": "2026-07-22T09:37:48.203976+00:00",
+      "bot_success_pending_at": "2026-07-22T09:38:18.443456+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom подтвердил участие после нажатия",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "over"
+    },
+    "zonertg13#action:698:2026-07-22T08:04:56.849000+00:00": {
+      "attempted_at": "2026-07-22T08:58:16.032481+00:00",
+      "bot_success_pending_at": "2026-07-22T08:58:33.045387+00:00",
+      "bot_success_sync_status": "waiting_for_control_center",
+      "bot_success_sync_version": 1,
+      "detail": "BetBoom уже показывает подтверждённое участие",
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "participated",
+      "wheel_key": "zonertg13"
+    },
+    "neret#event:4624e3ac9ebe9ca3e88e": {
+      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
+      "status": "baseline_existing",
+      "wheel_key": "neret"
+    },
+    "aunkere#event:ef82ebd7b7f693e7388b": {
+      "attempted_at": "2026-07-19T17:59:34.399275+00:00",
+      "detail": "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
+      "manual_notification_at": "2026-07-19T17:59:34.399275+00:00",
+      "manual_notification_detail": "801600922",
+      "manual_notification_sent": true,
+      "retry_allowed": false,
+      "status": "button_not_found",
+      "wheel_key": "aunkere"
+    },
+    "ctom11#action:958:2026-07-21T15:28:57.035000+00:00": {
+      "attempted_at": "2026-07-21T15:38:37.005921+00:00",
+      "detail": "элемент участия нажат, но подтверждение BetBoom не найдено",
+      "manual_notification_at": "2026-07-21T15:29:29.121603+00:00",
+      "manual_notification_detail": "801600922",
+      "manual_notification_sent": true,
+      "recovery_scan": true,
+      "retry_allowed": false,
+      "status": "unconfirmed",
+      "wheel_key": "ctom11"
     },
     "ctom10#action:947:2026-07-21T14:23:41.383000+00:00": {
       "attempted_at": "2026-07-21T14:25:07.318058+00:00",
@@ -2194,90 +2463,6 @@
       "status": "participated",
       "wheel_key": "ctom10"
     },
-    "ctom11#action:958:2026-07-21T15:28:57.035000+00:00": {
-      "attempted_at": "2026-07-21T15:38:37.005921+00:00",
-      "detail": "элемент участия нажат, но подтверждение BetBoom не найдено",
-      "manual_notification_at": "2026-07-21T15:29:29.121603+00:00",
-      "manual_notification_detail": "801600922",
-      "manual_notification_sent": true,
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "unconfirmed",
-      "wheel_key": "ctom11"
-    },
-    "ctom12#action:970:2026-07-22T11:02:55.452000+00:00": {
-      "attempted_at": "2026-07-22T11:04:37.053033+00:00",
-      "bot_success_pending_at": "2026-07-22T11:04:58.548567+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "ctom12"
-    },
-    "ctom12#event:4922f0ec2c050254503f": {
-      "attempt_version": 2,
-      "recorded_at": "2026-07-22T11:17:48.731568+00:00",
-      "status": "already_marked_in_bot",
-      "wheel_key": "ctom12"
-    },
-    "dayneez#action:950:2026-07-21T15:28:40.658000+00:00": {
-      "attempted_at": "2026-07-21T15:32:32.575645+00:00",
-      "bot_success_pending_at": "2026-07-21T15:33:23.372474+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "dayneez"
-    },
-    "dyrachyo#event:29763481e1d505cf5829": {
-      "attempted_at": "2026-07-19T17:51:27.703921+00:00",
-      "detail": "кнопка «Участвую»/«Участвовать»/«Принять участие» не найдена",
-      "manual_notification_at": "2026-07-19T17:51:27.703921+00:00",
-      "manual_notification_detail": "801600922",
-      "manual_notification_sent": true,
-      "retry_allowed": false,
-      "status": "button_not_found",
-      "wheel_key": "dyrachyo"
-    },
-    "hooch07#action:953:2026-07-21T13:23:36.601000+00:00": {
-      "attempted_at": "2026-07-21T13:24:50.371533+00:00",
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "hooch07"
-    },
-    "kekw#action:954:2026-07-21T13:17:43.652000+00:00": {
-      "attempted_at": "2026-07-21T13:27:51.866614+00:00",
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "kekw"
-    },
-    "kekw#action:955:2026-07-21T15:24:48.954000+00:00": {
-      "attempted_at": "2026-07-21T15:26:28.537304+00:00",
-      "bot_success_pending_at": "2026-07-21T15:26:49.424927+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "kekw"
-    },
-    "lent#action:952:2026-07-21T14:01:28.861000+00:00": {
-      "attempted_at": "2026-07-21T14:02:36.880572+00:00",
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "lent"
-    },
     "little#action:967:2026-07-21T19:18:25.316000+00:00": {
       "attempted_at": "2026-07-21T19:22:00.289412+00:00",
       "bot_failure_detail": "TimeoutError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://betboom.ru/freestream/little\", waiting until \"domcontentloaded\"\n",
@@ -2291,156 +2476,16 @@
       "status": "browser_error",
       "wheel_key": "little"
     },
-    "mager01#action:966:2026-07-21T18:21:11.966000+00:00": {
-      "attempted_at": "2026-07-21T18:24:35.501598+00:00",
-      "bot_success_pending_at": "2026-07-21T18:25:00.739555+00:00",
+    "aunkere#action:975:2026-07-22T12:49:31.416000+00:00": {
+      "attempted_at": "2026-07-22T12:53:33.697831+00:00",
+      "bot_success_pending_at": "2026-07-22T12:54:33.131932+00:00",
       "bot_success_sync_status": "waiting_for_control_center",
       "bot_success_sync_version": 1,
       "detail": "BetBoom подтвердил участие после нажатия",
       "recovery_scan": true,
       "retry_allowed": false,
       "status": "participated",
-      "wheel_key": "mager01"
-    },
-    "neret#event:4624e3ac9ebe9ca3e88e": {
-      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
-      "status": "baseline_existing",
-      "wheel_key": "neret"
-    },
-    "over#action:969:2026-07-22T09:36:53.493000+00:00": {
-      "attempted_at": "2026-07-22T09:37:48.203976+00:00",
-      "bot_success_pending_at": "2026-07-22T09:38:18.443456+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "over"
-    },
-    "over#event:be81b6580df642f5d7fe": {
-      "attempt_version": 2,
-      "recorded_at": "2026-07-22T09:38:37.072511+00:00",
-      "status": "already_marked_in_bot",
-      "wheel_key": "over"
-    },
-    "papa#event:87cace99c097471fd48e": {
-      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
-      "status": "baseline_existing",
-      "wheel_key": "papa"
-    },
-    "pomidor1#action:962:2026-07-21T16:00:57.100000+00:00": {
-      "attempted_at": "2026-07-21T16:15:10.347490+00:00",
-      "bot_success_pending_at": "2026-07-21T16:15:30.592285+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "pomidor1"
-    },
-    "pomidor2#action:963:2026-07-21T17:24:52.354000+00:00": {
-      "attempted_at": "2026-07-21T17:31:05.048872+00:00",
-      "bot_success_pending_at": "2026-07-21T17:31:33.195694+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "pomidor2"
-    },
-    "shadowkekw#event:c8933345a9fc43f215f0": {
-      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
-      "status": "baseline_existing",
-      "wheel_key": "shadowkekw"
-    },
-    "shik6#event:c37870280420a4b5fb6d": {
-      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
-      "status": "baseline_existing",
-      "wheel_key": "shik6"
-    },
-    "zonertg10#event:221ef4ffd15b304f6a03": {
-      "recorded_at": "2026-07-19T17:14:18.523241+00:00",
-      "status": "baseline_existing",
-      "wheel_key": "zonertg10"
-    },
-    "zonertg12#action:697:2026-07-21T08:05:58.421000+00:00": {
-      "attempted_at": "2026-07-21T11:41:51.056211+00:00",
-      "detail": "BetBoom подтвердил участие",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "zonertg12"
-    },
-    "zonertg12#event:3385cc03ed657edff57e": {
-      "attempt_version": 2,
-      "attempted_at": "2026-07-21T09:49:09.798660+00:00",
-      "detail": "BetBoom подтвердил участие после нажатия кнопки",
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "zonertg12"
-    },
-    "zonertg13#action:698:2026-07-22T08:04:56.849000+00:00": {
-      "attempted_at": "2026-07-22T08:58:16.032481+00:00",
-      "bot_success_pending_at": "2026-07-22T08:58:33.045387+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom уже показывает подтверждённое участие",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "zonertg13"
-    },
-    "zonertg13#event:ce916a36d3a5131f3374": {
-      "attempt_version": 2,
-      "attempted_at": "2026-07-22T08:57:29.248638+00:00",
-      "detail": "кнопка участия не найдена после ожидания и повторной загрузки; страница колеса загрузилась, но кнопка участия не появилась",
-      "manual_notification_detail": "deferred_to_recovery",
-      "manual_notification_sent": false,
-      "retry_allowed": false,
-      "status": "button_not_found",
-      "wheel_key": "zonertg13"
-    },
-    "zonertw1#action:959:2026-07-22T11:02:45.246000+00:00": {
-      "attempted_at": "2026-07-22T11:05:43.552679+00:00",
-      "bot_success_pending_at": "2026-07-22T11:06:03.420445+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "zonertw1"
-    },
-    "zonertw1#event:835c42c994536c32c3fb": {
-      "attempt_version": 2,
-      "recorded_at": "2026-07-22T11:17:48.731568+00:00",
-      "status": "already_marked_in_bot",
-      "wheel_key": "zonertw1"
-    },
-    "zonertw17#action:655:2026-07-21T15:27:28.264000+00:00": {
-      "attempted_at": "2026-07-21T15:38:37.005921+00:00",
-      "bot_success_pending_at": "2026-07-21T15:39:28.277852+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "zonertw17"
-    },
-    "zonertw5#action:685:2026-07-21T14:27:00.824000+00:00": {
-      "attempted_at": "2026-07-21T14:29:14.232613+00:00",
-      "bot_success_pending_at": "2026-07-21T14:29:41.522743+00:00",
-      "bot_success_sync_status": "waiting_for_control_center",
-      "bot_success_sync_version": 1,
-      "detail": "BetBoom подтвердил участие после нажатия",
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "participated",
-      "wheel_key": "zonertw5"
+      "wheel_key": "aunkere"
     }
   },
   "bot_commands_version": 1,
@@ -2992,6 +3037,16 @@
       "participation_source": "betboom_browser_recovery",
       "participation_status": "already_participating",
       "url": "https://betboom.ru/freestream/zonertg13"
+    },
+    "aunkere": {
+      "confirmed_at": "2026-07-22T12:53:33.697831+00:00",
+      "deadline": "2026-07-22T13:09:31.416000+00:00",
+      "expires_at": "2026-07-22T13:39:31.416000+00:00",
+      "identifier": "aunkere",
+      "marked_at": "2026-07-22T12:53:33.697831+00:00",
+      "participation_source": "betboom_browser_recovery",
+      "participation_status": "participated",
+      "url": "https://betboom.ru/freestream/aunkere"
     }
   },
   "pending_posts": {
