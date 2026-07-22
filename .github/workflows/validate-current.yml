@@ -74,21 +74,33 @@ jobs:
           python admin_runtime.py --self-test
           python system_checks_v3.py --self-test
 
-      - name: Run pytest A-F
+      - name: Run pytest A
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_*.py' -print | sort | grep -Ei '/test_[a-f]')
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_a*.py' -print | sort)
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
-      - name: Run pytest G-M
+      - name: Run pytest B
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_*.py' -print | sort | grep -Ei '/test_[g-m]')
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_b*.py' -print | sort)
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
-      - name: Run pytest N-S
+      - name: Run pytest C
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_*.py' -print | sort | grep -Ei '/test_[n-s]')
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_c*.py' -print | sort)
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
-      - name: Run pytest T-Z
+      - name: Run pytest D
         run: |
-          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_*.py' -print | sort | grep -Ei '/test_[t-z]')
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_d*.py' -print | sort)
+          ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
+      - name: Run pytest E
+        run: |
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_e*.py' -print | sort)
+          ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
+      - name: Run pytest F
+        run: |
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_f*.py' -print | sort)
+          ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
+      - name: Run pytest G-Z
+        run: |
+          mapfile -t files < <(find . -path './.git' -prune -o -type f -name 'test_*.py' -print | sort | grep -Ei '/test_[g-z]')
           ((${#files[@]} == 0)) || python -m pytest -q "${files[@]}"
 
       - name: Enforce critical-core coverage
