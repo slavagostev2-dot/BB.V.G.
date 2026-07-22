@@ -18,7 +18,7 @@ def main() -> int:
     assert "run: python notification_button_recovery.py" in workflow
     assert '"version": 41' in workflow
     assert "admin_panel_runtime_v41.py" in workflow
-    assert "run: bash scripts/validate_control_center.sh" in workflow
+    assert "bash scripts/validate_control_center.sh" in workflow
     assert "telegram_ui.py" in validator
 
     user_callbacks = {
