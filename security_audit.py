@@ -19,8 +19,20 @@ PRIVATE_KEY_MARKERS = (
 FORBIDDEN_BASENAMES = {".env", "id_rsa", "id_ed25519"}
 FORBIDDEN_SUFFIXES = {".session", ".pem", ".p12", ".pfx", ".key"}
 TEXT_SUFFIXES = {
-    ".py", ".json", ".yml", ".yaml", ".md", ".txt", ".toml", ".ini", ".cfg",
-    ".js", ".css", ".html", ".sql", ".sh",
+    ".py",
+    ".json",
+    ".yml",
+    ".yaml",
+    ".md",
+    ".txt",
+    ".toml",
+    ".ini",
+    ".cfg",
+    ".js",
+    ".css",
+    ".html",
+    ".sql",
+    ".sh",
 }
 PUBLIC_PERSONAL_STATE = ("bot_access.json", "source_requests.json")
 PUBLIC_DIAGNOSTIC_STATE = "system_check_state.json"
@@ -64,7 +76,10 @@ def tracked_files() -> list[Path]:
     return [ROOT / line for line in _git("ls-files").splitlines() if line]
 
 
-def _load_object(path: Path, code: str) -> tuple[dict[str, Any] | None, list[Finding]]:
+def _load_object(
+    path: Path,
+    code: str,
+) -> tuple[dict[str, Any] | None, list[Finding]]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -87,9 +102,16 @@ def _public_json_findings(path: Path) -> list[Finding]:
         }
         for field, raw in checks.items():
             if raw not in (None, "", [], {}):
-                findings.append(Finding("public_personal_data", path.name, f"non-empty {field}"))
-    elif path.name == "source_requests.json" and value.get("requests") not in (None, {}):
-        findings.append(Finding("public_personal_data", path.name, "non-empty requests"))
+                findings.append(
+                    Finding("public_personal_data", path.name, f"non-empty {field}")
+                )
+    elif path.name == "source_requests.json" and value.get("requests") not in (
+        None,
+        {},
+    ):
+        findings.append(
+            Finding("public_personal_data", path.name, "non-empty requests")
+        )
     return findings
 
 
@@ -116,7 +138,10 @@ def _diagnostic_findings(path: Path) -> list[Finding]:
             )
         )
     integrity = value.get("notification_integrity")
-    if isinstance(integrity, dict) and integrity.get("contains_personal_fields") is not False:
+    if (
+        isinstance(integrity, dict)
+        and integrity.get("contains_personal_fields") is not False
+    ):
         findings.append(
             Finding(
                 "public_personal_data",
@@ -127,6 +152,51 @@ def _diagnostic_findings(path: Path) -> list[Finding]:
     return findings
 
 
+def _hmac_mapping_findings(
+    path: Path,
+    value: Any,
+    *,
+    name: str,
+    value_validator: Any,
+) -> list[Finding]:
+    if not isinstance(value, dict):
+        return [Finding("invalid_delivery_state", path.name, f"{name} is not an object")]
+    findings: list[Finding] = []
+    invalid_keys = [str(key) for key in value if not HEX_DIGEST_RE.fullmatch(str(key))]
+    if invalid_keys:
+        findings.append(
+            Finding(
+                "public_personal_data",
+                path.name,
+                f"non-HMAC {name} keys: {len(invalid_keys)}",
+            )
+        )
+    invalid_values = sum(not value_validator(raw) for raw in value.values())
+    if invalid_values:
+        findings.append(
+            Finding(
+                "invalid_delivery_state",
+                path.name,
+                f"invalid {name} values: {invalid_values}",
+            )
+        )
+    return findings
+
+
+def _message_checkpoint_valid(raw: Any) -> bool:
+    if not isinstance(raw, dict) or set(raw) - {"message_id", "recorded_at"}:
+        return False
+    message_id = raw.get("message_id")
+    recorded_at = raw.get("recorded_at")
+    return (
+        isinstance(message_id, int)
+        and not isinstance(message_id, bool)
+        and message_id > 0
+        and isinstance(recorded_at, str)
+        and bool(recorded_at.strip())
+    )
+
+
 def _delivery_state_findings(path: Path) -> list[Finding]:
     value, findings = _load_object(path, "invalid_delivery_state")
     if value is None:
@@ -135,51 +205,65 @@ def _delivery_state_findings(path: Path) -> list[Finding]:
         "bbvg-notification-delivery-v2",
         "bbvg-notification-delivery-v3",
     }:
-        findings.append(Finding("invalid_delivery_state", path.name, "unsupported format"))
+        findings.append(
+            Finding("invalid_delivery_state", path.name, "unsupported format")
+        )
     if value.get("algorithm") != "HMAC-SHA256":
-        findings.append(Finding("invalid_delivery_state", path.name, "unsupported algorithm"))
-    allowed = {"format", "version", "algorithm", "retention_seconds", "entries", "claims"}
+        findings.append(
+            Finding("invalid_delivery_state", path.name, "unsupported algorithm")
+        )
+    allowed = {
+        "format",
+        "version",
+        "algorithm",
+        "retention_seconds",
+        "entries",
+        "claims",
+        "messages",
+    }
     unexpected = sorted(set(value) - allowed)
     if unexpected:
-        findings.append(
-            Finding("public_personal_data", path.name, f"unexpected fields: {', '.join(unexpected)}")
-        )
-    entries = value.get("entries")
-    if not isinstance(entries, dict):
-        findings.append(Finding("invalid_delivery_state", path.name, "entries is not an object"))
-        return findings
-    invalid_digests = [str(key) for key in entries if not HEX_DIGEST_RE.fullmatch(str(key))]
-    if invalid_digests:
         findings.append(
             Finding(
                 "public_personal_data",
                 path.name,
-                f"non-HMAC delivery keys: {len(invalid_digests)}",
+                f"unexpected fields: {', '.join(unexpected)}",
             )
         )
-    if any(not isinstance(timestamp, str) for timestamp in entries.values()):
-        findings.append(Finding("invalid_delivery_state", path.name, "non-string timestamps"))
+
+    entries = value.get("entries")
+    findings.extend(
+        _hmac_mapping_findings(
+            path,
+            entries,
+            name="delivery",
+            value_validator=lambda raw: isinstance(raw, str),
+        )
+    )
     claims = value.get("claims", {})
-    if not isinstance(claims, dict):
-        findings.append(Finding("invalid_delivery_state", path.name, "claims is not an object"))
-    else:
-        invalid_claims = [str(key) for key in claims if not HEX_DIGEST_RE.fullmatch(str(key))]
-        if invalid_claims:
-            findings.append(
-                Finding(
-                    "public_personal_data",
-                    path.name,
-                    f"non-HMAC claim keys: {len(invalid_claims)}",
-                )
-            )
-        if any(not isinstance(timestamp, str) for timestamp in claims.values()):
-            findings.append(Finding("invalid_delivery_state", path.name, "non-string claim timestamps"))
+    findings.extend(
+        _hmac_mapping_findings(
+            path,
+            claims,
+            name="claim",
+            value_validator=lambda raw: isinstance(raw, str),
+        )
+    )
+    messages = value.get("messages", {})
+    findings.extend(
+        _hmac_mapping_findings(
+            path,
+            messages,
+            name="message checkpoint",
+            value_validator=_message_checkpoint_valid,
+        )
+    )
     return findings
 
 
-
 def _runtime_provenance_value_findings(
-    path_name: str, value: dict[str, Any]
+    path_name: str,
+    value: dict[str, Any],
 ) -> list[Finding]:
     findings: list[Finding] = []
 
@@ -248,7 +332,8 @@ def _runtime_provenance_findings(path: Path) -> list[Finding]:
 
 
 def _normalize_runtime_provenance_value(
-    path_name: str, value: dict[str, Any]
+    path_name: str,
+    value: dict[str, Any],
 ) -> bool:
     changed = False
     checks: tuple[tuple[str, str], ...] = ()
@@ -299,14 +384,28 @@ def _encrypted_state_findings(path: Path) -> list[Finding]:
     value, findings = _load_object(path, "invalid_encrypted_state")
     if value is None:
         return findings
-    if str(value.get("format") or "") not in {"bbvg-bot-state-v1", "bbvg-bot-state-v2"}:
+    if str(value.get("format") or "") not in {
+        "bbvg-bot-state-v1",
+        "bbvg-bot-state-v2",
+    }:
         return [Finding("invalid_encrypted_state", path.name, "unsupported format")]
     forbidden = {
-        "owner_id", "admins", "users", "chat_id", "username", "first_name", "last_name",
-        "requester_id", "requester_chat_id",
+        "owner_id",
+        "admins",
+        "users",
+        "chat_id",
+        "username",
+        "first_name",
+        "last_name",
+        "requester_id",
+        "requester_chat_id",
     }
     leaked = sorted(forbidden & set(value))
-    return [Finding("plaintext_in_encrypted_state", path.name, ", ".join(leaked))] if leaked else []
+    return (
+        [Finding("plaintext_in_encrypted_state", path.name, ", ".join(leaked))]
+        if leaked
+        else []
+    )
 
 
 def scan_current(paths: Iterable[Path] | None = None) -> list[Finding]:
@@ -314,7 +413,13 @@ def scan_current(paths: Iterable[Path] | None = None) -> list[Finding]:
     for path in paths or tracked_files():
         relative = path.relative_to(ROOT).as_posix()
         if path.name in FORBIDDEN_BASENAMES or path.suffix.casefold() in FORBIDDEN_SUFFIXES:
-            findings.append(Finding("forbidden_sensitive_file", relative, "tracked sensitive file type"))
+            findings.append(
+                Finding(
+                    "forbidden_sensitive_file",
+                    relative,
+                    "tracked sensitive file type",
+                )
+            )
             continue
         if path.name in PUBLIC_PERSONAL_STATE:
             findings.extend(_public_json_findings(path))
@@ -334,19 +439,25 @@ def scan_current(paths: Iterable[Path] | None = None) -> list[Finding]:
         except (OSError, UnicodeDecodeError):
             continue
         if TOKEN_RE.search(text):
-            findings.append(Finding("telegram_bot_token", relative, "token-shaped value found"))
+            findings.append(
+                Finding("telegram_bot_token", relative, "token-shaped value found")
+            )
         for marker in PRIVATE_KEY_MARKERS:
             if marker in text:
                 findings.append(Finding("private_key", relative, marker))
     return findings
 
 
-def history_report() -> dict:
+def history_report() -> dict[str, Any]:
     """Report legacy personal-state revisions without printing their contents."""
 
     rows: list[dict[str, str]] = []
     for path in HISTORY_PERSONAL_STATE:
-        commits = [line for line in _git("log", "--all", "--format=%H", "--", path).splitlines() if line]
+        commits = [
+            line
+            for line in _git("log", "--all", "--format=%H", "--", path).splitlines()
+            if line
+        ]
         seen: set[str] = set()
         for commit in commits:
             if commit in seen:
@@ -397,6 +508,12 @@ def self_test() -> None:
     assert not _public_json_findings(ROOT / "bot_access.json")
     assert not _diagnostic_findings(ROOT / PUBLIC_DIAGNOSTIC_STATE)
     assert not _delivery_state_findings(ROOT / DELIVERY_STATE)
+    valid_checkpoint = {
+        "message_id": 123,
+        "recorded_at": "2026-07-22T10:00:00+00:00",
+    }
+    assert _message_checkpoint_valid(valid_checkpoint)
+    assert not _message_checkpoint_valid({"message_id": "123", "recorded_at": "now"})
     sample = {
         "inactive_wheels": {"wheel": {"marked_by": "123456789"}},
         "recently_completed_wheels": {
