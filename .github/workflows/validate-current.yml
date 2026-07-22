@@ -143,35 +143,7 @@ jobs:
           {
             python fix_apply_xflarxx_clean.py
             python apply_xflarxx_clean.py
-            python - <<'PY'
-          from pathlib import Path
-
-          path = Path("tests/test_button_matrix.py")
-          text = path.read_text(encoding="utf-8")
-          start = text.find(
-              "    def test_settings_secondary_pages_open_their_real_screens(self) -> None:\n"
-          )
-          end = text.find(
-              "    def test_active_list_button_from_notifications_is_routable(self) -> None:\n",
-              start,
-          )
-          if start < 0 or end < 0:
-              raise SystemExit("settings secondary page test boundaries not found")
-          replacement = '''    def test_removed_settings_callbacks_return_to_settings(self) -> None:
-              panel, calls = self.panel(admin=True)
-              panel.load_access = lambda force=False: {  # type: ignore[method-assign]
-                  "settings": {"monitor_interval_minutes": 5}
-              }
-              for callback in ("page:wheelmode", "page:disabled_features"):
-                  panel.handle_callback(self.query(callback))
-                  sent = [row for row in calls if row[0] == "send"][-1]
-                  self.assertIn("⚙️ <b>Настройки</b>", sent[1])
-                  self.assertNotIn("API — активный production-режим", sent[1])
-                  self.assertNotIn("Ручное указание времени", sent[1])
-
-          '''
-          path.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
-          PY
+            python patch_button_matrix_xflarxx.py
           } 2>apply_patch_error.txt
 
       - name: Save patch diagnostic
@@ -216,6 +188,7 @@ jobs:
             python admin_panel_runtime_v41.py --self-test
             git fetch origin main
             git checkout origin/main -- .github/workflows/validate-current.yml
+            git reset HEAD .github/workflows/validate-current.yml
             rm -f \
               .github/workflows/apply-xflarxx-account-access-cleanup.yml \
               .github/workflows/run-xflarxx-account-access-cleanup-pr.yml
@@ -248,7 +221,8 @@ jobs:
             adjusted_patch_script.py \
             xflarxx_patch_runner.py \
             apply_xflarxx_clean.py \
-            fix_apply_xflarxx_clean.py
+            fix_apply_xflarxx_clean.py \
+            patch_button_matrix_xflarxx.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
