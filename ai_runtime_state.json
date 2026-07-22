@@ -1,8 +1,8 @@
 {
   "cache": {
-    "0d37f47d5d27539e9ce788aafe4801a642f7b68f14fec74e9f8799d67393277c": {
-      "expires_at": 1784704423.438934,
-      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly promotes BetBoom with a bonus offer and promo code, which is a standard advertisement format.\"\n}"
+    "59a6d80604380b3a9ecba8e89d0c966e804fba475e08ecf4c7fe09997138e179": {
+      "expires_at": 1784706918.9653327,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly promotes a BetBoom rebranding campaign and includes multiple links to their promotional landing pages.\"\n}"
     }
   },
   "decisions": [
@@ -865,10 +865,23 @@
       "provider": "gemini",
       "reason": "The post explicitly promotes BetBoom with a bonus offer and promo code, which is a standard advertisement format.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 1.0,
+      "created_at": 1784706018.9653327,
+      "feature": "suspicious_post_analysis",
+      "id": "3dfa3d0c610c45af899ca50e9b70ef3b",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "21e7eeff10b03e73ba40f9c6e8d2da8aa1110aaeacadf9a46e9fd41cbaef58b2",
+      "provider": "gemini",
+      "reason": "The post explicitly promotes a BetBoom rebranding campaign and includes multiple links to their promotional landing pages.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784703523.438934
+    1784706018.9653327
   ],
   "version": 1
 }
