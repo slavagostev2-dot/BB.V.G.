@@ -1,0 +1,62 @@
+pile_new, 1)
+
+test_old = "          python personal_reminder_filter.py\n"
+test_new = test_old + "          python auto_participation_bot_sync.py --self-test\n          python auto_participation_recovery.py --self-test\n          python betboom_account_participation.py --self-test\n"
+if "python auto_participation_bot_sync.py --self-test" not in text:
+    if text.count(test_old) != 1:
+        raise SystemExit("Monitor self-test marker not found")
+    text = text.replace(test_old, test_new, 1)
+
+function_marker = "          push_runtime() {\n"
+function_block = '''          refresh_authoritative_state() {
+            local monitor_local=/tmp/bbvg-monitor-local-state.json
+            local remote_main=/tmp/bbvg-monitor-remote-state.json
+            cp state.json "$monitor_local"
+
+            if ! timeout --signal=TERM --kill-after=5s 20s git fetch origin main >/dev/null 2>&1; then
+              echo "WARNING authoritative state refresh fetch failed; keeping local monitor state."
+              return 0
+            fi
+            if ! git show origin/main:state.json > "$remote_main"; then
+              echo "WARNING authoritative state.json is unavailable; keeping local monitor state."
+              return 0
+            fi
+
+            if ! python auto_participation_bot_sync.py \
+              --merge-local "$remote_main" \
+              --merge-remote "$monitor_local" \
+              --merge-output state.json >/tmp/bbvg-monitor-state-refresh.json; then
+              cp "$monitor_local" state.json
+              echo "WARNING authoritative auto-participation state merge failed; restored local state."
+              return 0
+            fi
+          }
+
+          push_runtime() {
+'''
+if "refresh_authoritative_state() {" not in text:
+    if text.count(function_marker) != 1:
+        raise SystemExit("Monitor push function marker not found")
+    text = text.replace(function_marker, function_block, 1)
+
+loop_old = "            started_at=$(date +%s)\n            admin_action_before=$(python - <<'PY'\n"
+loop_new = "            started_at=$(date +%s)\n            refresh_authoritative_state\n            admin_action_before=$(python - <<'PY'\n"
+if "            refresh_authoritative_state\n" not in text:
+    if text.count(loop_old) != 1:
+        raise SystemExit("Monitor loop refresh marker not found")
+    text = text.replace(loop_old, loop_new, 1)
+workflow.write_text(text, encoding="utf-8")
+
+agents = Path("AGENTS.md")
+text = agents.read_text(encoding="utf-8")
+marker = "- Автоучастие: `auto_participation_worker.py` выполняет первую event-попытку;"
+index = text.find(marker)
+if index < 0:
+    raise SystemExit("AGENTS auto participation marker not found")
+paragraph_end = text.find("\n- Второй BetBoom-аккаунт", index)
+if paragraph_end < 0:
+    raise SystemExit("AGENTS second account paragraph marker not found")
+addition = (
+    "\n- Непрерывный монитор перед каждой итерацией получает актуальный "
+    "`state.json` из `main` и через `auto_participation_bot_sync.py` "
+    
