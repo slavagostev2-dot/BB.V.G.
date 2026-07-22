@@ -268,25 +268,33 @@
   "active_wheels": {
     "over": {
       "action_id": 969,
+      "availability_status": "available",
       "button_token": "bf0d14eba00424",
       "deadline": "2026-07-22T09:56:53.493000+00:00",
-      "expires_at": "2026-07-22T11:37:41.191033+00:00",
+      "deadline_source": "api",
+      "event_id": "be81b6580df642f5d7fe",
+      "expires_at": "2026-07-22T11:38:06.481064+00:00",
       "first_notified_at": "2026-07-22T09:37:41.191033+00:00",
       "generation_id": "be81b6580df642f5d7fe",
       "identifier": "over",
-      "last_checked_at": "2026-07-22T09:37:41.191033+00:00",
+      "last_checked_at": "2026-07-22T09:38:07.124237+00:00",
       "last_notification_at": "2026-07-22T09:37:41.191033+00:00",
+      "last_verification_at": "2026-07-22T09:38:06.481064+00:00",
+      "lifecycle_changed_at": "2026-07-22T09:38:06.481007+00:00",
+      "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-22T09:37:03+00:00",
       "message_id": 534,
       "message_text": "https://betboom.ru/freestream/over\nhttps://betboom.ru/freestream/over\nhttps://betboom.ru/freestream/over\nhttps://telegram.me/overdrivebet\nhttps://betboom.ru/freestream/over\nhttps://telegram.me/overdrivebet/534",
       "message_url": "https://telegram.me/overdrivebet/534",
-      "method": "активность и таймер подтверждены BetBoom",
+      "method": "состояние определяется пользователями BB V.G.",
+      "needs_manual_time": false,
       "page_excerpt": "",
+      "page_status": "active",
       "participating": false,
       "referral_restricted": false,
       "server_start_at": "2026-07-22T09:36:53.493000+00:00",
       "source": "overdrivebet",
-      "status": "preliminary",
+      "status": "unknown",
       "url": "https://betboom.ru/freestream/over",
       "verification_status": "confirmed"
     },
@@ -305,9 +313,9 @@
       "first_notified_at": "2026-07-22T08:06:19.188953+00:00",
       "generation_id": "ce916a36d3a5131f3374",
       "identifier": "zonertg13",
-      "last_checked_at": "2026-07-22T09:37:04.567153+00:00",
+      "last_checked_at": "2026-07-22T09:38:07.124237+00:00",
       "last_notification_at": "2026-07-22T08:06:19.188953+00:00",
-      "last_verification_at": "2026-07-22T09:37:04.280589+00:00",
+      "last_verification_at": "2026-07-22T09:38:06.481064+00:00",
       "lifecycle_changed_at": "2026-07-22T09:32:59.194845+00:00",
       "lifecycle_state": "participating",
       "message_date": "2026-07-22T08:05:08+00:00",
@@ -1585,6 +1593,14 @@
       "stats_changed": true,
       "status": "applied"
     },
+    "d6dc556ef9f147a48f7d1d61789293b8": {
+      "action": "record_personal_vote",
+      "applied_at": "2026-07-22T09:38:06.480938+00:00",
+      "health_changed": false,
+      "state_changed": false,
+      "stats_changed": true,
+      "status": "applied"
+    },
     "d827bf5f6c134f3ea226b809cc9abda9": {
       "action": "record_personal_vote",
       "applied_at": "2026-07-18T12:14:38.283658+00:00",
@@ -1888,6 +1904,7 @@
     "d42effc208e84ff1a7f5ad96305fed69": "2026-07-18T19:13:06.577163+00:00",
     "d4c122805086496689bf37e4e9051ea4": "2026-07-19T15:56:11.125054+00:00",
     "d58392aeb60c437dbcfd671bd5b88e6a": "2026-07-18T12:14:38.283521+00:00",
+    "d6dc556ef9f147a48f7d1d61789293b8": "2026-07-22T09:38:06.480938+00:00",
     "d827bf5f6c134f3ea226b809cc9abda9": "2026-07-18T12:14:38.283658+00:00",
     "d8bc0e2c353f433b95598f10dadfa6a5": "2026-07-15T15:01:31.513879+00:00",
     "d9913d2bd2bd401383e5450fe69c3a85": "2026-07-16T03:10:03.406848+00:00",
@@ -2009,6 +2026,11 @@
       "scheduled_at": "2026-07-19T19:01:19.966357+00:00",
       "status": "workflow_dispatch_sent",
       "wheel_key": "neret"
+    },
+    "over#event:be81b6580df642f5d7fe": {
+      "scheduled_at": "2026-07-22T09:38:07.124311+00:00",
+      "status": "workflow_dispatch_scheduled",
+      "wheel_key": "over"
     },
     "staya": {
       "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
@@ -2779,7 +2801,7 @@
     "zont1x",
     "zortelad"
   ],
-  "last_admin_action_applied_at": "2026-07-22T09:32:59.194820+00:00",
+  "last_admin_action_applied_at": "2026-07-22T09:38:06.480980+00:00",
   "last_auto_participation_recovery_scan_at": "2026-07-21T19:22:00.289412+00:00",
   "last_automatic_status_at": "2026-07-17T06:35:52.571822+00:00",
   "last_heartbeat_at": "2026-07-22T03:46:11.945575+00:00",
@@ -3799,7 +3821,7 @@
     "over": {
       "action_id": 969,
       "generation_id": "be81b6580df642f5d7fe",
-      "seen_at": "2026-07-22T09:37:41.191161+00:00",
+      "seen_at": "2026-07-22T09:38:06.481064+00:00",
       "server_start_at": "2026-07-22T09:36:53.493000+00:00",
       "state": "active"
     },
@@ -3957,7 +3979,7 @@
     "zonertg13": {
       "action_id": 698,
       "generation_id": "ce916a36d3a5131f3374",
-      "seen_at": "2026-07-22T09:37:04.280589+00:00",
+      "seen_at": "2026-07-22T09:38:06.481064+00:00",
       "server_start_at": "2026-07-22T08:04:56.849000+00:00",
       "state": "active"
     },
@@ -3997,9 +4019,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-22T09:37:16.479403+00:00",
+    "last_checked_at": "2026-07-22T09:38:06.481064+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-22T09:37:16.479403+00:00",
+    "last_success_at": "2026-07-22T09:38:06.481064+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -4738,11 +4760,11 @@
       "action_id": 969,
       "first_seen_at": "2026-07-22T09:37:41.191161+00:00",
       "generation_id": "be81b6580df642f5d7fe",
-      "last_seen_at": "2026-07-22T09:37:41.191161+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-22T09:38:06.481064+00:00",
+      "observations": 3,
       "server_start_at": "2026-07-22T09:36:53.493000+00:00",
       "statuses": {
-        "active": 1
+        "active": 3
       },
       "wheel_key": "over"
     },
@@ -4816,11 +4838,11 @@
       "action_id": 698,
       "first_seen_at": "2026-07-22T08:06:19.189238+00:00",
       "generation_id": "ce916a36d3a5131f3374",
-      "last_seen_at": "2026-07-22T09:37:04.280589+00:00",
-      "observations": 15,
+      "last_seen_at": "2026-07-22T09:38:06.481064+00:00",
+      "observations": 17,
       "server_start_at": "2026-07-22T08:04:56.849000+00:00",
       "statuses": {
-        "active": 15
+        "active": 17
       },
       "wheel_key": "zonertg13"
     },
