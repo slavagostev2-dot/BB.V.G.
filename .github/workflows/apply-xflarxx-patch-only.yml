@@ -1,0 +1,81 @@
+name: Apply xFLARXx patch only
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-xflarxx-patch-only.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WORK_BRANCH: feature/xflarxx-account-access-cleanup-final
+      TEMP_WORKFLOW: .github/workflows/apply-xflarxx-patch-only.yml
+      PATCH_SCRIPT: scripts/apply_xflarxx_account_access_cleanup.py
+    steps:
+      - name: Checkout working branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: feature/xflarxx-account-access-cleanup-final
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply patch and push branch
+        shell: bash
+        run: |
+          set -uo pipefail
+          exec > >(tee /tmp/xflarxx-patch.log) 2>&1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          original_sha="$(git rev-parse HEAD)"
+          failed=0
+          stage="rebase"
+          git fetch origin main || failed=1
+          if [[ "$failed" == 0 ]]; then git rebase origin/main || failed=1; fi
+          if [[ "$failed" == 0 ]]; then
+            stage="patch"
+            python "$PATCH_SCRIPT" || failed=1
+          fi
+          if [[ "$failed" == 0 ]]; then
+            stage="compile"
+            rm -f "$PATCH_SCRIPT" "$TEMP_WORKFLOW"
+            python -m py_compile betboom_account_participation.py auto_participation_notifications.py notification_button_recovery.py bbvg/bot/runtime.py || failed=1
+          fi
+          if [[ "$failed" != 0 ]]; then
+            echo "FAILED_STAGE=${stage}"
+            git rebase --abort || true
+            git reset --hard "$original_sha"
+            cp /tmp/xflarxx-patch.log xflarxx_cleanup_failure.log
+            git add xflarxx_cleanup_failure.log
+            git commit -m "Record xFLARXx patch failure at ${stage} [skip ci]" || true
+            git push --force-with-lease origin "HEAD:${WORK_BRANCH}"
+            exit 1
+          fi
+          git add -A
+          git commit -m "Подключить xFLARXx и исправить управление пользователями"
+          git push --force-with-lease origin "HEAD:${WORK_BRANCH}"
+          git push origin --delete fix/control-center-unified-notification-release || true
+
+      - name: Remove patch workflow from main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rebase --abort || true
+          git fetch origin main
+          git checkout -B cleanup-main origin/main
+          if [[ -f "$TEMP_WORKFLOW" ]]; then
+            git rm "$TEMP_WORKFLOW"
+            git commit -m "Remove completed xFLARXx patch workflow [skip ci]"
+            for attempt in 1 2 3 4 5; do
+              if git push origin HEAD:main; then exit 0; fi
+              git pull --rebase origin main
+              sleep $((attempt * 2))
+            done
+            exit 1
+          fi
