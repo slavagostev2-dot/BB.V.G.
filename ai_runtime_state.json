@@ -1,8 +1,16 @@
 {
   "cache": {
-    "59a6d80604380b3a9ecba8e89d0c966e804fba475e08ecf4c7fe09997138e179": {
-      "expires_at": 1784706918.9653327,
-      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly promotes a BetBoom rebranding campaign and includes multiple links to their promotional landing pages.\"\n}"
+    "c7bfbce63de4544fbcc0ba6995b4e937ae12a85ac44cda05240bb46bc7a7883f": {
+      "expires_at": 1784713692.511841,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post promotes a CS2 tournament broadcast and includes a direct betting link to BetBoom, which is the primary source of the post.\"\n}"
+    },
+    "f63fcbd60474818f66fcd4833b293627afb3965a30fee88b0db5ad1719564e90": {
+      "expires_at": 1784713690.8981645,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly promotes a BetBoom registration bonus using a specific promo code and referral link.\"\n}"
+    },
+    "fbc25c5a8f9cf9c77fb4065a8ebfb4fcbadbddd81f8de1ff4370c324c691dcb6": {
+      "expires_at": 1784713691.7520626,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post is a standard promotional update for CS matches on the BetBoom platform, including links to streams and betting options.\"\n}"
     }
   },
   "decisions": [
@@ -878,10 +886,51 @@
       "provider": "gemini",
       "reason": "The post explicitly promotes a BetBoom rebranding campaign and includes multiple links to their promotional landing pages.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 1.0,
+      "created_at": 1784712790.8981645,
+      "feature": "suspicious_post_analysis",
+      "id": "666e24b0aa6144878dbb99faa22b543e",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "70ff22ac7baa7efb0515e0ea3c0ee3dd00b395963a41f1f956bbea95db532bdf",
+      "provider": "gemini",
+      "reason": "The post explicitly promotes a BetBoom registration bonus using a specific promo code and referral link.",
+      "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 0.95,
+      "created_at": 1784712791.7520626,
+      "feature": "suspicious_post_analysis",
+      "id": "5adb0dbcf812463c9dbf1ffc898ba11c",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "f53c58457d6e022d36c4c8fd7f71346250e3f925088ad48abe5ce34927b8db19",
+      "provider": "gemini",
+      "reason": "The post is a standard promotional update for CS matches on the BetBoom platform, including links to streams and betting options.",
+      "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 0.95,
+      "created_at": 1784712792.511841,
+      "feature": "suspicious_post_analysis",
+      "id": "35349e74a09240c3abbe85539c7e1b0f",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "3c1b06ce3bdb997080a5c09e3d33947cfe8a400e7a7a55ac367a35379e426a5d",
+      "provider": "gemini",
+      "reason": "The post promotes a CS2 tournament broadcast and includes a direct betting link to BetBoom, which is the primary source of the post.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784706018.9653327
+    1784712790.8981645,
+    1784712791.7520626,
+    1784712792.511841
   ],
   "version": 1
 }
