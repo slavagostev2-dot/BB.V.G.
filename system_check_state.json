@@ -1,7 +1,7 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 142,
+    "age_minutes": 162,
     "last_heartbeat_at": "2026-07-21T21:21:03.986713+00:00",
     "started_at": "2026-07-21T15:53:12.674345+00:00",
     "status": "running",
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "73fd8ecda76a44b9aba7d4afb018eeb9",
+    "decision_id": "1aa60cb575d24b85a7b74ab1fd8efd1b",
     "finding_count": 1,
     "finding_kinds": [
       "admin_panel_stale"
     ],
-    "generated_at": "2026-07-21T23:43:55.296817+00:00",
-    "impact": "Бот перестал принимать и обрабатывать команды пользователей, несмотря на исправность источников данных.",
+    "generated_at": "2026-07-22T00:03:09.600551+00:00",
+    "impact": "Бот перестал принимать и обрабатывать команды пользователей, так как связь с Control Center прервана.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить heartbeat Control Center и последний workflow панели.",
+    "recommended_action": "Проверить heartbeat Control Center и последний workflow панели для восстановления связи.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критический сбой: панель управления не обновляла статус более 2 часов (142 минуты).",
+    "summary": "Критическая ошибка: панель управления не обновляла статус более 2.5 часов (162 минуты).",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -39,7 +39,7 @@
     "recorded_configured_sources": 169,
     "recorded_nightly_sources": 1,
     "recorded_primary_sources": 168,
-    "source_tier_last_run_at": "2026-07-21T16:14:08.424555+00:00",
+    "source_tier_last_run_at": "2026-07-22T00:02:37.255530+00:00",
     "source_tier_policy": "manual_nightly_only",
     "transport_accounted_sources": 169,
     "transport_checked_at": "2026-07-21T23:43:18.873681+00:00",
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-21T23:43:53.341500+00:00",
+  "checked_at": "2026-07-22T00:03:07.509075+00:00",
   "discovery": {
     "active_size": 168,
     "candidate_count": 484,
@@ -104,7 +104,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последний живой сигнал был 142 минут назад.",
+      "detail": "Последний живой сигнал был 162 минут назад.",
       "kind": "admin_panel_stale",
       "severity": "critical",
       "subject": "",
@@ -123,19 +123,19 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-21T23:42:41.757485+00:00",
+      "last_checked_at": "2026-07-21T23:57:54.751061+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-21T23:42:41.757485+00:00",
+      "last_success_at": "2026-07-21T23:57:54.751061+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
+    "messages_attempted": 0,
     "opened": 0,
-    "resolved": 1
+    "resolved": 0
   },
   "incident_sequence": 93,
   "inventory": {
@@ -161,18 +161,18 @@
     "brand": "BB V.G.",
     "checked_sources": 168,
     "checks_delta": 168,
-    "checks_total": 631638,
+    "checks_total": 634158,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "45943714b1f4fd08f1d964df06da369427e99c74",
-    "iteration": 116,
+    "iteration": 131,
     "last_failure_at": "2026-07-21T12:13:02.326632+00:00",
-    "last_iteration_at": "2026-07-21T23:42:41.921804+00:00",
+    "last_iteration_at": "2026-07-21T23:57:54.913761+00:00",
     "last_iteration_duration_seconds": 13,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-21T23:42:41.921804+00:00",
-    "last_successful_checks_total": 631638,
-    "last_successful_iteration_at": "2026-07-21T23:42:41.921804+00:00",
+    "last_process_heartbeat_at": "2026-07-21T23:57:54.913761+00:00",
+    "last_successful_checks_total": 634158,
+    "last_successful_iteration_at": "2026-07-21T23:57:54.913761+00:00",
     "pending_wheels": 0,
     "reachable_sources": 168,
     "restart_recommended": false,
@@ -185,7 +185,7 @@
     "version": 3,
     "workflow_run_id": "29871199987"
   },
-  "monitor_age_minutes": 1,
+  "monitor_age_minutes": 5,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -255,9 +255,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-21T23:42:41.757485+00:00",
+    "last_checked_at": "2026-07-21T23:57:54.751061+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-21T23:42:41.757485+00:00",
+    "last_success_at": "2026-07-21T23:57:54.751061+00:00",
     "status": "ok"
   }
 }
