@@ -27,7 +27,21 @@ if __name__ == "__main__":
 
 
 def _run(*args: str) -> None:
-    subprocess.run(args, cwd=ROOT, check=True)
+    result = subprocess.run(
+        args,
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.returncode != 0:
+        output = (result.stdout or "")[-7000:]
+        raise RuntimeError(
+            f"returncode={result.returncode}; command={' '.join(args)}\n{output}"
+        )
 
 
 def _push_with_retry() -> None:
@@ -66,8 +80,6 @@ def _record_referral_label_failure(exc: BaseException) -> None:
             "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT", ""),
             "error_type": type(exc).__name__,
             "error": str(exc),
-            "command": list(exc.cmd) if isinstance(exc, subprocess.CalledProcessError) else None,
-            "returncode": exc.returncode if isinstance(exc, subprocess.CalledProcessError) else None,
             "traceback": traceback.format_exc(),
         }
         (ROOT / "referral_label_failure.json").write_text(
@@ -113,8 +125,8 @@ def _apply_referral_wheel_label_once() -> None:
         sys.executable,
         "-m",
         "unittest",
+        "-v",
         "tests.test_chapter5_lifecycle",
-        "tests.test_button_matrix",
     )
     _run(sys.executable, "wheel_publications_v2.py")
     _run(sys.executable, "chapter4_acceptance.py")
