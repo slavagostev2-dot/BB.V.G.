@@ -26,9 +26,13 @@
   "wheel_colors": "callback_payload_unchanged",
   "wheel_link_lifecycle": "timer_or_manual_deadline_else_two_hours",
   "workflow_run_id": "29846004846",
-  "last_validation_at": "2026-07-22T04:18:59.289560378Z",
+  "last_validation_at": "2026-07-22T04:25:17.652202997Z",
   "validation_error": "dependencies=success; candidate=failure; button_recovery=skipped; owner_sync=skipped; ai_provider=skipped; state_migration=skipped",
   "validation_run_id": "29889875128",
   "validation_head_sha": "73c89da5e6eb73d2c67fbb3ed1a7aa12b20f117e",
-  "validation_event": "push"
+  "validation_event": "push",
+  "preflight_failed_stage": "chapter4_acceptance",
+  "preflight_failed_command": "python chapter4_acceptance.py",
+  "preflight_failure_detail": "stage=chapter4_acceptance; command=python chapter4_acceptance.py; exit=1; release_sha=b65f98259a301c4f94c91658aefda4c065cf7684",
+  "preflight_release_sha": "b65f98259a301c4f94c91658aefda4c065cf7684"
 }
