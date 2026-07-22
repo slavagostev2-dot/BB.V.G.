@@ -61,13 +61,16 @@ jobs:
       - name: Run repository preflight
         run: python preflight.py
 
-      - name: Run chapter acceptance contracts
-        run: |
-          python chapter1_stability.py
-          python chapter2_unified_logic.py
-          python chapter3_acceptance.py
-          python chapter4_acceptance.py
-          python chapter5_acceptance.py
+      - name: Run chapter 1 acceptance
+        run: python chapter1_stability.py
+      - name: Run chapter 2 acceptance
+        run: python chapter2_unified_logic.py
+      - name: Run chapter 3 acceptance
+        run: python chapter3_acceptance.py
+      - name: Run chapter 4 acceptance
+        run: python chapter4_acceptance.py
+      - name: Run chapter 5 acceptance
+        run: python chapter5_acceptance.py
 
       - name: Validate source discovery synchronization
         run: |
