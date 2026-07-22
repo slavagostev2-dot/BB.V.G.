@@ -1,0 +1,57 @@
+name: Diagnose xFLARXx main patch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/diagnose-xflarxx-main-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TEMP_WORKFLOW: .github/workflows/diagnose-xflarxx-main-patch.yml
+      SCRIPT_BRANCH: feature/xflarxx-account-access-cleanup-final
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Run patch scripts and persist exact result
+        shell: bash
+        run: |
+          set +e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$SCRIPT_BRANCH" > /tmp/xflarxx-diagnostic.log 2>&1
+          git show "origin/${SCRIPT_BRANCH}:scripts/apply_xflarxx_account_access_cleanup.py" > /tmp/apply_xflarxx.py 2>> /tmp/xflarxx-diagnostic.log
+          git show "origin/${SCRIPT_BRANCH}:scripts/finalize_xflarxx_account_access_cleanup.py" > /tmp/finalize_xflarxx.py 2>> /tmp/xflarxx-diagnostic.log
+          echo "=== PRIMARY PATCH ===" >> /tmp/xflarxx-diagnostic.log
+          python /tmp/apply_xflarxx.py >> /tmp/xflarxx-diagnostic.log 2>&1
+          primary_code=$?
+          echo "PRIMARY_EXIT=${primary_code}" >> /tmp/xflarxx-diagnostic.log
+          final_code=99
+          if [[ "$primary_code" == 0 ]]; then
+            echo "=== FINALIZE PATCH ===" >> /tmp/xflarxx-diagnostic.log
+            python /tmp/finalize_xflarxx.py >> /tmp/xflarxx-diagnostic.log 2>&1
+            final_code=$?
+          fi
+          echo "FINAL_EXIT=${final_code}" >> /tmp/xflarxx-diagnostic.log
+          git reset --hard HEAD
+          cp /tmp/xflarxx-diagnostic.log xflarxx_cleanup_failure.log
+          rm -f "$TEMP_WORKFLOW"
+          git add xflarxx_cleanup_failure.log "$TEMP_WORKFLOW"
+          git commit -m "Record exact xFLARXx patch diagnostics [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase origin main
+            sleep $((attempt * 2))
+          done
+          exit 1
