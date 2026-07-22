@@ -1,0 +1,89 @@
+name: BB V.G. apply referral wheel label
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-referral-wheel-label.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Apply and validate referral wheel label
+        env:
+          BOT_FEEDBACK_ENABLED: "false"
+          BBVG_TEST_MODE: "1"
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git reset --hard origin/main
+          python .github/scripts/apply_referral_wheel_label.py
+          python -m py_compile wheel_publications_v2.py wheel_event_runtime.py monitor.py wheel_lifecycle_v2.py bbvg/bot/wheels.py
+          python -m unittest tests.test_chapter5_lifecycle
+          python -m pytest -q tests/test_chapter5_lifecycle.py tests/test_button_matrix.py
+          python wheel_publications_v2.py
+          python chapter4_acceptance.py
+          python chapter5_acceptance.py
+
+      - name: Commit clean production change
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/scripts/apply_referral_wheel_label.py
+          git rm .github/workflows/apply-referral-wheel-label.yml
+          git rm .github/workflows/referral-wheel-label-once.yml
+          git rm backup-marker-referral-wheel-label.txt
+          git add wheel_publications_v2.py monitor.py wheel_lifecycle_v2.py bbvg/bot/wheels.py tests/test_chapter5_lifecycle.py docs/PROJECT_CHANGELOG_RU.md
+          git commit -m "Помечать реферальные колёса в уведомлениях"
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              break
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+            if (( attempt == 4 )); then
+              exit 1
+            fi
+          done
+
+          code_sha=$(git rev-parse HEAD)
+          printf '%s\n' "$code_sha" > control_center_release.txt
+          git add control_center_release.txt
+          git commit -m "Выпустить приписку реферальных колёс в Control Center"
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              break
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+            if (( attempt == 4 )); then
+              exit 1
+            fi
+          done
+
+          gh workflow run monitor.yml --ref main -f continuous=true -f replace=true
