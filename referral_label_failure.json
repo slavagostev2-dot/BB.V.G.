@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
+    "-m",
+    "unittest",
+    "tests.test_chapter5_lifecycle",
+    "tests.test_button_matrix"
+  ],
+  "error": "Command '('/opt/hostedtoolcache/Python/3.12.13/x64/bin/python', '-m', 'unittest', 'tests.test_chapter5_lifecycle', 'tests.test_button_matrix')' returned non-zero exit status 1.",
+  "error_type": "CalledProcessError",
+  "recorded_at": "2026-07-22T06:04:55.170596+00:00",
+  "returncode": 1,
+  "run_attempt": "4",
+  "run_id": "29888855773",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/BB.V.G./BB.V.G./chapter1_stability.py\", line 152, in self_test\n    _apply_referral_wheel_label_once()\n  File \"/home/runner/work/BB.V.G./BB.V.G./chapter1_stability.py\", line 112, in _apply_referral_wheel_label_once\n    _run(\n  File \"/home/runner/work/BB.V.G./BB.V.G./chapter1_stability.py\", line 30, in _run\n    subprocess.run(args, cwd=ROOT, check=True)\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '('/opt/hostedtoolcache/Python/3.12.13/x64/bin/python', '-m', 'unittest', 'tests.test_chapter5_lifecycle', 'tests.test_button_matrix')' returned non-zero exit status 1.\n"
+}
