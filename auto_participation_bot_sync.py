@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,12 +12,32 @@ import monitor
 UTC = timezone.utc
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
 
+_AUTO_PARTICIPATION_FIELDS = {
+    "participating",
+    "auto_participation_status",
+    "auto_participation_checked_at",
+    "auto_participation_confirmed_at",
+    "auto_participation_retry_allowed",
+    "auto_participation_error",
+    "auto_participation_manual_notification_at",
+    "auto_participation_manual_notification_error",
+    "auto_participation_rearmed_at",
+    "auto_participation_rearm_reason",
+}
+
 
 def _load_json(path: Path, default: Any) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, OSError, json.JSONDecodeError):
         return default
+
+
+def _write_json(path: Path, value: dict[str, Any]) -> None:
+    path.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _load_recovery_result(path: Path) -> dict[str, Any]:
@@ -51,6 +72,151 @@ def _event_token(item: dict[str, Any]) -> str:
     return f"{key}#seen:{item.get('message_date') or ''}"
 
 
+def _parse_datetime(value: Any) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+def _record_timestamp(record: dict[str, Any]) -> datetime:
+    candidates: list[datetime] = []
+    for field, value in record.items():
+        if field.endswith("_at") or field in {"attempted_at", "recorded_at"}:
+            parsed = _parse_datetime(value)
+            if parsed is not None:
+                candidates.append(parsed)
+    return max(candidates, default=datetime.min.replace(tzinfo=UTC))
+
+
+def _merge_timed_record(remote: Any, local: Any) -> Any:
+    if not isinstance(remote, dict):
+        return copy.deepcopy(local)
+    if not isinstance(local, dict):
+        return copy.deepcopy(remote)
+    local_is_newer = _record_timestamp(local) >= _record_timestamp(remote)
+    older, newer = (remote, local) if local_is_newer else (local, remote)
+    result = copy.deepcopy(older)
+    result.update(copy.deepcopy(newer))
+    return result
+
+
+def _merge_record_collection(
+    target: dict[str, Any],
+    remote: Any,
+    local: Any,
+) -> None:
+    remote_rows = remote if isinstance(remote, dict) else {}
+    local_rows = local if isinstance(local, dict) else {}
+    for key in set(remote_rows) | set(local_rows):
+        if key in remote_rows and key in local_rows:
+            target[str(key)] = _merge_timed_record(remote_rows[key], local_rows[key])
+        elif key in local_rows:
+            target[str(key)] = copy.deepcopy(local_rows[key])
+        else:
+            target[str(key)] = copy.deepcopy(remote_rows[key])
+
+
+def merge_auto_participation_state(
+    remote_state: dict[str, Any],
+    local_state: dict[str, Any],
+) -> dict[str, Any]:
+    """Merge one workflow outcome into the latest monitor state.
+
+    The monitor remains authoritative for lifecycle and source discovery. The isolated
+    workflow owns only auto-participation outcome fields and its event/dispatch ledgers.
+    This prevents a heartbeat or monitor commit from erasing a confirmed BetBoom result.
+    """
+
+    remote = remote_state if isinstance(remote_state, dict) else {}
+    local = local_state if isinstance(local_state, dict) else {}
+    merged = copy.deepcopy(remote)
+
+    for collection_name in (
+        "auto_participation_events",
+        "auto_participation_dispatch_events",
+        "auto_participation_attempts",
+    ):
+        rows: dict[str, Any] = {}
+        _merge_record_collection(
+            rows,
+            remote.get(collection_name),
+            local.get(collection_name),
+        )
+        if rows:
+            merged[collection_name] = rows
+
+    remote_active = remote.get("active_wheels")
+    local_active = local.get("active_wheels")
+    active = copy.deepcopy(remote_active) if isinstance(remote_active, dict) else {}
+    if isinstance(local_active, dict):
+        for raw_key, raw_item in local_active.items():
+            key = str(raw_key).casefold()
+            if not isinstance(raw_item, dict):
+                continue
+            current = active.get(key)
+            if not isinstance(current, dict):
+                active[key] = copy.deepcopy(raw_item)
+                continue
+            updated = copy.deepcopy(current)
+            for field in _AUTO_PARTICIPATION_FIELDS:
+                if field in raw_item:
+                    updated[field] = copy.deepcopy(raw_item[field])
+            if bool(raw_item.get("participating")):
+                updated["participating"] = True
+            active[key] = updated
+    if active:
+        merged["active_wheels"] = active
+
+    for collection_name in ("button_contexts", "participating_wheels"):
+        remote_rows = remote.get(collection_name)
+        local_rows = local.get(collection_name)
+        rows = copy.deepcopy(remote_rows) if isinstance(remote_rows, dict) else {}
+        if isinstance(local_rows, dict):
+            for key, value in local_rows.items():
+                if str(key) not in rows:
+                    rows[str(key)] = copy.deepcopy(value)
+        if rows:
+            merged[collection_name] = rows
+
+    remote_publications = remote.get("wheel_publications")
+    local_publications = local.get("wheel_publications")
+    publications = (
+        copy.deepcopy(remote_publications)
+        if isinstance(remote_publications, dict)
+        else {}
+    )
+    if isinstance(local_publications, dict):
+        for key, value in local_publications.items():
+            if key not in publications:
+                publications[key] = copy.deepcopy(value)
+            elif isinstance(publications.get(key), dict) and isinstance(value, dict):
+                combined = copy.deepcopy(publications[key])
+                combined.update(copy.deepcopy(value))
+                publications[key] = combined
+    if publications:
+        merged["wheel_publications"] = publications
+
+    if "auto_participation_event_mode_initialized_at" in local:
+        merged.setdefault(
+            "auto_participation_event_mode_initialized_at",
+            local["auto_participation_event_mode_initialized_at"],
+        )
+    return merged
+
+
+def merge_state_files(local_path: Path, remote_path: Path, output_path: Path) -> dict[str, Any]:
+    local = _load_json(local_path, {})
+    remote = _load_json(remote_path, {})
+    merged = merge_auto_participation_state(remote, local)
+    _write_json(output_path, merged)
+    return merged
+
+
 def queue_recovery_outcomes(
     recovery_result_path: Path = DEFAULT_RECOVERY_RESULT,
 ) -> dict[str, Any]:
@@ -83,8 +249,6 @@ def queue_recovery_outcomes(
             continue
 
         if bool(attempt.get("success")):
-            # A previous run already confirmed this exact event. Do not generate a
-            # retroactive success notification, but clear any stale failure candidate.
             for field in (
                 "bot_failure_pending_at",
                 "bot_failure_sync_status",
@@ -108,8 +272,6 @@ def queue_recovery_outcomes(
                 changed = True
             continue
 
-        # Recovery itself may already have created these fields. Reassert them here
-        # from the exact result file so a future refactor cannot restore direct sends.
         if bool(record.get("manual_notification_sent")):
             continue
         if record.get("bot_success_pending_at"):
@@ -167,6 +329,52 @@ def self_test() -> None:
     assert _event_token(success) == "lent#action:952:2026-07-21T14:01:28.861000+00:00"
     assert _event_token(failure) == "ctom11#action:958:2026-07-21T15:28:57.035000+00:00"
     assert _event_token({"wheel_key": "x", "message_date": "now"}) == "x#seen:now"
+
+    remote = {
+        "version": 6,
+        "active_wheels": {
+            "wheel": {
+                "wheel_key": "wheel",
+                "last_checked_at": "new-monitor-value",
+                "participating": False,
+            }
+        },
+        "auto_participation_events": {
+            "wheel#action:1:start": {
+                "wheel_key": "wheel",
+                "status": "queued",
+                "recorded_at": "2026-07-22T08:00:00+00:00",
+                "remote_field": True,
+            }
+        },
+    }
+    local = {
+        "active_wheels": {
+            "wheel": {
+                "wheel_key": "wheel",
+                "last_checked_at": "stale-worker-value",
+                "participating": True,
+                "auto_participation_status": "participated",
+            }
+        },
+        "auto_participation_events": {
+            "wheel#action:1:start": {
+                "wheel_key": "wheel",
+                "status": "participated",
+                "attempted_at": "2026-07-22T08:01:00+00:00",
+                "bot_success_pending_at": "2026-07-22T08:01:01+00:00",
+            }
+        },
+    }
+    merged = merge_auto_participation_state(remote, local)
+    item = merged["active_wheels"]["wheel"]
+    assert item["last_checked_at"] == "new-monitor-value"
+    assert item["participating"] is True
+    assert item["auto_participation_status"] == "participated"
+    event = merged["auto_participation_events"]["wheel#action:1:start"]
+    assert event["status"] == "participated"
+    assert event["remote_field"] is True
+    assert event["bot_success_pending_at"]
     print("auto participation bot outcome sync self-test passed")
 
 
@@ -174,9 +382,19 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--recovery-result", default=str(DEFAULT_RECOVERY_RESULT))
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--merge-local", type=Path)
+    parser.add_argument("--merge-remote", type=Path)
+    parser.add_argument("--merge-output", type=Path)
     args = parser.parse_args()
     if args.self_test:
         self_test()
+        return 0
+    merge_args = (args.merge_local, args.merge_remote, args.merge_output)
+    if any(merge_args):
+        if not all(merge_args):
+            parser.error("--merge-local, --merge-remote and --merge-output are required together")
+        merge_state_files(args.merge_local, args.merge_remote, args.merge_output)
+        print(json.dumps({"merged": True, "output": str(args.merge_output)}, ensure_ascii=False))
         return 0
     result = queue_recovery_outcomes(Path(args.recovery_result))
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
