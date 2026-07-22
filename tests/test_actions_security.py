@@ -40,6 +40,7 @@ CONTENTS_WRITE_WORKFLOWS = {
     "source-registry.yml",
     "source-tier-maintenance.yml",
     "system-health.yml",
+    "xflarxx-auto-participation.yml",
 }
 ACTIONS_WRITE_WORKFLOWS = {
     "admin-bot.yml",

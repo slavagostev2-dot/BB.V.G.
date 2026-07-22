@@ -1,0 +1,104 @@
+name: BB V.G. xFLARXx auto participation
+
+on:
+  workflow_run:
+    workflows: ["BB V.G. auto participation"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bb-vg-xflarxx-auto-participation
+  cancel-in-progress: false
+
+jobs:
+  participate:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          github.event.workflow_run.head_branch == 'main' }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Refresh authoritative state
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate xFLARXx session
+        env:
+          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}
+          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}
+        run: |
+          python - <<'PY'
+          import xflarxx_account_participation as account
+          if not account.configured():
+              raise SystemExit("xFLARXx BetBoom session PART5/PART6 is not configured")
+          account.self_test()
+          PY
+
+      - name: Run xFLARXx BetBoom account
+        continue-on-error: true
+        env:
+          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}
+          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}
+          BETBOOM_ACCOUNT3_LABEL: "xFLARXx"
+          BETBOOM_ACCOUNT3_TELEGRAM_USER: "xFLARXx"
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
+        run: |
+          echo '{}' > /tmp/bbvg-auto-participation-recovery.json
+          python xflarxx_account_participation.py \
+            --recovery-result /tmp/bbvg-auto-participation-recovery.json
+
+      - name: Persist xFLARXx participation state safely
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp state.json /tmp/bbvg-xflarxx-local-state.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            git show origin/main:state.json > /tmp/bbvg-xflarxx-remote-state.json
+            python auto_participation_bot_sync.py \
+              --merge-local /tmp/bbvg-xflarxx-local-state.json \
+              --merge-remote /tmp/bbvg-xflarxx-remote-state.json \
+              --merge-output state.json
+
+            if git diff --quiet -- state.json; then
+              echo "xFLARXx participation state already present in main"
+              exit 0
+            fi
+
+            git add state.json
+            git commit -m "Update xFLARXx auto participation state [skip ci]"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "State push raced with another writer; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+          echo "Unable to persist xFLARXx participation state" >&2
+          exit 1
