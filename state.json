@@ -2054,8 +2054,9 @@
       "wheel_key": "ctom05"
     },
     "ctom12#event:4922f0ec2c050254503f": {
+      "dispatched_at": "2026-07-22T11:17:30.354189+00:00",
       "scheduled_at": "2026-07-22T11:17:27.712163+00:00",
-      "status": "workflow_dispatch_scheduled",
+      "status": "workflow_dispatch_sent",
       "wheel_key": "ctom12"
     },
     "dyrachyo#event:29763481e1d505cf5829": {
@@ -2125,8 +2126,9 @@
       "wheel_key": "zonertg13"
     },
     "zonertw1#event:835c42c994536c32c3fb": {
+      "dispatched_at": "2026-07-22T11:17:30.354189+00:00",
       "scheduled_at": "2026-07-22T11:17:27.712163+00:00",
-      "status": "workflow_dispatch_scheduled",
+      "status": "workflow_dispatch_sent",
       "wheel_key": "zonertw1"
     }
   },
@@ -2925,17 +2927,17 @@
   "last_admin_action_applied_at": "2026-07-22T11:17:26.544853+00:00",
   "last_auto_participation_recovery_scan_at": "2026-07-21T19:22:00.289412+00:00",
   "last_automatic_status_at": "2026-07-17T06:35:52.571822+00:00",
-  "last_heartbeat_at": "2026-07-22T03:46:11.945575+00:00",
+  "last_heartbeat_at": "2026-07-22T11:17:41.439305+00:00",
   "last_run_kind": "schedule",
   "last_run_summary": {
     "activation_sent": 0,
-    "active_wheels": 0,
+    "active_wheels": 3,
     "admin_actions": {
-      "applied": 0,
-      "changed": false,
+      "applied": 3,
+      "changed": true,
       "failed": 0,
-      "loaded": 173,
-      "pending": 0
+      "loaded": 179,
+      "pending": 3
     },
     "callbacks": {
       "callbacks": 0,
@@ -2948,23 +2950,23 @@
     "initialized_now": 0,
     "notification_errors": 0,
     "pending_expired": 0,
-    "pending_total": 0,
+    "pending_total": 2,
     "preliminary_sent": 0,
     "quarantined_skipped": 0,
     "reachable_sources": 168,
     "reminders": {
       "availability_notifications": 0,
-      "changed": false,
+      "changed": true,
       "draw_alerts": 0,
-      "final_reminders": 0,
+      "final_reminders": 1,
       "known_reminders": 0,
-      "pending_total": 0,
+      "pending_total": 1,
       "removed": 0,
-      "tracked": 0,
+      "tracked": 3,
       "unknown_reminders": 0,
-      "verification_checked": 0,
-      "verification_confirmed": 0,
-      "verification_deferred": 0,
+      "verification_checked": 4,
+      "verification_confirmed": 3,
+      "verification_deferred": 1,
       "verification_failed": 0,
       "verification_removed": 0
     },
@@ -2975,8 +2977,8 @@
       "sent": false
     },
     "sources": 168,
-    "stale_skipped": 0,
-    "unconfirmed_waiting": 0,
+    "stale_skipped": 2,
+    "unconfirmed_waiting": 3,
     "unknown_timer_samples_added": 0
   },
   "last_source_inactivity_report_at": "2026-07-20T10:45:51.555304+00:00",
@@ -3021,6 +3023,20 @@
     }
   },
   "pending_posts": {
+    "5e4960e899263c74fdacd63b2462b0febb83bef0af8e08beb270459524578664": {
+      "expires_at": "2026-07-23T11:17:41.400466+00:00",
+      "first_seen_at": "2026-07-22T11:17:41.400466+00:00",
+      "identifier": "over",
+      "last_checked_at": "2026-07-22T11:17:41.400466+00:00",
+      "message_date": "2026-07-22T09:40:53+00:00",
+      "message_id": 208,
+      "message_text": "https://betboom.ru/freestream/over\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/208",
+      "message_url": "https://telegram.me/kolesaBB/208",
+      "reason": "BetBoom создал колесо, но участие ещё не открыто",
+      "source": "kolesaBB",
+      "status": "not_started",
+      "url": "https://betboom.ru/freestream/over"
+    },
     "bf0d14eba00424e63479877e147f8fb9bd3ddcda7363438c966d026ddf8f6c50": {
       "action_id": 973,
       "expires_at": "2026-07-23T11:17:26.918534+00:00",
@@ -3222,6 +3238,7 @@
     "7a2d4eb58b48e0f1e620dab809f03843b2c7162695831c03a4a79e684176961b": "2026-07-12T18:26:20.897392+00:00",
     "7b1e4eeacb8c3b8a18ce17ddd255e6bb63ea2db9eb9770e74622d330bd442c66": "2026-07-12T15:09:58.068418+00:00",
     "7c0db4a6feeda434bed555b014e9a856a4100e6789887aea7ff339197f46dbd4": "2026-07-12T15:10:04.958832+00:00",
+    "7cdb004ed6b9b55829cc348d9cf8625f2ce713af1de31c2f36054e4e63fb113f": "2026-07-22T11:17:41.400641+00:00",
     "7d71ba3b304c1ac96f455d1447277e2a87b2c7a8fc7cdc020a92037a39fa7137": "2026-07-17T20:34:28.074733+00:00",
     "7f31148238de028203d2be22b2e5d2786220997f6f8c4227a8a1710a3470d522": "2026-07-20T02:20:26.564630+00:00",
     "80c08ff46ef6e48d59ce2c70c93027c6e41403f8c4b599769a513ad287e3d445": "2026-07-12T18:21:18.200126+00:00",
@@ -3314,6 +3331,8 @@
     "d4fa31f2a589420a8f824bb4bde52b3dfe93db3a76d5b704da796185c36b1a81": "2026-07-12T15:10:05.815332+00:00",
     "d569c905e0d81fcf2df45f21bb4464b7aaa607a7178ddcb9277cc337d9d05617": "2026-07-18T16:58:47.869443+00:00",
     "d722c5451f3f6fe0c34aefed99af055687887e71397ebbcc6843b9bcf77d8e5f": "2026-07-14T19:52:24.783487+00:00",
+    "d88c3fbfc315d9cfe89f306214399c531ac8d2139af0b3314f8f93a145fd5983": "2026-07-22T11:17:41.173047+00:00",
+    "d928578e298136ef7a355232ca94e43e3ef079209677802a0a5f0f8d53224f16": "2026-07-22T11:17:41.183097+00:00",
     "d9337e6fa789fa7a0803f13ce4f53d8dd88d9b28d758f0ca81612ad96e4070c8": "2026-07-21T21:45:48.747440+00:00",
     "d943a649513ab3e2d93341ea34e7670992938dfab1b7d40e9db42c7e717d8051": "2026-07-18T22:10:47.299287+00:00",
     "d9bce73b7da1681ccd4617763b82c4eebd8b580d3af02c9eb467bb8b365aa070": "2026-07-15T19:02:02.100324+00:00",
@@ -3352,6 +3371,7 @@
     "fb4ba954e407736dea38b26236f0bf90d432a9373c0aeda0a1f9077df971d2a1": "2026-07-12T15:10:04.958829+00:00",
     "fb6247a58e952c95b6c9145ea41984a351e4383932bde9306a3f2000388f9a79": "2026-07-12T15:08:28.238429+00:00",
     "fcc99159509ee2559a3c686e343b31c7c063258c9196279b77b12f61ecd887c4": "2026-07-12T18:21:25.207375+00:00",
+    "fccacf4e6b16d85c00c4de5ac960b9c5dc244da310171fd98c89c2a5f95db3c6": "2026-07-22T11:17:41.400759+00:00",
     "fcd1df589cf92e6c17e0d831049ca6c2a0aab9353a4a22cfa787b71a88931b63": "2026-07-15T16:53:16.917477+00:00",
     "fe0a9c2667782d6849e8a7b5ccda08ab13762d4fd355f6fb696ffb5f43d08dcf": "2026-07-17T18:42:18.245745+00:00",
     "fe2aaf96b292e21b962369f37a848fedfa154eb26621e005723cafb156e8eafb": "2026-07-18T18:37:10.849892+00:00",
@@ -4175,9 +4195,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-22T11:17:26.548982+00:00",
+    "last_checked_at": "2026-07-22T11:17:41.400195+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-22T11:17:26.548982+00:00",
+    "last_success_at": "2026-07-22T11:17:41.400195+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -4832,11 +4852,11 @@
     "90045c54ea90365b62155c44": {
       "action_id": 973,
       "first_seen_at": "2026-07-22T11:17:26.548982+00:00",
-      "last_seen_at": "2026-07-22T11:17:26.548982+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-22T11:17:41.400272+00:00",
+      "observations": 2,
       "server_start_at": null,
       "statuses": {
-        "not_started": 1
+        "not_started": 2
       },
       "wheel_key": "over"
     },
