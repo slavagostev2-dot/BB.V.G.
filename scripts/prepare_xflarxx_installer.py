@@ -40,8 +40,8 @@ preflight_replacement = preflight_marker + \'''          if not betboom_account_
 if workflow_text.count(preflight_marker) != 1:
     raise RuntimeError("auto-participation secondary-account preflight marker not found")
 workflow_text = workflow_text.replace(preflight_marker, preflight_replacement, 1)
-old_message = '          print("Auto participation preflight OK for both BetBoom accounts")\n'
-new_message = '          print("Auto participation preflight OK for all configured BetBoom accounts")\n'
+old_message = '          print("Auto participation preflight OK for both BetBoom accounts")\\n'
+new_message = '          print("Auto participation preflight OK for all configured BetBoom accounts")\\n'
 if workflow_text.count(old_message) != 1:
     raise RuntimeError("auto-participation preflight message marker not found")
 workflow_text = workflow_text.replace(old_message, new_message, 1)
