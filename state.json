@@ -268,25 +268,33 @@
   "active_wheels": {
     "aunkere": {
       "action_id": 975,
+      "availability_status": "available",
       "button_token": "8d43713c704fab",
       "deadline": "2026-07-22T13:09:31.416000+00:00",
-      "expires_at": "2026-07-22T14:53:26.348440+00:00",
+      "deadline_source": "api",
+      "event_id": "acb27ec4fd9f4723be53",
+      "expires_at": "2026-07-22T14:53:56.699067+00:00",
       "first_notified_at": "2026-07-22T12:53:26.348440+00:00",
       "generation_id": "acb27ec4fd9f4723be53",
       "identifier": "aunkere",
-      "last_checked_at": "2026-07-22T12:53:26.348440+00:00",
+      "last_checked_at": "2026-07-22T12:53:57.086953+00:00",
       "last_notification_at": "2026-07-22T12:53:26.348440+00:00",
+      "last_verification_at": "2026-07-22T12:53:56.699067+00:00",
+      "lifecycle_changed_at": "2026-07-22T12:53:56.698988+00:00",
+      "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-22T12:52:14+00:00",
       "message_id": 4779,
       "message_text": "Колесо фрибетов для всех!\nВ течение 15-ти минут после публикации вы можете выиграть часть фрибетов в\nBetBoom\n!\nЧто нужно сделать:\n•\nперейти по ссылке\n• нажать «Принять участие» (если не зареганы, выше ссылка)\nДальше ничего делать не надо:\nпросто дождитесь окончания таймера — сразу после этого колесо начнет крутиться, и вы увидите результаты.\nhttps://telegram.me/aunkereEZ\nhttps://bbsport.su/link/1ZTAe0/?erid=CQH36pWzJqUzRLzcaA8sv8hxDo4KensKmhE2AaDsKmyXSw\nhttps://betboom.ru/freestream/aunkere?utm_content=aunkere&utm_source=freestream\nhttps://telegram.me/aunkereEZ/4779\nhttps://betboom.ru/freestream/aunkere?utm_content=aunkere&amp;utm_source=freestream",
       "message_url": "https://telegram.me/aunkereEZ/4779",
-      "method": "активность и таймер подтверждены BetBoom",
+      "method": "состояние определяется пользователями BB V.G.",
+      "needs_manual_time": false,
       "page_excerpt": "",
+      "page_status": "active",
       "participating": false,
       "referral_restricted": false,
       "server_start_at": "2026-07-22T12:49:31.416000+00:00",
       "source": "aunkereEZ",
-      "status": "preliminary",
+      "status": "unknown",
       "url": "https://betboom.ru/freestream/aunkere",
       "verification_status": "confirmed"
     },
@@ -305,9 +313,9 @@
       "first_notified_at": "2026-07-22T08:06:19.188953+00:00",
       "generation_id": "ce916a36d3a5131f3374",
       "identifier": "zonertg13",
-      "last_checked_at": "2026-07-22T12:52:54.269472+00:00",
+      "last_checked_at": "2026-07-22T12:53:57.086953+00:00",
       "last_notification_at": "2026-07-22T08:06:19.188953+00:00",
-      "last_verification_at": "2026-07-22T12:52:54.033940+00:00",
+      "last_verification_at": "2026-07-22T12:53:56.699067+00:00",
       "lifecycle_changed_at": "2026-07-22T09:32:59.194845+00:00",
       "lifecycle_state": "participating",
       "message_date": "2026-07-22T08:05:08+00:00",
@@ -2016,6 +2024,11 @@
       "status": "workflow_dispatch_sent",
       "wheel_key": "aunkere"
     },
+    "aunkere#event:acb27ec4fd9f4723be53": {
+      "scheduled_at": "2026-07-22T12:53:57.087028+00:00",
+      "status": "workflow_dispatch_scheduled",
+      "wheel_key": "aunkere"
+    },
     "aunkere#event:ef82ebd7b7f693e7388b": {
       "dispatched_at": "2026-07-21T09:48:34.445880+00:00",
       "scheduled_at": "2026-07-19T17:59:02.259121+00:00",
@@ -3194,7 +3207,6 @@
     "7a2d4eb58b48e0f1e620dab809f03843b2c7162695831c03a4a79e684176961b": "2026-07-12T18:26:20.897392+00:00",
     "7b1e4eeacb8c3b8a18ce17ddd255e6bb63ea2db9eb9770e74622d330bd442c66": "2026-07-12T15:09:58.068418+00:00",
     "7c0db4a6feeda434bed555b014e9a856a4100e6789887aea7ff339197f46dbd4": "2026-07-12T15:10:04.958832+00:00",
-    "7cdb004ed6b9b55829cc348d9cf8625f2ce713af1de31c2f36054e4e63fb113f": "2026-07-22T12:53:26.567177+00:00",
     "7d71ba3b304c1ac96f455d1447277e2a87b2c7a8fc7cdc020a92037a39fa7137": "2026-07-17T20:34:28.074733+00:00",
     "7f31148238de028203d2be22b2e5d2786220997f6f8c4227a8a1710a3470d522": "2026-07-20T02:20:26.564630+00:00",
     "80c08ff46ef6e48d59ce2c70c93027c6e41403f8c4b599769a513ad287e3d445": "2026-07-12T18:21:18.200126+00:00",
@@ -3328,7 +3340,6 @@
     "fb4ba954e407736dea38b26236f0bf90d432a9373c0aeda0a1f9077df971d2a1": "2026-07-12T15:10:04.958829+00:00",
     "fb6247a58e952c95b6c9145ea41984a351e4383932bde9306a3f2000388f9a79": "2026-07-12T15:08:28.238429+00:00",
     "fcc99159509ee2559a3c686e343b31c7c063258c9196279b77b12f61ecd887c4": "2026-07-12T18:21:25.207375+00:00",
-    "fccacf4e6b16d85c00c4de5ac960b9c5dc244da310171fd98c89c2a5f95db3c6": "2026-07-22T12:53:26.838904+00:00",
     "fcd1df589cf92e6c17e0d831049ca6c2a0aab9353a4a22cfa787b71a88931b63": "2026-07-15T16:53:16.917477+00:00",
     "fe0a9c2667782d6849e8a7b5ccda08ab13762d4fd355f6fb696ffb5f43d08dcf": "2026-07-17T18:42:18.245745+00:00",
     "fe2aaf96b292e21b962369f37a848fedfa154eb26621e005723cafb156e8eafb": "2026-07-18T18:37:10.849892+00:00",
@@ -3800,7 +3811,7 @@
     "aunkere": {
       "action_id": 975,
       "generation_id": "acb27ec4fd9f4723be53",
-      "seen_at": "2026-07-22T12:53:26.348734+00:00",
+      "seen_at": "2026-07-22T12:53:56.699067+00:00",
       "server_start_at": "2026-07-22T12:49:31.416000+00:00",
       "state": "active"
     },
@@ -4114,7 +4125,7 @@
     "zonertg13": {
       "action_id": 698,
       "generation_id": "ce916a36d3a5131f3374",
-      "seen_at": "2026-07-22T12:52:54.033940+00:00",
+      "seen_at": "2026-07-22T12:53:56.699067+00:00",
       "server_start_at": "2026-07-22T08:04:56.849000+00:00",
       "state": "active"
     },
@@ -4162,9 +4173,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-22T12:53:26.838700+00:00",
+    "last_checked_at": "2026-07-22T12:53:56.699067+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-22T12:53:26.838700+00:00",
+    "last_success_at": "2026-07-22T12:53:56.699067+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -4900,11 +4911,11 @@
       "action_id": 975,
       "first_seen_at": "2026-07-22T12:53:26.348734+00:00",
       "generation_id": "acb27ec4fd9f4723be53",
-      "last_seen_at": "2026-07-22T12:53:26.348734+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-22T12:53:56.699067+00:00",
+      "observations": 3,
       "server_start_at": "2026-07-22T12:49:31.416000+00:00",
       "statuses": {
-        "active": 1
+        "active": 3
       },
       "wheel_key": "aunkere"
     },
@@ -5032,11 +5043,11 @@
       "action_id": 698,
       "first_seen_at": "2026-07-22T08:06:19.189238+00:00",
       "generation_id": "ce916a36d3a5131f3374",
-      "last_seen_at": "2026-07-22T12:52:54.033940+00:00",
-      "observations": 203,
+      "last_seen_at": "2026-07-22T12:53:56.699067+00:00",
+      "observations": 205,
       "server_start_at": "2026-07-22T08:04:56.849000+00:00",
       "statuses": {
-        "active": 203
+        "active": 205
       },
       "wheel_key": "zonertg13"
     },
