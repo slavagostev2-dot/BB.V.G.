@@ -61,58 +61,13 @@ jobs:
       - name: Run repository preflight
         run: python preflight.py
 
-      - name: Run chapter 1 acceptance
-        run: python chapter1_stability.py
-      - name: Run chapter 2 acceptance
-        run: python chapter2_unified_logic.py
-      - name: Run chapter 3 acceptance
-        run: python chapter3_acceptance.py
-      - name: Run Telegram UI self-test
-        run: python telegram_ui.py
-      - name: Run panel v41 self-test
-        run: python admin_panel_runtime_v41.py --self-test
-      - name: Validate chapter 4 workflow contract
+      - name: Run chapter acceptance contracts
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
-          validator = Path('scripts/validate_control_center.sh').read_text(encoding='utf-8')
-          assert 'run: python admin_panel_runtime_v41.py' in workflow
-          assert '"version": 41' in workflow
-          assert 'admin_panel_runtime_v41.py' in workflow
-          assert 'run: bash scripts/validate_control_center.sh' in workflow
-          assert 'telegram_ui.py' in validator
-          PY
-      - name: Validate chapter 4 menu roles
-        run: |
-          python - <<'PY'
-          import bbvg_monitor_main
-          from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
-          user = {str(b.get('callback_data') or '') for r in TelegramPanelRuntimeV41.compact_menu_rows(False) for b in r}
-          admin = {str(b.get('callback_data') or '') for r in TelegramPanelRuntimeV41.compact_menu_rows(True) for b in r}
-          assert 'page:status' in user
-          assert 'page:control' not in user
-          assert 'page:control' in admin
-          assert 'page:status' not in admin
-          PY
-      - name: Validate chapter 4 markup
-        run: |
-          python - <<'PY'
-          import bbvg_monitor_main
-          import telegram_ui
-          from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
-          assert not telegram_ui.markup_issues({'inline_keyboard': TelegramPanelRuntimeV41.compact_menu_rows(False)})
-          assert not telegram_ui.markup_issues({'inline_keyboard': TelegramPanelRuntimeV41.compact_menu_rows(True)})
-          PY
-      - name: Validate chapter 4 archive files
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          assert 'Mini App — архивировано' in Path('MINI_APP_ARCHIVED.md').read_text(encoding='utf-8')
-          assert Path('tests/test_ui_chapter4.py').exists()
-          PY
-      - name: Run chapter 5 acceptance
-        run: python chapter5_acceptance.py
+          python chapter1_stability.py
+          python chapter2_unified_logic.py
+          python chapter3_acceptance.py
+          python chapter4_acceptance.py
+          python chapter5_acceptance.py
 
       - name: Validate source discovery synchronization
         run: |
