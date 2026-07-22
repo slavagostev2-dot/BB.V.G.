@@ -5,6 +5,7 @@ from typing import Any, Callable
 
 from bbvg.bot.users import UserSettingsMixin
 
+INTEGRATION_VERSION = 1
 AUTO_NOTIFICATION_KEY = "auto_participation"
 AUTO_NOTIFICATION_LABEL = "🤖 Автоучастие"
 AUTO_NOTIFICATION_DESCRIPTION = "Итоги автоматического участия в колёсах"
@@ -93,6 +94,7 @@ def install(panel_class: type[Any]) -> None:
 
 
 def self_test() -> None:
+    assert INTEGRATION_VERSION == 1
     markup = {
         "inline_keyboard": [
             [{"text": "Уведомления", "callback_data": "page:notifications"}],
