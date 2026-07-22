@@ -131,3 +131,4 @@ def test_production_heartbeat_contract_is_present() -> None:
 
 
 # Technical PR trigger for restarting the corrected Control Center.
+# Synchronize after workflow registration.
