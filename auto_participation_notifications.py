@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable
 
 import auto_participation_owner_sync
+import betboom_account_participation
 import personal_wheel_voting
 import wheel_publications_v2
 
@@ -14,9 +15,12 @@ PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
 PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
 SECONDARY_ACCOUNT_KEY = "vyacheslav_secondary"
 SECONDARY_ACCOUNT_LABEL = "Аккаунт 2"
+XFLARXX_ACCOUNT_KEY = "xflarxx_primary"
+XFLARXX_ACCOUNT_LABEL = "xFLARXx"
+XFLARXX_ALERT_USER = "xFLARXx"
 AUTO_NOTIFICATION_KEY = "auto_participation"
 AUTO_NOTIFICATION_LABEL = "🤖 Автоучастие"
-AUTO_NOTIFICATION_DESCRIPTION = "Один общий итог по двум BetBoom-аккаунтам"
+AUTO_NOTIFICATION_DESCRIPTION = "Итоги автоматического участия в колёсах"
 SUCCESS_STATUSES = {
     "participated",
     "already_participating",
@@ -42,7 +46,9 @@ def _account_identity(record: dict[str, Any]) -> tuple[str, str]:
     key = str(record.get("account_key") or PRIMARY_ACCOUNT_KEY).strip()
     if key == SECONDARY_ACCOUNT_KEY:
         return key, str(record.get("account_label") or SECONDARY_ACCOUNT_LABEL)
-    return PRIMARY_ACCOUNT_KEY, PRIMARY_ACCOUNT_LABEL
+    if key == PRIMARY_ACCOUNT_KEY:
+        return key, str(record.get("account_label") or PRIMARY_ACCOUNT_LABEL)
+    return key, str(record.get("account_label") or key)
 
 
 def _success(record: dict[str, Any]) -> bool:
@@ -168,13 +174,64 @@ def _result_message(
     )
 
 
+def _settled_external_events(
+    state: dict[str, Any],
+    *,
+    now: datetime | None = None,
+) -> list[tuple[str, dict[str, Any], bool]]:
+    events = state.get("auto_participation_events")
+    if not isinstance(events, dict):
+        return []
+    approved_failures = {
+        token
+        for token, _record in auto_participation_owner_sync.pending_failure_events(
+            state, now=now
+        )
+    }
+    result: list[tuple[str, dict[str, Any], bool]] = []
+    for raw_token, raw_record in events.items():
+        if not isinstance(raw_record, dict):
+            continue
+        if str(raw_record.get("account_key") or "") != XFLARXX_ACCOUNT_KEY:
+            continue
+        token = str(raw_token)
+        success = _success(raw_record)
+        if success or token in approved_failures:
+            result.append((token, raw_record, success))
+    result.sort(key=lambda item: str(item[1].get("attempted_at") or item[0]))
+    return result
+
+
+def _single_result_message(
+    key: str,
+    item: dict[str, Any],
+    record: dict[str, Any],
+    success: bool,
+) -> tuple[str, dict[str, Any]]:
+    identifier = html.escape(str(item.get("identifier") or key))
+    label = html.escape(str(record.get("account_label") or XFLARXX_ACCOUNT_LABEL))
+    if success:
+        title = "✅ <b>Участие принято</b>"
+        detail = ""
+    else:
+        title = "⚠️ <b>Участие не принято</b>"
+        detail = f"\nПричина: {html.escape(_failure_reason(record))}"
+    return (
+        f"{title}\n\n"
+        f"Колесо: <code>{identifier}</code>\n"
+        f"Аккаунт: <b>{label}</b>{detail}",
+        _navigation(),
+    )
+
+
 def sync_once(panel: Any) -> dict[str, int]:
-    """Send at most one owner message after both BetBoom accounts settle."""
+    """Deliver one owner aggregate and independent xFLARXx outcomes."""
 
     snap = panel.snapshot()
     state = snap.state if isinstance(getattr(snap, "state", None), dict) else {}
     groups = _settled_event_groups(state)
-    if not groups:
+    external_events = _settled_external_events(state)
+    if not groups and not external_events:
         return {
             "pending": 0,
             "completed": 0,
@@ -184,11 +241,6 @@ def sync_once(panel: Any) -> dict[str, int]:
             "account_completed": 0,
         }
 
-    _access, owner_id, owner, owner_chat_id = auto_participation_owner_sync._owner_context(
-        panel
-    )
-    success_records = auto_participation_owner_sync._completion_records(owner)
-    failure_records = auto_participation_owner_sync._failure_records(owner)
     active = state.get("active_wheels") if isinstance(state.get("active_wheels"), dict) else {}
     original_context = (
         getattr(panel, "current_chat_id", None),
@@ -200,88 +252,181 @@ def sync_once(panel: Any) -> dict[str, int]:
     success_completed = 0
     failure_completed = 0
 
-    for base_token, accounts in sorted(groups.items()):
-        first_record = accounts[PRIMARY_ACCOUNT_KEY][1]
-        key = str(first_record.get("wheel_key") or "").casefold()
+    if groups:
+        _access, owner_id, owner, owner_chat_id = auto_participation_owner_sync._owner_context(
+            panel
+        )
+        success_records = auto_participation_owner_sync._completion_records(owner)
+        failure_records = auto_participation_owner_sync._failure_records(owner)
+
+        for base_token, accounts in sorted(groups.items()):
+            first_record = accounts[PRIMARY_ACCOUNT_KEY][1]
+            key = str(first_record.get("wheel_key") or "").casefold()
+            item = active.get(key)
+            if not key or not isinstance(item, dict):
+                failed += 1
+                continue
+            if auto_participation_owner_sync._event_token(item, key) != base_token:
+                continue
+            event_key = personal_wheel_voting.wheel_event_key(key, item)
+            if _processed(success_records.get(event_key)) or _processed(
+                failure_records.get(event_key)
+            ):
+                continue
+
+            all_success = all(value[2] for value in accounts.values())
+            any_success = any(value[2] for value in accounts.values())
+            referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
+            notifications_enabled = _notification_enabled(owner)
+            should_send = notifications_enabled and (
+                all_success or not referral_restricted
+            )
+            now_text = datetime.now(UTC).isoformat()
+            account_payload = {
+                account_key: {
+                    "status": str(record.get("status") or ""),
+                    "success": bool(success),
+                    "label": _account_identity(record)[1],
+                }
+                for account_key, (_token, record, success) in accounts.items()
+            }
+
+            try:
+                panel.set_context(owner_chat_id, owner_id)
+                vote_result: dict[str, Any] = {}
+                original_button_updated = False
+                if any_success:
+                    raw_result = panel.mark_personal_participation(key)
+                    vote_result = raw_result if isinstance(raw_result, dict) else {}
+                    original_button_updated = auto_participation_owner_sync._mark_original_notification(
+                        panel, owner_chat_id, item
+                    )
+                if should_send:
+                    text, markup = _result_message(key, item, accounts)
+                    panel.send(text, reply_markup=markup, chat_id=owner_chat_id)
+
+                payload = {
+                    "wheel_key": key,
+                    "source_event_token": base_token,
+                    "completed_at": now_text,
+                    "notified_at": now_text if should_send else "",
+                    "notification_sent": should_send,
+                    "notification_policy": (
+                        "sent"
+                        if should_send
+                        else "disabled"
+                        if not notifications_enabled
+                        else "referral_failure_suppressed"
+                    ),
+                    "referral_restricted": referral_restricted,
+                    "accounts": account_payload,
+                    "original_button_updated": original_button_updated,
+                    "vote_changed": bool(vote_result.get("changed")),
+                    "vote_command_id": str(vote_result.get("vote_command_id") or ""),
+                }
+                if all_success:
+                    auto_participation_owner_sync._save_completion(
+                        panel, owner_id, event_key, payload
+                    )
+                    success_records[event_key] = {"completed_at": now_text}
+                    success_completed += 1
+                else:
+                    auto_participation_owner_sync._save_failure(
+                        panel, owner_id, event_key, payload
+                    )
+                    failure_records[event_key] = {"completed_at": now_text}
+                    failure_completed += 1
+                completed += 1
+            except Exception as exc:
+                failed += 1
+                print(
+                    "WARNING unified auto participation notification sync: "
+                    f"wheel={key} {type(exc).__name__}: {exc}"
+                )
+            finally:
+                panel.current_chat_id, panel.current_user_id, panel.current_role = (
+                    original_context
+                )
+
+    for token, record, success in external_events:
+        key = str(record.get("wheel_key") or "").casefold()
         item = active.get(key)
         if not key or not isinstance(item, dict):
             failed += 1
             continue
+        base_token = _base_event_token(token, record)
         if auto_participation_owner_sync._event_token(item, key) != base_token:
             continue
-        event_key = personal_wheel_voting.wheel_event_key(key, item)
-        if _processed(success_records.get(event_key)) or _processed(
-            failure_records.get(event_key)
-        ):
-            continue
-
-        all_success = all(value[2] for value in accounts.values())
-        any_success = any(value[2] for value in accounts.values())
-        referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
-        notifications_enabled = _notification_enabled(owner)
-        should_send = notifications_enabled and (
-            all_success or not referral_restricted
-        )
-        now_text = datetime.now(UTC).isoformat()
-        account_payload = {
-            account_key: {
-                "status": str(record.get("status") or ""),
-                "success": bool(success),
-                "label": _account_identity(record)[1],
-            }
-            for account_key, (_token, record, success) in accounts.items()
-        }
-
         try:
-            panel.set_context(owner_chat_id, owner_id)
+            _access, user_id, user, chat_id = betboom_account_participation._target_context(
+                panel, str(record.get("alert_user") or XFLARXX_ALERT_USER)
+            )
+            event_key = (
+                personal_wheel_voting.wheel_event_key(key, item)
+                + f"#account:{XFLARXX_ACCOUNT_KEY}"
+            )
+            field = (
+                "auto_participation_success_events"
+                if success
+                else "auto_participation_failure_events"
+            )
+            previous = betboom_account_participation._outcome_records(user, field).get(event_key)
+            if _processed(previous):
+                continue
+
+            panel.set_context(chat_id, user_id)
             vote_result: dict[str, Any] = {}
             original_button_updated = False
-            if any_success:
+            if success:
                 raw_result = panel.mark_personal_participation(key)
                 vote_result = raw_result if isinstance(raw_result, dict) else {}
                 original_button_updated = auto_participation_owner_sync._mark_original_notification(
-                    panel, owner_chat_id, item
+                    panel, chat_id, item
                 )
+            referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
+            notifications_enabled = _notification_enabled(user)
+            should_send = notifications_enabled and (
+                success or not referral_restricted
+            )
+            now_text = datetime.now(UTC).isoformat()
             if should_send:
-                text, markup = _result_message(key, item, accounts)
-                panel.send(text, reply_markup=markup, chat_id=owner_chat_id)
-
-            payload = {
-                "wheel_key": key,
-                "source_event_token": base_token,
-                "completed_at": now_text,
-                "notified_at": now_text if should_send else "",
-                "notification_sent": should_send,
-                "notification_policy": (
-                    "sent"
-                    if should_send
-                    else "disabled"
-                    if not notifications_enabled
-                    else "referral_failure_suppressed"
-                ),
-                "referral_restricted": referral_restricted,
-                "accounts": account_payload,
-                "original_button_updated": original_button_updated,
-                "vote_changed": bool(vote_result.get("changed")),
-                "vote_command_id": str(vote_result.get("vote_command_id") or ""),
-            }
-            if all_success:
-                auto_participation_owner_sync._save_completion(
-                    panel, owner_id, event_key, payload
-                )
-                success_records[event_key] = {"completed_at": now_text}
+                text, markup = _single_result_message(key, item, record, success)
+                panel.send(text, reply_markup=markup, chat_id=chat_id)
+            betboom_account_participation._save_outcome(
+                panel,
+                user_id,
+                field=field,
+                event_key=event_key,
+                payload={
+                    "wheel_key": key,
+                    "source_event_token": token,
+                    "account_key": XFLARXX_ACCOUNT_KEY,
+                    "account_label": str(record.get("account_label") or XFLARXX_ACCOUNT_LABEL),
+                    "completed_at": now_text,
+                    "notified_at": now_text if should_send else "",
+                    "notification_sent": should_send,
+                    "notification_policy": (
+                        "sent"
+                        if should_send
+                        else "disabled"
+                        if not notifications_enabled
+                        else "referral_failure_suppressed"
+                    ),
+                    "referral_restricted": referral_restricted,
+                    "original_button_updated": original_button_updated,
+                    "vote_changed": bool(vote_result.get("changed")),
+                    "vote_command_id": str(vote_result.get("vote_command_id") or ""),
+                },
+            )
+            if success:
                 success_completed += 1
             else:
-                auto_participation_owner_sync._save_failure(
-                    panel, owner_id, event_key, payload
-                )
-                failure_records[event_key] = {"completed_at": now_text}
                 failure_completed += 1
             completed += 1
         except Exception as exc:
             failed += 1
             print(
-                "WARNING unified auto participation notification sync: "
+                "WARNING xFLARXx auto participation notification sync: "
                 f"wheel={key} {type(exc).__name__}: {exc}"
             )
         finally:
@@ -290,13 +435,14 @@ def sync_once(panel: Any) -> dict[str, int]:
             )
 
     return {
-        "pending": len(groups),
+        "pending": len(groups) + len(external_events),
         "completed": completed,
         "failed": failed,
         "success_completed": success_completed,
         "failure_completed": failure_completed,
         "account_completed": completed,
     }
+
 
 
 def _patch_panel_notifications(panel_class: type[Any]) -> None:
@@ -407,8 +553,8 @@ def _patch_panel_notifications(panel_class: type[Any]) -> None:
     panel_class.toggle_notification = toggle_notification
 
     if callable(original_options):
-        def notification_options_for_role(self: Any, role: str) -> tuple:
-            values = list(original_options(self, role))
+        def notification_options_for_role(role: str) -> tuple:
+            values = list(original_options(role))
             if not any(str(item[0]) == AUTO_NOTIFICATION_KEY for item in values):
                 values.append(
                     (
@@ -419,7 +565,9 @@ def _patch_panel_notifications(panel_class: type[Any]) -> None:
                 )
             return tuple(values)
 
-        panel_class._notification_options_for_role = notification_options_for_role
+        panel_class._notification_options_for_role = staticmethod(
+            notification_options_for_role
+        )
 
     panel_class._bbvg_auto_notification_toggle_installed = True
 
@@ -455,6 +603,23 @@ def self_test() -> None:
         state, now=datetime(2026, 7, 22, 12, 10, tzinfo=UTC)
     )
     assert list(groups) == [base]
+    external_state = copy.deepcopy(state)
+    external_state["auto_participation_events"][
+        base + "#account:xflarxx_primary"
+    ] = {
+        "wheel_key": "wheel",
+        "event_token": base,
+        "account_key": XFLARXX_ACCOUNT_KEY,
+        "account_label": XFLARXX_ACCOUNT_LABEL,
+        "alert_user": XFLARXX_ALERT_USER,
+        "status": "participated",
+        "bot_success_pending_at": "2026-07-22T12:01:20+00:00",
+    }
+    external = _settled_external_events(
+        external_state, now=datetime(2026, 7, 22, 12, 10, tzinfo=UTC)
+    )
+    assert len(external) == 1
+    assert external[0][1]["account_key"] == XFLARXX_ACCOUNT_KEY
     text, _markup = _result_message(
         "wheel", {"identifier": "wheel"}, groups[base]
     )

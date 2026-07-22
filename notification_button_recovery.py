@@ -76,6 +76,8 @@ def self_test() -> None:
 
     events: list[str] = []
     panel = TelegramPanelRuntimeButtonRecovery.__new__(TelegramPanelRuntimeButtonRecovery)
+    options = panel._notification_options_for_role("owner")
+    assert any(str(item[0]) == "auto_participation" for item in options)
     panel.mark_personal_participation = lambda key: events.append(str(key))  # type: ignore[method-assign]
 
     panel.snapshot = lambda force=False: type(  # type: ignore[method-assign]

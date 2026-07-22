@@ -86,6 +86,7 @@ validation_stage="compile_control_center_modules"
 python -m py_compile \
   admin_bot.py admin_action.py admin_action_v2.py admin_action_v3.py admin_action_queue.py chapter1_stability.py admin_runtime.py \
   admin_panel_v2.py admin_panel_runtime_v41.py notification_button_recovery.py \
+  auto_participation_notifications.py auto_participation_owner_sync.py betboom_account_participation.py \
   telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
   bot_private_state.py bot_notification_state.py \
   notification_integrity_v2.py notification_router.py wheel_publications_v2.py \

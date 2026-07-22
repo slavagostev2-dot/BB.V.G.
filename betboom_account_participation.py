@@ -19,6 +19,9 @@ UTC = timezone.utc
 ACCOUNT_KEY = "vyacheslav_secondary"
 DEFAULT_ACCOUNT_LABEL = "Аккаунт 2"
 DEFAULT_ALERT_USER = "Вячеслав"
+XFLARXX_ACCOUNT_KEY = "xflarxx_primary"
+DEFAULT_XFLARXX_ACCOUNT_LABEL = "xFLARXx"
+DEFAULT_XFLARXX_ALERT_USER = "xFLARXx"
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
 TRANSIENT_STATUSES = {
     "browser_error",
@@ -51,6 +54,20 @@ def alert_user() -> str:
     )
 
 
+def xflarxx_account_label() -> str:
+    return (
+        os.getenv("BETBOOM_ACCOUNT3_LABEL", DEFAULT_XFLARXX_ACCOUNT_LABEL).strip()
+        or DEFAULT_XFLARXX_ACCOUNT_LABEL
+    )
+
+
+def xflarxx_alert_user() -> str:
+    return (
+        os.getenv("BETBOOM_ACCOUNT3_TELEGRAM_USER", DEFAULT_XFLARXX_ALERT_USER).strip()
+        or DEFAULT_XFLARXX_ALERT_USER
+    )
+
+
 def _storage_state_raw() -> str:
     part3 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART3", "")
     part4 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART4", "")
@@ -70,6 +87,27 @@ def storage_state() -> dict[str, Any] | None:
 
 def configured() -> bool:
     return storage_state() is not None
+
+
+def _xflarxx_storage_state_raw() -> str:
+    part5 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART5", "")
+    part6 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART6", "")
+    return part5 + part6 if part5 or part6 else ""
+
+
+def xflarxx_storage_state() -> dict[str, Any] | None:
+    raw = _xflarxx_storage_state_raw()
+    if not raw:
+        return None
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def xflarxx_configured() -> bool:
+    return xflarxx_storage_state() is not None
 
 
 def _parse_datetime(value: Any) -> datetime | None:
@@ -102,8 +140,12 @@ def _base_event_token(item: dict[str, Any], wheel_key: str = "") -> str:
     return f"{key}#seen:{item.get('message_date') or ''}"
 
 
-def _account_event_token(item: dict[str, Any], wheel_key: str = "") -> str:
-    return f"{_base_event_token(item, wheel_key)}#account:{ACCOUNT_KEY}"
+def _account_event_token(
+    item: dict[str, Any],
+    wheel_key: str = "",
+    account_key: str = ACCOUNT_KEY,
+) -> str:
+    return f"{_base_event_token(item, wheel_key)}#account:{account_key}"
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -263,6 +305,89 @@ def run_second_account(
         "account_key": ACCOUNT_KEY,
         "account_label": account_label(),
         "alert_user": alert_user(),
+        "attempted": attempted,
+        "succeeded": succeeded,
+        "terminal_failed": terminal_failed,
+        "deferred": deferred,
+        "skipped": skipped,
+    }
+
+
+def run_xflarxx_account(
+    recovery_result_path: Path = DEFAULT_RECOVERY_RESULT,
+) -> dict[str, Any]:
+    session = xflarxx_storage_state()
+    if session is None:
+        raise RuntimeError(
+            "BetBoom-аккаунт xFLARXx не настроен: проверьте PART5/PART6"
+        )
+
+    state = _load_json(monitor.STATE_PATH, {})
+    if not isinstance(state, dict):
+        state = {}
+    events = state.setdefault("auto_participation_events", {})
+    current = monitor.now_utc()
+    attempted = 0
+    succeeded = 0
+    terminal_failed = 0
+    deferred = 0
+    skipped = 0
+
+    for item in _candidate_rows(state, recovery_result_path):
+        key = str(item.get("wheel_key") or item.get("identifier") or "").casefold()
+        url = str(item.get("url") or "").strip()
+        if not key or not url:
+            continue
+        token = _account_event_token(item, key, XFLARXX_ACCOUNT_KEY)
+        previous = events.get(token)
+        if not _should_attempt(previous, current):
+            skipped += 1
+            continue
+
+        attempted += 1
+        result = _participate_with_storage(url, session)
+        record: dict[str, Any] = {
+            "wheel_key": key,
+            "event_token": _base_event_token(item, key),
+            "account_key": XFLARXX_ACCOUNT_KEY,
+            "account_label": xflarxx_account_label(),
+            "alert_user": xflarxx_alert_user(),
+            "status": str(result.status),
+            "detail": str(result.detail)[:300],
+            "attempted_at": current.isoformat(),
+            "retry_allowed": False,
+            "multi_account_version": 2,
+        }
+
+        if result.success:
+            record["status"] = "participated"
+            record["bot_success_pending_at"] = current.isoformat()
+            record["bot_success_sync_status"] = "waiting_for_control_center"
+            record["bot_success_sync_version"] = 1
+            succeeded += 1
+        elif str(result.status).casefold() in TERMINAL_FAILURE_STATUSES:
+            record["bot_failure_pending_at"] = current.isoformat()
+            record["bot_failure_sync_status"] = "waiting_for_control_center"
+            record["bot_failure_sync_version"] = 1
+            record["bot_failure_status"] = str(result.status)[:80]
+            record["bot_failure_detail"] = str(result.detail)[:300]
+            terminal_failed += 1
+        else:
+            record["retry_allowed"] = True
+            record["retry_after_at"] = (
+                current + timedelta(minutes=RETRY_DELAY_MINUTES)
+            ).isoformat()
+            record["user_alert_policy"] = "deferred_transient_failure"
+            deferred += 1
+
+        events[token] = record
+
+    state["last_xflarxx_account_participation_at"] = current.isoformat()
+    monitor.save_state(state)
+    return {
+        "account_key": XFLARXX_ACCOUNT_KEY,
+        "account_label": xflarxx_account_label(),
+        "alert_user": xflarxx_alert_user(),
         "attempted": attempted,
         "succeeded": succeeded,
         "terminal_failed": terminal_failed,
@@ -506,6 +631,25 @@ def self_test() -> None:
         else:
             os.environ["BETBOOM_STORAGE_STATE_JSON_PART4"] = previous4
 
+    previous5 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART5")
+    previous6 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART6")
+    try:
+        raw = json.dumps({"cookies": [], "origins": []}, separators=(",", ":"))
+        middle = len(raw) // 2
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART5"] = raw[:middle]
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART6"] = raw[middle:]
+        assert xflarxx_configured()
+        assert xflarxx_storage_state() == {"cookies": [], "origins": []}
+    finally:
+        if previous5 is None:
+            os.environ.pop("BETBOOM_STORAGE_STATE_JSON_PART5", None)
+        else:
+            os.environ["BETBOOM_STORAGE_STATE_JSON_PART5"] = previous5
+        if previous6 is None:
+            os.environ.pop("BETBOOM_STORAGE_STATE_JSON_PART6", None)
+        else:
+            os.environ["BETBOOM_STORAGE_STATE_JSON_PART6"] = previous6
+
     item = {
         "wheel_key": "wheel",
         "action_id": 42,
@@ -513,6 +657,9 @@ def self_test() -> None:
     }
     assert _base_event_token(item) == "wheel#action:42:2026-07-22T12:00:00+00:00"
     assert _account_event_token(item).endswith("#account:vyacheslav_secondary")
+    assert _account_event_token(
+        item, account_key=XFLARXX_ACCOUNT_KEY
+    ).endswith("#account:xflarxx_primary")
     assert not _should_attempt(
         {"status": "participated"}, datetime(2026, 7, 22, tzinfo=UTC)
     )
@@ -540,8 +687,11 @@ def main() -> int:
     if args.self_test:
         self_test()
         return 0
-    result = run_second_account(args.recovery_result)
-    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    results = [
+        run_second_account(args.recovery_result),
+        run_xflarxx_account(args.recovery_result),
+    ]
+    print(json.dumps({"accounts": results}, ensure_ascii=False, sort_keys=True))
     return 0
 
 

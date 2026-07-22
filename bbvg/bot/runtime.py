@@ -546,12 +546,6 @@ class TelegramPanelRuntime(
             "Личные настройки применяются только к вашему Telegram-аккаунту.",
         ]
         if self.is_admin():
-            rows.extend(
-                [
-                    [{"text": "🧭 API и Legacy", "callback_data": "page:wheelmode"}],
-                    [{"text": "⛔ Отключённый функционал", "callback_data": "page:disabled_features"}],
-                ]
-            )
             interval = int(
                 self.load_access().get("settings", {}).get("monitor_interval_minutes", 5)
             )
@@ -622,7 +616,7 @@ class TelegramPanelRuntime(
 
     def render_page(self, page: str) -> None:
         normalized = self._normalize_page(page)
-        if normalized in {"wheelmode", "disabled_features"} and not self.is_admin():
+        if normalized in {"wheelmode", "disabled_features"}:
             self.show_settings()
             return
         if normalized == "app":
