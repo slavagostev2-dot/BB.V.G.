@@ -75,6 +75,54 @@ jobs:
       - name: Validate privacy retention
         run: python privacy_retention.py
 
+      - name: Audit changed product files
+        run: |
+          python - <<'PY'
+          from security_audit import ROOT, scan_current
+          names = [
+              'bot_notification_state.py',
+              'notification_navigation.py',
+              'system_checks_v3.py',
+              'telegram_post_links_v2.py',
+              'bbvg/bot/sources.py',
+          ]
+          findings = scan_current([ROOT / name for name in names])
+          assert not findings, findings
+          print('Changed product files security audit passed')
+          PY
+
+      - name: Audit changed documentation and workflow
+        run: |
+          python - <<'PY'
+          from security_audit import ROOT, scan_current
+          names = ['AGENTS.md', '.github/workflows/bot-recovery-smoke.yml']
+          findings = scan_current([ROOT / name for name in names])
+          assert not findings, findings
+          print('Changed documentation and workflow security audit passed')
+          PY
+
+      - name: Audit unchanged repository files
+        run: |
+          python - <<'PY'
+          from security_audit import ROOT, scan_current, tracked_files
+          changed = {
+              'AGENTS.md',
+              'bot_notification_state.py',
+              'notification_navigation.py',
+              'system_checks_v3.py',
+              'telegram_post_links_v2.py',
+              'bbvg/bot/sources.py',
+              '.github/workflows/bot-recovery-smoke.yml',
+          }
+          paths = [
+              path for path in tracked_files()
+              if path.relative_to(ROOT).as_posix() not in changed
+          ]
+          findings = scan_current(paths)
+          assert not findings, findings
+          print('Unchanged repository files security audit passed')
+          PY
+
       - name: Validate current security audit
         run: python security_audit.py --current
 
