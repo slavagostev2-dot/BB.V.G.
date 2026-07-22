@@ -74,7 +74,12 @@ jobs:
         run: python -m pytest -q tests/test_current_contracts.py
 
       - name: Run production acceptance
-        run: python tests/production_acceptance.py --section all
+        run: |
+          python tests/production_acceptance.py --section stability
+          python tests/production_acceptance.py --section unified
+          python tests/production_acceptance.py --section ci
+          python chapter4_acceptance.py
+          python tests/production_acceptance.py --section lifecycle
 
       - name: Validate current production boundaries
         run: |
@@ -89,7 +94,7 @@ jobs:
           from bbvg.bot.users import UserSettingsMixin, WHEEL_NOTIFICATION_OPTIONS
 
           workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
-          assert 'run: python admin_panel_runtime_v41.py' in workflow
+          assert 'run: python notification_button_recovery.py' in workflow
           assert not any(
             cls.__module__.startswith('admin_panel_runtime_v')
             for cls in TelegramPanelRuntime.__mro__
