@@ -6,8 +6,9 @@ from typing import Any, Callable
 
 
 MAIN_MENU_CALLBACK = "page:menu"
-ACTIVE_LIST_CALLBACKS = {"bb:l:active", "page:active"}
-NEW_WHEEL_MARKER = "новое колесо betboom"
+ACTIVE_LIST_CALLBACK = "bb:l:active"
+ACTIVE_LIST_CALLBACKS = {ACTIVE_LIST_CALLBACK, "page:active"}
+WHEEL_MARKERS = ("колес", "wheel")
 
 
 def _button_is_main_menu(button: dict[str, Any]) -> bool:
@@ -29,13 +30,13 @@ def notification_markup(
 ) -> dict[str, Any]:
     """Return one consistent inline keyboard for every automated notification.
 
-    Every notification gets a route back to the bot menu. A fresh-wheel alert is
-    intentionally kept compact and does not contain the redundant active-list
-    button. Other wheel reminders may keep that button.
+    Every notification gets a route back to the bot menu. Notifications related
+    to a wheel also get a stable route to the current active-wheel list.
+    Existing wheel, participation and URL buttons are preserved.
     """
 
     lowered = html.unescape(str(text or "")).casefold()
-    new_wheel = NEW_WHEEL_MARKER in lowered
+    wheel_notification = any(marker in lowered for marker in WHEEL_MARKERS)
     source = copy.deepcopy(reply_markup) if isinstance(reply_markup, dict) else {}
     raw_rows = source.get("inline_keyboard")
     rows: list[list[dict[str, Any]]] = []
@@ -44,18 +45,18 @@ def notification_markup(
         for raw_row in raw_rows:
             if not isinstance(raw_row, list):
                 continue
-            row: list[dict[str, Any]] = []
-            for raw_button in raw_row:
-                if not isinstance(raw_button, dict):
-                    continue
-                button = dict(raw_button)
-                if new_wheel and _button_is_active_list(button):
-                    continue
-                row.append(button)
+            row = [dict(button) for button in raw_row if isinstance(button, dict)]
             if row:
                 rows.append(row)
     elif url:
         rows.append([{"text": "🎡 Открыть колесо", "url": url}])
+
+    if wheel_notification and not any(
+        _button_is_active_list(button) for row in rows for button in row
+    ):
+        rows.append(
+            [{"text": "🔥 Активные колёса", "callback_data": ACTIVE_LIST_CALLBACK}]
+        )
 
     if not any(_button_is_main_menu(button) for row in rows for button in row):
         rows.append([{"text": "🏠 Главное меню", "callback_data": MAIN_MENU_CALLBACK}])
@@ -86,20 +87,18 @@ def self_test() -> None:
     original = {
         "inline_keyboard": [
             [{"text": "🎡 Открыть колесо", "url": "https://example.test/wheel"}],
-            [
-                {"text": "✅ Участвую", "callback_data": "bb:p:token"},
-                {"text": "📋 Активные колёса", "callback_data": "bb:l:active"},
-            ],
+            [{"text": "✅ Участвую", "callback_data": "bb:p:token"}],
         ]
     }
     fresh = notification_markup("🎡 Новое колесо BetBoom", None, original)
     fresh_text = str(fresh)
-    assert "bb:l:active" not in fresh_text
+    assert ACTIVE_LIST_CALLBACK in fresh_text
     assert MAIN_MENU_CALLBACK in fresh_text
+    assert "https://example.test/wheel" in fresh_text
 
     reminder = notification_markup("⏰ Напоминание о колесе BetBoom", None, original)
     reminder_text = str(reminder)
-    assert "bb:l:active" in reminder_text
+    assert ACTIVE_LIST_CALLBACK in reminder_text
     assert MAIN_MENU_CALLBACK in reminder_text
 
     plain = notification_markup("✅ Проверка завершена", None, None)
@@ -108,11 +107,18 @@ def self_test() -> None:
     }
 
     duplicate = notification_markup(
-        "Служебное уведомление",
+        "Служебное уведомление о колесе",
         None,
-        {"inline_keyboard": [[{"text": "🏠 Главное меню", "callback_data": MAIN_MENU_CALLBACK}]]},
+        {
+            "inline_keyboard": [
+                [{"text": "🔥 Активные колёса", "callback_data": ACTIVE_LIST_CALLBACK}],
+                [{"text": "🏠 Главное меню", "callback_data": MAIN_MENU_CALLBACK}],
+            ]
+        },
     )
-    assert str(duplicate).count(MAIN_MENU_CALLBACK) == 1
+    duplicate_text = str(duplicate)
+    assert duplicate_text.count(ACTIVE_LIST_CALLBACK) == 1
+    assert duplicate_text.count(MAIN_MENU_CALLBACK) == 1
     print("notification navigation self-test passed")
 
 
