@@ -1,0 +1,845 @@
+name: Apply xFLARXx account and access cleanup
+
+on:
+  push:
+    branches: [feature/xflarxx-account-access-cleanup]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact branch commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Apply repository changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one marker, found {count}: {old[:120]!r}")
+              target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          def insert_after(path: str, marker: str, addition: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if addition.strip() in text:
+                  return
+              count = text.count(marker)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one insertion marker, found {count}")
+              target.write_text(text.replace(marker, marker + addition, 1), encoding="utf-8")
+
+          # Generic additional BetBoom account runner and standalone delivery.
+          path = Path("betboom_account_participation.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''import personal_wheel_voting
+
+
+UTC = timezone.utc
+ACCOUNT_KEY = "vyacheslav_secondary"
+DEFAULT_ACCOUNT_LABEL = "Аккаунт 2"
+DEFAULT_ALERT_USER = "Вячеслав"
+'''
+          new = '''import personal_wheel_voting
+import wheel_publications_v2
+
+
+UTC = timezone.utc
+DEFAULT_ACCOUNT_KEY = "vyacheslav_secondary"
+DEFAULT_ACCOUNT_LABEL = "Аккаунт 2"
+DEFAULT_ALERT_USER = "Вячеслав"
+OWNER_ACCOUNT_KEYS = {"vyacheslav_primary", DEFAULT_ACCOUNT_KEY}
+'''
+          if text.count(old) != 1:
+              raise SystemExit("betboom_account_participation.py: constants marker not found")
+          text = text.replace(old, new, 1)
+
+          old = '''def account_label() -> str:
+    return (
+        os.getenv("BETBOOM_ACCOUNT2_LABEL", DEFAULT_ACCOUNT_LABEL).strip()
+        or DEFAULT_ACCOUNT_LABEL
+    )
+
+
+def alert_user() -> str:
+    return (
+        os.getenv("BETBOOM_ACCOUNT2_TELEGRAM_USER", DEFAULT_ALERT_USER).strip()
+        or DEFAULT_ALERT_USER
+    )
+
+
+def _storage_state_raw() -> str:
+    part3 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART3", "")
+    part4 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART4", "")
+    return part3 + part4 if part3 or part4 else ""
+'''
+          new = '''def account_key() -> str:
+    return (
+        os.getenv("BETBOOM_ACCOUNT_KEY", DEFAULT_ACCOUNT_KEY).strip()
+        or DEFAULT_ACCOUNT_KEY
+    )
+
+
+def account_label() -> str:
+    return (
+        os.getenv("BETBOOM_ACCOUNT_LABEL", "").strip()
+        or os.getenv("BETBOOM_ACCOUNT2_LABEL", DEFAULT_ACCOUNT_LABEL).strip()
+        or DEFAULT_ACCOUNT_LABEL
+    )
+
+
+def alert_user() -> str:
+    return (
+        os.getenv("BETBOOM_TELEGRAM_USER", "").strip()
+        or os.getenv("BETBOOM_ACCOUNT2_TELEGRAM_USER", DEFAULT_ALERT_USER).strip()
+        or DEFAULT_ALERT_USER
+    )
+
+
+def notification_mode() -> str:
+    explicit = os.getenv("BETBOOM_NOTIFICATION_MODE", "").strip().casefold()
+    if explicit in {"owner_pair", "standalone"}:
+        return explicit
+    return "owner_pair" if account_key() in OWNER_ACCOUNT_KEYS else "standalone"
+
+
+def _storage_state_raw() -> str:
+    generic_a = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART_A", "")
+    generic_b = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART_B", "")
+    if generic_a or generic_b:
+        return generic_a + generic_b
+    if account_key() == "xflarxx_primary":
+        part5 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART5", "")
+        part6 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART6", "")
+        return part5 + part6 if part5 or part6 else ""
+    part3 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART3", "")
+    part4 = os.getenv("BETBOOM_STORAGE_STATE_JSON_PART4", "")
+    return part3 + part4 if part3 or part4 else ""
+'''
+          if text.count(old) != 1:
+              raise SystemExit("betboom_account_participation.py: configuration marker not found")
+          text = text.replace(old, new, 1)
+          text = text.replace(
+              'return f"{_base_event_token(item, wheel_key)}#account:{ACCOUNT_KEY}"',
+              'return f"{_base_event_token(item, wheel_key)}#account:{account_key()}"',
+              1,
+          )
+          text = text.replace(
+              ') -> dict[str, Any]:\n    session = storage_state()\n',
+              ') -> dict[str, Any]:\n    current_account_key = account_key()\n    session = storage_state()\n',
+              1,
+          )
+          text = text.replace(
+              '"Второй BetBoom-аккаунт не настроен: проверьте PART3/PART4"',
+              'f"BetBoom-аккаунт {current_account_key} не настроен: проверьте части storage state"',
+              1,
+          )
+          text = text.replace('"account_key": ACCOUNT_KEY,', '"account_key": current_account_key,', 1)
+          text = text.replace(
+              '            "multi_account_version": 1,\n',
+              '            "multi_account_version": 1,\n            "notification_mode": notification_mode(),\n',
+              1,
+          )
+          old = '''    state["last_secondary_account_participation_at"] = current.isoformat()
+    monitor.save_state(state)
+    return {
+        "account_key": ACCOUNT_KEY,
+'''
+          new = '''    per_account = state.setdefault("last_betboom_account_participation_at", {})
+    if isinstance(per_account, dict):
+        per_account[current_account_key] = current.isoformat()
+    if current_account_key == DEFAULT_ACCOUNT_KEY:
+        state["last_secondary_account_participation_at"] = current.isoformat()
+    monitor.save_state(state)
+    return {
+        "account_key": current_account_key,
+'''
+          if text.count(old) != 1:
+              raise SystemExit("betboom_account_participation.py: state result marker not found")
+          text = text.replace(old, new, 1)
+          text = text.replace(
+              'panel.save_access("Record secondary BetBoom account outcome [skip ci]")',
+              'panel.save_access("Record BetBoom account outcome [skip ci]")',
+              1,
+          )
+          text = text.replace('ACCOUNT_KEY', 'DEFAULT_ACCOUNT_KEY')
+
+          marker = '''    return {
+        "pending": len(success_candidates) + len(failure_candidates),
+        "completed": completed,
+        "failed": failed,
+    }
+
+
+'''
+          addition = '''def _pending_standalone_account_events(
+    state: dict[str, Any], field: str
+) -> list[tuple[str, dict[str, Any]]]:
+    events = state.get("auto_participation_events")
+    if not isinstance(events, dict):
+        return []
+    values: list[tuple[str, dict[str, Any]]] = []
+    for token, raw in events.items():
+        if not isinstance(raw, dict):
+            continue
+        if str(raw.get("notification_mode") or "").casefold() != "standalone":
+            continue
+        if not raw.get(field):
+            continue
+        values.append((str(token), raw))
+    values.sort(key=lambda item: str(item[1].get(field) or ""))
+    return values
+
+
+def _standalone_notification_enabled(user: dict[str, Any]) -> bool:
+    raw = user.get("notification_preferences")
+    if not isinstance(raw, dict):
+        return True
+    return bool(raw.get("auto_participation", True))
+
+
+def _processed_outcome(record: Any) -> bool:
+    return isinstance(record, dict) and bool(
+        record.get("completed_at") or record.get("notified_at")
+    )
+
+
+def sync_standalone_account_events(panel: Any) -> dict[str, int]:
+    """Deliver account-scoped outcomes to their own Telegram user."""
+
+    snap = panel.snapshot()
+    state = snap.state if isinstance(getattr(snap, "state", None), dict) else {}
+    success_candidates = _pending_standalone_account_events(
+        state, "bot_success_pending_at"
+    )
+    approved_failures = {
+        token
+        for token, _record in auto_participation_owner_sync.pending_failure_events(state)
+    }
+    failure_candidates = [
+        (token, record)
+        for token, record in _pending_standalone_account_events(
+            state, "bot_failure_pending_at"
+        )
+        if token in approved_failures
+    ]
+    if not success_candidates and not failure_candidates:
+        return {"pending": 0, "completed": 0, "failed": 0}
+
+    active = state.get("active_wheels") if isinstance(state.get("active_wheels"), dict) else {}
+    completed = 0
+    failed = 0
+    original_context = (
+        getattr(panel, "current_chat_id", None),
+        getattr(panel, "current_user_id", None),
+        getattr(panel, "current_role", "guest"),
+    )
+
+    for success, candidates in ((True, success_candidates), (False, failure_candidates)):
+        for token, record in candidates:
+            key = str(record.get("wheel_key") or "").casefold()
+            item = active.get(key)
+            if not key or not isinstance(item, dict):
+                failed += 1
+                continue
+            if str(record.get("event_token") or "") != _base_event_token(item, key):
+                continue
+            record_account_key = str(record.get("account_key") or "").strip()
+            if not record_account_key:
+                failed += 1
+                continue
+            try:
+                _access, user_id, user, chat_id = _target_context(
+                    panel, str(record.get("alert_user") or "")
+                )
+                outcome_key = (
+                    personal_wheel_voting.wheel_event_key(key, item)
+                    + f"#account:{record_account_key}"
+                )
+                field = (
+                    "auto_participation_success_events"
+                    if success
+                    else "auto_participation_failure_events"
+                )
+                previous = _outcome_records(user, field).get(outcome_key)
+                if _processed_outcome(previous):
+                    continue
+
+                panel.set_context(chat_id, user_id)
+                vote_result: dict[str, Any] = {}
+                original_button_updated = False
+                if success:
+                    raw_result = panel.mark_personal_participation(key)
+                    vote_result = raw_result if isinstance(raw_result, dict) else {}
+                    original_button_updated = auto_participation_owner_sync._mark_original_notification(
+                        panel, chat_id, item
+                    )
+
+                referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
+                notifications_enabled = _standalone_notification_enabled(user)
+                should_send = notifications_enabled and (
+                    success or not referral_restricted
+                )
+                if should_send:
+                    text_value, markup = _short_message(success, key, item, record)
+                    panel.send(text_value, reply_markup=markup, chat_id=chat_id)
+                now_text = datetime.now(UTC).isoformat()
+                _save_outcome(
+                    panel,
+                    user_id,
+                    field=field,
+                    event_key=outcome_key,
+                    payload={
+                        "wheel_key": key,
+                        "source_event_token": token,
+                        "account_key": record_account_key,
+                        "account_label": str(record.get("account_label") or ""),
+                        "completed_at": now_text,
+                        "notified_at": now_text if should_send else "",
+                        "notification_sent": should_send,
+                        "notification_policy": (
+                            "sent"
+                            if should_send
+                            else "disabled"
+                            if not notifications_enabled
+                            else "referral_failure_suppressed"
+                        ),
+                        "referral_restricted": referral_restricted,
+                        "original_button_updated": original_button_updated,
+                        "vote_changed": bool(vote_result.get("changed")),
+                        "vote_command_id": str(vote_result.get("vote_command_id") or ""),
+                    },
+                )
+                completed += 1
+            except Exception as exc:
+                failed += 1
+                print(
+                    "WARNING standalone BetBoom account sync: "
+                    f"wheel={key} account={record_account_key} "
+                    f"{type(exc).__name__}: {exc}"
+                )
+            finally:
+                panel.current_chat_id, panel.current_user_id, panel.current_role = (
+                    original_context
+                )
+
+    return {
+        "pending": len(success_candidates) + len(failure_candidates),
+        "completed": completed,
+        "failed": failed,
+    }
+
+
+'''
+          if text.count(marker) != 1:
+              raise SystemExit("betboom_account_participation.py: standalone insertion marker not found")
+          text = text.replace(marker, marker + addition, 1)
+
+          old = '''def self_test() -> None:
+    previous3 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART3")
+    previous4 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART4")
+    try:
+        raw = json.dumps({"cookies": [], "origins": []}, separators=(",", ":"))
+        middle = len(raw) // 2
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART3"] = raw[:middle]
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART4"] = raw[middle:]
+        assert configured()
+        assert storage_state() == {"cookies": [], "origins": []}
+    finally:
+        if previous3 is None:
+            os.environ.pop("BETBOOM_STORAGE_STATE_JSON_PART3", None)
+        else:
+            os.environ["BETBOOM_STORAGE_STATE_JSON_PART3"] = previous3
+        if previous4 is None:
+            os.environ.pop("BETBOOM_STORAGE_STATE_JSON_PART4", None)
+        else:
+            os.environ["BETBOOM_STORAGE_STATE_JSON_PART4"] = previous4
+
+    item = {
+'''
+          new = '''def self_test() -> None:
+    keys = (
+        "BETBOOM_ACCOUNT_KEY",
+        "BETBOOM_STORAGE_STATE_JSON_PART3",
+        "BETBOOM_STORAGE_STATE_JSON_PART4",
+        "BETBOOM_STORAGE_STATE_JSON_PART5",
+        "BETBOOM_STORAGE_STATE_JSON_PART6",
+    )
+    previous = {key: os.environ.get(key) for key in keys}
+    try:
+        raw = json.dumps({"cookies": [], "origins": []}, separators=(",", ":"))
+        middle = len(raw) // 2
+        os.environ.pop("BETBOOM_ACCOUNT_KEY", None)
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART3"] = raw[:middle]
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART4"] = raw[middle:]
+        assert configured()
+        assert storage_state() == {"cookies": [], "origins": []}
+
+        os.environ["BETBOOM_ACCOUNT_KEY"] = "xflarxx_primary"
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART5"] = raw[:middle]
+        os.environ["BETBOOM_STORAGE_STATE_JSON_PART6"] = raw[middle:]
+        assert account_key() == "xflarxx_primary"
+        assert notification_mode() == "standalone"
+        assert storage_state() == {"cookies": [], "origins": []}
+    finally:
+        for key, value in previous.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+    item = {
+'''
+          if text.count(old) != 1:
+              raise SystemExit("betboom_account_participation.py: self-test marker not found")
+          text = text.replace(old, new, 1)
+          text = text.replace(
+              '    assert _account_event_token(item).endswith("#account:vyacheslav_secondary")\n',
+              '    assert _account_event_token(item).endswith(f"#account:{account_key()}")\n',
+              1,
+          )
+          text = text.replace(
+              '    print("secondary BetBoom account self-test passed")',
+              '    assert callable(sync_standalone_account_events)\n    print("additional BetBoom account self-test passed")',
+              1,
+          )
+          if "ACCOUNT_KEY" in text:
+              raise SystemExit("betboom_account_participation.py: stale ACCOUNT_KEY reference remains")
+          path.write_text(text, encoding="utf-8")
+
+          # Unified owner pair plus independent account delivery and staticmethod regression.
+          path = Path("auto_participation_notifications.py")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              'import auto_participation_owner_sync\nimport personal_wheel_voting\n',
+              'import auto_participation_owner_sync\nimport betboom_account_participation\nimport personal_wheel_voting\n',
+              1,
+          )
+          old = '''def _account_identity(record: dict[str, Any]) -> tuple[str, str]:
+    key = str(record.get("account_key") or PRIMARY_ACCOUNT_KEY).strip()
+    if key == SECONDARY_ACCOUNT_KEY:
+        return key, str(record.get("account_label") or SECONDARY_ACCOUNT_LABEL)
+    return PRIMARY_ACCOUNT_KEY, PRIMARY_ACCOUNT_LABEL
+'''
+          new = '''def _account_identity(record: dict[str, Any]) -> tuple[str, str]:
+    key = str(record.get("account_key") or PRIMARY_ACCOUNT_KEY).strip()
+    if key == PRIMARY_ACCOUNT_KEY:
+        return key, str(record.get("account_label") or PRIMARY_ACCOUNT_LABEL)
+    if key == SECONDARY_ACCOUNT_KEY:
+        return key, str(record.get("account_label") or SECONDARY_ACCOUNT_LABEL)
+    return key, str(record.get("account_label") or key)
+'''
+          if text.count(old) != 1:
+              raise SystemExit("auto_participation_notifications.py: identity marker not found")
+          text = text.replace(old, new, 1)
+
+          marker = '''def sync_once(panel: Any) -> dict[str, int]:
+    """Send at most one owner message after both BetBoom accounts settle."""
+
+    snap = panel.snapshot()
+'''
+          replacement = '''def _merge_standalone_counts(
+    owner_result: dict[str, int], standalone: dict[str, int]
+) -> dict[str, int]:
+    result = dict(owner_result)
+    for key in ("pending", "completed", "failed"):
+        result[key] = int(result.get(key, 0)) + int(standalone.get(key, 0))
+    result["account_completed"] = int(result.get("account_completed", 0)) + int(
+        standalone.get("completed", 0)
+    )
+    result["standalone_completed"] = int(standalone.get("completed", 0))
+    return result
+
+
+def sync_once(panel: Any) -> dict[str, int]:
+    """Finalize the owner's pair and independent user-scoped accounts."""
+
+    standalone = betboom_account_participation.sync_standalone_account_events(panel)
+    snap = panel.snapshot()
+'''
+          if text.count(marker) != 1:
+              raise SystemExit("auto_participation_notifications.py: sync marker not found")
+          text = text.replace(marker, replacement, 1)
+          old = '''    if not groups:
+        return {
+            "pending": 0,
+            "completed": 0,
+            "failed": 0,
+            "success_completed": 0,
+            "failure_completed": 0,
+            "account_completed": 0,
+        }
+'''
+          new = '''    if not groups:
+        return _merge_standalone_counts(
+            {
+                "pending": 0,
+                "completed": 0,
+                "failed": 0,
+                "success_completed": 0,
+                "failure_completed": 0,
+                "account_completed": 0,
+            },
+            standalone,
+        )
+'''
+          if text.count(old) != 1:
+              raise SystemExit("auto_participation_notifications.py: empty groups marker not found")
+          text = text.replace(old, new, 1)
+          old = '''    return {
+        "pending": len(groups),
+        "completed": completed,
+        "failed": failed,
+        "success_completed": success_completed,
+        "failure_completed": failure_completed,
+        "account_completed": completed,
+    }
+'''
+          new = '''    return _merge_standalone_counts(
+        {
+            "pending": len(groups),
+            "completed": completed,
+            "failed": failed,
+            "success_completed": success_completed,
+            "failure_completed": failure_completed,
+            "account_completed": completed,
+        },
+        standalone,
+    )
+'''
+          if text.count(old) != 1:
+              raise SystemExit("auto_participation_notifications.py: result marker not found")
+          text = text.replace(old, new, 1)
+
+          old = '''    if callable(original_options):
+        def notification_options_for_role(self: Any, role: str) -> tuple:
+            values = list(original_options(self, role))
+            if not any(str(item[0]) == AUTO_NOTIFICATION_KEY for item in values):
+                values.append(
+                    (
+                        AUTO_NOTIFICATION_KEY,
+                        AUTO_NOTIFICATION_LABEL,
+                        AUTO_NOTIFICATION_DESCRIPTION,
+                    )
+                )
+            return tuple(values)
+
+        panel_class._notification_options_for_role = notification_options_for_role
+'''
+          new = '''    if callable(original_options):
+        def notification_options_for_role(role: str) -> tuple:
+            values = list(original_options(role))
+            if not any(str(item[0]) == AUTO_NOTIFICATION_KEY for item in values):
+                values.append(
+                    (
+                        AUTO_NOTIFICATION_KEY,
+                        AUTO_NOTIFICATION_LABEL,
+                        AUTO_NOTIFICATION_DESCRIPTION,
+                    )
+                )
+            return tuple(values)
+
+        panel_class._notification_options_for_role = staticmethod(
+            notification_options_for_role
+        )
+'''
+          if text.count(old) != 1:
+              raise SystemExit("auto_participation_notifications.py: staticmethod marker not found")
+          text = text.replace(old, new, 1)
+          old = '''    assert wheel_publications_v2.entry_is_referral_restricted(
+        {"message_text": "Колесо для рефов"}
+    )
+    print("unified auto participation notifications self-test passed")
+'''
+          new = '''    assert wheel_publications_v2.entry_is_referral_restricted(
+        {"message_text": "Колесо для рефов"}
+    )
+    assert _account_identity(
+        {"account_key": "xflarxx_primary", "account_label": "xFLARXx"}
+    ) == ("xflarxx_primary", "xFLARXx")
+
+    class DummyPanel:
+        current_user_id = "1"
+        current_chat_id = "1"
+
+        @staticmethod
+        def _notification_options_for_role(role: str) -> tuple:
+            return (("wheels", role, ""),)
+
+        def notification_preferences(self, _user_id: str | None = None) -> dict[str, bool]:
+            return {"wheels": True}
+
+        def show_notifications(self) -> None:
+            return None
+
+        def toggle_notification(self, _key: str) -> None:
+            return None
+
+        def load_access(self) -> dict[str, Any]:
+            return {"users": {}}
+
+    _patch_panel_notifications(DummyPanel)
+    options = DummyPanel()._notification_options_for_role("user")
+    assert [item[0] for item in options] == ["wheels", AUTO_NOTIFICATION_KEY]
+    print("unified auto participation notifications self-test passed")
+'''
+          if text.count(old) != 1:
+              raise SystemExit("auto_participation_notifications.py: self-test insertion marker not found")
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding="utf-8")
+
+          # Hide obsolete settings tabs and redirect old callback buttons safely.
+          replace_once(
+              "bbvg/bot/runtime.py",
+              '''        if self.is_admin():
+            rows.extend(
+                [
+                    [{"text": "🧭 API и Legacy", "callback_data": "page:wheelmode"}],
+                    [{"text": "⛔ Отключённый функционал", "callback_data": "page:disabled_features"}],
+                ]
+            )
+            interval = int(
+''',
+              '''        if self.is_admin():
+            interval = int(
+''',
+          )
+          replace_once(
+              "bbvg/bot/runtime.py",
+              '''        if normalized in {"wheelmode", "disabled_features"} and not self.is_admin():
+            self.show_settings()
+            return
+''',
+              '''        if normalized in {"wheelmode", "disabled_features"}:
+            self.show_settings()
+            return
+''',
+          )
+          replace_once(
+              "bbvg/bot/runtime.py",
+              '''    panel.show_disabled_features()
+    assert "Ручное указание времени" in captured[-1][0]
+''',
+              '''    panel.show_settings()
+    settings_markup = str(captured[-1][1]["reply_markup"])
+    assert "page:wheelmode" not in settings_markup
+    assert "page:disabled_features" not in settings_markup
+''',
+          )
+
+          # Third account secrets and workflow execution.
+          path = Path(".github/workflows/auto-participation.yml")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace("    timeout-minutes: 10\n", "    timeout-minutes: 15\n", 1)
+          text = text.replace(
+              '          BETBOOM_STORAGE_STATE_JSON_PART4: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART4 }}\n          BETBOOM_ACCOUNT2_LABEL: "Аккаунт 2"\n',
+              '          BETBOOM_STORAGE_STATE_JSON_PART4: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART4 }}\n          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}\n          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}\n          BETBOOM_ACCOUNT2_LABEL: "Аккаунт 2"\n',
+              1,
+          )
+          text = text.replace(
+              '          import betboom_auto_participation as auto\n',
+              '          import json\n          import os\n          import betboom_auto_participation as auto\n',
+              1,
+          )
+          old = '''          if not betboom_account_participation.configured():
+              raise SystemExit("Vyacheslav second BetBoom session PART3/PART4 is not configured")
+          assert callable(auto_participation_recovery.run_recovery)
+'''
+          new = '''          if not betboom_account_participation.configured():
+              raise SystemExit("Vyacheslav second BetBoom session PART3/PART4 is not configured")
+          xflarxx_raw = (
+              os.getenv("BETBOOM_STORAGE_STATE_JSON_PART5", "")
+              + os.getenv("BETBOOM_STORAGE_STATE_JSON_PART6", "")
+          )
+          try:
+              xflarxx_state = json.loads(xflarxx_raw)
+          except json.JSONDecodeError as exc:
+              raise SystemExit("xFLARXx BetBoom session PART5/PART6 is invalid") from exc
+          if not isinstance(xflarxx_state, dict):
+              raise SystemExit("xFLARXx BetBoom session PART5/PART6 is not configured")
+          assert callable(auto_participation_recovery.run_recovery)
+'''
+          if text.count(old) != 1:
+              raise SystemExit("auto-participation.yml: validation marker not found")
+          text = text.replace(old, new, 1)
+          text = text.replace(
+              '          assert callable(betboom_participation_browser.participate)\n',
+              '          assert callable(betboom_participation_browser.participate)\n          assert callable(betboom_account_participation.sync_standalone_account_events)\n',
+              1,
+          )
+          text = text.replace(
+              '          print("Auto participation preflight OK for both BetBoom accounts")\n',
+              '          print("Auto participation preflight OK for Vyacheslav and xFLARXx accounts")\n',
+              1,
+          )
+          marker = '''      - name: Queue confirmed participation for Control Center
+'''
+          addition = '''      - name: Run BetBoom account for xFLARXx
+        if: ${{ steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          BETBOOM_ACCOUNT_KEY: "xflarxx_primary"
+          BETBOOM_ACCOUNT_LABEL: "xFLARXx"
+          BETBOOM_TELEGRAM_USER: "xFLARXx"
+          BETBOOM_NOTIFICATION_MODE: "standalone"
+          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}
+          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
+        run: |
+          test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
+          python betboom_account_participation.py \
+            --recovery-result /tmp/bbvg-auto-participation-recovery.json
+
+'''
+          if addition.strip() in text:
+              raise SystemExit("auto-participation.yml: xFLARXx step already present")
+          if text.count(marker) != 1:
+              raise SystemExit("auto-participation.yml: queue marker not found")
+          text = text.replace(marker, addition + marker, 1)
+          path.write_text(text, encoding="utf-8")
+
+          # Control Center validation must include independent-account delivery.
+          replace_once(
+              ".github/workflows/admin-bot.yml",
+              '      - "auto_participation_notifications.py"\n',
+              '      - "auto_participation_notifications.py"\n      - "betboom_account_participation.py"\n',
+          )
+          replace_once(
+              ".github/workflows/admin-bot.yml",
+              '''           assert getattr(
+               notification_button_recovery.auto_participation_notifications.auto_participation_owner_sync,
+               "_bbvg_unified_account_notifications_installed",
+               False,
+           ), "Unified two-account outcome aggregator is not installed"
+           print("Unified automatic participation outcome sync installed")
+''',
+              '''           assert getattr(
+               notification_button_recovery.auto_participation_notifications.auto_participation_owner_sync,
+               "_bbvg_unified_account_notifications_installed",
+               False,
+           ), "Unified two-account outcome aggregator is not installed"
+           assert callable(
+               notification_button_recovery.auto_participation_notifications.betboom_account_participation.sync_standalone_account_events
+           ), "Standalone BetBoom account delivery is not installed"
+           print("Unified and standalone automatic participation sync installed")
+''',
+          )
+
+          replace_once(
+              "scripts/validate_control_center.sh",
+              '''  admin_panel_v2.py admin_panel_runtime_v41.py notification_button_recovery.py \\
+  telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \\
+''',
+              '''  admin_panel_v2.py admin_panel_runtime_v41.py notification_button_recovery.py \\
+  auto_participation_notifications.py auto_participation_owner_sync.py betboom_account_participation.py \\
+  telegram_ui.py chapter4_acceptance.py chapter5_acceptance.py wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \\
+''',
+          )
+          replace_once(
+              "scripts/validate_control_center.sh",
+              '''assert "Управлять уведомлениями" in detail
+''',
+              '''assert "Управлять уведомлениями" in detail
+settings = inspect.getsource(TelegramPanelRuntime.show_settings)
+assert "page:wheelmode" not in settings
+assert "page:disabled_features" not in settings
+''',
+          )
+
+          # Architecture and changelog.
+          replace_once(
+              "AGENTS.md",
+              '''- Второй BetBoom-аккаунт Вячеслава использует отдельную сессию `BETBOOM_STORAGE_STATE_JSON_PART3/PART4` и предметный модуль `betboom_account_participation.py`. Его event-token содержит `#account:vyacheslav_secondary`, поэтому успех или ошибка основного аккаунта не подавляют второй. Пользовательский итог не отправляется этим модулем отдельно: агрегатор ждёт оба результата и формирует не более одного короткого сообщения на событие. Личный голос и рейтинг за одно событие остаются идемпотентными.
+''',
+              '''- Второй BetBoom-аккаунт Вячеслава использует отдельную сессию `BETBOOM_STORAGE_STATE_JSON_PART3/PART4` и предметный модуль `betboom_account_participation.py`. Его event-token содержит `#account:vyacheslav_secondary`, поэтому успех или ошибка основного аккаунта не подавляют второй. Пользовательский итог не отправляется этим модулем отдельно: агрегатор ждёт оба результата и формирует не более одного короткого сообщения на событие. Личный голос и рейтинг за одно событие остаются идемпотентными.
+- BetBoom-аккаунт Telegram-пользователя `xFLARXx` использует `BETBOOM_STORAGE_STATE_JSON_PART5/PART6`, account key `xflarxx_primary` и тот же предметный модуль. Его outcome не входит в пару владельца: Control Center доставляет результат только профилю `xFLARXx`, применяет его личную настройку автоучастия, личную отметку и общую политику подавления отрицательного результата реферального колеса.
+''',
+          )
+          changelog = Path("docs/PROJECT_CHANGELOG_RU.md")
+          text = changelog.read_text(encoding="utf-8")
+          entry = '''## 2026-07-22 — Подключён аккаунт xFLARXx и очищены настройки доступа
+
+Сессия `BETBOOM_STORAGE_STATE_JSON_PART5/PART6` подключена как независимый account event `xflarxx_primary`. Автоучастие выполняется тем же workflow, а единственный Control Center доставляет результат Telegram-пользователю `xFLARXx`, сохраняет его личную отметку участия и не смешивает outcome с объединённой парой аккаунтов владельца.
+
+Исправлен `TypeError` при открытии пользователя через «Доступ и администраторы»: динамическое расширение списка уведомлений теперь сохраняет статический контракт `_notification_options_for_role`. Из настроек удалены вкладки «API и Legacy» и «Отключённый функционал»; старые callback переходы безопасно возвращают в настройки.
+
+Удалена устаревшая ветка `fix/control-center-unified-notification-release`.
+
+**Pre-update backup:** `backup/2026-07-22-before-xflarxx-account-access-cleanup` → `12aa58b0f6380da836eab2230db6c6af33f1d7a2`.
+
+'''
+          marker = "---\n\n"
+          if entry.strip() not in text:
+              if text.count(marker) != 1:
+                  raise SystemExit("PROJECT_CHANGELOG_RU.md insertion marker not found")
+              text = text.replace(marker, marker + entry, 1)
+              changelog.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate changed modules
+        env:
+          BBVG_TEST_MODE: "1"
+          BOT_TOKEN: "test-token"
+          BOT_STATE_KEY: "test-state-key"
+          BOT_CHAT_ID: "1"
+          ADMIN_USER_ID: "1"
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            betboom_account_participation.py \
+            auto_participation_notifications.py \
+            notification_button_recovery.py \
+            bbvg/bot/runtime.py \
+            admin_panel_runtime_v41.py
+          python betboom_account_participation.py --self-test
+          python auto_participation_notifications.py
+          python notification_button_recovery.py --self-test
+          python -m bbvg.bot.runtime --self-test
+          python admin_panel_runtime_v41.py --self-test
+          pytest -q
+
+      - name: Commit changes and remove obsolete branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-xflarxx-account-access-cleanup.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            AGENTS.md \
+            docs/PROJECT_CHANGELOG_RU.md \
+            betboom_account_participation.py \
+            auto_participation_notifications.py \
+            bbvg/bot/runtime.py \
+            .github/workflows/auto-participation.yml \
+            .github/workflows/admin-bot.yml \
+            scripts/validate_control_center.sh
+          git add -u .github/workflows/apply-xflarxx-account-access-cleanup.yml
+          git commit -m "Подключить xFLARXx и исправить управление пользователями"
+          git push origin HEAD:feature/xflarxx-account-access-cleanup
+          git push origin --delete fix/control-center-unified-notification-release || true
