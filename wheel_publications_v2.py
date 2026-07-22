@@ -19,7 +19,10 @@ REFERRAL_RESTRICTED_NOTICE_HTML = (
 REFERRAL_RESTRICTED_SHORT_HTML = "⚠️ <b>Колесо только для рефералов</b>"
 _REFERRAL_RESTRICTION_PATTERNS = (
     re.compile(r"\bтолько\s+(?:для\s+)?реф(?:ерал\w*|ов)\b", re.IGNORECASE),
-    re.compile(r"\b(?:для|моим?|нашим?)\s+реферал\w*\b", re.IGNORECASE),
+    re.compile(
+        r"\b(?:для|моим?|нашим?)\s+реф(?:ерал\w*|ов|ам)\b",
+        re.IGNORECASE,
+    ),
     re.compile(r"\b(?:колес\w*\s+)?для\s+рефов\b", re.IGNORECASE),
     re.compile(
         r"\b(?:участ\w*|доступ\w*|колес\w*)[^.\n]{0,140}"
