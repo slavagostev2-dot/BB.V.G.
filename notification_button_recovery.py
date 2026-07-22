@@ -4,10 +4,24 @@ import argparse
 import hashlib
 from typing import Any
 
+import admin_panel_v2
 import auto_participation_notifications
 import xflarxx_account_participation
 import xflarxx_runtime_integration
 from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
+
+
+FAST_SYNC_INTERVAL_SECONDS = 5
+FAST_CACHE_REFRESH_SECONDS = 5
+
+
+def _install_fast_outcome_policy() -> None:
+    owner_sync = auto_participation_notifications.auto_participation_owner_sync
+    if getattr(owner_sync, "_bbvg_fast_outcome_policy_installed", False):
+        return
+    owner_sync.SYNC_INTERVAL_SECONDS = FAST_SYNC_INTERVAL_SECONDS
+    admin_panel_v2.CACHE_REFRESH_SECONDS = FAST_CACHE_REFRESH_SECONDS
+    owner_sync._bbvg_fast_outcome_policy_installed = True
 
 
 def _notification_token(key: str, entry: dict[str, Any]) -> str:
@@ -64,6 +78,7 @@ class TelegramPanelRuntimeButtonRecovery(TelegramPanelRuntimeV41):
         self.mark_personal_participation(unique[0])
 
 
+_install_fast_outcome_policy()
 auto_participation_notifications.install(TelegramPanelRuntimeButtonRecovery)
 xflarxx_account_participation.install_owner_sync()
 xflarxx_runtime_integration.install(TelegramPanelRuntimeButtonRecovery)
@@ -73,13 +88,18 @@ def self_test() -> None:
     auto_participation_notifications.self_test()
     xflarxx_account_participation.self_test()
     xflarxx_runtime_integration.self_test()
+    owner_sync = auto_participation_notifications.auto_participation_owner_sync
+    assert owner_sync.SYNC_INTERVAL_SECONDS == FAST_SYNC_INTERVAL_SECONDS
+    assert admin_panel_v2.CACHE_REFRESH_SECONDS == FAST_CACHE_REFRESH_SECONDS
+    assert getattr(owner_sync, "_bbvg_fast_outcome_policy_installed", False) is True
+
     assert getattr(
-        auto_participation_notifications.auto_participation_owner_sync,
+        owner_sync,
         "_bbvg_unified_account_notifications_installed",
         False,
     ) is True
     assert getattr(
-        auto_participation_notifications.auto_participation_owner_sync,
+        owner_sync,
         "_bbvg_xflarxx_sync_installed",
         False,
     ) is True

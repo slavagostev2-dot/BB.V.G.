@@ -1,9 +1,6 @@
 name: BB V.G. xFLARXx auto participation
 
 on:
-  workflow_run:
-    workflows: ["BB V.G. auto participation"]
-    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -15,9 +12,7 @@ concurrency:
 
 jobs:
   participate:
-    if: >-
-      ${{ github.event_name == 'workflow_dispatch' ||
-          github.event.workflow_run.head_branch == 'main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     permissions:
       contents: write
     runs-on: ubuntu-latest

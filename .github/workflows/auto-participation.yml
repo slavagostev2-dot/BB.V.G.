@@ -21,7 +21,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -83,8 +83,12 @@ jobs:
           BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
           BETBOOM_STORAGE_STATE_JSON_PART3: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART3 }}
           BETBOOM_STORAGE_STATE_JSON_PART4: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART4 }}
+          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}
+          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}
           BETBOOM_ACCOUNT2_LABEL: "Аккаунт 2"
           BETBOOM_ACCOUNT2_TELEGRAM_USER: "Вячеслав"
+          BETBOOM_ACCOUNT3_LABEL: "xFLARXx"
+          BETBOOM_ACCOUNT3_TELEGRAM_USER: "xFLARXx"
         run: |
           python - <<'PY'
           import betboom_auto_participation as auto
@@ -93,6 +97,7 @@ jobs:
           import auto_participation_owner_sync
           import betboom_account_participation
           import betboom_participation_browser
+          import xflarxx_account_participation
           required = ("_event_token", "_eligible_for_event_attempt", "process_new_wheel_events")
           missing = [name for name in required if not hasattr(auto, name)]
           if missing:
@@ -101,6 +106,8 @@ jobs:
               raise SystemExit("Primary BetBoom auto participation session is not configured")
           if not betboom_account_participation.configured():
               raise SystemExit("Vyacheslav second BetBoom session PART3/PART4 is not configured")
+          if not xflarxx_account_participation.configured():
+              raise SystemExit("xFLARXx BetBoom session PART5/PART6 is not configured")
           assert callable(auto_participation_recovery.run_recovery)
           assert callable(auto_participation_bot_sync.queue_confirmed_participation)
           assert callable(auto_participation_bot_sync.merge_auto_participation_state)
@@ -110,7 +117,8 @@ jobs:
           auto_participation_bot_sync.self_test()
           auto_participation_owner_sync.self_test()
           betboom_account_participation.self_test()
-          print("Auto participation preflight OK for both BetBoom accounts")
+          xflarxx_account_participation.self_test()
+          print("Auto participation preflight OK for all BetBoom accounts")
           PY
 
       - name: Run event-based auto participation
@@ -126,6 +134,145 @@ jobs:
           BETBOOM_BROWSER_CHANNEL: chrome
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
         run: python auto_participation_worker.py
+
+      - name: Retry current active wheels immediately
+        if: ${{ steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          BETBOOM_AUTO_PARTICIPATE: "true"
+          BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
+          BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
+        shell: bash
+        run: |
+          set -o pipefail
+          python - <<'PY' | tee /tmp/bbvg-auto-participation-fast-recovery.json
+          import json
+          import auto_participation_recovery as recovery
+          import betboom_participation_browser
+          import monitor
+
+          state = recovery._json(monitor.STATE_PATH, {})
+          if not isinstance(state, dict):
+              state = {}
+          now = monitor.now_utc()
+          active_state = state.get("active_wheels")
+          active = []
+          if isinstance(active_state, dict):
+              for raw_key, raw in active_state.items():
+                  if not isinstance(raw, dict):
+                      continue
+                  key = str(raw_key or raw.get("wheel_key") or raw.get("identifier") or "").casefold()
+                  url = str(raw.get("url") or "").strip()
+                  if not key or not url:
+                      continue
+                  item = dict(raw)
+                  item["wheel_key"] = key
+                  item.setdefault("identifier", key)
+                  item["url"] = monitor.normalize_url(url)
+                  active.append(item)
+
+          attempts = []
+          for item in active:
+              if recovery._confirmed_success_for_event(state, item):
+                  attempts.append({
+                      **item,
+                      "success": True,
+                      "status": "already_marked_participating",
+                      "detail": "Участие уже подтверждено для этого события",
+                  })
+                  continue
+              result = betboom_participation_browser.participate(str(item["url"]))
+              attempts.append({
+                  **item,
+                  "success": bool(result.success),
+                  "status": str(result.status),
+                  "detail": str(result.detail)[:300],
+              })
+
+          recovery._restore_runtime_state(state, active, attempts, now)
+          print(json.dumps({
+              "mode": "active_only",
+              "scanned_at": now.isoformat(),
+              "checked": active,
+              "attempts": attempts,
+          }, ensure_ascii=False))
+          PY
+
+      - name: Run second BetBoom account on fast result
+        if: ${{ steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          BETBOOM_STORAGE_STATE_JSON_PART3: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART3 }}
+          BETBOOM_STORAGE_STATE_JSON_PART4: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART4 }}
+          BETBOOM_ACCOUNT2_LABEL: "Аккаунт 2"
+          BETBOOM_ACCOUNT2_TELEGRAM_USER: "Вячеслав"
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
+        run: |
+          test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
+          python betboom_account_participation.py \
+            --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
+
+      - name: Run xFLARXx BetBoom account on fast result
+        if: ${{ steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}
+          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}
+          BETBOOM_ACCOUNT3_LABEL: "xFLARXx"
+          BETBOOM_ACCOUNT3_TELEGRAM_USER: "xFLARXx"
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
+        run: |
+          test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
+          python xflarxx_account_participation.py \
+            --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
+
+      - name: Queue fast outcomes for Control Center
+        if: ${{ always() && steps.mode.outputs.probe != 'true' }}
+        shell: bash
+        run: |
+          test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
+          python auto_participation_bot_sync.py --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
+
+      - name: Publish fast participation state
+        if: ${{ always() && steps.mode.outputs.probe != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp state.json /tmp/bbvg-auto-participation-fast-local-state.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            git show origin/main:state.json > /tmp/bbvg-auto-participation-fast-remote-state.json
+            python auto_participation_bot_sync.py \
+              --merge-local /tmp/bbvg-auto-participation-fast-local-state.json \
+              --merge-remote /tmp/bbvg-auto-participation-fast-remote-state.json \
+              --merge-output state.json
+
+            if git diff --quiet -- state.json; then
+              echo "Fast auto participation state already present in main"
+              exit 0
+            fi
+
+            git add state.json
+            git commit -m "Publish fast auto participation outcome [skip ci]"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Fast state push raced with another writer; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+          echo "Unable to publish fast auto participation state" >&2
+          exit 1
 
       - name: Recover fresh active wheels independently of monitor state
         if: ${{ steps.mode.outputs.probe != 'true' }}
@@ -147,7 +294,7 @@ jobs:
           set -o pipefail
           python auto_participation_recovery.py | tee /tmp/bbvg-auto-participation-recovery.json
 
-      - name: Run second BetBoom account for Vyacheslav
+      - name: Run second BetBoom account after full recovery
         if: ${{ steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
@@ -160,6 +307,21 @@ jobs:
         run: |
           test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
           python betboom_account_participation.py \
+            --recovery-result /tmp/bbvg-auto-participation-recovery.json
+
+      - name: Run xFLARXx BetBoom account after full recovery
+        if: ${{ steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}
+          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}
+          BETBOOM_ACCOUNT3_LABEL: "xFLARXx"
+          BETBOOM_ACCOUNT3_TELEGRAM_USER: "xFLARXx"
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
+        run: |
+          test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
+          python xflarxx_account_participation.py \
             --recovery-result /tmp/bbvg-auto-participation-recovery.json
 
       - name: Queue confirmed participation for Control Center
