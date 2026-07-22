@@ -1,7 +1,7 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 373,
+    "age_minutes": 374,
     "last_heartbeat_at": "2026-07-21T21:21:03.986713+00:00",
     "started_at": "2026-07-21T15:53:12.674345+00:00",
     "status": "running",
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "c823dccd775c42f08a5e4b3c9a2dc55b",
+    "decision_id": "794b41a04fca4cbda33ac7b0a991129e",
     "finding_count": 1,
     "finding_kinds": [
       "admin_panel_stale"
     ],
-    "generated_at": "2026-07-22T03:34:44.536625+00:00",
-    "impact": "Бот перестал принимать команды от пользователей, так как связь с Control Center прервана.",
+    "generated_at": "2026-07-22T03:35:05.837135+00:00",
+    "impact": "Бот перестал принимать и обрабатывать команды пользователей, что делает систему неработоспособной для внешних запросов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить heartbeat Control Center и последний workflow панели.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критический сбой: панель управления не обновлялась более 6 часов (373 минуты).",
+    "summary": "Критическая ошибка: панель управления не обновляла статус более 6 часов (374 минуты).",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -63,13 +63,13 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-22T03:34:42.969039+00:00",
+  "checked_at": "2026-07-22T03:35:04.171419+00:00",
   "discovery": {
     "active_size": 168,
     "candidate_count": 484,
     "catalog_size": 1,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-21T23:42:58.485350+00:00",
+    "discovery_last_run_at": "2026-07-22T03:34:37.053916+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
     "intelligence_last_run_at": "2026-07-21T21:47:26.340853+00:00",
@@ -104,7 +104,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последний живой сигнал был 373 минут назад.",
+      "detail": "Последний живой сигнал был 374 минут назад.",
       "kind": "admin_panel_stale",
       "severity": "critical",
       "subject": "",
