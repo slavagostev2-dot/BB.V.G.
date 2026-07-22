@@ -116,6 +116,9 @@ def test_backup_rotation_contract_and_concurrency() -> None:
     assert "python backup_rotation.py --self-test" in text
     assert "python backup_rotation.py" in text
     assert "CREATED_BACKUP_REF" in text
+    assert backup_rotation.DEFAULT_KEEP_COUNT == 7
+    assert 'KEEP_BACKUPS: "7"' in text
+    assert "retain only the newest seven" in text
     backup_rotation.self_test()
 
 
