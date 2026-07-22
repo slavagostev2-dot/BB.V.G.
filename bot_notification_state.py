@@ -2,15 +2,236 @@ from __future__ import annotations
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
 import auto_participation_owner_sync
+import betboom_auto_participation
 import bot_private_state
 import notification_integrity_v2
 import notification_remote_checkpoint
 import notification_router
+import personal_reminder_filter
+
+
+_TRANSIENT_PARTICIPATION_STATUSES = {
+    "browser_error",
+    "timeout",
+    "navigation_timeout",
+    "page_timeout",
+    "workflow_dispatch_failed",
+    "workflow_dispatch_timeout",
+    "workflow_dispatch_retry_wait",
+}
+_TRANSIENT_PARTICIPATION_MARKERS = (
+    "timeouterror",
+    "timeout",
+    "page.goto",
+    "net::",
+    "connection",
+    "target closed",
+    "dispatcher_exit",
+    "workflow_dispatch",
+)
+
+
+def _transient_participation_failure(
+    record: Any,
+    entry: dict[str, Any] | None = None,
+) -> bool:
+    raw = record if isinstance(record, dict) else {}
+    current = entry if isinstance(entry, dict) else {}
+    status = str(
+        raw.get("status")
+        or raw.get("bot_failure_status")
+        or current.get("auto_participation_status")
+        or ""
+    ).casefold()
+    detail = " ".join(
+        str(value or "")
+        for value in (
+            raw.get("detail"),
+            raw.get("bot_failure_detail"),
+            raw.get("dispatch_error"),
+            current.get("auto_participation_error"),
+        )
+    ).casefold()
+    return status in _TRANSIENT_PARTICIPATION_STATUSES or any(
+        marker in detail for marker in _TRANSIENT_PARTICIPATION_MARKERS
+    )
+
+
+def _control_center_authoritative_failure(*_args: Any, **_kwargs: Any) -> tuple[bool, str]:
+    """Direct failure delivery is forbidden outside the single live Control Center."""
+
+    return False, "control_center_authoritative"
+
+
+# Global fail-safe. The monitor dispatcher, legacy worker helpers and recovery code
+# may record technical state, but they cannot send a user-facing participation failure.
+betboom_auto_participation._notify_manual_participation = (
+    _control_center_authoritative_failure
+)
+
+
+_original_recoverable_processed_failure = (
+    personal_reminder_filter._recoverable_processed_failure
+)
+
+
+def _recoverable_processed_failure(
+    record: Any,
+    entry: dict[str, Any],
+) -> str:
+    reason = _original_recoverable_processed_failure(record, entry)
+    if reason:
+        return reason
+    if _transient_participation_failure(record, entry):
+        return "transient_browser_or_transport_failure"
+    return ""
+
+
+def _record_dispatch_failure_silently(
+    state: dict[str, Any],
+    monitor_module: Any,
+    token: str,
+    wheel_key: str,
+    *,
+    status: str,
+    detail: str,
+) -> bool:
+    """Retry dispatch transport failures without treating them as a BetBoom outcome."""
+
+    current = monitor_module.now_utc()
+    active = state.setdefault("active_wheels", {})
+    entry = active.get(wheel_key)
+    if not isinstance(entry, dict):
+        entry = {"wheel_key": wheel_key, "identifier": wheel_key}
+        active[wheel_key] = entry
+
+    dispatches = state.setdefault("auto_participation_dispatch_events", {})
+    dispatch_record = dispatches.get(token)
+    if not isinstance(dispatch_record, dict):
+        dispatch_record = {"wheel_key": wheel_key}
+        dispatches[token] = dispatch_record
+
+    processed = state.get("auto_participation_events")
+    event_record = processed.get(token) if isinstance(processed, dict) else None
+    already_confirmed = (
+        bool(entry.get("participating"))
+        or str(entry.get("auto_participation_status") or "") == "participated"
+        or bool(entry.get("auto_participation_confirmed_at"))
+        or (
+            isinstance(event_record, dict)
+            and str(event_record.get("status") or "")
+            in {"participated", "already_marked_participating"}
+        )
+    )
+    if already_confirmed:
+        dispatch_record.update(
+            {
+                "wheel_key": wheel_key,
+                "status": "outcome_already_confirmed",
+                "last_transport_detail": str(detail or "")[:500],
+                "manual_notification_sent": False,
+                "user_alert_policy": "forbidden_success_is_authoritative",
+            }
+        )
+        return False
+
+    try:
+        previous_failures = int(dispatch_record.get("failure_count", 0) or 0)
+    except (TypeError, ValueError):
+        previous_failures = 0
+    failure_count = previous_failures + 1
+    retry_minutes = min(30, max(3, failure_count * 3))
+    retry_at = current + timedelta(minutes=retry_minutes)
+
+    dispatch_record.update(
+        {
+            "wheel_key": wheel_key,
+            "status": "workflow_dispatch_retry_wait",
+            "dispatch_error": str(detail or "")[:500],
+            "last_failure_at": current.isoformat(),
+            "retry_after_at": retry_at.isoformat(),
+            "failure_count": failure_count,
+            "manual_notification_sent": False,
+            "user_alert_policy": (
+                "forbidden_transport_is_not_participation_outcome"
+            ),
+        }
+    )
+    for field in (
+        "alert_attempted_at",
+        "manual_notification_at",
+        "manual_notification_detail",
+    ):
+        dispatch_record.pop(field, None)
+
+    entry["auto_participation_status"] = "workflow_dispatch_retry_wait"
+    entry["auto_participation_checked_at"] = current.isoformat()
+    entry["auto_participation_retry_allowed"] = True
+    entry["auto_participation_error"] = str(detail or "")[:300]
+    entry.pop("auto_participation_manual_notification_at", None)
+    entry.pop("auto_participation_manual_notification_error", None)
+    return False
+
+
+personal_reminder_filter._recoverable_processed_failure = (
+    _recoverable_processed_failure
+)
+personal_reminder_filter._record_dispatch_failure = (
+    _record_dispatch_failure_silently
+)
+
+
+# A single browser/network timeout is not a final result. Give recovery and state
+# convergence five minutes, then allow only a genuine BetBoom rejection to surface.
+auto_participation_owner_sync.FAILURE_GRACE_SECONDS = 300
+_original_pending_failure_events = auto_participation_owner_sync.pending_failure_events
+_original_failure_message = auto_participation_owner_sync._failure_message
+
+
+def _pending_failure_events_authoritative(
+    state: dict[str, Any],
+    *,
+    now: Any = None,
+) -> list[tuple[str, dict[str, Any]]]:
+    values = _original_pending_failure_events(state, now=now)
+    return [
+        (token, record)
+        for token, record in values
+        if not _transient_participation_failure(record)
+    ]
+
+
+def _sanitized_failure_message(
+    key: str,
+    item: dict[str, Any],
+    record: dict[str, Any],
+) -> tuple[str, dict[str, Any] | None]:
+    clean = dict(record)
+    status = str(
+        clean.get("status") or clean.get("bot_failure_status") or ""
+    ).casefold()
+    if status == "unconfirmed":
+        detail = "BetBoom не показал подтверждение участия после нажатия кнопки"
+    elif status == "button_not_found":
+        detail = "на странице BetBoom не найдена доступная кнопка участия"
+    else:
+        detail = "BetBoom не подтвердил автоматическое участие после повторной проверки"
+    clean["detail"] = detail
+    clean["bot_failure_detail"] = detail
+    return _original_failure_message(key, item, clean)
+
+
+auto_participation_owner_sync.pending_failure_events = (
+    _pending_failure_events_authoritative
+)
+auto_participation_owner_sync._failure_message = _sanitized_failure_message
+
 
 notification_integrity_v2.install(notification_router)
 notification_remote_checkpoint.install(notification_router, notification_integrity_v2)
@@ -136,6 +357,56 @@ def self_test() -> None:
             assert callable(notification_router.notification_event_identity)
             notification_remote_checkpoint.self_test()
             auto_participation_owner_sync.self_test()
+
+            assert betboom_auto_participation._notify_manual_participation(
+                None,
+                {},
+                betboom_auto_participation.ParticipationResult(
+                    False, "browser_error", "TimeoutError: Page.goto"
+                ),
+            ) == (False, "control_center_authoritative")
+
+            transient_state = {
+                "auto_participation_events": {
+                    "little#action:1:now": {
+                        "wheel_key": "little",
+                        "status": "browser_error",
+                        "detail": "TimeoutError: Page.goto",
+                        "bot_failure_pending_at": "2026-07-21T00:00:00+00:00",
+                    }
+                }
+            }
+            assert _pending_failure_events_authoritative(
+                transient_state,
+                now=auto_participation_owner_sync.datetime(
+                    2026, 7, 22, tzinfo=auto_participation_owner_sync.UTC
+                ),
+            ) == []
+
+            class _Monitor:
+                @staticmethod
+                def now_utc():
+                    return auto_participation_owner_sync.datetime(
+                        2026, 7, 22, tzinfo=auto_participation_owner_sync.UTC
+                    )
+
+            dispatch_state: dict[str, Any] = {
+                "active_wheels": {"wheel": {"identifier": "wheel"}}
+            }
+            assert not _record_dispatch_failure_silently(
+                dispatch_state,
+                _Monitor,
+                "wheel#action:1:now",
+                "wheel",
+                status="workflow_dispatch_timeout",
+                detail="worker result delayed",
+            )
+            dispatch = dispatch_state["auto_participation_dispatch_events"][
+                "wheel#action:1:now"
+            ]
+            assert dispatch["status"] == "workflow_dispatch_retry_wait"
+            assert dispatch["manual_notification_sent"] is False
+            assert "auto_participation_events" not in dispatch_state
     finally:
         bot_private_state.STATE_PATH = original
     print("BB V.G. bot notification state self-test passed")
