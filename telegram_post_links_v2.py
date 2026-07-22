@@ -121,62 +121,93 @@ def _ai_wheel_evidence_cap(text: str, classification: str = "") -> float:
 
 
 def _install_suspicious_post_policy(suspicious_posts: Any) -> None:
+    """Install strict evidence handling only around monitor delivery.
+
+    The core classifier functions remain unchanged. This prevents runtime import
+    order from leaking policy monkeypatches into tests or other callers.
+    """
+
     if getattr(suspicious_posts, "_bbvg_strict_evidence_policy_installed", False):
         return
 
     os.environ.setdefault("AI_SUSPICIOUS_POST_MIN_CONFIDENCE", "0.90")
     os.environ.setdefault("AI_SUSPICIOUS_ACTIVE_MIN_CONFIDENCE", "0.93")
-    original_is_candidate = suspicious_posts.is_candidate
-    original_analyze_posts = suspicious_posts.analyze_posts
+    original_run_for_messages = suspicious_posts.run_for_messages
 
-    def strict_is_candidate(text: str) -> bool:
-        return bool(
-            original_is_candidate(text)
-            and _ai_wheel_evidence_cap(text, "possible_wheel_announcement") >= 0.90
-        )
+    def run_for_messages_with_evidence(
+        monitor_module: Any,
+        messages_by_source: dict[str, list[Any]],
+    ) -> dict[str, Any]:
+        filtered: dict[str, list[Any]] = {}
+        for source, messages in messages_by_source.items():
+            filtered[source] = [
+                message
+                for message in messages
+                if _ai_wheel_evidence_cap(
+                    str(getattr(message, "text", "") or ""),
+                    "possible_wheel_announcement",
+                )
+                >= 0.90
+            ]
 
-    def analyze_posts_with_evidence(posts: Any, state: dict[str, Any], **kwargs: Any):
-        post_rows = list(posts)
-        summary = original_analyze_posts(post_rows, state, **kwargs)
-        by_key = {suspicious_posts._key(post): post for post in post_rows}
-        kept: list[dict[str, Any]] = []
-        records = state.get("posts") if isinstance(state.get("posts"), dict) else {}
-        base_threshold = suspicious_posts._float_env(
-            "AI_SUSPICIOUS_POST_MIN_CONFIDENCE", 0.90, 0.50, 0.99
-        )
-        active_threshold = max(
-            base_threshold,
-            suspicious_posts._float_env(
-                "AI_SUSPICIOUS_ACTIVE_MIN_CONFIDENCE", 0.93, 0.50, 0.99
-            ),
-        )
+        original_analyze_posts = suspicious_posts.analyze_posts
 
-        for alert in list(summary.get("alerts", [])):
-            record_key = str(alert.get("record_key") or "")
-            post = by_key.get(record_key)
-            if post is None:
-                continue
-            classification = str(alert.get("classification") or "uncertain")
-            cap = _ai_wheel_evidence_cap(post.text, classification)
-            confidence = min(float(alert.get("confidence", 0.0) or 0.0), cap)
-            required = active_threshold if classification == "active_wheel" else base_threshold
-            row = records.get(record_key) if isinstance(records, dict) else None
-            if isinstance(row, dict):
-                row["confidence"] = confidence
-                row["evidence_confidence_cap"] = cap
-                row["evidence_policy"] = "explicit_betboom_action_v1"
-            alert["confidence"] = confidence
-            if confidence >= required:
-                kept.append(alert)
+        def analyze_posts_with_evidence(
+            posts: Any,
+            state: dict[str, Any],
+            **kwargs: Any,
+        ) -> dict[str, Any]:
+            post_rows = list(posts)
+            summary = original_analyze_posts(post_rows, state, **kwargs)
+            original_alerts = list(summary.get("alerts", []))
+            by_key = {suspicious_posts._key(post): post for post in post_rows}
+            records = state.get("posts") if isinstance(state.get("posts"), dict) else {}
+            base_threshold = suspicious_posts._float_env(
+                "AI_SUSPICIOUS_POST_MIN_CONFIDENCE", 0.90, 0.50, 0.99
+            )
+            active_threshold = max(
+                base_threshold,
+                suspicious_posts._float_env(
+                    "AI_SUSPICIOUS_ACTIVE_MIN_CONFIDENCE", 0.93, 0.50, 0.99
+                ),
+            )
+            kept: list[dict[str, Any]] = []
 
-        summary["alerts"] = kept
-        summary["alerts_suppressed_by_evidence"] = max(
-            0, len(list(summary.get("alerts", []))) - len(kept)
-        )
-        return summary
+            for alert in original_alerts:
+                record_key = str(alert.get("record_key") or "")
+                post = by_key.get(record_key)
+                if post is None:
+                    continue
+                classification = str(alert.get("classification") or "uncertain")
+                cap = _ai_wheel_evidence_cap(post.text, classification)
+                confidence = min(float(alert.get("confidence", 0.0) or 0.0), cap)
+                required = (
+                    active_threshold
+                    if classification == "active_wheel"
+                    else base_threshold
+                )
+                row = records.get(record_key) if isinstance(records, dict) else None
+                if isinstance(row, dict):
+                    row["confidence"] = confidence
+                    row["evidence_confidence_cap"] = cap
+                    row["evidence_policy"] = "explicit_betboom_action_v1"
+                alert["confidence"] = confidence
+                if confidence >= required:
+                    kept.append(alert)
 
-    suspicious_posts.is_candidate = strict_is_candidate
-    suspicious_posts.analyze_posts = analyze_posts_with_evidence
+            summary["alerts"] = kept
+            summary["alerts_suppressed_by_evidence"] = max(
+                0, len(original_alerts) - len(kept)
+            )
+            return summary
+
+        suspicious_posts.analyze_posts = analyze_posts_with_evidence
+        try:
+            return original_run_for_messages(monitor_module, filtered)
+        finally:
+            suspicious_posts.analyze_posts = original_analyze_posts
+
+    suspicious_posts.run_for_messages = run_for_messages_with_evidence
     suspicious_posts._bbvg_strict_evidence_policy_installed = True
 
 
