@@ -148,16 +148,16 @@ jobs:
           assert 'usernotifyall:' in users_source
           assert 'privacy:delete:' in users_source
           assert 'Управлять уведомлениями' in inspect.getsource(
-            TelegramPanelRuntime.show_user_detail
+              TelegramPanelRuntime.show_user_detail
           )
-          assert 'run: python admin_panel_runtime_v41.py' in workflow
+          assert 'run: python notification_button_recovery.py' in workflow
           assert 'notification_delivery_state.json' in monitor_workflow
           assert 'wheel_draw_alerts' in inspect.getsource(UserSettingsMixin)
 
           user_callbacks = {
-            button['callback_data']
-            for row in TelegramPanelRuntime.compact_menu_rows(False)
-            for button in row
+              button['callback_data']
+              for row in TelegramPanelRuntime.compact_menu_rows(False)
+              for button in row
           }
           assert 'page:status' in user_callbacks
           assert 'page:reports' not in user_callbacks
