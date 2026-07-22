@@ -212,6 +212,47 @@ assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
 print("BB V.G. Control Center preflight validated")
 PY
 
+validation_stage="record_project_changelog"
+git fetch origin main
+git checkout -B main origin/main
+python - <<'PY'
+from pathlib import Path
+
+path = Path("docs/PROJECT_CHANGELOG_RU.md")
+text = path.read_text(encoding="utf-8")
+heading = "## 2026-07-22 — Единый исход автоучастия и восстановление Control Center"
+if heading not in text:
+    marker = "---\n\n"
+    entry = '''## 2026-07-22 — Единый исход автоучастия и восстановление Control Center
+
+Скриншоты production подтвердили три связанных сбоя: после подтверждённого участия `chopper`, `pomidor2` и `MAGER01` старый monitor-dispatcher отправлял ложное сообщение «не сработало»; временный Playwright `TimeoutError/Page.goto` по `little` показывался пользователю как финальный отказ; Control Center завершился по job timeout до запуска следующей смены.
+
+Прямой failure через legacy `_notify_manual_participation` запрещён глобально. GitHub dispatch, очередь Actions, сетевые и browser timeout сохраняются как бесшумно повторяемое техническое состояние. Единственный Control Center ждёт пять минут, повторно сверяет точное событие `wheel_key + action_id + server_start_at`, отдаёт безусловный приоритет уже подтверждённому успеху и показывает только нормализованную причину без stack trace.
+
+Control Center ограничен 4,5 часами при job timeout 350 минут и получил почасовой страховочный запуск; schedule не отменяет здоровый процесс. Полные system-health проверки сериализованы отдельно от пятиминутного monitor-watchdog. Production compatibility entrypoint `notification_button_recovery.py` наследует основной v41, не создаёт второго Telegram consumer и сохраняет regression fallback старых callback-кнопок по точному сценарию `hooch07 → cba7abb40c5b77`.
+
+Production-проверка: exact preflight прошёл полностью в run `29889875128`, после чего Control Center записал новый статус `running` и heartbeat `2026-07-22T04:43:01.048041+00:00`. Монитор продолжил работу с `168/168` доступными источниками и нулём ошибок.
+
+**Pre-update backup:** `backup/2026-07-22-before-auto-participation-and-panel-recovery` → `5548817ce2d956b1256f2367dc18ff815034f9ef`.
+
+'''
+    if marker not in text:
+        raise SystemExit("PROJECT_CHANGELOG_RU.md insertion marker not found")
+    path.write_text(text.replace(marker, marker + entry, 1), encoding="utf-8")
+PY
+if ! git diff --quiet -- docs/PROJECT_CHANGELOG_RU.md; then
+  git config user.name "github-actions[bot]"
+  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git add docs/PROJECT_CHANGELOG_RU.md
+  git commit -m "Задокументировать восстановление автоучастия и Control Center"
+  for attempt in 1 2 3; do
+    if git push origin HEAD:main; then
+      break
+    fi
+    git pull --rebase origin main || { git rebase --abort || true; false; }
+  done
+fi
+
 validation_stage="restore_workflow_sha"
 if [[ -n "$workflow_sha" ]] && git cat-file -e "${workflow_sha}^{commit}" 2>/dev/null; then
   git checkout --detach "$workflow_sha"
