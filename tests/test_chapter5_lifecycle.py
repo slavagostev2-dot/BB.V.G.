@@ -121,6 +121,12 @@ class Chapter5LifecycleTests(unittest.TestCase):
             "https://betboom.ru/freestream/regular-wheel"
         )
         self.assertTrue(wheel_publications_v2.is_referral_restricted(restricted))
+        self.assertTrue(
+            wheel_publications_v2.is_referral_restricted(
+                "Колесо для рефов на BetBoom "
+                "https://betboom.ru/freestream/CTOM13"
+            )
+        )
         self.assertFalse(wheel_publications_v2.is_referral_restricted(regular))
 
         message = monitor.Message(
