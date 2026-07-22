@@ -12,7 +12,7 @@ on:
       - "bot_notification_state.py"
   workflow_dispatch:
   schedule:
-    - cron: "37 3 * * *"
+    - cron: "37 * * * *"
 
 permissions:
   contents: read
@@ -158,7 +158,7 @@ jobs:
     timeout-minutes: 350
     concurrency:
       group: bb-vg-telegram-admin-panel
-      cancel-in-progress: true
+      cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
     steps:
       - name: Checkout validated repository
@@ -249,7 +249,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_BRANCH: main
           DISPLAY_TIMEZONE: Asia/Barnaul
-          RUN_SECONDS: "19800"
+          RUN_SECONDS: "16200"
           REQUEST_TIMEOUT_SECONDS: "20"
           ADMIN_CACHE_SECONDS: "20"
           SOURCE_INACTIVITY_DAYS: "7"
