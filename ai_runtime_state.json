@@ -1,16 +1,8 @@
 {
   "cache": {
-    "4df202414a2e34b85a268df06a83e6d4f36c732bc4f4536de907eb4bf097b726": {
-      "expires_at": 1784693122.741732,
-      "text": "{\n  \"summary\": \"Критический сбой: панель управления не обновляла статус более 6 часов (389 минут).\",\n  \"impact\": \"Бот перестал принимать и обрабатывать команды пользователей, несмотря на исправность источников данных.\",\n  \"recommended_action\": \"Проверить heartbeat Control Center и последний workflow панели.\",\n  \"confidence\": \"high\"\n}"
-    },
-    "95958e07fde504c5e5767f7b080c405a5902a6dc45fff8fe426fb671d7e85871": {
-      "expires_at": 1784693722.6676395,
-      "text": "{\n  \"summary\": \"Система BB V.G. находится в критическом состоянии: панель управления остановлена, а бот перестал принимать команды более 6 часов назад.\",\n  \"impact\": \"Бот полностью неработоспособен, пользователи не могут взаимодействовать с системой, так как панель управления не функционирует.\",\n  \"recommended_action\": \"Проверить heartbeat Control Center и последний workflow панели для выявления причин остановки.\",\n  \"confidence\": \"high\"\n}"
-    },
-    "969d68b1afd06ab822caf1c43f17ff48125fa28b5c24a3b389a587b9aead8c36": {
-      "expires_at": 1784693566.8050678,
-      "text": "{\n  \"summary\": \"Критическая ошибка: панель управления не обновляла статус более 6 часов (396 минут).\",\n  \"impact\": \"Бот перестал принимать и обрабатывать команды пользователей, что делает систему неработоспособной.\",\n  \"recommended_action\": \"Проверить heartbeat Control Center и последний workflow панели.\",\n  \"confidence\": \"high\"\n}"
+    "8febce9164e1c6fc9ef06ce5630f58527f90447d65a72d0eb4509dacb560cd8b": {
+      "expires_at": 1784701493.9419856,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post announces a recurring gacha-style event (MLBB x Jujutsu Kaisen) featuring a 'guaranteed' draw mechanic and diamond recharge phases, which are characteristic of wheel-based events.\"\n}"
     }
   },
   "decisions": [
@@ -847,10 +839,23 @@
       "output_sha256": "c9e425b98578fd5f80df0437e6103ae6c503edfb27517482bdfc228b2fa9366e",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1784700593.9419856,
+      "feature": "suspicious_post_analysis",
+      "id": "ab06ca1ab07649e3bc1d1ac5e591d6c2",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "e7c1a49900890d9c6d16da6a0142555ffa3ff20162cebbcddeb71865c21be29d",
+      "provider": "gemini",
+      "reason": "The post announces a recurring gacha-style event (MLBB x Jujutsu Kaisen) featuring a 'guaranteed' draw mechanic and diamond recharge phases, which are characteristic of wheel-based events.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1784692822.6676395
+    1784700593.9419856
   ],
   "version": 1
 }
