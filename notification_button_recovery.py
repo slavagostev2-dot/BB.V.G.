@@ -5,6 +5,7 @@ import hashlib
 from typing import Any
 
 import admin_panel_v2
+import auto_participation_backlog_guard
 import auto_participation_notifications
 import xflarxx_account_participation
 import xflarxx_runtime_integration
@@ -80,12 +81,14 @@ class TelegramPanelRuntimeButtonRecovery(TelegramPanelRuntimeV41):
 
 _install_fast_outcome_policy()
 auto_participation_notifications.install(TelegramPanelRuntimeButtonRecovery)
+auto_participation_backlog_guard.install()
 xflarxx_account_participation.install_owner_sync()
 xflarxx_runtime_integration.install(TelegramPanelRuntimeButtonRecovery)
 
 
 def self_test() -> None:
     auto_participation_notifications.self_test()
+    auto_participation_backlog_guard.self_test()
     xflarxx_account_participation.self_test()
     xflarxx_runtime_integration.self_test()
     owner_sync = auto_participation_notifications.auto_participation_owner_sync
@@ -96,6 +99,11 @@ def self_test() -> None:
     assert getattr(
         owner_sync,
         "_bbvg_unified_account_notifications_installed",
+        False,
+    ) is True
+    assert getattr(
+        owner_sync,
+        "_bbvg_stale_backlog_guard_installed",
         False,
     ) is True
     assert getattr(
