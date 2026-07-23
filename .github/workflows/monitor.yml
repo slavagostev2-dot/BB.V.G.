@@ -77,7 +77,7 @@ permissions:
 
 concurrency:
   group: bb-vg-monitor-continuous
-  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' && inputs.replace == true }}
+  cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.replace == true) }}
 
 jobs:
   monitor:
