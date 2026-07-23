@@ -318,11 +318,11 @@ def interface_acceptance() -> None:
     telegram_ui.self_test()
     panel_self_test()
     workflow = text(".github/workflows/admin-bot.yml")
-    assert "run: python admin_panel_runtime_v41.py" in workflow
+    assert "run: python notification_button_recovery.py" in workflow
     assert '"version": 41' in workflow
-    assert "admin_panel_runtime_v41.py" in workflow
+    assert "python notification_button_recovery.py --self-test" in workflow
     validator = text("scripts/validate_control_center.sh")
-    assert "run: bash scripts/validate_control_center.sh" in workflow
+    assert "bash scripts/validate_control_center.sh" in workflow
     assert "telegram_ui.py" in validator
     user_callbacks = {
         str(button.get("callback_data") or "")

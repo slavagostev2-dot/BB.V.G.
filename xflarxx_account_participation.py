@@ -182,6 +182,12 @@ def _notification_enabled(user: dict[str, Any]) -> bool:
     return bool(preferences.get("auto_participation", True))
 
 
+def _should_send_notification(user: dict[str, Any], item: dict[str, Any]) -> bool:
+    return _notification_enabled(user) and not (
+        wheel_publications_v2.entry_is_referral_restricted(item)
+    )
+
+
 def _failure_reason(record: dict[str, Any]) -> str:
     status = str(
         record.get("bot_failure_status") or record.get("status") or ""
@@ -288,9 +294,7 @@ def sync_account_events(panel: Any) -> dict[str, int]:
 
             referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
             notifications_enabled = _notification_enabled(user)
-            should_send = notifications_enabled and (
-                success or not referral_restricted
-            )
+            should_send = _should_send_notification(user, item)
             now_text = datetime.now(UTC).isoformat()
             if should_send:
                 text, markup = _message(key, item, record, success)
@@ -314,7 +318,7 @@ def sync_account_events(panel: Any) -> dict[str, int]:
                         if should_send
                         else "disabled"
                         if not notifications_enabled
-                        else "referral_failure_suppressed"
+                        else "referral_suppressed"
                     ),
                     "referral_restricted": referral_restricted,
                     "original_button_updated": original_button_updated,
@@ -388,6 +392,10 @@ def self_test() -> None:
     assert _notification_enabled({"notification_preferences": {}})
     assert not _notification_enabled(
         {"notification_preferences": {"auto_participation": False}}
+    )
+    assert not _should_send_notification(
+        {"notification_preferences": {}},
+        {"message_text": "Колесо только для рефералов"},
     )
     print("xFLARXx BetBoom account self-test passed")
 

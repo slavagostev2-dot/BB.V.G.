@@ -11,6 +11,7 @@ install_optional_dependency_stubs()
 import bbvg_monitor_main
 import monitor
 import notification_router
+import personal_reminder_filter
 import wheel_event_runtime
 
 
@@ -883,6 +884,23 @@ class RecurringWheelHotfixTests(unittest.TestCase):
         self.assertFalse(entry["participating"])
         self.assertNotIn("reused", state["participating_wheels"])
         self.assertNotIn("reused", state["manual_deadlines"])
+
+    def test_post_scan_hook_dispatches_from_persisted_current_state(self) -> None:
+        calls: list[tuple[dict, object]] = []
+        original = personal_reminder_filter._schedule_auto_participation_dispatch
+        personal_reminder_filter._schedule_auto_participation_dispatch = (
+            lambda state, runtime: calls.append((state, runtime)) or True
+        )
+        try:
+            state = {"active_wheels": {"fresh": {"action_id": 123}}}
+            changed = (
+                bbvg_monitor_main.monitor.process_auto_participation_dispatch(state)
+            )
+        finally:
+            personal_reminder_filter._schedule_auto_participation_dispatch = original
+
+        self.assertTrue(changed)
+        self.assertEqual(calls, [(state, bbvg_monitor_main.monitor)])
 
 
 if __name__ == "__main__":

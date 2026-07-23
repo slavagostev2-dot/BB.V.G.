@@ -23,6 +23,7 @@ WHEEL_URL_RE = re.compile(
 
 USER_NOTIFICATION_MARKERS = (
     "новое колесо betboom",
+    "обнаружено колесо betboom",
     "колесо betboom стало активно",
     "колесо betboom подтверждено администратором",
     "колесо betboom доступно для участия",
@@ -329,6 +330,35 @@ def notification_event_identity(
     return ""
 
 
+def referral_wheel_notification(
+    monitor_module: Any,
+    kind: str,
+    text: str,
+    url: str | None,
+    reply_markup: dict | None,
+) -> bool:
+    """Return whether a user-facing wheel notification must stay silent."""
+
+    if kind != "wheels":
+        return False
+
+    import wheel_publications_v2
+
+    if wheel_publications_v2.is_referral_restricted(text):
+        return True
+
+    key = wheel_key_from_message(text, url, reply_markup)
+    if not key:
+        return False
+    try:
+        state = monitor_module.load_state()
+    except Exception:
+        return False
+    active = state.get("active_wheels") if isinstance(state, dict) else None
+    entry = active.get(key) if isinstance(active, dict) else None
+    return wheel_publications_v2.entry_is_referral_restricted(entry)
+
+
 def hidden_for_chat(config: dict[str, Any], chat_id: str, wheel_key: str) -> bool:
     if not wheel_key:
         return False
@@ -421,6 +451,22 @@ def install(monitor_module: Any) -> None:
         config, exists = load_config()
         category = classify(text)
         kind = notification_kind(text)
+        if referral_wheel_notification(
+            monitor_module,
+            kind,
+            text,
+            url,
+            reply_markup,
+        ):
+            return {
+                "ok": True,
+                "result": {
+                    "suppressed": True,
+                    "reason": "referral_wheel_notifications_disabled",
+                    "category": category,
+                    "kind": kind,
+                },
+            }
         targets = recipients(config, exists, kind)
         if not targets:
             print(f"Notification has no recipients: {kind}")
@@ -516,6 +562,20 @@ def self_test() -> None:
             },
         },
     }
+    assert notification_kind("🎡 <b>Обнаружено колесо BetBoom</b>") == "wheels"
+    assert notification_event_identity(
+        "wheels",
+        "🎡 <b>Обнаружено колесо BetBoom</b>",
+        "https://betboom.ru/freestream/example",
+        None,
+    ) == "wheel:wheels:example:detected"
+    assert referral_wheel_notification(
+        type("Monitor", (), {"load_state": staticmethod(lambda: {})}),
+        "wheels",
+        "🎡 Обнаружено колесо BetBoom\nКолесо только для рефералов",
+        "https://betboom.ru/freestream/ref-example",
+        None,
+    )
     assert recipients(config, True, "admin") == ["1", "2"]
     assert recipients(config, True, "user") == ["1", "3"]
     assert recipients(config, True, "admin_system") == ["1", "2"]

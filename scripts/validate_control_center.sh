@@ -131,26 +131,10 @@ if grep -Fq 'run: python admin_panel_runtime_v41.py' .github/workflows/admin-bot
 elif grep -Fq 'run: python notification_button_recovery.py' .github/workflows/admin-bot.yml; then
   validation_stage="chapter4_compatibility_entrypoint"
   python notification_button_recovery.py --self-test
+  python chapter4_acceptance.py
   python - <<'PY'
 from tests import production_acceptance as acceptance
 
-original_text = acceptance.text
-
-def compatible_text(path: str) -> str:
-    value = original_text(path)
-    if path == ".github/workflows/admin-bot.yml":
-        value = value.replace(
-            "run: python notification_button_recovery.py",
-            "run: python admin_panel_runtime_v41.py",
-        )
-        if (
-            "bash scripts/validate_control_center.sh" in value
-            and "run: bash scripts/validate_control_center.sh" not in value
-        ):
-            value += "\nrun: bash scripts/validate_control_center.sh\n"
-    return value
-
-acceptance.text = compatible_text
 acceptance.interface_acceptance()
 print("Chapter 4 compatibility entrypoint acceptance passed")
 PY

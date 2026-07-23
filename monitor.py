@@ -1917,6 +1917,13 @@ def process_admin_actions(
     return {"loaded": 0, "pending": 0, "applied": 0, "failed": 0, "changed": False}
 
 
+def process_auto_participation_dispatch(state: dict) -> bool:
+    """Runtime extension point for a state-backed post-scan dispatch."""
+
+    del state
+    return False
+
+
 def main() -> int:
     try:
         validate_environment()
@@ -2353,6 +2360,15 @@ def main() -> int:
 
     state["initialized_sources"] = sorted(initialized)
     state["notification_key_version"] = NOTIFICATION_KEY_VERSION
+
+    try:
+        if process_auto_participation_dispatch(state):
+            changed = True
+    except Exception as exc:
+        errors.append(
+            "auto participation post-scan dispatch failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
 
     try:
         inactivity_summary = maybe_send_source_inactivity_report(state, stats, sources)

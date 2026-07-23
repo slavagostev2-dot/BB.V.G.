@@ -287,6 +287,41 @@ def test_vk_dispatch_failure_cannot_break_successful_telegram(monkeypatch) -> No
     assert FakeMonitor.sent == 1
 
 
+def test_referral_suppression_skips_vk_dispatch(monkeypatch) -> None:
+    vk_calls: list[str] = []
+
+    class FakeMonitor:
+        @staticmethod
+        def send_message(
+            text: str,
+            url: str | None = None,
+            reply_markup: dict | None = None,
+        ) -> dict[str, Any]:
+            return {
+                "ok": True,
+                "result": {
+                    "suppressed": True,
+                    "reason": "referral_wheel_notifications_disabled",
+                },
+            }
+
+    monkeypatch.setattr(
+        vk_wheel_notifications,
+        "dispatch_vk_wheel_notification",
+        lambda *_args, **_kwargs: vk_calls.append("vk")
+        or {"eligible": True, "dispatched": True},
+    )
+    vk_wheel_notifications.install(FakeMonitor, FakeRouter)
+
+    result = FakeMonitor.send_message(
+        "🎡 Обнаружено колесо BetBoom",
+        url="https://betboom.ru/freestream/referral",
+    )
+
+    assert result["result"]["suppressed"] is True
+    assert vk_calls == []
+
+
 def test_telegram_failure_remains_visible_even_when_vk_dispatch_runs(monkeypatch) -> None:
     vk_calls: list[str] = []
 

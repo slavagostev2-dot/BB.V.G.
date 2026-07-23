@@ -591,6 +591,9 @@ def install(monitor_module: Any, router_module: Any) -> None:
         return original_api(method, payload)
 
     monitor_module.telegram_api = telegram_api_filtered
+    monitor_module.process_auto_participation_dispatch = (
+        lambda state: _schedule_auto_participation_dispatch(state, monitor_module)
+    )
 
     if callable(original_process_active):
         def process_active_with_auto_dispatch(state: dict, stats: dict):

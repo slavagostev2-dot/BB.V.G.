@@ -154,6 +154,42 @@ class NotificationTestCase(unittest.TestCase):
         self.assertTrue(all("Новое колесо BetBoom" in row["text"] for row in fake.sent))
         self.assertTrue(all("wheel-a" in str(row.get("reply_markup")) for row in fake.sent))
 
+    def test_clarified_wheel_title_keeps_event_deduplication(self) -> None:
+        config = access_config(one_user=True)
+        notification_router.load_config = lambda: (config, True)
+        fake = self.fake_monitor()
+
+        first = fake.send_message(
+            "🎡 <b>Обнаружено колесо BetBoom</b>\n\nИсточник: @first",
+            url="https://betboom.ru/freestream/same-wheel",
+        )
+        second = fake.send_message(
+            "🎡 <b>Обнаружено колесо BetBoom</b>\n\nИсточник: @second",
+            url="https://betboom.ru/freestream/same-wheel",
+        )
+
+        self.assertEqual(first["result"]["kind"], "wheels")
+        self.assertEqual(second["result"]["sent"], 0)
+        self.assertEqual(len(fake.sent), 1)
+
+    def test_referral_wheel_notifications_are_suppressed(self) -> None:
+        config = access_config(one_user=True)
+        notification_router.load_config = lambda: (config, True)
+        fake = self.fake_monitor()
+
+        result = fake.send_message(
+            "🎡 <b>Обнаружено колесо BetBoom</b>\n\n"
+            "⚠️ <b>Колесо только для рефералов</b>",
+            url="https://betboom.ru/freestream/ref-wheel",
+        )
+
+        self.assertTrue(result["result"]["suppressed"])
+        self.assertEqual(
+            result["result"]["reason"],
+            "referral_wheel_notifications_disabled",
+        )
+        self.assertEqual(fake.sent, [])
+
     def test_technical_failure_is_visible_only_to_owner_and_admin(self) -> None:
         config = access_config()
         notification_router.load_config = lambda: (config, True)

@@ -190,6 +190,12 @@ def _notification_enabled(owner: dict[str, Any]) -> bool:
     return bool(raw.get(AUTO_NOTIFICATION_KEY, True))
 
 
+def _should_send_notification(owner: dict[str, Any], item: dict[str, Any]) -> bool:
+    return _notification_enabled(owner) and not (
+        wheel_publications_v2.entry_is_referral_restricted(item)
+    )
+
+
 def _processed(record: Any) -> bool:
     return isinstance(record, dict) and bool(
         record.get("completed_at") or record.get("notified_at")
@@ -299,9 +305,7 @@ def sync_once(panel: Any) -> dict[str, int]:
         any_success = any(value[2] for value in accounts.values())
         referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
         notifications_enabled = _notification_enabled(owner)
-        should_send = notifications_enabled and (
-            all_success or not referral_restricted
-        )
+        should_send = _should_send_notification(owner, item)
         now_text = datetime.now(UTC).isoformat()
         account_payload = {
             account_key: {
@@ -340,7 +344,7 @@ def sync_once(panel: Any) -> dict[str, int]:
                     if should_send
                     else "disabled"
                     if not notifications_enabled
-                    else "referral_failure_suppressed"
+                    else "referral_suppressed"
                 ),
                 "referral_restricted": referral_restricted,
                 "accounts": account_payload,
@@ -567,6 +571,14 @@ def self_test() -> None:
     assert "✅ Аккаунт 1" in text
     assert not _notification_enabled(
         {"notification_preferences": {AUTO_NOTIFICATION_KEY: False}}
+    )
+    assert _should_send_notification(
+        {"notification_preferences": {}},
+        {"identifier": "ordinary"},
+    )
+    assert not _should_send_notification(
+        {"notification_preferences": {}},
+        {"message_text": "Колесо для рефов"},
     )
     assert wheel_publications_v2.entry_is_referral_restricted(
         {"message_text": "Колесо для рефов"}

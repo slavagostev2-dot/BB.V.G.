@@ -310,20 +310,34 @@ def install(monitor_module: Any, router_module: Any) -> None:
         except Exception as exc:
             telegram_error = exc
 
-        try:
-            vk_result = dispatch_vk_wheel_notification(
-                router_module,
-                text,
-                url=url,
-                reply_markup=reply_markup,
-            )
-            if vk_result.get("dispatched"):
-                print(
-                    "VK wheel notification sent directly: "
-                    f"{vk_result.get('event_identity', '')}"
+        telegram_payload = (
+            telegram_result.get("result")
+            if isinstance(telegram_result, dict)
+            and isinstance(telegram_result.get("result"), dict)
+            else {}
+        )
+        referral_suppressed = (
+            telegram_payload.get("reason")
+            == "referral_wheel_notifications_disabled"
+        )
+        if not referral_suppressed:
+            try:
+                vk_result = dispatch_vk_wheel_notification(
+                    router_module,
+                    text,
+                    url=url,
+                    reply_markup=reply_markup,
                 )
-        except Exception as exc:
-            print(f"WARNING VK wheel notification dispatch: {type(exc).__name__}: {exc}")
+                if vk_result.get("dispatched"):
+                    print(
+                        "VK wheel notification sent directly: "
+                        f"{vk_result.get('event_identity', '')}"
+                    )
+            except Exception as exc:
+                print(
+                    "WARNING VK wheel notification dispatch: "
+                    f"{type(exc).__name__}: {exc}"
+                )
 
         if telegram_error is not None:
             raise telegram_error
