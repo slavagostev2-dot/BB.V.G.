@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import os
 import re
+import sys
 from datetime import datetime
 from typing import Any
 
@@ -258,7 +259,14 @@ def install(monitor_module: Any) -> None:
     try:
         import wheel_detection_reliability
 
+        runtime_loaded = "bbvg_monitor_runtime" in sys.modules
         wheel_detection_reliability.install(monitor_module)
+        if runtime_loaded and not getattr(
+            monitor_module,
+            "_bbvg_recovered_notification_guard_installed",
+            False,
+        ):
+            raise RuntimeError("Recovered notification delivery guard was not installed")
     except Exception as exc:
         print(
             "WARNING wheel detection reliability integration failed: "
