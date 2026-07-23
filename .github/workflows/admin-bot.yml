@@ -332,34 +332,12 @@ jobs:
         run: python notification_button_recovery.py
 
       - name: Start replacement control-center shift
-        if: ${{ always() && (steps.run_panel.outcome == 'success' || steps.run_panel.outcome == 'cancelled') }}
+        if: ${{ always() && steps.run_panel.outcome == 'success' }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          sleep 20
-          if [[ "${{ steps.run_panel.outcome }}" == "cancelled" ]]; then
-            active_other=$(gh run list \
-              --repo "$GITHUB_REPOSITORY" \
-              --workflow admin-bot.yml \
-              --status in_progress \
-              --limit 20 \
-              --json databaseId \
-              | jq --arg current "$GITHUB_RUN_ID" '[.[] | select((.databaseId | tostring) != $current)] | length')
-            queued_other=$(gh run list \
-              --repo "$GITHUB_REPOSITORY" \
-              --workflow admin-bot.yml \
-              --status queued \
-              --limit 20 \
-              --json databaseId \
-              | jq --arg current "$GITHUB_RUN_ID" '[.[] | select((.databaseId | tostring) != $current)] | length')
-            if (( active_other + queued_other > 0 )); then
-              echo "A replacement Control Center run already exists; no extra dispatch is needed."
-              exit 0
-            fi
-            echo "Cancelled Control Center has no replacement; starting a recovery run."
-          fi
           gh workflow run admin-bot.yml --repo "$GITHUB_REPOSITORY" --ref main
 
 # v41: owner auto-participation sync is validated before the live runtime is replaced.

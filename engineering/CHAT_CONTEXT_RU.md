@@ -29,6 +29,9 @@
 - Единственный Control Center запускается командой
   `python notification_button_recovery.py` на exact SHA из
   `control_center_release.txt`; validator и live-job используют один commit.
+- Control Center создаёт смену-преемника только после успешного завершения.
+  Отмена, вытеснение или ошибка не запускают recovery из завершающегося run;
+  почасовой schedule страхует разрыв без каскада взаимных отмен.
 - Монитор не вызывает Telegram `getUpdates`.
 - Неуспешная смена Monitor не перезапускает себя. Controlled recovery выполняет
   только `monitor-watchdog.yml` после проверки heartbeat и прогресса.
