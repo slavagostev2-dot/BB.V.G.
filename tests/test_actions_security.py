@@ -180,6 +180,17 @@ def test_control_center_runs_the_exact_validated_release() -> None:
     assert 'validation_stage="record_project_changelog"' not in validator
 
 
+def test_cancelled_control_center_shift_never_self_dispatches() -> None:
+    admin = workflow_texts()["admin-bot.yml"]
+    replacement = admin.split(
+        "      - name: Start replacement control-center shift", 1
+    )[1]
+    assert "steps.run_panel.outcome == 'success'" in replacement
+    assert "steps.run_panel.outcome == 'cancelled'" not in replacement
+    assert "Cancelled Control Center has no replacement" not in replacement
+    assert replacement.count("gh workflow run admin-bot.yml") == 1
+
+
 def test_failed_monitor_shift_is_recovered_only_by_watchdog() -> None:
     monitor = workflow_texts()["monitor.yml"]
     watchdog = workflow_texts()["monitor-watchdog.yml"]

@@ -20,6 +20,9 @@
 - preflight запрещает возврат удалённых файлов и требует обязательные документы.
 - release-marker стал единственным владельцем exact-SHA Control Center, а
   controlled recovery Monitor передан watchdog без self-retry при ошибке.
+- отменённая или вытесненная смена Control Center больше не создаёт преемника:
+  self-dispatch разрешён только после штатного успеха, а разрыв страхует
+  почасовой schedule без eventual-consistency гонки Actions.
 
 ## Оставшийся технический долг
 
