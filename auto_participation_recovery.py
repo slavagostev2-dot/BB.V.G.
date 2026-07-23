@@ -8,6 +8,7 @@ from typing import Any
 import betboom_auto_participation as auto
 import betboom_participation_browser
 import monitor
+import wheel_publications_v2
 
 ROOT = Path(__file__).resolve().parent
 
@@ -154,6 +155,24 @@ def _failure_record(
     return record
 
 
+def _notification_already_recorded(
+    state: dict[str, Any],
+    key: str,
+    item: dict[str, Any],
+) -> bool:
+    published = monitor.parse_datetime(item.get("message_date"))
+    threshold = published - timedelta(minutes=5) if published is not None else None
+    for collection_name in ("activation_alerts", "url_alerts"):
+        collection = state.get(collection_name)
+        record = collection.get(key) if isinstance(collection, dict) else None
+        if not isinstance(record, dict):
+            continue
+        alerted_at = monitor.parse_datetime(record.get("alerted_at"))
+        if threshold is None or (alerted_at is not None and alerted_at >= threshold):
+            return True
+    return False
+
+
 def _restore_runtime_state(
     state: dict[str, Any],
     active: list[dict[str, Any]],
@@ -178,6 +197,10 @@ def _restore_runtime_state(
         entry: dict[str, Any] = {} if is_recovered_missing else existing
         if is_recovered_missing:
             active_wheels[key] = entry
+            if not _notification_already_recorded(state, key, item):
+                entry["recovered_initial_notification_pending_at"] = scanned_at.isoformat()
+                entry["recovered_initial_notification_reason"] = "recovery_discovered_missing_event"
+                entry["referral_restricted"] = wheel_publications_v2.entry_is_referral_restricted(item)
 
         # Capture success before refreshing API fields. A later browser probe is not
         # allowed to downgrade an exact event already confirmed by BetBoom.
@@ -501,6 +524,21 @@ def self_test() -> None:
         scanned_at=_Moment(),
     )
     assert "bot_failure_pending_at" not in legacy_failure
+    notification_state = {
+        "url_alerts": {
+            "old": {"alerted_at": "2026-07-21T10:00:00+00:00"}
+        }
+    }
+    assert not _notification_already_recorded(
+        notification_state,
+        "old",
+        {"message_date": "2026-07-22T10:00:00+00:00"},
+    )
+    assert _notification_already_recorded(
+        notification_state,
+        "old",
+        {"message_date": "2026-07-21T10:01:00+00:00"},
+    )
     print("auto participation recovery authoritative-outcome self-test passed")
 
 

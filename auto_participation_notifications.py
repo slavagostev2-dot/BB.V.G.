@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import html
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
 import auto_participation_owner_sync
@@ -17,6 +17,7 @@ SECONDARY_ACCOUNT_LABEL = "Аккаунт 2"
 AUTO_NOTIFICATION_KEY = "auto_participation"
 AUTO_NOTIFICATION_LABEL = "🤖 Автоучастие"
 AUTO_NOTIFICATION_DESCRIPTION = "Один общий итог по двум BetBoom-аккаунтам"
+RECOVERABLE_OUTCOME_WINDOW = timedelta(hours=12)
 SUCCESS_STATUSES = {
     "participated",
     "already_participating",
@@ -43,6 +44,85 @@ def _account_identity(record: dict[str, Any]) -> tuple[str, str]:
     if key == SECONDARY_ACCOUNT_KEY:
         return key, str(record.get("account_label") or SECONDARY_ACCOUNT_LABEL)
     return PRIMARY_ACCOUNT_KEY, PRIMARY_ACCOUNT_LABEL
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+def _token_identity(base_token: str) -> tuple[int, str]:
+    if "#action:" not in base_token:
+        return 0, ""
+    tail = base_token.split("#action:", 1)[1]
+    action_text, separator, start = tail.partition(":")
+    try:
+        action_id = int(action_text)
+    except (TypeError, ValueError):
+        action_id = 0
+    return action_id, start if separator else ""
+
+
+def _group_is_recent(accounts: dict[str, tuple[str, dict[str, Any], bool]]) -> bool:
+    timestamps = []
+    for _token, record, _success_value in accounts.values():
+        for field in ("bot_success_pending_at", "bot_failure_pending_at", "attempted_at"):
+            parsed = _parse_datetime(record.get(field))
+            if parsed is not None:
+                timestamps.append(parsed)
+                break
+    return bool(timestamps and datetime.now(UTC) - max(timestamps) <= RECOVERABLE_OUTCOME_WINDOW)
+
+
+def _event_item(
+    state: dict[str, Any],
+    base_token: str,
+    accounts: dict[str, tuple[str, dict[str, Any], bool]],
+) -> tuple[dict[str, Any] | None, bool]:
+    primary_record = accounts[PRIMARY_ACCOUNT_KEY][1]
+    key = str(primary_record.get("wheel_key") or "").casefold()
+    active = state.get("active_wheels")
+    current = active.get(key) if isinstance(active, dict) else None
+    if isinstance(current, dict) and auto_participation_owner_sync._event_token(current, key) == base_token:
+        return dict(current), True
+
+    context = primary_record.get("event_context")
+    item = dict(context) if isinstance(context, dict) else {}
+    if not item:
+        candidates = []
+        contexts = state.get("button_contexts")
+        if isinstance(contexts, dict):
+            for raw in contexts.values():
+                if not isinstance(raw, dict):
+                    continue
+                raw_key = str(raw.get("wheel_key") or raw.get("identifier") or "").casefold()
+                if raw_key == key:
+                    candidates.append(dict(raw))
+        _action_id, start_text = _token_identity(base_token)
+        start_at = _parse_datetime(start_text)
+        if candidates:
+            def distance(candidate: dict[str, Any]) -> tuple[float, str]:
+                candidate_at = _parse_datetime(candidate.get("message_date") or candidate.get("created_at"))
+                if start_at is None or candidate_at is None:
+                    return (float("inf"), str(candidate.get("message_date") or ""))
+                return (abs((candidate_at - start_at).total_seconds()), candidate_at.isoformat())
+            item = min(candidates, key=distance)
+    if not item and not key:
+        return None, False
+    action_id, start_text = _token_identity(base_token)
+    item.setdefault("wheel_key", key)
+    item.setdefault("identifier", key)
+    if action_id > 0:
+        item["action_id"] = action_id
+    if start_text:
+        item["server_start_at"] = start_text
+    return item, False
 
 
 def _success(record: dict[str, Any]) -> bool:
@@ -203,11 +283,11 @@ def sync_once(panel: Any) -> dict[str, int]:
     for base_token, accounts in sorted(groups.items()):
         first_record = accounts[PRIMARY_ACCOUNT_KEY][1]
         key = str(first_record.get("wheel_key") or "").casefold()
-        item = active.get(key)
+        item, active_matches = _event_item(state, base_token, accounts)
         if not key or not isinstance(item, dict):
             failed += 1
             continue
-        if auto_participation_owner_sync._event_token(item, key) != base_token:
+        if not active_matches and not _group_is_recent(accounts):
             continue
         event_key = personal_wheel_voting.wheel_event_key(key, item)
         if _processed(success_records.get(event_key)) or _processed(
@@ -236,9 +316,12 @@ def sync_once(panel: Any) -> dict[str, int]:
             panel.set_context(owner_chat_id, owner_id)
             vote_result: dict[str, Any] = {}
             original_button_updated = False
-            if any_success:
+            if any_success and active_matches:
                 raw_result = panel.mark_personal_participation(key)
                 vote_result = raw_result if isinstance(raw_result, dict) else {}
+            elif any_success:
+                vote_result = {"changed": False, "recovered_outcome": True}
+            if any_success:
                 original_button_updated = auto_participation_owner_sync._mark_original_notification(
                     panel, owner_chat_id, item
                 )
@@ -263,6 +346,7 @@ def sync_once(panel: Any) -> dict[str, int]:
                 "accounts": account_payload,
                 "original_button_updated": original_button_updated,
                 "vote_changed": bool(vote_result.get("changed")),
+                "recovered_event_context": not active_matches,
                 "vote_command_id": str(vote_result.get("vote_command_id") or ""),
             }
             if all_success:
@@ -487,6 +571,24 @@ def self_test() -> None:
     assert wheel_publications_v2.entry_is_referral_restricted(
         {"message_text": "Колесо для рефов"}
     )
+    recovered_state = {
+        "button_contexts": {
+            "new": {
+                "wheel_key": "wheel",
+                "message_date": "2026-07-22T12:00:10+00:00",
+                "message_text": "Колесо для рефов",
+                "url": "https://betboom.ru/freestream/wheel",
+            },
+            "old": {
+                "wheel_key": "wheel",
+                "message_date": "2026-07-21T12:00:10+00:00",
+            },
+        }
+    }
+    recovered_item, active_matches = _event_item(recovered_state, base, groups[base])
+    assert active_matches is False
+    assert recovered_item and recovered_item["action_id"] == 42
+    assert wheel_publications_v2.entry_is_referral_restricted(recovered_item)
     print("unified auto participation notifications self-test passed")
 
 
