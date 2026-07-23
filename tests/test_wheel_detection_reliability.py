@@ -134,9 +134,15 @@ def test_recovered_notification_pending_is_cleared_without_second_send():
         now_utc=lambda: datetime(2026, 7, 23, 14, 29, tzinfo=UTC),
     )
 
-    def original(_state):
-        sends.append("sent")
-        return {"sent": 1, "failed": 0, "changed": True}
+    def original(state):
+        pending = any(
+            isinstance(entry, dict)
+            and entry.get("recovered_initial_notification_pending_at")
+            for entry in state.get("active_wheels", {}).values()
+        )
+        if pending:
+            sends.append("sent")
+        return {"sent": int(pending), "failed": 0, "changed": bool(pending)}
 
     runtime = SimpleNamespace(
         _deliver_recovered_initial_notifications=original,
@@ -156,7 +162,8 @@ def test_recovered_notification_pending_is_cleared_without_second_send():
     result = runtime._deliver_recovered_initial_notifications(state)
     entry = state["active_wheels"]["zonertg14"]
 
-    assert sends == ["sent"]
+    assert sends == []
+    assert result["sent"] == 0
     assert result["skipped_already_delivered"] == 1
     assert result["changed"] is True
     assert "recovered_initial_notification_pending_at" not in entry
