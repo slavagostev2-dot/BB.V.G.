@@ -18,12 +18,18 @@
   "started_at": "2026-07-23T16:15:28.173644+00:00",
   "state_format": "bbvg-bot-state-v2",
   "state_key_mode": "dedicated",
-  "status": "running",
+  "status": "validation_failed",
   "storage": "encrypted_bot_state",
   "summary_delivery": "direct_in_process",
   "update_consumer": "single_getUpdates_owner",
   "version": 41,
   "wheel_colors": "callback_payload_unchanged",
   "wheel_link_lifecycle": "timer_or_manual_deadline_else_two_hours",
-  "workflow_run_id": "30024257288"
+  "workflow_run_id": "30024257288",
+  "last_validation_at": "2026-07-23T16:45:45.522843899Z",
+  "preflight_failed_stage": "chapter4_compatibility_entrypoint",
+  "preflight_failed_command": "python - <<'PY'\nfrom tests import production_acceptance as acceptance\n\nacceptance.interface_acceptance()\nprint(\"Chapter 4 compatibility entrypoint acceptance passed\")\nPY\n",
+  "preflight_failure_detail": "stage=chapter4_compatibility_entrypoint; command=python - <<'PY'\nfrom tests import production_acceptance as acceptance\n\nacceptance.interface_acceptance()\nprint(\"Chapter 4 compatibility entrypoint acceptance passed\")\nPY\n; exit=1; release_sha=7f28bd04db92c2f7ae0a0e95ee9ad6156a5ede0e",
+  "preflight_release_sha": "7f28bd04db92c2f7ae0a0e95ee9ad6156a5ede0e",
+  "validation_run_id": "30026489618"
 }
