@@ -1,7 +1,7 @@
 {
-  "active_incidents": 0,
+  "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 8,
+    "age_minutes": 11,
     "last_heartbeat_at": "2026-07-23T17:54:16.004323+00:00",
     "started_at": "2026-07-23T16:52:10.887893+00:00",
     "status": "running",
@@ -12,19 +12,21 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 0,
-    "decision_id": "da89758bda5f4fa6bcbee2c96f31813e",
-    "finding_count": 0,
-    "finding_kinds": [],
-    "generated_at": "2026-07-23T18:03:11.692954+00:00",
-    "impact": "Отсутствует. Все сервисы работают согласно целевым показателям.",
+    "critical_count": 1,
+    "decision_id": "11613a804c274c718ad6fc4d0807deb0",
+    "finding_count": 1,
+    "finding_kinds": [
+      "monitor_stale"
+    ],
+    "generated_at": "2026-07-23T18:05:59.419122+00:00",
+    "impact": "Система мониторинга не получает актуальных данных, что может привести к пропуску инцидентов в реальном времени.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Вмешательство не требуется. Продолжать штатный мониторинг.",
-    "requires_human_attention": false,
-    "severity": "ok",
-    "summary": "Система BB V.G. функционирует в штатном режиме, все 169 источников доступны, ошибок не зафиксировано.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 10 минут назад.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -54,14 +56,14 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "ok",
+    "monitor": "failed",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-23T18:03:10.181162+00:00",
+  "checked_at": "2026-07-23T18:05:57.436736+00:00",
   "discovery": {
     "active_size": 168,
     "candidate_count": 503,
@@ -87,7 +89,7 @@
     },
     "inventory_confirmation_window_hours": 6,
     "inventory_registry_generated_at": "2026-07-23T16:03:27.484154+00:00",
-    "inventory_sync_age_minutes": 119,
+    "inventory_sync_age_minutes": 122,
     "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
   },
   "domain_compliance": {
@@ -103,17 +105,25 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 0,
-  "findings": [],
+  "finding_count": 1,
+  "findings": [
+    {
+      "detail": "Последняя итерация была 10 минут назад.",
+      "kind": "monitor_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор давно не обновлялся"
+    }
+  ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 0,
+    "active_incidents": 1,
     "bot_panel_heartbeat": "2026-07-23T17:54:16.004323+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
     "reachable_sources": 169,
     "single_source": "system_check_state.json",
-    "status": "ok",
+    "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
@@ -128,10 +138,10 @@
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
     "messages_attempted": 1,
-    "opened": 0,
-    "resolved": 2
+    "opened": 1,
+    "resolved": 0
   },
-  "incident_sequence": 96,
+  "incident_sequence": 97,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -178,7 +188,7 @@
     "version": 3,
     "workflow_run_id": "30026917282"
   },
-  "monitor_age_minutes": 7,
+  "monitor_age_minutes": 10,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -236,7 +246,7 @@
       "tls": 0
     }
   },
-  "status": "ok",
+  "status": "degraded",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
