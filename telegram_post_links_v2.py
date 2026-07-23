@@ -215,10 +215,15 @@ def install(monitor_module: Any) -> None:
     if getattr(monitor_module, "_bbvg_telegram_button_links_installed", False):
         return
 
-    def fetch_public_channel_with_buttons(username: str):
+    def fetch_public_channel_with_buttons(
+        username: str,
+        before: int | None = None,
+    ):
         response = monitor_module.request_with_retries(
             "GET",
-            monitor_module.telegram_transport.public_source_url(username),
+            monitor_module.telegram_transport.public_source_url(
+                username, before=before
+            ),
             timeout=monitor_module.REQUEST_TIMEOUT,
             headers={"User-Agent": monitor_module.USER_AGENT},
             allow_redirects=True,
@@ -247,6 +252,16 @@ def install(monitor_module: Any) -> None:
     except Exception as exc:
         print(
             "WARNING suspicious-post analysis integration failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
+
+    try:
+        import wheel_detection_reliability
+
+        wheel_detection_reliability.install(monitor_module)
+    except Exception as exc:
+        print(
+            "WARNING wheel detection reliability integration failed: "
             f"{type(exc).__name__}: {exc}"
         )
 
