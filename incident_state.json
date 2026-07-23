@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 2,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -154,26 +154,22 @@
       "title": "Mini App открывается не с актуального домена"
     },
     "system_checks:monitor_source_count:05defcc6c0898ea6": {
-      "detail": "В последней итерации проверено 167 из 168 источников основного режима.",
+      "detail": "В последней итерации проверено 151 из 169 источников основного режима.",
       "first_seen_at": "2026-07-14T03:10:51.892284+00:00",
       "key": "system_checks:monitor_source_count:05defcc6c0898ea6",
       "kind": "monitor_source_count",
-      "last_seen_at": "2026-07-21T16:27:55.169210+00:00",
+      "last_seen_at": "2026-07-23T19:34:37.482070+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-07-18T20:27:16.064075+00:00",
-      "occurrences": 13,
-      "open_notification_pending": false,
-      "open_notified_at": "2026-07-21T16:05:32.067840+00:00",
-      "opened_sequence": 84,
+      "occurrences": 14,
+      "open_notification_pending": true,
+      "opened_sequence": 98,
       "reopen_notification_suppressed_at": "2026-07-18T18:35:18.762046+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
-      "resolution_notification_pending": false,
-      "resolution_notified_at": "2026-07-21T16:27:56.987583+00:00",
-      "resolved_at": "2026-07-21T16:27:55.169210+00:00",
       "resolved_sequence": 87,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "resolved",
+      "status": "active",
       "subject": "",
       "title": "Основной монитор проверяет не все источники"
     },
@@ -182,7 +178,7 @@
       "first_seen_at": "2026-07-14T04:04:11.018046+00:00",
       "key": "system_checks:monitor_stale:e73e4f9e136f77bb",
       "kind": "monitor_stale",
-      "last_seen_at": "2026-07-23T18:22:27.334939+00:00",
+      "last_seen_at": "2026-07-23T19:34:37.482070+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-07-21T12:11:37.994650+00:00",
       "occurrences": 55,
@@ -191,12 +187,30 @@
       "opened_sequence": 97,
       "reopen_notification_suppressed_at": "2026-07-21T11:00:04.995647+00:00",
       "reopen_notification_suppressed_until": "2026-07-21T16:40:45.925482+00:00",
-      "resolved_sequence": 88,
+      "resolution_notification_pending": true,
+      "resolved_at": "2026-07-23T19:34:37.482070+00:00",
+      "resolved_sequence": 100,
+      "scope": "system_checks",
+      "severity": "critical",
+      "status": "resolved",
+      "subject": "",
+      "title": "Основной монитор давно не обновлялся"
+    },
+    "system_checks:rating_score_mismatch:07dc22560f33b233": {
+      "detail": "Количество несовпадений: 1.",
+      "first_seen_at": "2026-07-23T19:34:37.482070+00:00",
+      "key": "system_checks:rating_score_mismatch:07dc22560f33b233",
+      "kind": "rating_score_mismatch",
+      "last_seen_at": "2026-07-23T19:34:37.482070+00:00",
+      "metadata": {},
+      "occurrences": 1,
+      "open_notification_pending": true,
+      "opened_sequence": 99,
       "scope": "system_checks",
       "severity": "critical",
       "status": "active",
       "subject": "",
-      "title": "Основной монитор давно не обновлялся"
+      "title": "Рейтинг источников не совпадает с личными голосами"
     },
     "system_checks:source_health_missing:d94ad276a135da04": {
       "detail": "Нет записей для 1 источников: @cct_betboom.",
@@ -289,17 +303,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-23T18:22:27.334939+00:00",
-  "last_reconcile_at": "2026-07-23T18:22:27.334939+00:00",
+  "last_change_at": "2026-07-23T19:34:37.482070+00:00",
+  "last_reconcile_at": "2026-07-23T19:34:37.482070+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
-    "new_notification_count": 0,
-    "recovery_notification_count": 0,
+    "active": 2,
+    "new_notification_count": 2,
+    "recovery_notification_count": 1,
     "scope": "system_checks"
   },
-  "sequence": 97,
+  "sequence": 100,
   "status": "initializing",
-  "updated_at": "2026-07-23T18:22:27.335031+00:00",
+  "updated_at": "2026-07-23T19:34:37.482179+00:00",
   "version": 1
 }
