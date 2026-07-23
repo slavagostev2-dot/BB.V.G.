@@ -7,6 +7,7 @@ from typing import Any
 import admin_panel_v2
 import auto_participation_backlog_guard
 import auto_participation_notifications
+import wheel_detection_reliability
 import xflarxx_account_participation
 import xflarxx_runtime_integration
 from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
@@ -80,6 +81,7 @@ class TelegramPanelRuntimeButtonRecovery(TelegramPanelRuntimeV41):
 
 
 _install_fast_outcome_policy()
+wheel_detection_reliability.install_owner_notification_update()
 auto_participation_notifications.install(TelegramPanelRuntimeButtonRecovery)
 auto_participation_backlog_guard.install()
 xflarxx_account_participation.install_owner_sync()
@@ -95,6 +97,7 @@ def self_test() -> None:
     assert owner_sync.SYNC_INTERVAL_SECONDS == FAST_SYNC_INTERVAL_SECONDS
     assert admin_panel_v2.CACHE_REFRESH_SECONDS == FAST_CACHE_REFRESH_SECONDS
     assert getattr(owner_sync, "_bbvg_fast_outcome_policy_installed", False) is True
+    assert getattr(owner_sync, "_bbvg_auto_button_clarity_installed", False) is True
 
     assert getattr(
         owner_sync,
