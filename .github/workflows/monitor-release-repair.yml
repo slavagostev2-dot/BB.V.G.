@@ -1,0 +1,111 @@
+name: Repair BB V.G. monitor release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/monitor-release-repair.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  repair-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Repair release policy and repository documentation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/monitor.yml')
+          text = workflow.read_text(encoding='utf-8')
+          old = "  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' && inputs.replace == true }}"
+          new = "  cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.replace == true) }}"
+          if old not in text and new not in text:
+              raise SystemExit('Monitor concurrency policy was not found')
+          workflow.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          changelog = Path('docs/PROJECT_CHANGELOG_RU.md')
+          text = changelog.read_text(encoding='utf-8')
+          heading = '## 2026-07-23 — Восстановлено раннее обнаружение авторских публикаций'
+          entry = '''## 2026-07-23 — Восстановлено раннее обнаружение авторских публикаций
+
+Инцидент `zonertg14` показал, что короткое публичное окно Telegram может не содержать ранний пост основного канала `@mechanogun`, а поздняя публикация канала-сборника `@amam0610` тогда ошибочно становится первой найденной. Для сопоставленных авторских каналов добавлено одно перекрывающее чтение предыдущей страницы Telegram по параметру `before`; сборники этим запросом не нагружаются, а повтор ограничен минутным cooldown. Благодаря этому канонический источник и исходное время выбираются до дедупликации и отправки уведомления.
+
+Заголовок первичного сообщения изменён с утверждения «Новое колесо» на нейтральное «Обнаружено колесо». Автоматически подтверждённое участие подписывается «🤖 Автоучастие подтверждено» как при создании карточки, так и при последующем обновлении живым Control Center; ручная отметка остаётся отдельным состоянием. Агрегация двух BetBoom-аккаунтов, бесшумные отрицательные итоги реферальных колёс и пользовательская настройка уведомлений автоучастия не изменены.
+
+Push-релиз монитора теперь завершает предыдущую непрерывную смену до запуска новой. Ранее новый run ожидал окончания старого процесса до 5,5 часа, поэтому merged-код мог не попасть в production немедленно.
+
+**Новый предметный модуль:** `wheel_detection_reliability.py` владеет ограниченным перекрывающим чтением авторских источников и ясностью статуса автоматического участия. Он не создаёт новый runtime, consumer Telegram или отдельный путь пользовательской доставки.
+
+**Изменённые файлы:** `telegram_post_links_v2.py`, `wheel_detection_reliability.py`, `tests/test_wheel_detection_reliability.py`, `notification_button_recovery.py`, `.github/workflows/monitor.yml`, `AGENTS.md`, `docs/PROJECT_CHANGELOG_RU.md`.
+
+**Pre-update backups:** `backup/2026-07-23-before-wheel-detection-reliability` и `backup/2026-07-23-before-monitor-release-policy`.
+
+'''
+          if heading not in text:
+              changelog.write_text(
+                  text.replace('---\n\n', '---\n\n' + entry, 1),
+                  encoding='utf-8',
+              )
+
+          agents = Path('AGENTS.md')
+          text = agents.read_text(encoding='utf-8')
+          old_monitor = '- Монитор колёс: `bbvg_monitor_main.py`, `monitor.py` и тематические модули.'
+          new_monitor = old_monitor + ' `wheel_detection_reliability.py` выполняет ограниченное перекрывающее чтение предыдущей публичной страницы только для сопоставленных авторских каналов, чтобы короткое окно Telegram не отдавало приоритет позднему дублю сборника.'
+          if old_monitor in text and 'ограниченное перекрывающее чтение предыдущей публичной страницы' not in text:
+              text = text.replace(old_monitor, new_monitor, 1)
+          text = text.replace(
+              'После успеха Control Center переводит кнопку в состояние «✅ Участвую».',
+              'После успеха Control Center переводит кнопку в состояние «🤖 Автоучастие подтверждено», чтобы автоматическая отметка не выглядела ручным нажатием.',
+          )
+          agents.write_text(text, encoding='utf-8')
+
+          Path('.github/workflows/monitor-release-repair.yml').unlink()
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/monitor.yml AGENTS.md docs/PROJECT_CHANGELOG_RU.md .github/workflows/monitor-release-repair.yml
+          git commit -m "Repair monitor release replacement and document wheel reliability [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              break
+            fi
+            git pull --rebase origin main
+          done
+
+      - name: Replace the old monitor process
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for status in in_progress queued; do
+            gh run list \
+              --workflow monitor.yml \
+              --status "$status" \
+              --limit 30 \
+              --json databaseId \
+              --jq '.[].databaseId' | while read -r run_id; do
+                [[ -n "$run_id" ]] && gh run cancel "$run_id" || true
+              done
+          done
+          sleep 8
+          gh workflow run monitor.yml \
+            --ref main \
+            -f continuous=true \
+            -f replace=true
