@@ -1,8 +1,8 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 8,
-    "last_heartbeat_at": "2026-07-23T21:39:46.499247+00:00",
+    "age_minutes": 5,
+    "last_heartbeat_at": "2026-07-23T23:03:56.484510+00:00",
     "started_at": "2026-07-23T20:13:30.586442+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -12,21 +12,19 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 1,
-    "decision_id": "5b7dd18edd544c8ca17b6916515051af",
-    "finding_count": 1,
-    "finding_kinds": [
-      "monitor_stale"
-    ],
-    "generated_at": "2026-07-23T21:48:07.012783+00:00",
-    "impact": "Система мониторинга не предоставляет актуальных данных, что может привести к пропуску инцидентов в реальном времени.",
+    "critical_count": 0,
+    "decision_id": "fc51d861fa3546f2b307cddd499954ea",
+    "finding_count": 0,
+    "finding_kinds": [],
+    "generated_at": "2026-07-23T23:09:02.582431+00:00",
+    "impact": "Отсутствует. Система работает в нормальном режиме, данные поступают без задержек.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 12 минут назад.",
+    "recommended_action": "Вмешательство не требуется. Продолжать штатный мониторинг.",
+    "requires_human_attention": false,
+    "severity": "ok",
+    "summary": "Система BB V.G. функционирует штатно, все 169 источников доступны, ошибок не зафиксировано.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -56,14 +54,14 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "failed",
+    "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-23T21:48:05.144439+00:00",
+  "checked_at": "2026-07-23T23:09:00.851466+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -101,25 +99,17 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "Последняя итерация была 12 минут назад.",
-      "kind": "monitor_stale",
-      "severity": "critical",
-      "subject": "",
-      "title": "Основной монитор давно не обновлялся"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-23T21:39:46.499247+00:00",
+    "active_incidents": 0,
+    "bot_panel_heartbeat": "2026-07-23T23:03:56.484510+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
     "reachable_sources": 169,
     "single_source": "system_check_state.json",
-    "status": "degraded",
+    "status": "ok",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
@@ -137,7 +127,7 @@
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 103,
+  "incident_sequence": 104,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -161,18 +151,18 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 169,
-    "checks_total": 832587,
+    "checks_total": 847121,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "8119cf38b143bafd520db4e0694c4b33691fd471",
-    "iteration": 82,
+    "iteration": 168,
     "last_failure_at": "2026-07-23T18:23:07.385796+00:00",
-    "last_iteration_at": "2026-07-23T21:35:52.884433+00:00",
-    "last_iteration_duration_seconds": 11,
+    "last_iteration_at": "2026-07-23T23:04:17.476743+00:00",
+    "last_iteration_duration_seconds": 10,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-23T21:35:52.884433+00:00",
-    "last_successful_checks_total": 832587,
-    "last_successful_iteration_at": "2026-07-23T21:35:52.884433+00:00",
+    "last_process_heartbeat_at": "2026-07-23T23:04:17.476743+00:00",
+    "last_successful_checks_total": 847121,
+    "last_successful_iteration_at": "2026-07-23T23:04:17.476743+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
@@ -185,7 +175,8 @@
     "version": 3,
     "workflow_run_id": "30041137206"
   },
-  "monitor_age_minutes": 12,
+  "monitor_age_minutes": 4,
+  "monitor_effective_heartbeat_at": "2026-07-23T23:04:17.476743+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -243,7 +234,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
