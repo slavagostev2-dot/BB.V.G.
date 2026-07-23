@@ -147,6 +147,11 @@ def test_backup_rotation_contract_and_concurrency() -> None:
     backup_rotation.self_test()
 
 
+def test_auto_participation_workflow_change_restarts_monitor() -> None:
+    monitor_workflow = workflow_texts()["monitor.yml"]
+    assert '- ".github/workflows/auto-participation.yml"' in monitor_workflow
+
+
 def test_production_heartbeat_contract_is_present() -> None:
     admin = workflow_texts()["admin-bot.yml"]
     health = (ROOT / "monitor_health.py").read_text(encoding="utf-8")

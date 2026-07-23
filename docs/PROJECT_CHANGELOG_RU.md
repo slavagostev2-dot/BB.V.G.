@@ -6,6 +6,23 @@
 
 ---
 
+## 2026-07-23 — Изменение автоучастия перезапускает монитор
+
+После production-исправления workflow автоучастия основной монитор оставался
+на старом запуске: `monitor_status.json` не обновлялся после
+`17:55:35 UTC`, а System Health зафиксировал `monitor_stale`. Новый workflow
+уже находился в `main`, но без живого monitor-runtime следующие колёса не
+могли создать `workflow_dispatch`.
+
+`.github/workflows/monitor.yml` теперь отслеживает изменение
+`.github/workflows/auto-participation.yml`. Это изменение одновременно
+перезапускает текущий stale monitor и сохраняет deployment-связь на будущее.
+Добавлен regression-контракт пути запуска.
+
+**Pre-update backup:**
+`backup/2026-07-23-before-auto-participation-monitor-restart` →
+`611a8357e2ba5ed8752a75c1b815a10a6063f564`.
+
 ## 2026-07-23 — Шаги BetBoom-аккаунтов изолированы от общего preflight
 
 Production-событие `CTOM16` было обнаружено и передано в
