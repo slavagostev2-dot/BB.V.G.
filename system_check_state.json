@@ -9,9 +9,25 @@
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "deployment_grace",
-    "mode": "suppressed",
-    "reason": "system-health started from a code push"
+    "ai_status": "ok",
+    "cached": false,
+    "confidence": 0.0,
+    "critical_count": 0,
+    "decision_id": "da89758bda5f4fa6bcbee2c96f31813e",
+    "finding_count": 0,
+    "finding_kinds": [],
+    "generated_at": "2026-07-23T18:03:11.692954+00:00",
+    "impact": "Отсутствует. Все сервисы работают согласно целевым показателям.",
+    "mode": "ai",
+    "model": "gemini-3.1-flash-lite",
+    "provider": "gemini",
+    "recommended_action": "Вмешательство не требуется. Продолжать штатный мониторинг.",
+    "requires_human_attention": false,
+    "severity": "ok",
+    "summary": "Система BB V.G. функционирует в штатном режиме, все 169 источников доступны, ошибок не зафиксировано.",
+    "used_fallback": false,
+    "version": 1,
+    "warning_count": 0
   },
   "automation_state": {
     "expected_nightly_sources": 1,
@@ -24,7 +40,7 @@
     "source_tier_last_run_at": "2026-07-23T13:29:13.591142+00:00",
     "source_tier_policy": "manual_nightly_only",
     "transport_accounted_sources": 170,
-    "transport_checked_at": "2026-07-23T13:29:14.735246+00:00",
+    "transport_checked_at": "2026-07-23T18:02:36.851876+00:00",
     "transport_domain": "telegram.me",
     "transport_status": "success"
   },
@@ -45,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-23T18:02:49.258979+00:00",
+  "checked_at": "2026-07-23T18:03:10.181162+00:00",
   "discovery": {
     "active_size": 168,
     "candidate_count": 503,
@@ -108,14 +124,12 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "health_inspector_mode": "suppressed",
-    "health_inspector_status": "deployment_grace",
-    "messages_attempted": 0,
+    "digest_sent": true,
+    "health_inspector_mode": "ai",
+    "health_inspector_status": "ok",
+    "messages_attempted": 1,
     "opened": 0,
-    "resolved": 2,
-    "suppressed": true,
-    "suppressed_reason": "code_update_push_grace"
+    "resolved": 2
   },
   "incident_sequence": 96,
   "inventory": {
