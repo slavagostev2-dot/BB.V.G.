@@ -67,3 +67,5 @@ jobs:
           git add AGENTS.md docs/PROJECT_CHANGELOG_RU.md
           git commit -m "Document creator overlap and automatic participation label"
           git push origin HEAD:fix/early-source-dedup-auto-label
+
+# Triggered after workflow registration so GitHub schedules the documentation patch.
