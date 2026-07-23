@@ -253,7 +253,8 @@ class ConcurrentStateTests(unittest.TestCase):
         self.assertIn("files=(source_tier_state.json)", tier)
         self.assertNotIn("files=(public_sources.txt source_catalog.txt", tier)
         panel = (ROOT / ".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
-        self.assertIn("files=(bot_private_state.enc.json)", panel)
+        self.assertNotIn("files=(bot_private_state.enc.json)", panel)
+        self.assertIn("python migrate_bot_private_state.py --check", panel)
         self.assertNotIn("notification_integrity_v2.py --prune", panel)
         self.assertNotIn(
             "files=(bot_private_state.enc.json notification_delivery_state.json)",

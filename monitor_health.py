@@ -280,6 +280,8 @@ def health_check(
         reasons.append(f"{failures} consecutive process failures")
     if no_progress >= max_consecutive_no_progress:
         reasons.append(f"{no_progress} consecutive iterations without source progress")
+    if bool(status.get("restart_recommended", False)):
+        reasons.append("runtime requested controlled recovery")
 
     stale = bool(reasons)
     return stale, "; ".join(reasons) if reasons else "runtime is healthy", status

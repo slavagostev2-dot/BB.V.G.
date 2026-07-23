@@ -412,6 +412,7 @@ jobs:
           last_commit_at=0
           last_status_publish_at=0
           iteration=0
+          restart_exit=0
 
           while true; do
             iteration=$((iteration + 1))
@@ -462,8 +463,9 @@ jobs:
           PY
             )
             if [[ "$restart_required" == "true" ]]; then
-              echo "Repeated failures or missing source progress detected; ending this shift cleanly so the queued replacement can start."
+              echo "Repeated failures or missing source progress detected; failing this shift so only the watchdog can queue recovery."
               push_runtime || true
+              restart_exit=1
               break
             fi
 
@@ -519,9 +521,10 @@ jobs:
           done
 
           push_runtime || true
+          exit "$restart_exit"
 
       - name: Continue continuous monitoring
-        if: ${{ always() && steps.monitor_loop.outcome != 'skipped' && steps.monitor_loop.outcome != 'cancelled' && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
+        if: ${{ steps.monitor_loop.outcome == 'success' && (github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.continuous == true)) }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}

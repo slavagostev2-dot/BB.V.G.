@@ -25,8 +25,11 @@
 
 - Источник истины — `main`.
 - Единственный Control Center запускается командой
-  `python notification_button_recovery.py`.
+  `python notification_button_recovery.py` на exact SHA из
+  `control_center_release.txt`; validator и live-job используют один commit.
 - Монитор не вызывает Telegram `getUpdates`.
+- Неуспешная смена Monitor не перезапускает себя. Controlled recovery выполняет
+  только `monitor-watchdog.yml` после проверки heartbeat и прогресса.
 - VK-уведомление вызывается напрямую monitor-runtime; ручной workflow является
   fallback.
 - Перед крупным удалением или изменением workflow создаётся неизменяемая

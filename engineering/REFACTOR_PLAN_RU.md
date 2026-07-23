@@ -18,6 +18,8 @@
 - workflow `v22-checks.yml` и три chapter-теста получили предметные имена;
 - восстановлены README, карта кода, карта MRO и актуальный контекст;
 - preflight запрещает возврат удалённых файлов и требует обязательные документы.
+- release-marker стал единственным владельцем exact-SHA Control Center, а
+  controlled recovery Monitor передан watchdog без self-retry при ошибке.
 
 ## Оставшийся технический долг
 

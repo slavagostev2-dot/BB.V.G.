@@ -59,6 +59,10 @@ python -m venv .venv
 bash scripts/validate_control_center.sh
 ```
 
+Production Control Center запускается не с плавающего `main`, а с точного
+40-символьного SHA из `control_center_release.txt`. Validator оставляет checkout
+на этом commit, а live-job получает тот же SHA как job output.
+
 Для проверки локального candidate-коммита без изменения production-маркера:
 
 ```bash

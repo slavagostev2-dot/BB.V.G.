@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import backup_rotation
+import monitor_health
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
@@ -163,3 +165,52 @@ def test_production_heartbeat_contract_is_present() -> None:
     for field in ("head_sha", "workflow_run_id", "run_attempt"):
         assert f'"{field}"' in admin
         assert f'"{field}"' in health
+
+
+def test_control_center_runs_the_exact_validated_release() -> None:
+    admin = workflow_texts()["admin-bot.yml"]
+    validator = (ROOT / "scripts" / "validate_control_center.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "release_sha: ${{ steps.release.outputs.release_sha }}" in admin
+    assert "ref: ${{ needs.validate-control-center.outputs.release_sha }}" in admin
+    assert admin.count('      - "control_center_release.txt"') == 1
+    assert "git checkout -B main origin/main" not in validator
+    assert "git push origin HEAD:main" not in validator
+    assert 'validation_stage="record_project_changelog"' not in validator
+
+
+def test_failed_monitor_shift_is_recovered_only_by_watchdog() -> None:
+    monitor = workflow_texts()["monitor.yml"]
+    watchdog = workflow_texts()["monitor-watchdog.yml"]
+    assert "restart_exit=1" in monitor
+    assert 'exit "$restart_exit"' in monitor
+    assert "steps.monitor_loop.outcome == 'success'" in monitor
+    assert "steps.monitor_loop.outcome != 'cancelled'" not in monitor
+    assert "gh workflow run monitor.yml --ref main -f continuous=true" in watchdog
+
+
+def test_restart_recommendation_immediately_requests_controlled_recovery(
+    tmp_path: Path, monkeypatch
+) -> None:
+    now = datetime(2026, 7, 23, 19, 30, tzinfo=timezone.utc)
+    status_path = tmp_path / "monitor_status.json"
+    status_path.write_text(
+        (
+            '{"last_iteration_at":"2026-07-23T19:29:00+00:00",'
+            '"last_successful_iteration_at":"2026-07-23T19:29:00+00:00",'
+            '"consecutive_failures":1,"consecutive_no_progress":0,'
+            '"restart_recommended":true}'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(monitor_health, "STATUS_PATH", status_path)
+    monkeypatch.setattr(monitor_health, "now_utc", lambda: now)
+    stale, reason, _ = monitor_health.health_check(
+        max_age_minutes=30,
+        max_success_age_minutes=30,
+        max_consecutive_failures=2,
+        max_consecutive_no_progress=2,
+    )
+    assert stale is True
+    assert reason == "runtime requested controlled recovery"

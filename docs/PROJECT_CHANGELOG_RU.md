@@ -6,6 +6,37 @@
 
 ---
 
+## 2026-07-23 — Exact-SHA Control Center и recovery без retry-шторма
+
+После repository cleanup GitHub installation API временно ответил
+`403 rate limit exceeded`. Аварийные смены Monitor могли завершаться с
+`restart_recommended`, но workflow считал такой выход успешным и сразу
+dispatch'ил следующий run. Повторные запуски поддерживали нагрузку на API.
+Дополнительно `scripts/validate_control_center.sh` проверял release-marker, а
+затем возвращал checkout на `main`; live-job Control Center независимо снова
+получал `main`. Поэтому marker не определял фактически запущенный код.
+
+Control Center теперь передаёт точный SHA из `control_center_release.txt`
+между jobs и запускает live-runtime именно на этом commit. Validator больше не
+переключает ветки, не дописывает исторический changelog и не публикует state.
+Heartbeat панели записывается в актуальный `main` через Contents API без
+изменения code checkout. Проверка encrypted state стала read-only; миграция
+ключа остаётся у отдельного workflow ротации.
+
+Monitor после `restart_recommended` завершает job ошибкой и не создаёт
+преемника. Следующий run имеет право поставить только пятнадцатиминутный
+`monitor-watchdog.yml`; сам health-check сразу учитывает явный recovery-флаг,
+не дожидаясь второго process failure. Штатно завершившаяся смена сохраняет
+непрерывность как раньше.
+
+Callback-форматы, пользовательские runtime JSON, зашифрованное состояние,
+delivery ledger, маршрутизация Telegram/VK, автоучастие и правила реферальных
+колёс не изменены.
+
+**Pre-update backup:**
+`backup/2026-07-23-before-automation-reliability-repair` →
+`7dacf14c24f7a2c2c08a153eee4efdfeda8e0584`.
+
 ## 2026-07-23 — Production push заменяет зависший monitor run
 
 После добавления deployment-trigger новый monitor run был создан, но остался в
