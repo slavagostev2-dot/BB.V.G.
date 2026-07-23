@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import monitor
+import wheel_publications_v2
 
 UTC = timezone.utc
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
@@ -93,6 +94,53 @@ def _record_timestamp(record: dict[str, Any]) -> datetime:
     return max(candidates, default=datetime.min.replace(tzinfo=UTC))
 
 
+def _active_event_marker(record: Any) -> datetime:
+    if not isinstance(record, dict):
+        return datetime.min.replace(tzinfo=UTC)
+    for field in ("server_start_at", "message_date", "first_notified_at", "created_at"):
+        parsed = _parse_datetime(record.get(field))
+        if parsed is not None:
+            return parsed
+    return _record_timestamp(record)
+
+
+def _active_event_is_newer(remote: Any, local: Any) -> bool:
+    if not isinstance(local, dict):
+        return False
+    if not isinstance(remote, dict):
+        return True
+    remote_token = _event_token(remote)
+    local_token = _event_token(local)
+    if remote_token == local_token:
+        return False
+    remote_marker = _active_event_marker(remote)
+    local_marker = _active_event_marker(local)
+    if local_marker != remote_marker:
+        return local_marker > remote_marker
+    return _record_timestamp(local) > _record_timestamp(remote)
+
+
+def _event_context(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any]:
+    key = str(item.get("wheel_key") or item.get("identifier") or "").casefold()
+    source = dict(item)
+    active = state.get("active_wheels")
+    active_item = active.get(key) if isinstance(active, dict) else None
+    if isinstance(active_item, dict) and _event_token(active_item) == _event_token(item):
+        source = dict(active_item)
+        source.update(item)
+    fields = (
+        "identifier", "url", "source", "message_id", "message_date",
+        "message_url", "message_text", "button_token", "action_id",
+        "server_start_at", "deadline", "available_at", "generation_id",
+        "event_id",
+    )
+    context = {field: copy.deepcopy(source[field]) for field in fields if field in source}
+    context["wheel_key"] = key
+    context.setdefault("identifier", key)
+    context["referral_restricted"] = wheel_publications_v2.entry_is_referral_restricted(source)
+    return context
+
+
 def _merge_timed_record(remote: Any, local: Any) -> Any:
     if not isinstance(remote, dict):
         return copy.deepcopy(local)
@@ -162,6 +210,11 @@ def merge_auto_participation_state(
             if not isinstance(current, dict):
                 active[key] = copy.deepcopy(raw_item)
                 continue
+            if _active_event_is_newer(current, raw_item):
+                updated = copy.deepcopy(current)
+                updated.update(copy.deepcopy(raw_item))
+                active[key] = updated
+                continue
             updated = copy.deepcopy(current)
             for field in _AUTO_PARTICIPATION_FIELDS:
                 if field in raw_item:
@@ -178,8 +231,11 @@ def merge_auto_participation_state(
         rows = copy.deepcopy(remote_rows) if isinstance(remote_rows, dict) else {}
         if isinstance(local_rows, dict):
             for key, value in local_rows.items():
-                if str(key) not in rows:
-                    rows[str(key)] = copy.deepcopy(value)
+                normalized = str(key)
+                if normalized not in rows:
+                    rows[normalized] = copy.deepcopy(value)
+                elif collection_name == "participating_wheels":
+                    rows[normalized] = _merge_timed_record(rows[normalized], value)
         if rows:
             merged[collection_name] = rows
 
@@ -247,6 +303,10 @@ def queue_recovery_outcomes(
         record = events.get(token)
         if not isinstance(record, dict):
             continue
+        context = _event_context(state, attempt)
+        if context and record.get("event_context") != context:
+            record["event_context"] = context
+            changed = True
 
         if bool(attempt.get("success")):
             for field in (
@@ -329,6 +389,31 @@ def self_test() -> None:
     assert _event_token(success) == "lent#action:952:2026-07-21T14:01:28.861000+00:00"
     assert _event_token(failure) == "ctom11#action:958:2026-07-21T15:28:57.035000+00:00"
     assert _event_token({"wheel_key": "x", "message_date": "now"}) == "x#seen:now"
+
+    recurring_remote = {
+        "active_wheels": {
+            "zonertw5": {
+                "wheel_key": "zonertw5",
+                "action_id": 961,
+                "server_start_at": "2026-07-22T16:27:00+00:00",
+                "last_checked_at": "2026-07-22T18:30:00+00:00",
+            }
+        }
+    }
+    recurring_local = {
+        "active_wheels": {
+            "zonertw5": {
+                "wheel_key": "zonertw5",
+                "action_id": 989,
+                "server_start_at": "2026-07-22T18:26:05+00:00",
+                "message_date": "2026-07-22T18:27:00+00:00",
+                "participating": True,
+            }
+        }
+    }
+    recurring_merged = merge_auto_participation_state(recurring_remote, recurring_local)
+    assert recurring_merged["active_wheels"]["zonertw5"]["action_id"] == 989
+    assert recurring_merged["active_wheels"]["zonertw5"]["participating"] is True
 
     remote = {
         "version": 6,

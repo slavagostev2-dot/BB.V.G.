@@ -646,10 +646,53 @@ def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
     return revalidate_active_wheels(state, current)
 
 
+def _deliver_recovered_initial_notifications(state: dict) -> dict[str, int | bool]:
+    sent = 0
+    failed = 0
+    changed = False
+    mappings = monitor.load_identifier_sources()
+    for key, entry in list(state.setdefault("active_wheels", {}).items()):
+        if not isinstance(entry, dict) or not entry.get("recovered_initial_notification_pending_at"):
+            continue
+        message = monitor.active_entry_message(entry)
+        url = str(entry.get("url") or "").strip()
+        if message is None or not url:
+            failed += 1
+            continue
+        try:
+            monitor.notify_new_link(
+                message,
+                url,
+                monitor.parse_datetime(entry.get("deadline")),
+                str(entry.get("method") or "восстановлено независимой проверкой"),
+                mappings,
+                state,
+                str(entry.get("page_excerpt") or ""),
+                action_id=_record_action_id(entry),
+                available_at=monitor.parse_datetime(entry.get("available_at")),
+                verification_status=str(entry.get("verification_status") or ""),
+                server_start_at=monitor.parse_datetime(entry.get("server_start_at")),
+            )
+        except Exception as exc:
+            entry["recovered_initial_notification_error"] = f"{type(exc).__name__}: {exc}"[:300]
+            failed += 1
+            changed = True
+            continue
+        entry.pop("recovered_initial_notification_pending_at", None)
+        entry.pop("recovered_initial_notification_error", None)
+        entry["recovered_initial_notification_sent_at"] = monitor.now_utc().isoformat()
+        sent += 1
+        changed = True
+    return {"sent": sent, "failed": failed, "changed": changed}
+
+
 def process_active_without_page_verdict(state: dict, stats: dict):
     current = monitor.now_utc()
+    recovered_notifications = _deliver_recovered_initial_notifications(state)
     verification = revalidate_active_wheels(state, current)
-    changed = bool(verification.get("changed"))
+    changed = bool(verification.get("changed")) or bool(
+        recovered_notifications.get("changed")
+    )
     _retain_not_started_pending(state)
 
     for key, entry in list(state.setdefault("active_wheels", {}).items()):
@@ -686,6 +729,12 @@ def process_active_without_page_verdict(state: dict, stats: dict):
     result["verification_failed"] = int(verification.get("failed", 0) or 0)
     result["verification_removed"] = int(verification.get("removed", 0) or 0)
     result["verification_deferred"] = int(verification.get("deferred", 0) or 0)
+    result["recovered_initial_notifications_sent"] = int(
+        recovered_notifications.get("sent", 0) or 0
+    )
+    result["recovered_initial_notifications_failed"] = int(
+        recovered_notifications.get("failed", 0) or 0
+    )
     result["pending_total"] = pending_total
     return result
 
