@@ -1,0 +1,197 @@
+name: Apply recovery pending merge guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-recovery-pending-merge-guard.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-recovery-pending-merge-guard
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Install merge guard and clean authoritative state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          code_path = Path("auto_participation_bot_sync.py")
+          text = code_path.read_text(encoding="utf-8")
+
+          anchor = '''def _event_context(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any]:
+'''
+          helper = '''def _suppress_delivered_recovery_pending(record: Any) -> bool:
+    """Never resurrect a recovery notification after the wheel was already sent."""
+
+    if not isinstance(record, dict):
+        return False
+    pending = _parse_datetime(record.get("recovered_initial_notification_pending_at"))
+    if pending is None:
+        return False
+    delivered = [
+        value
+        for field in (
+            "recovered_initial_notification_sent_at",
+            "last_notification_at",
+            "first_notified_at",
+        )
+        if (value := _parse_datetime(record.get(field))) is not None
+        and value >= pending
+    ]
+    if not delivered:
+        return False
+    record.pop("recovered_initial_notification_pending_at", None)
+    record.pop("recovered_initial_notification_reason", None)
+    record.pop("recovered_initial_notification_error", None)
+    record.setdefault(
+        "recovered_initial_notification_sent_at",
+        max(delivered).isoformat(),
+    )
+    record["recovered_initial_notification_duplicate_suppressed"] = True
+    return True
+
+
+'''
+          if "def _suppress_delivered_recovery_pending" not in text:
+              if text.count(anchor) != 1:
+                  raise SystemExit("event-context anchor not found exactly once")
+              text = text.replace(anchor, helper + anchor, 1)
+
+          merge_anchor = '''    if active:
+        merged["active_wheels"] = active
+'''
+          merge_guard = '''    for item in active.values():
+        _suppress_delivered_recovery_pending(item)
+    if active:
+        merged["active_wheels"] = active
+'''
+          if merge_guard not in text:
+              if text.count(merge_anchor) != 1:
+                  raise SystemExit("active merge anchor not found exactly once")
+              text = text.replace(merge_anchor, merge_guard, 1)
+
+          test_anchor = '''    recurring_merged = merge_auto_participation_state(recurring_remote, recurring_local)
+    assert recurring_merged["active_wheels"]["zonertw5"]["action_id"] == 989
+    assert recurring_merged["active_wheels"]["zonertw5"]["participating"] is True
+'''
+          test_block = test_anchor + '''
+    delivered_remote = {
+        "active_wheels": {
+            "zonertg14": {
+                "wheel_key": "zonertg14",
+                "action_id": 699,
+                "server_start_at": "2026-07-23T09:11:39.433000+00:00",
+                "first_notified_at": "2026-07-23T13:22:09.380714+00:00",
+                "last_notification_at": "2026-07-23T14:28:42.904375+00:00",
+            }
+        }
+    }
+    stale_local = {
+        "active_wheels": {
+            "zonertg14": {
+                "wheel_key": "zonertg14",
+                "action_id": 699,
+                "server_start_at": "2026-07-23T09:11:39.433000+00:00",
+                "recovered_initial_notification_pending_at": "2026-07-23T11:59:16.844122+00:00",
+                "recovered_initial_notification_reason": "recovery_discovered_missing_event",
+                "auto_participation_checked_at": "2026-07-23T14:49:27.088931+00:00",
+            }
+        }
+    }
+    delivered_merged = merge_auto_participation_state(delivered_remote, stale_local)
+    delivered_item = delivered_merged["active_wheels"]["zonertg14"]
+    assert "recovered_initial_notification_pending_at" not in delivered_item
+    assert delivered_item["recovered_initial_notification_duplicate_suppressed"] is True
+'''
+          if "delivered_remote =" not in text:
+              if text.count(test_anchor) != 1:
+                  raise SystemExit("self-test anchor not found exactly once")
+              text = text.replace(test_anchor, test_block, 1)
+
+          code_path.write_text(text, encoding="utf-8")
+
+          state_path = Path("state.json")
+          state = json.loads(state_path.read_text(encoding="utf-8"))
+          changed = False
+          for record in state.get("active_wheels", {}).values():
+              if not isinstance(record, dict):
+                  continue
+              pending_text = str(record.get("recovered_initial_notification_pending_at") or "")
+              if not pending_text:
+                  continue
+              from datetime import datetime
+              def parse(value):
+                  try:
+                      result = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+                  except (TypeError, ValueError):
+                      return None
+                  return result
+              pending = parse(pending_text)
+              delivered = [
+                  parsed
+                  for field in (
+                      "recovered_initial_notification_sent_at",
+                      "last_notification_at",
+                      "first_notified_at",
+                  )
+                  if (parsed := parse(record.get(field))) is not None
+                  and pending is not None
+                  and parsed >= pending
+              ]
+              if not delivered:
+                  continue
+              record.pop("recovered_initial_notification_pending_at", None)
+              record.pop("recovered_initial_notification_reason", None)
+              record.pop("recovered_initial_notification_error", None)
+              record.setdefault(
+                  "recovered_initial_notification_sent_at",
+                  max(delivered).isoformat(),
+              )
+              record["recovered_initial_notification_duplicate_suppressed"] = True
+              changed = True
+          if changed:
+              state_path.write_text(
+                  json.dumps(state, ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8",
+              )
+          print(f"authoritative_state_cleaned={changed}")
+          PY
+
+          python -m py_compile auto_participation_bot_sync.py
+          python auto_participation_bot_sync.py --self-test
+
+      - name: Commit permanent guard and remove installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add auto_participation_bot_sync.py state.json
+          git rm -f .github/workflows/apply-recovery-pending-merge-guard.yml
+          git commit -m "Prevent recovery notification flag resurrection [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+            sleep $((attempt * 2))
+          done
+          exit 1
