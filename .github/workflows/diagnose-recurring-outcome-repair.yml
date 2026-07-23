@@ -1,0 +1,56 @@
+name: Diagnose recurring wheel outcome repair
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/diagnose-recurring-outcome-repair.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: fix/recurring-wheel-auto-outcome-delivery
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Run repair script and save exact result
+        shell: bash
+        run: |
+          set +e
+          python scripts/apply_recurring_outcome_repair.py > repair_failure.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> repair_failure.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add repair_failure.log
+          git commit -m "Record recurring outcome repair diagnostic [skip ci]" || true
+          git push origin HEAD:fix/recurring-wheel-auto-outcome-delivery
+          exit 0
+
+      - name: Remove diagnostic runner from main
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/diagnose-recurring-outcome-repair.yml
+          git commit -m "Remove recurring outcome repair diagnostic [skip ci]" || exit 0
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase origin main || { git rebase --abort || true; exit 1; }
+            sleep $((attempt * 2))
+          done
+          exit 1
