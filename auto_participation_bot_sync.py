@@ -120,6 +120,37 @@ def _active_event_is_newer(remote: Any, local: Any) -> bool:
     return _record_timestamp(local) > _record_timestamp(remote)
 
 
+def _suppress_delivered_recovery_pending(record: Any) -> bool:
+    """Do not resurrect a recovery notification after it was already delivered."""
+
+    if not isinstance(record, dict):
+        return False
+    pending = _parse_datetime(record.get("recovered_initial_notification_pending_at"))
+    if pending is None:
+        return False
+    delivered = [
+        value
+        for field in (
+            "recovered_initial_notification_sent_at",
+            "last_notification_at",
+            "first_notified_at",
+        )
+        if (value := _parse_datetime(record.get(field))) is not None
+        and value >= pending
+    ]
+    if not delivered:
+        return False
+    record.pop("recovered_initial_notification_pending_at", None)
+    record.pop("recovered_initial_notification_reason", None)
+    record.pop("recovered_initial_notification_error", None)
+    record.setdefault(
+        "recovered_initial_notification_sent_at",
+        max(delivered).isoformat(),
+    )
+    record["recovered_initial_notification_duplicate_suppressed"] = True
+    return True
+
+
 def _event_context(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any]:
     key = str(item.get("wheel_key") or item.get("identifier") or "").casefold()
     source = dict(item)
@@ -129,15 +160,31 @@ def _event_context(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any
         source = dict(active_item)
         source.update(item)
     fields = (
-        "identifier", "url", "source", "message_id", "message_date",
-        "message_url", "message_text", "button_token", "action_id",
-        "server_start_at", "deadline", "available_at", "generation_id",
+        "identifier",
+        "url",
+        "source",
+        "message_id",
+        "message_date",
+        "message_url",
+        "message_text",
+        "button_token",
+        "action_id",
+        "server_start_at",
+        "deadline",
+        "available_at",
+        "generation_id",
         "event_id",
     )
-    context = {field: copy.deepcopy(source[field]) for field in fields if field in source}
+    context = {
+        field: copy.deepcopy(source[field])
+        for field in fields
+        if field in source
+    }
     context["wheel_key"] = key
     context.setdefault("identifier", key)
-    context["referral_restricted"] = wheel_publications_v2.entry_is_referral_restricted(source)
+    context["referral_restricted"] = (
+        wheel_publications_v2.entry_is_referral_restricted(source)
+    )
     return context
 
 
@@ -222,6 +269,8 @@ def merge_auto_participation_state(
             if bool(raw_item.get("participating")):
                 updated["participating"] = True
             active[key] = updated
+    for item in active.values():
+        _suppress_delivered_recovery_pending(item)
     if active:
         merged["active_wheels"] = active
 
@@ -265,7 +314,11 @@ def merge_auto_participation_state(
     return merged
 
 
-def merge_state_files(local_path: Path, remote_path: Path, output_path: Path) -> dict[str, Any]:
+def merge_state_files(
+    local_path: Path,
+    remote_path: Path,
+    output_path: Path,
+) -> dict[str, Any]:
     local = _load_json(local_path, {})
     remote = _load_json(remote_path, {})
     merged = merge_auto_participation_state(remote, local)
@@ -386,8 +439,12 @@ def self_test() -> None:
         "success": False,
         "status": "unconfirmed",
     }
-    assert _event_token(success) == "lent#action:952:2026-07-21T14:01:28.861000+00:00"
-    assert _event_token(failure) == "ctom11#action:958:2026-07-21T15:28:57.035000+00:00"
+    assert _event_token(success) == (
+        "lent#action:952:2026-07-21T14:01:28.861000+00:00"
+    )
+    assert _event_token(failure) == (
+        "ctom11#action:958:2026-07-21T15:28:57.035000+00:00"
+    )
     assert _event_token({"wheel_key": "x", "message_date": "now"}) == "x#seen:now"
 
     recurring_remote = {
@@ -411,9 +468,49 @@ def self_test() -> None:
             }
         }
     }
-    recurring_merged = merge_auto_participation_state(recurring_remote, recurring_local)
+    recurring_merged = merge_auto_participation_state(
+        recurring_remote,
+        recurring_local,
+    )
     assert recurring_merged["active_wheels"]["zonertw5"]["action_id"] == 989
     assert recurring_merged["active_wheels"]["zonertw5"]["participating"] is True
+
+    delivered_remote = {
+        "active_wheels": {
+            "zonertg14": {
+                "wheel_key": "zonertg14",
+                "action_id": 699,
+                "server_start_at": "2026-07-23T09:11:39.433000+00:00",
+                "first_notified_at": "2026-07-23T13:22:09.380714+00:00",
+                "last_notification_at": "2026-07-23T14:28:42.904375+00:00",
+            }
+        }
+    }
+    stale_local = {
+        "active_wheels": {
+            "zonertg14": {
+                "wheel_key": "zonertg14",
+                "action_id": 699,
+                "server_start_at": "2026-07-23T09:11:39.433000+00:00",
+                "recovered_initial_notification_pending_at": (
+                    "2026-07-23T11:59:16.844122+00:00"
+                ),
+                "recovered_initial_notification_reason": (
+                    "recovery_discovered_missing_event"
+                ),
+                "auto_participation_checked_at": (
+                    "2026-07-23T14:49:27.088931+00:00"
+                ),
+            }
+        }
+    }
+    delivered_merged = merge_auto_participation_state(
+        delivered_remote,
+        stale_local,
+    )
+    delivered_item = delivered_merged["active_wheels"]["zonertg14"]
+    assert "recovered_initial_notification_pending_at" not in delivered_item
+    assert delivered_item["recovered_initial_notification_duplicate_suppressed"] is True
 
     remote = {
         "version": 6,
@@ -477,9 +574,16 @@ def main() -> int:
     merge_args = (args.merge_local, args.merge_remote, args.merge_output)
     if any(merge_args):
         if not all(merge_args):
-            parser.error("--merge-local, --merge-remote and --merge-output are required together")
+            parser.error(
+                "--merge-local, --merge-remote and --merge-output are required together"
+            )
         merge_state_files(args.merge_local, args.merge_remote, args.merge_output)
-        print(json.dumps({"merged": True, "output": str(args.merge_output)}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {"merged": True, "output": str(args.merge_output)},
+                ensure_ascii=False,
+            )
+        )
         return 0
     result = queue_recovery_outcomes(Path(args.recovery_result))
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
