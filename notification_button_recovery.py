@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-from typing import Any
+from typing import Any, Callable
 
 import admin_panel_v2
 import auto_participation_backlog_guard
 import auto_participation_notifications
+import notification_router
 import wheel_detection_reliability
 import xflarxx_account_participation
 import xflarxx_runtime_integration
@@ -15,6 +16,8 @@ from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
 
 FAST_SYNC_INTERVAL_SECONDS = 5
 FAST_CACHE_REFRESH_SECONDS = 5
+_AUTO_OUTCOME_SYNC_KIND = "auto_participation_sync"
+_AUTO_OUTCOME_SYNC_IDENTITY = "owner-outcome-control-center"
 
 
 def _install_fast_outcome_policy() -> None:
@@ -24,6 +27,70 @@ def _install_fast_outcome_policy() -> None:
     owner_sync.SYNC_INTERVAL_SECONDS = FAST_SYNC_INTERVAL_SECONDS
     admin_panel_v2.CACHE_REFRESH_SECONDS = FAST_CACHE_REFRESH_SECONDS
     owner_sync._bbvg_fast_outcome_policy_installed = True
+
+
+def _empty_outcome_sync_result() -> dict[str, int]:
+    return {
+        "pending": 0,
+        "completed": 0,
+        "failed": 0,
+        "success_completed": 0,
+        "failure_completed": 0,
+        "account_completed": 0,
+        "xflarxx_completed": 0,
+    }
+
+
+def _auto_outcome_sync_lock_key() -> str:
+    return notification_router.delivery_key(
+        "control-center",
+        _AUTO_OUTCOME_SYNC_KIND,
+        _AUTO_OUTCOME_SYNC_IDENTITY,
+        None,
+    )
+
+
+def _locked_outcome_sync(
+    callback: Callable[[Any], dict[str, int]],
+    panel: Any,
+) -> dict[str, int]:
+    """Run one outcome sync across all live Control Center processes.
+
+    The notification router claim is persisted remotely before this function
+    enters the aggregate. A replacement process therefore waits for the next
+    five-second cycle instead of sending the same owner outcome concurrently.
+    """
+
+    key = _auto_outcome_sync_lock_key()
+    if not notification_router.claim_delivery(key):
+        return _empty_outcome_sync_result()
+    try:
+        value = callback(panel)
+        return dict(value) if isinstance(value, dict) else _empty_outcome_sync_result()
+    finally:
+        notification_router.release_delivery(key)
+
+
+def _install_auto_outcome_sync_lock() -> None:
+    owner_sync = auto_participation_notifications.auto_participation_owner_sync
+    if getattr(owner_sync, "_bbvg_auto_outcome_sync_lock_installed", False):
+        return
+
+    aggregate_sync = auto_participation_notifications.sync_once
+    combined_sync = owner_sync.sync_once
+
+    def locked_aggregate_sync(panel: Any) -> dict[str, int]:
+        return _locked_outcome_sync(aggregate_sync, panel)
+
+    def locked_combined_sync(panel: Any) -> dict[str, int]:
+        return _locked_outcome_sync(combined_sync, panel)
+
+    # Some recovery paths call the aggregate directly, while the live panel
+    # calls the final owner-sync composition that also includes xFLARXx. Both
+    # entry points must compete for the same durable lease.
+    auto_participation_notifications.sync_once = locked_aggregate_sync
+    owner_sync.sync_once = locked_combined_sync
+    owner_sync._bbvg_auto_outcome_sync_lock_installed = True
 
 
 def _notification_token(key: str, entry: dict[str, Any]) -> str:
@@ -85,6 +152,7 @@ wheel_detection_reliability.install_owner_notification_update()
 auto_participation_notifications.install(TelegramPanelRuntimeButtonRecovery)
 auto_participation_backlog_guard.install()
 xflarxx_account_participation.install_owner_sync()
+_install_auto_outcome_sync_lock()
 xflarxx_runtime_integration.install(TelegramPanelRuntimeButtonRecovery)
 
 
@@ -112,6 +180,11 @@ def self_test() -> None:
     assert getattr(
         owner_sync,
         "_bbvg_xflarxx_sync_installed",
+        False,
+    ) is True
+    assert getattr(
+        owner_sync,
+        "_bbvg_auto_outcome_sync_lock_installed",
         False,
     ) is True
     assert TelegramPanelRuntimeButtonRecovery._bbvg_auto_notification_toggle_installed is True
