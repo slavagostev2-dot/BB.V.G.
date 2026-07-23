@@ -2,8 +2,8 @@
   "active_incidents": 1,
   "admin_panel": {
     "age_minutes": 0,
-    "last_heartbeat_at": "2026-07-23T18:12:44.448851+00:00",
-    "started_at": "2026-07-23T18:12:44.448841+00:00",
+    "last_heartbeat_at": "2026-07-23T18:15:06.422925+00:00",
+    "started_at": "2026-07-23T18:15:06.422915+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "16745bbfbbe047ef924ffcb4de47ef3c",
+    "decision_id": "fb0090ecb95e4e248e55e4012d751be4",
     "finding_count": 1,
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-23T18:13:30.407501+00:00",
-    "impact": "Система мониторинга не предоставляет актуальные данные о состоянии инфраструктуры, что может привести к пропуску инцидентов.",
+    "generated_at": "2026-07-23T18:15:37.192494+00:00",
+    "impact": "Система мониторинга не предоставляет актуальных данных, что может привести к пропуску инцидентов в реальном времени.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 17 минут назад.",
+    "summary": "Критическая задержка обновления основного монитора: последняя итерация была 20 минут назад.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-23T18:13:28.448985+00:00",
+  "checked_at": "2026-07-23T18:15:35.087129+00:00",
   "discovery": {
     "active_size": 168,
     "candidate_count": 503,
@@ -89,7 +89,7 @@
     },
     "inventory_confirmation_window_hours": 6,
     "inventory_registry_generated_at": "2026-07-23T16:03:27.484154+00:00",
-    "inventory_sync_age_minutes": 130,
+    "inventory_sync_age_minutes": 132,
     "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
   },
   "domain_compliance": {
@@ -108,7 +108,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "Последняя итерация была 17 минут назад.",
+      "detail": "Последняя итерация была 20 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
@@ -117,7 +117,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-23T18:12:44.448851+00:00",
+    "bot_panel_heartbeat": "2026-07-23T18:15:06.422925+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
@@ -188,7 +188,7 @@
     "version": 3,
     "workflow_run_id": "30026917282"
   },
-  "monitor_age_minutes": 17,
+  "monitor_age_minutes": 20,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
