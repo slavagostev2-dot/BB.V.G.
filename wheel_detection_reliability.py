@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 from typing import Any, Callable
 
@@ -299,8 +300,6 @@ def install_owner_notification_update() -> None:
 def install(monitor_module: Any) -> None:
     install_notification_clarity(monitor_module)
     install_owner_notification_update()
-    try:
-        import monitor_entry
-    except ImportError:
-        return
-    install_creator_overlap(monitor_module, monitor_entry)
+    monitor_entry_module = sys.modules.get("monitor_entry")
+    if monitor_entry_module is not None:
+        install_creator_overlap(monitor_module, monitor_entry_module)
