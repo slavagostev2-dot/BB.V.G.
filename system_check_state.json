@@ -9,9 +9,28 @@
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "deployment_grace",
-    "mode": "suppressed",
-    "reason": "system-health started from a code push"
+    "ai_status": "ok",
+    "cached": false,
+    "confidence": 0.0,
+    "critical_count": 2,
+    "decision_id": "cd0f6e00f5dc423295a561314d3410e0",
+    "finding_count": 2,
+    "finding_kinds": [
+      "monitor_source_count",
+      "rating_score_mismatch"
+    ],
+    "generated_at": "2026-07-23T19:35:17.623036+00:00",
+    "impact": "Мониторинг работает не в полном объеме (151 из 169 источников), а данные о рейтингах не синхронизированы с личными голосами, что искажает итоговую аналитику.",
+    "mode": "ai",
+    "model": "gemini-3.1-flash-lite",
+    "provider": "gemini",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска 18 источников.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Система находится в критическом состоянии: обнаружено 2 критические ошибки, связанные с неполным охватом источников мониторинга и расхождением рейтинговых данных.",
+    "used_fallback": false,
+    "version": 1,
+    "warning_count": 0
   },
   "automation_state": {
     "expected_nightly_sources": 1,
@@ -45,7 +64,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-23T19:34:36.560568+00:00",
+  "checked_at": "2026-07-23T19:35:15.406231+00:00",
   "discovery": {
     "active_size": 168,
     "candidate_count": 503,
@@ -123,14 +142,12 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "health_inspector_mode": "suppressed",
-    "health_inspector_status": "deployment_grace",
-    "messages_attempted": 0,
+    "digest_sent": true,
+    "health_inspector_mode": "ai",
+    "health_inspector_status": "ok",
+    "messages_attempted": 1,
     "opened": 2,
-    "resolved": 1,
-    "suppressed": true,
-    "suppressed_reason": "code_update_push_grace"
+    "resolved": 1
   },
   "incident_sequence": 100,
   "inventory": {
@@ -159,7 +176,7 @@
     "checks_total": 824644,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "2e5944308583a82c5787929e35e60a4f1bcfd176",
+    "head_sha": "3b12ef0790685f7d9e3996efc5bc92c6cdf031c7",
     "iteration": 68,
     "last_failure_at": "2026-07-23T18:23:07.385796+00:00",
     "last_iteration_at": "2026-07-23T19:31:50.579753+00:00",
@@ -172,15 +189,15 @@
     "reachable_sources": 151,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "30033399763",
-    "run_started_at": "2026-07-23T18:22:44.768542+00:00",
+    "run_id": "30038545260",
+    "run_started_at": "2026-07-23T19:35:02.556763916Z",
     "source_errors": 0,
     "stats_counter_reset": false,
-    "status": "running",
+    "status": "starting",
     "version": 3,
-    "workflow_run_id": "30033399763"
+    "workflow_run_id": "30038545260"
   },
-  "monitor_age_minutes": 2,
+  "monitor_age_minutes": 3,
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
