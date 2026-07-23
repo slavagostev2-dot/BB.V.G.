@@ -1,0 +1,107 @@
+apply_exit=0
+compile_exit=0
+/home/runner/work/BB.V.G./BB.V.G./betboom_auto_participation.py:193: SyntaxWarning: invalid escape sequence '\s'
+  """() => /участие\s+(принято|подтверждено|зарегистрировано)|вы\s+(уже\s+)?участвуете|уже\s+участвуете|участие\s+отмечено|теперь\s+ты\s+участвуешь\s+в\s+розыгрыше|вы\s+в\s+розыгрыше/i.test(document.body?.innerText || '')""",
+/home/runner/work/BB.V.G./BB.V.G./betboom_participation_browser.py:58: SyntaxWarning: invalid escape sequence '\s'
+  const re = /(принять\s+участие|участвовать|участвую)/i;
+auto participation bot outcome sync self-test passed
+unified auto participation notifications self-test passed
+auto participation recovery authoritative-outcome self-test passed
+selftests_exit=0
+BB V.G. preflight checks passed: 169 approved telegram.me sources (168 primary, 1 nightly).
+preflight_exit=0
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-8.4.1, pluggy-1.6.0
+rootdir: /home/runner/work/BB.V.G./BB.V.G.
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-6.2.1
+collected 203 items
+
+tests/test_actions_security.py .F....                                    [  2%]
+tests/test_ai_core.py ........                                           [  6%]
+tests/test_ai_health_inspector.py .....                                  [  9%]
+tests/test_button_matrix.py ................                             [ 17%]
+tests/test_chapter3_contracts.py ....                                    [ 19%]
+tests/test_chapter5_lifecycle.py ..........                              [ 24%]
+tests/test_concurrency_and_ci.py ............                            [ 30%]
+tests/test_current_contracts.py .............                            [ 36%]
+tests/test_hunter_profile.py .......                                     [ 39%]
+tests/test_lifecycle.py ....................                             [ 49%]
+tests/test_natural_language_admin.py .....                               [ 52%]
+tests/test_nightly_idle_policy.py .........                              [ 56%]
+tests/test_notifications.py ...........                                  [ 62%]
+tests/test_personal_wheel_voting.py ................                     [ 69%]
+tests/test_recurring_event_hotfix.py ....................                [ 79%]
+tests/test_source_discovery_lifecycle.py ......                          [ 82%]
+tests/test_suspicious_posts.py .....                                     [ 85%]
+tests/test_ui_chapter4.py ...............                                [ 92%]
+tests/test_vk_dynamic_subscribers.py ..                                  [ 93%]
+tests/test_vk_start_welcome.py ...                                       [ 95%]
+tests/test_vk_wheel_notifications.py ..........                          [100%]
+
+=================================== FAILURES ===================================
+______________________ test_permissions_matrix_is_narrow _______________________
+
+    def test_permissions_matrix_is_narrow() -> None:
+        texts = workflow_texts()
+        contents_write = {
+            name for name, text in texts.items() if "contents: write" in text
+        }
+        actions_write = {
+            name for name, text in texts.items() if "actions: write" in text
+        }
+>       assert contents_write == CONTENTS_WRITE_WORKFLOWS
+E       AssertionError: assert {'activate-66...ion.yml', ...} == {'activate-66...tor.yml', ...}
+E         
+E         Extra items in the left set:
+E         'apply-recurring-outcome-repair.yml'
+E         'apply-faster-notification-core-v2.yml'
+E         
+E         Full diff:
+E           {
+E               'activate-66-sources.yml',
+E               'admin-action.yml',
+E               'admin-bot.yml',
+E         +     'apply-faster-notification-core-v2.yml',
+E         +     'apply-recurring-outcome-repair.yml',
+E               'auto-participation.yml',
+E               'bot-state-backup.yml',
+E               'monitor.yml',
+E               'nightly-discovery.yml',
+E               'rotate-bot-state-key.yml',
+E               'source-intelligence.yml',
+E               'source-registry.yml',
+E               'source-tier-maintenance.yml',
+E               'system-health.yml',
+E               'xflarxx-auto-participation.yml',
+E           }
+
+tests/test_actions_security.py:86: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_actions_security.py::test_permissions_matrix_is_narrow - AssertionError: assert {'activate-66...ion.yml', ...} == {'activate-66...tor.yml', ...}
+  
+  Extra items in the left set:
+  'apply-recurring-outcome-repair.yml'
+  'apply-faster-notification-core-v2.yml'
+  
+  Full diff:
+    {
+        'activate-66-sources.yml',
+        'admin-action.yml',
+        'admin-bot.yml',
+  +     'apply-faster-notification-core-v2.yml',
+  +     'apply-recurring-outcome-repair.yml',
+        'auto-participation.yml',
+        'bot-state-backup.yml',
+        'monitor.yml',
+        'nightly-discovery.yml',
+        'rotate-bot-state-key.yml',
+        'source-intelligence.yml',
+        'source-registry.yml',
+        'source-tier-maintenance.yml',
+        'system-health.yml',
+        'xflarxx-auto-participation.yml',
+    }
+======================== 1 failed, 202 passed in 1.55s =========================
+pytest_exit=1
