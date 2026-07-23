@@ -32,8 +32,9 @@ jobs:
 
           workflow = Path('.github/workflows/monitor.yml')
           text = workflow.read_text(encoding='utf-8')
-          old = "  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' && inputs.replace == true }}"
-          new = "  cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.replace == true) }}"
+          expression = '$' + '{{'
+          old = "  cancel-in-progress: " + expression + " github.event_name == 'workflow_dispatch' && inputs.replace == true }}"
+          new = "  cancel-in-progress: " + expression + " github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.replace == true) }}"
           if old not in text and new not in text:
               raise SystemExit('Monitor concurrency policy was not found')
           workflow.write_text(text.replace(old, new, 1), encoding='utf-8')
