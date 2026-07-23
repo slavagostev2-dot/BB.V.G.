@@ -263,51 +263,108 @@ def _recovered_delivery_marker(monitor_module: Any, entry: Any):
     return None
 
 
+def _suppress_delivered_recovered_entries(
+    monitor_module: Any,
+    state: dict[str, Any],
+) -> int:
+    suppressed = 0
+    for entry in state.setdefault("active_wheels", {}).values():
+        if not isinstance(entry, dict) or not entry.get(
+            "recovered_initial_notification_pending_at"
+        ):
+            continue
+        delivered_at = _recovered_delivery_marker(monitor_module, entry)
+        if delivered_at is None:
+            continue
+        entry.pop("recovered_initial_notification_pending_at", None)
+        entry.pop("recovered_initial_notification_reason", None)
+        entry.pop("recovered_initial_notification_error", None)
+        entry.setdefault(
+            "recovered_initial_notification_sent_at",
+            delivered_at.isoformat(),
+        )
+        entry["recovered_initial_duplicate_suppressed_at"] = (
+            monitor_module.now_utc().isoformat()
+        )
+        suppressed += 1
+    return suppressed
+
+
 def install_recovered_notification_guard(
     monitor_module: Any,
     runtime_module: Any,
 ) -> None:
-    """Make recovery-originated initial delivery idempotent by wheel event state."""
+    """Make recovery-originated initial delivery idempotent inside the runtime."""
 
     if getattr(runtime_module, "_bbvg_recovered_notification_guard_installed", False):
         return
     original: Callable = runtime_module._deliver_recovered_initial_notifications
 
     def deliver_recovered_once(state: dict[str, Any]) -> dict[str, int | bool]:
-        skipped = 0
-        changed = False
-        for entry in state.setdefault("active_wheels", {}).values():
-            if not isinstance(entry, dict) or not entry.get(
-                "recovered_initial_notification_pending_at"
-            ):
-                continue
-            delivered_at = _recovered_delivery_marker(monitor_module, entry)
-            if delivered_at is None:
-                continue
-            entry.pop("recovered_initial_notification_pending_at", None)
-            entry.pop("recovered_initial_notification_reason", None)
-            entry.pop("recovered_initial_notification_error", None)
-            entry.setdefault(
-                "recovered_initial_notification_sent_at",
-                delivered_at.isoformat(),
-            )
-            entry["recovered_initial_duplicate_suppressed_at"] = (
-                monitor_module.now_utc().isoformat()
-            )
-            skipped += 1
-            changed = True
-
+        skipped = _suppress_delivered_recovered_entries(monitor_module, state)
         result = original(state)
         result = dict(result) if isinstance(result, dict) else {}
         result["skipped_already_delivered"] = int(
             result.get("skipped_already_delivered", 0) or 0
         ) + skipped
-        result["changed"] = bool(result.get("changed")) or changed
+        result["changed"] = bool(result.get("changed")) or bool(skipped)
         return result
 
     runtime_module._deliver_recovered_initial_notifications = deliver_recovered_once
     runtime_module._bbvg_recovered_notification_guard_installed = True
     monitor_module._bbvg_recovered_notification_guard_installed = True
+
+
+def install_final_process_guard(monitor_module: Any) -> None:
+    """Guard the final composed active-wheel processor before any delivery path."""
+
+    if getattr(monitor_module, "_bbvg_final_recovered_guard_installed", False):
+        return
+    original: Callable = monitor_module.process_active_wheels
+
+    def process_active_with_recovered_guard(
+        state: dict[str, Any],
+        stats: dict[str, Any],
+    ) -> dict[str, Any]:
+        skipped = _suppress_delivered_recovered_entries(monitor_module, state)
+        result = original(state, stats)
+        result = dict(result) if isinstance(result, dict) else {}
+        result["recovered_duplicates_suppressed"] = int(
+            result.get("recovered_duplicates_suppressed", 0) or 0
+        ) + skipped
+        if skipped:
+            result["changed"] = True
+        return result
+
+    # Existing production contracts identify the final lifecycle owner by module.
+    process_active_with_recovered_guard.__module__ = "wheel_lifecycle_v2"
+    monitor_module.process_active_wheels = process_active_with_recovered_guard
+    monitor_module._bbvg_final_recovered_guard_installed = True
+
+
+def install_after_wheel_lifecycle(monitor_module: Any) -> None:
+    """Install the final guard after wheel_lifecycle_v2 finishes composition."""
+
+    try:
+        import wheel_lifecycle_v2
+    except ImportError:
+        return
+    if getattr(wheel_lifecycle_v2, "_bbvg_final_recovered_guard_hooked", False):
+        if getattr(monitor_module, "_bbvg_wheel_lifecycle_v2_installed", False):
+            install_final_process_guard(monitor_module)
+        return
+
+    original_install: Callable = wheel_lifecycle_v2.install
+
+    def install_with_recovered_guard(target_module: Any):
+        result = original_install(target_module)
+        install_final_process_guard(target_module)
+        return result
+
+    wheel_lifecycle_v2.install = install_with_recovered_guard
+    wheel_lifecycle_v2._bbvg_final_recovered_guard_hooked = True
+    if getattr(monitor_module, "_bbvg_wheel_lifecycle_v2_installed", False):
+        install_final_process_guard(monitor_module)
 
 
 def install_owner_notification_update() -> None:
@@ -371,6 +428,7 @@ def install(monitor_module: Any) -> None:
     runtime_module = sys.modules.get("bbvg_monitor_runtime")
     if runtime_module is not None:
         install_recovered_notification_guard(monitor_module, runtime_module)
+    install_after_wheel_lifecycle(monitor_module)
     monitor_entry_module = sys.modules.get("monitor_entry")
     if monitor_entry_module is not None:
         install_creator_overlap(monitor_module, monitor_entry_module)
