@@ -220,6 +220,36 @@ def release_checkpoint(
     return False
 
 
+def delivery_reservation_status(integrity_module: Any, key: str) -> str:
+    """Return ``completed``, ``claimed`` or ``available`` for one delivery key."""
+
+    try:
+        local = integrity_module.load_state()
+        entries = local.get("entries") if isinstance(local.get("entries"), dict) else {}
+        claims = local.get("claims") if isinstance(local.get("claims"), dict) else {}
+        if key in entries:
+            return "completed"
+        if key in claims:
+            return "claimed"
+        if not _configured():
+            return "available"
+        remote_raw, _sha = _remote_state()
+        remote = _normalized_remote_state(integrity_module, remote_raw)
+        entries = remote.get("entries") if isinstance(remote.get("entries"), dict) else {}
+        claims = remote.get("claims") if isinstance(remote.get("claims"), dict) else {}
+        if key in entries:
+            return "completed"
+        if key in claims:
+            return "claimed"
+        return "available"
+    except Exception as exc:
+        print(
+            "WARNING remote notification status failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return "unknown"
+
+
 def _needs_auto_recovery(event_identity: str) -> bool:
     identity = str(event_identity or "")
     return identity.startswith("wheel:") and any(
@@ -279,8 +309,6 @@ def install(router_module: Any, integrity_module: Any) -> None:
         claimed = bool(original_claim(key))
         if not claimed:
             return False
-        # Publish the reservation with a real remote compare-and-swap before
-        # Telegram is called. A concurrent replacement runner must lose here.
         if not claim_checkpoint(integrity_module, key):
             original_release(key)
             return False
@@ -301,6 +329,9 @@ def install(router_module: Any, integrity_module: Any) -> None:
     router_module.claim_delivery = durable_claim
     router_module.complete_delivery = durable_complete
     router_module.release_delivery = durable_release
+    router_module.delivery_reservation_status = lambda key: delivery_reservation_status(
+        integrity_module, key
+    )
     router_module._bbvg_remote_notification_checkpoint_installed = True
 
 
@@ -391,13 +422,13 @@ def self_test() -> None:
         globals()["_put_remote_state"] = winner_put
         assert claim_checkpoint(FakeIntegrity, key) is True
         assert remote["claims"][key] == "2026-07-23T15:55:00+00:00"
+        assert delivery_reservation_status(FakeIntegrity, key) == "claimed"
         assert release_checkpoint(
             FakeIntegrity, key, "2026-07-23T15:55:00+00:00"
         ) is True
         assert key not in remote["claims"]
+        assert delivery_reservation_status(FakeIntegrity, key) == "available"
 
-        # Simulate a stale read followed by a 409. The retry must observe the
-        # competitor's claim and return False instead of letting both send.
         FakeIntegrity.local["claims"] = {key: "2026-07-23T15:55:01+00:00"}
         remote = FakeIntegrity.default_state()
         remote_sha = "0"
