@@ -111,6 +111,29 @@ def test_read_only_checkouts_do_not_persist_git_credentials() -> None:
         assert texts[name].count("persist-credentials: false") == checkout_count, name
 
 
+def test_auto_participation_attempts_survive_an_unrelated_step_failure() -> None:
+    text = workflow_texts()["auto-participation.yml"]
+    guarded_condition = (
+        "if: ${{ always() && steps.mode.outputs.probe != 'true' }}"
+    )
+    isolated_steps = (
+        "Run event-based auto participation",
+        "Retry current active wheels immediately",
+        "Run second BetBoom account on fast result",
+        "Run xFLARXx BetBoom account on fast result",
+        "Recover fresh active wheels independently of monitor state",
+        "Run second BetBoom account after full recovery",
+        "Run xFLARXx BetBoom account after full recovery",
+    )
+    for step_name in isolated_steps:
+        marker = f"- name: {step_name}"
+        assert marker in text
+        block = text.split(marker, 1)[1].split("\n      - name:", 1)[0]
+        assert guarded_condition in block, (
+            f"{step_name} can be skipped after another account or preflight failure"
+        )
+
+
 def test_backup_rotation_contract_and_concurrency() -> None:
     text = workflow_texts()["bot-state-backup.yml"]
     assert text.count("group: bb-vg-bot-state-backup") == 1
