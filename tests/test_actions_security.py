@@ -150,6 +150,11 @@ def test_backup_rotation_contract_and_concurrency() -> None:
 def test_auto_participation_workflow_change_restarts_monitor() -> None:
     monitor_workflow = workflow_texts()["monitor.yml"]
     assert '- ".github/workflows/auto-participation.yml"' in monitor_workflow
+    assert (
+        "cancel-in-progress: ${{ github.event_name == 'push' || "
+        "(github.event_name == 'workflow_dispatch' && inputs.replace == true) }}"
+        in monitor_workflow
+    )
 
 
 def test_production_heartbeat_contract_is_present() -> None:
