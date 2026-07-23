@@ -120,6 +120,51 @@ def test_automatic_participation_has_explicit_button_label():
     )
 
 
+def test_recovered_notification_pending_is_cleared_without_second_send():
+    sends: list[str] = []
+
+    def parse_datetime(value):
+        if not value:
+            return None
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+    monitor = SimpleNamespace(
+        parse_datetime=parse_datetime,
+        now_utc=lambda: datetime(2026, 7, 23, 14, 29, tzinfo=UTC),
+    )
+
+    def original(_state):
+        sends.append("sent")
+        return {"sent": 1, "failed": 0, "changed": True}
+
+    runtime = SimpleNamespace(
+        _deliver_recovered_initial_notifications=original,
+    )
+    reliability.install_recovered_notification_guard(monitor, runtime)
+    state = {
+        "active_wheels": {
+            "zonertg14": {
+                "recovered_initial_notification_pending_at": "2026-07-23T11:59:16+00:00",
+                "recovered_initial_notification_reason": "recovery_discovered_missing_event",
+                "first_notified_at": "2026-07-23T13:22:09+00:00",
+                "last_notification_at": "2026-07-23T14:28:42+00:00",
+            }
+        }
+    }
+
+    result = runtime._deliver_recovered_initial_notifications(state)
+    entry = state["active_wheels"]["zonertg14"]
+
+    assert sends == ["sent"]
+    assert result["skipped_already_delivered"] == 1
+    assert result["changed"] is True
+    assert "recovered_initial_notification_pending_at" not in entry
+    assert entry["recovered_initial_notification_sent_at"] == (
+        "2026-07-23T14:28:42+00:00"
+    )
+
+
 def test_control_center_edits_sent_card_with_auto_label(monkeypatch):
     monkeypatch.delattr(
         auto_participation_owner_sync,
