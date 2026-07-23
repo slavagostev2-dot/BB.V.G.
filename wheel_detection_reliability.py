@@ -242,6 +242,74 @@ def install_notification_clarity(monitor_module: Any) -> None:
     monitor_module._bbvg_notification_clarity_installed = True
 
 
+def _recovered_delivery_marker(monitor_module: Any, entry: Any):
+    """Return a delivery timestamp proving the recovered card was already sent."""
+
+    if not isinstance(entry, dict):
+        return None
+    pending_at = monitor_module.parse_datetime(
+        entry.get("recovered_initial_notification_pending_at")
+    )
+    for field in (
+        "recovered_initial_notification_sent_at",
+        "last_notification_at",
+        "first_notified_at",
+    ):
+        delivered_at = monitor_module.parse_datetime(entry.get(field))
+        if delivered_at is None:
+            continue
+        if pending_at is None or delivered_at >= pending_at:
+            return delivered_at
+    return None
+
+
+def install_recovered_notification_guard(
+    monitor_module: Any,
+    runtime_module: Any,
+) -> None:
+    """Make recovery-originated initial delivery idempotent by wheel event state."""
+
+    if getattr(runtime_module, "_bbvg_recovered_notification_guard_installed", False):
+        return
+    original: Callable = runtime_module._deliver_recovered_initial_notifications
+
+    def deliver_recovered_once(state: dict[str, Any]) -> dict[str, int | bool]:
+        skipped = 0
+        changed = False
+        for entry in state.setdefault("active_wheels", {}).values():
+            if not isinstance(entry, dict) or not entry.get(
+                "recovered_initial_notification_pending_at"
+            ):
+                continue
+            delivered_at = _recovered_delivery_marker(monitor_module, entry)
+            if delivered_at is None:
+                continue
+            entry.pop("recovered_initial_notification_pending_at", None)
+            entry.pop("recovered_initial_notification_reason", None)
+            entry.pop("recovered_initial_notification_error", None)
+            entry.setdefault(
+                "recovered_initial_notification_sent_at",
+                delivered_at.isoformat(),
+            )
+            entry["recovered_initial_duplicate_suppressed_at"] = (
+                monitor_module.now_utc().isoformat()
+            )
+            skipped += 1
+            changed = True
+
+        result = original(state)
+        result = dict(result) if isinstance(result, dict) else {}
+        result["skipped_already_delivered"] = int(
+            result.get("skipped_already_delivered", 0) or 0
+        ) + skipped
+        result["changed"] = bool(result.get("changed")) or changed
+        return result
+
+    runtime_module._deliver_recovered_initial_notifications = deliver_recovered_once
+    runtime_module._bbvg_recovered_notification_guard_installed = True
+    monitor_module._bbvg_recovered_notification_guard_installed = True
+
+
 def install_owner_notification_update() -> None:
     """Use an explicit automatic label when Control Center edits a sent card."""
 
@@ -300,6 +368,9 @@ def install_owner_notification_update() -> None:
 def install(monitor_module: Any) -> None:
     install_notification_clarity(monitor_module)
     install_owner_notification_update()
+    runtime_module = sys.modules.get("bbvg_monitor_runtime")
+    if runtime_module is not None:
+        install_recovered_notification_guard(monitor_module, runtime_module)
     monitor_entry_module = sys.modules.get("monitor_entry")
     if monitor_entry_module is not None:
         install_creator_overlap(monitor_module, monitor_entry_module)
