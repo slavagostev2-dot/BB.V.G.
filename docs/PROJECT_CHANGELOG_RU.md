@@ -6,6 +6,23 @@
 
 ---
 
+## 2026-07-23 — Production push заменяет зависший monitor run
+
+После добавления deployment-trigger новый monitor run был создан, но остался в
+очереди: прежний run `30026917282` продолжал иметь GitHub-статус
+`in_progress`, хотя его последний heartbeat оставался на
+`17:55:35 UTC`. Concurrency-политика разрешала отмену только ручному
+`workflow_dispatch` с `replace=true`, поэтому production push не мог
+заменить фактически зависший процесс.
+
+`monitor.yml` теперь отменяет прежний run при push в `main`. Ручной запуск
+без `replace=true` по-прежнему не отменяет работающий монитор. Regression-тест
+фиксирует оба deployment-контракта.
+
+Используется та же rollback-точка инцидента:
+`backup/2026-07-23-before-auto-participation-monitor-restart` →
+`611a8357e2ba5ed8752a75c1b815a10a6063f564`.
+
 ## 2026-07-23 — Изменение автоучастия перезапускает монитор
 
 После production-исправления workflow автоучастия основной монитор оставался
