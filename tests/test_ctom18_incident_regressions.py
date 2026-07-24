@@ -74,15 +74,15 @@ class Monitor:
         return datetime(2026, 7, 24, 12, 11, 30, tzinfo=timezone.utc)
 
 
-def test_preparation_clicks_cookie_and_current_promotion_only() -> None:
+def test_preparation_clicks_cookie_but_never_promo_state() -> None:
     page = Page(["Окей", "Об акции", "Другие акции", "Участвовать"])
 
     actions = browser._prepare_page(page, 1000)
 
     assert page.values[0].clicked is True
-    assert page.values[1].clicked is True
+    assert page.values[1].clicked is False
     assert page.values[2].clicked is False
-    assert actions == ["main:Окей", "main:Об акции"]
+    assert actions == ["main:Окей"]
 
 
 def test_participation_button_is_found_after_preparation() -> None:
