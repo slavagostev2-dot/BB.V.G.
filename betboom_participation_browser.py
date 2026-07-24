@@ -20,6 +20,11 @@ SUCCESS_LABEL_RE = re.compile(
     r"[.!]?",
     re.IGNORECASE,
 )
+COOKIE_RE = re.compile(
+    r"(?:окей|понятно|согласен|принять(?:\s+все)?|разрешить\s+все)",
+    re.IGNORECASE,
+)
+PROMO_DETAILS_RE = re.compile(r"об\s+акции", re.IGNORECASE)
 
 
 def _normalized_label(value: object) -> str:
@@ -58,13 +63,15 @@ def _root_name(root: Any, page: Any) -> str:
 
 def _text(root: Any) -> str:
     try:
-        return str(root.locator("body").inner_text(timeout=5000) or "")
+        return str(root.locator("body").inner_text(timeout=3000) or "")
     except Exception:
         return ""
 
 
 def _all_text(page: Any) -> str:
-    return "\n".join(value for value in (_text(root) for root in _search_roots(page)) if value)
+    return "\n".join(
+        value for value in (_text(root) for root in _search_roots(page)) if value
+    )
 
 
 def _matching_visible_label(
@@ -82,7 +89,7 @@ def _matching_visible_label(
             candidate = locator.nth(index)
             if not candidate.is_visible():
                 continue
-            label = _normalized_label(candidate.inner_text(timeout=1500))
+            label = _normalized_label(candidate.inner_text(timeout=1000))
             if _matches_full_label(pattern, label):
                 return candidate, label[:120]
         except Exception:
@@ -90,13 +97,26 @@ def _matching_visible_label(
     return None, ""
 
 
-def _success(page: Any) -> bool:
-    """Accept only a visible, self-contained confirmation label in any frame.
+def _visible_exact_control(root: Any, pattern: re.Pattern[str]) -> tuple[Any | None, str]:
+    try:
+        selectors = (
+            root.get_by_role("button", name=pattern),
+            root.locator("button").filter(has_text=pattern),
+            root.locator('[role="button"]').filter(has_text=pattern),
+            root.locator("a").filter(has_text=pattern),
+            root.get_by_text(pattern),
+        )
+    except Exception:
+        return None, ""
+    for locator in selectors:
+        candidate, label = _matching_visible_label(locator, pattern)
+        if candidate is not None:
+            return candidate, label
+    return None, ""
 
-    Searching the entire body is unsafe because wheel rules and help text may
-    contain phrases such as ``если вы участвуете`` without confirming the
-    current account's participation in the current wheel.
-    """
+
+def _success(page: Any) -> bool:
+    """Accept only a visible, self-contained confirmation label in any frame."""
 
     for root in _search_roots(page):
         try:
@@ -117,22 +137,13 @@ def _success(page: Any) -> bool:
 
 
 def _click_in_root(root: Any, timeout_ms: int) -> tuple[bool, str]:
-    selectors = (
-        root.get_by_role("button", name=CLICK_RE),
-        root.locator("button").filter(has_text=CLICK_RE),
-        root.locator('[role="button"]').filter(has_text=CLICK_RE),
-        root.locator("a").filter(has_text=CLICK_RE),
-        root.get_by_text(CLICK_RE),
-    )
-    for locator in selectors:
-        candidate, label = _matching_visible_label(locator, CLICK_RE)
-        if candidate is None:
-            continue
+    candidate, label = _visible_exact_control(root, CLICK_RE)
+    if candidate is not None:
         try:
-            candidate.click(timeout=timeout_ms, force=True)
+            candidate.click(timeout=min(timeout_ms, 5000), force=True)
             return True, label or "playwright_locator"
         except Exception:
-            continue
+            pass
 
     try:
         result = root.evaluate(
@@ -186,6 +197,61 @@ def _click_candidates(page: Any, timeout_ms: int) -> tuple[bool, str]:
     return False, ""
 
 
+def _click_preparation_control(
+    page: Any,
+    pattern: re.Pattern[str],
+    timeout_ms: int,
+) -> str:
+    """Click one exact, harmless UI preparation control across page and frames."""
+
+    for root in _search_roots(page):
+        candidate, label = _visible_exact_control(root, pattern)
+        if candidate is None:
+            continue
+        try:
+            candidate.click(timeout=min(timeout_ms, 4000), force=True)
+            return f"{_root_name(root, page)}:{label}"[:160]
+        except Exception:
+            continue
+    return ""
+
+
+def _prepare_page(page: Any, timeout_ms: int) -> list[str]:
+    """Dismiss consent and open the current promotion before seeking participation."""
+
+    actions: list[str] = []
+    for pattern in (COOKIE_RE, PROMO_DETAILS_RE):
+        location = _click_preparation_control(page, pattern, timeout_ms)
+        if not location:
+            continue
+        actions.append(location)
+        try:
+            page.wait_for_timeout(600)
+        except Exception:
+            pass
+    return actions
+
+
+def _find_and_click(page: Any, timeout_ms: int) -> tuple[bool, str, list[str]]:
+    """Hydrate briefly, prepare the UI, and seek the button without long network-idle waits."""
+
+    preparations: list[str] = []
+    for _ in range(8):
+        if _success(page):
+            return False, "already_participating", preparations
+        for item in _prepare_page(page, timeout_ms):
+            if item not in preparations:
+                preparations.append(item)
+        clicked, location = _click_candidates(page, timeout_ms)
+        if clicked:
+            return True, location, preparations
+        try:
+            page.wait_for_timeout(500)
+        except Exception:
+            break
+    return False, "", preparations
+
+
 def _diagnostic_labels(page: Any) -> str:
     """Return short visible clickable labels and frame locations, without page contents."""
 
@@ -203,7 +269,7 @@ def _diagnostic_labels(page: Any) -> str:
                 candidate = locator.nth(index)
                 if not candidate.is_visible():
                     continue
-                label = _normalized_label(candidate.inner_text(timeout=1000))
+                label = _normalized_label(candidate.inner_text(timeout=800))
             except Exception:
                 continue
             if not label or len(label) > 80:
@@ -237,7 +303,7 @@ def participate(url: str) -> auto.ParticipationResult:
         return auto.ParticipationResult(False, "dependency_missing", "Playwright не установлен")
 
     timeout_ms = max(
-        10000,
+        8000,
         min(60000, int(os.getenv("BETBOOM_PARTICIPATION_TIMEOUT_MS", "30000"))),
     )
     channel = os.getenv("BETBOOM_BROWSER_CHANNEL", "chrome").strip() or "chrome"
@@ -249,13 +315,10 @@ def participate(url: str) -> auto.ParticipationResult:
             page = context.new_page()
             page.set_default_timeout(timeout_ms)
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-            try:
-                page.wait_for_load_state("networkidle", timeout=10000)
-            except Exception:
-                pass
-            page.wait_for_timeout(3500)
+            page.wait_for_timeout(800)
 
-            if _success(page):
+            clicked, location, preparations = _find_and_click(page, timeout_ms)
+            if location == "already_participating":
                 browser.close()
                 return auto.ParticipationResult(
                     True,
@@ -263,22 +326,23 @@ def participate(url: str) -> auto.ParticipationResult:
                     "BetBoom уже показывает точное подтверждение участия",
                 )
 
-            clicked, location = _click_candidates(page, timeout_ms)
             if not clicked:
-                page.reload(wait_until="domcontentloaded", timeout=timeout_ms)
                 try:
-                    page.wait_for_load_state("networkidle", timeout=10000)
+                    page.reload(wait_until="domcontentloaded", timeout=timeout_ms)
+                    page.wait_for_timeout(800)
                 except Exception:
                     pass
-                page.wait_for_timeout(3500)
-                if _success(page):
+                clicked, location, retried_preparations = _find_and_click(page, timeout_ms)
+                for item in retried_preparations:
+                    if item not in preparations:
+                        preparations.append(item)
+                if location == "already_participating":
                     browser.close()
                     return auto.ParticipationResult(
                         True,
                         "already_participating",
                         "BetBoom показывает точное подтверждение после повторной загрузки",
                     )
-                clicked, location = _click_candidates(page, timeout_ms)
 
             if not clicked:
                 body = _all_text(page).casefold()
@@ -286,26 +350,28 @@ def participate(url: str) -> auto.ParticipationResult:
                 detail = (
                     "страница показывает вход/авторизацию"
                     if any(value in body for value in ("войти", "авторизоваться", "авторизация"))
-                    else "кнопка участия не найдена в основном документе и frames"
+                    else "кнопка участия не найдена после подготовки интерфейса"
                 )
+                if preparations:
+                    detail += "; подготовка: " + " | ".join(preparations)
                 if labels:
                     detail += f"; видимые действия: {labels}"
                 browser.close()
                 return auto.ParticipationResult(False, "button_not_found", detail[:300])
 
-            for _ in range(4):
-                page.wait_for_timeout(1500)
+            for _ in range(6):
+                page.wait_for_timeout(750)
                 if _success(page):
                     browser.close()
-                    return auto.ParticipationResult(
-                        True,
-                        "participated",
-                        f"BetBoom показал точное подтверждение после нажатия ({location})"[:300],
-                    )
+                    detail = f"BetBoom подтвердил участие после нажатия ({location})"
+                    if preparations:
+                        detail += "; подготовка: " + " | ".join(preparations)
+                    return auto.ParticipationResult(True, "participated", detail[:300])
 
             try:
                 page.reload(wait_until="domcontentloaded", timeout=timeout_ms)
-                page.wait_for_timeout(2500)
+                page.wait_for_timeout(1000)
+                _prepare_page(page, timeout_ms)
             except Exception:
                 pass
             if _success(page):
@@ -343,6 +409,9 @@ def self_test() -> None:
         SUCCESS_LABEL_RE,
         "Если вы участвуете, дождитесь окончания таймера",
     )
+    assert _matches_full_label(COOKIE_RE, "Окей")
+    assert _matches_full_label(PROMO_DETAILS_RE, "Об акции")
+    assert not _matches_full_label(PROMO_DETAILS_RE, "Другие акции")
     print("BetBoom exact participation controls self-test passed")
 
 
