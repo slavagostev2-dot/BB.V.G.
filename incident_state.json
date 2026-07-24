@@ -1,5 +1,5 @@
 {
-  "active_count": 0,
+  "active_count": 1,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -180,27 +180,23 @@
       "title": "Основной монитор проверяет не все источники"
     },
     "system_checks:monitor_stale:e73e4f9e136f77bb": {
-      "detail": "Последний heartbeat был 30 минут назад.",
+      "detail": "Последний heartbeat был 10 минут назад.",
       "first_seen_at": "2026-07-14T04:04:11.018046+00:00",
       "key": "system_checks:monitor_stale:e73e4f9e136f77bb",
       "kind": "monitor_stale",
-      "last_seen_at": "2026-07-24T12:06:28.309429+00:00",
-      "lifecycle_started_at": "2026-07-24T11:31:23.214916+00:00",
+      "last_seen_at": "2026-07-24T14:42:27.309416+00:00",
+      "lifecycle_started_at": "2026-07-24T14:42:27.309416+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-07-23T23:09:01.753558+00:00",
-      "occurrences": 60,
+      "occurrences": 61,
       "open_notification_pending": false,
-      "open_notified_at": "2026-07-24T11:46:28.230853+00:00",
-      "opened_sequence": 106,
-      "reopen_notification_suppressed_at": "2026-07-23T21:48:06.286221+00:00",
-      "reopen_notification_suppressed_until": "2026-07-24T00:05:59.882547+00:00",
-      "resolution_notification_pending": false,
-      "resolution_notified_at": "2026-07-24T12:06:29.455455+00:00",
-      "resolved_at": "2026-07-24T12:06:28.309429+00:00",
+      "opened_sequence": 111,
+      "reopen_notification_suppressed_at": "2026-07-24T14:42:27.309416+00:00",
+      "reopen_notification_suppressed_until": "2026-07-24T17:46:28.230853+00:00",
       "resolved_sequence": 110,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "resolved",
+      "status": "active",
       "subject": "",
       "title": "Основной монитор давно не обновлялся"
     },
@@ -316,17 +312,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-24T12:06:28.309429+00:00",
-  "last_reconcile_at": "2026-07-24T14:32:34.473485+00:00",
+  "last_change_at": "2026-07-24T14:42:27.309416+00:00",
+  "last_reconcile_at": "2026-07-24T14:42:27.309416+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 0,
+    "active": 1,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 110,
+  "sequence": 111,
   "status": "initializing",
-  "updated_at": "2026-07-24T14:32:34.473534+00:00",
+  "updated_at": "2026-07-24T14:42:27.309498+00:00",
   "version": 1
 }
