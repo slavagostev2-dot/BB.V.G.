@@ -1,8 +1,8 @@
 name: Apply one-minute runtime sync hotfix
 
 on:
-  push:
-    branches: [agent/fix-one-minute-runtime-sync-20260725]
+  pull_request:
+    branches: [main]
     paths:
       - "scripts/apply_one_minute_runtime_sync_hotfix.py"
       - ".github/workflows/apply-one-minute-runtime-sync-hotfix.yml"
@@ -30,10 +30,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm scripts/apply_one_minute_runtime_sync_hotfix.py
-          git rm .github/workflows/apply-one-minute-runtime-sync-hotfix.yml
           git add .github/workflows/monitor.yml admin_panel_v2.py tests/test_monitor_interval_runtime_sync.py
           git commit -m "Fix one-minute monitoring and runtime state publication"
           git push origin HEAD:agent/fix-one-minute-runtime-sync-20260725
-
-# Second push intentionally triggers this temporary branch-only workflow.
