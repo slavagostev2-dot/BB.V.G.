@@ -1,22 +1,22 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 5,
-    "last_heartbeat_at": "2026-07-24T15:17:02.996491+00:00",
-    "started_at": "2026-07-24T15:06:53.106247+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-24T15:26:18.943843+00:00",
+    "started_at": "2026-07-24T15:26:15.545805+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": false,
+    "cached": true,
     "confidence": 0.0,
     "critical_count": 0,
-    "decision_id": "e196c10d65834b35b29506eecfd8068e",
+    "decision_id": "bd7a262c271c4eb19e0b2c663cbaba3e",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-24T15:22:22.194067+00:00",
+    "generated_at": "2026-07-24T15:27:05.792409+00:00",
     "impact": "Отсутствует. Система работает в нормальном режиме, все показатели в пределах нормы.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -61,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T15:22:20.048547+00:00",
+  "checked_at": "2026-07-24T15:27:04.616827+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -103,7 +103,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-24T15:17:02.996491+00:00",
+    "bot_panel_heartbeat": "2026-07-24T15:26:18.943843+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
@@ -113,9 +113,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-24T15:13:49.542144+00:00",
+      "last_checked_at": "2026-07-24T15:22:05.646753+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-24T15:13:49.542144+00:00",
+      "last_success_at": "2026-07-24T15:22:05.646753+00:00",
       "status": "ok"
     }
   },
@@ -150,32 +150,32 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 169,
-    "checks_delta": 169,
-    "checks_total": 866894,
+    "checks_delta": 866387,
+    "checks_total": 866387,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "0fd99c28c2270fd07adc87d5ca64657896c3c1ae",
-    "iteration": 12,
-    "last_iteration_at": "2026-07-24T15:17:53.757657+00:00",
+    "head_sha": "a01bdf946379f1e74273f673cacfbef6c73ebba1",
+    "iteration": 1,
+    "last_iteration_at": "2026-07-24T15:22:05.833389+00:00",
     "last_iteration_duration_seconds": 12,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-24T15:17:53.757657+00:00",
-    "last_successful_checks_total": 866894,
-    "last_successful_iteration_at": "2026-07-24T15:17:53.757657+00:00",
+    "last_process_heartbeat_at": "2026-07-24T15:22:05.833389+00:00",
+    "last_successful_checks_total": 866387,
+    "last_successful_iteration_at": "2026-07-24T15:22:05.833389+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "30104914540",
-    "run_started_at": "2026-07-24T15:21:43.292901677Z",
+    "run_id": "30105258748",
+    "run_started_at": "2026-07-24T15:26:30.060683956Z",
     "source_errors": 0,
-    "stats_counter_reset": false,
+    "stats_counter_reset": true,
     "status": "starting",
     "version": 3,
-    "workflow_run_id": "30104914540"
+    "workflow_run_id": "30105258748"
   },
   "monitor_age_minutes": 4,
-  "monitor_effective_heartbeat_at": "2026-07-24T15:17:53.757657+00:00",
+  "monitor_effective_heartbeat_at": "2026-07-24T15:22:05.833389+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -245,9 +245,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-24T15:13:49.542144+00:00",
+    "last_checked_at": "2026-07-24T15:22:05.646753+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-24T15:13:49.542144+00:00",
+    "last_success_at": "2026-07-24T15:22:05.646753+00:00",
     "status": "ok"
   }
 }
