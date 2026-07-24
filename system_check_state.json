@@ -10,13 +10,13 @@
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": false,
+    "cached": true,
     "confidence": 0.0,
     "critical_count": 0,
-    "decision_id": "a2c74b0d4999456492076994450e6ff7",
+    "decision_id": "cb4f35d02cb54c15a0a2e1bf56db6855",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-24T14:31:19.094966+00:00",
+    "generated_at": "2026-07-24T14:31:51.234890+00:00",
     "impact": "Отсутствует. Система работает в нормальном режиме, данные поступают без задержек.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -37,10 +37,10 @@
     "recorded_configured_sources": 170,
     "recorded_nightly_sources": 1,
     "recorded_primary_sources": 169,
-    "source_tier_last_run_at": "2026-07-24T00:11:37.492076+00:00",
+    "source_tier_last_run_at": "2026-07-24T14:31:12.508209+00:00",
     "source_tier_policy": "manual_nightly_only",
     "transport_accounted_sources": 170,
-    "transport_checked_at": "2026-07-23T23:43:01.524878+00:00",
+    "transport_checked_at": "2026-07-24T14:31:15.842882+00:00",
     "transport_domain": "telegram.me",
     "transport_status": "success"
   },
@@ -61,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T14:31:16.875229+00:00",
+  "checked_at": "2026-07-24T14:31:50.416558+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -174,7 +174,7 @@
     "version": 3,
     "workflow_run_id": "30101168366"
   },
-  "monitor_age_minutes": 1,
+  "monitor_age_minutes": 2,
   "monitor_effective_heartbeat_at": "2026-07-24T14:29:24.086679+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
