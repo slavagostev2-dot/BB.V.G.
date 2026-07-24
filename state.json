@@ -2437,10 +2437,10 @@
       "wheel_key": "neret"
     },
     "over#event:138f8c403f0214e44cb0": {
+      "dispatched_at": "2026-07-24T11:47:02.545244+00:00",
       "scheduled_at": "2026-07-24T11:46:59.280001+00:00",
       "status": "workflow_dispatch_sent",
-      "wheel_key": "over",
-      "dispatched_at": "2026-07-24T11:47:02.545244+00:00"
+      "wheel_key": "over"
     },
     "over#event:be81b6580df642f5d7fe": {
       "dispatched_at": "2026-07-22T09:38:10.722586+00:00",
@@ -4458,16 +4458,17 @@
   "last_admin_action_applied_at": "2026-07-23T19:36:20.104862+00:00",
   "last_auto_participation_recovery_scan_at": "2026-07-21T19:22:00.289412+00:00",
   "last_automatic_status_at": "2026-07-17T06:35:52.571822+00:00",
-  "last_heartbeat_at": "2026-07-24T05:10:05.826726+00:00",
+  "last_heartbeat_at": "2026-07-24T11:47:03.851815+00:00",
   "last_run_kind": "schedule",
   "last_run_summary": {
-    "activation_sent": 0,
-    "active_wheels": 0,
+    "activation_sent": 1,
+    "active_wheels": 2,
     "admin_actions": {
       "applied": 0,
       "changed": false,
-      "failed": 0,
-      "loaded": 212,
+      "error": "queue_load:HTTPError",
+      "failed": 1,
+      "loaded": 0,
       "pending": 0
     },
     "callbacks": {
@@ -4487,7 +4488,7 @@
     "reachable_sources": 169,
     "reminders": {
       "availability_notifications": 0,
-      "changed": false,
+      "changed": true,
       "draw_alerts": 0,
       "final_reminders": 0,
       "known_reminders": 0,
@@ -4496,10 +4497,10 @@
       "recovered_initial_notifications_failed": 0,
       "recovered_initial_notifications_sent": 0,
       "removed": 0,
-      "tracked": 0,
+      "tracked": 1,
       "unknown_reminders": 0,
-      "verification_checked": 0,
-      "verification_confirmed": 0,
+      "verification_checked": 1,
+      "verification_confirmed": 1,
       "verification_deferred": 0,
       "verification_failed": 0,
       "verification_removed": 0
@@ -4511,7 +4512,7 @@
       "sent": false
     },
     "sources": 169,
-    "stale_skipped": 0,
+    "stale_skipped": 1,
     "unconfirmed_waiting": 0,
     "unknown_timer_samples_added": 0
   },
