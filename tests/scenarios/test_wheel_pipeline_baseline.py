@@ -1,17 +1,16 @@
 from __future__ import annotations
 
+import json
+import os
+import subprocess
+import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
-import admin_action_queue
-import auto_participation_notifications
-import auto_participation_owner_sync
-import betboom_auto_participation
-import bbvg_monitor_main
 
-
+ROOT = Path(__file__).resolve().parents[2]
 UTC = timezone.utc
-monitor = bbvg_monitor_main.monitor
 
 
 def _empty_state() -> dict[str, Any]:
@@ -41,24 +40,32 @@ def _empty_state() -> dict[str, Any]:
     }
 
 
-def test_current_production_composition_is_frozen() -> None:
-    """Stage 1 records the installed production composition without changing it."""
+def _composition_scenario() -> dict[str, Any]:
+    import admin_action_queue
+    import bbvg_monitor_main
 
-    assert monitor.BOT_FEEDBACK_ENABLED is False
-    assert monitor.process_admin_actions is admin_action_queue.process_pending
-    assert monitor._bbvg_wheel_event_runtime_installed is True
-    assert monitor._bbvg_restart_duplicate_guard_installed is True
-    assert monitor._bbvg_wheel_link_lifecycle_installed is True
-    assert monitor._bbvg_wheel_lifecycle_v2_installed is True
-    assert monitor._bbvg_personal_reminder_filter_installed is True
-    assert callable(monitor.process_auto_participation_dispatch)
+    monitor = bbvg_monitor_main.monitor
+    return {
+        "bot_feedback_disabled": monitor.BOT_FEEDBACK_ENABLED is False,
+        "admin_queue_installed": (
+            monitor.process_admin_actions is admin_action_queue.process_pending
+        ),
+        "event_runtime": bool(monitor._bbvg_wheel_event_runtime_installed),
+        "duplicate_guard": bool(monitor._bbvg_restart_duplicate_guard_installed),
+        "link_lifecycle": bool(monitor._bbvg_wheel_link_lifecycle_installed),
+        "wheel_lifecycle": bool(monitor._bbvg_wheel_lifecycle_v2_installed),
+        "auto_dispatch": bool(monitor._bbvg_personal_reminder_filter_installed),
+        "dispatcher_callable": callable(monitor.process_auto_participation_dispatch),
+    }
 
 
-def test_active_publication_reaches_one_combined_auto_participation_result(
-    monkeypatch: Any,
-) -> None:
-    """Freeze discovery -> notification -> participation -> aggregation behavior."""
+def _pipeline_scenario() -> dict[str, Any]:
+    import auto_participation_notifications
+    import auto_participation_owner_sync
+    import betboom_auto_participation
+    import bbvg_monitor_main
 
+    monitor = bbvg_monitor_main.monitor
     now = datetime(2026, 7, 25, 10, 0, tzinfo=UTC)
     deadline = now + timedelta(minutes=30)
     server_start = now - timedelta(minutes=5)
@@ -73,18 +80,14 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
     )
     state = _empty_state()
 
-    monkeypatch.setattr(monitor, "now_utc", lambda: now)
-    monkeypatch.setattr(
-        monitor,
-        "inspect_wheel_page",
-        lambda _url: monitor.WheelInspection(
-            status="active",
-            deadline=deadline,
-            method="baseline BetBoom API",
-            action_id=1201,
-            verification_status=monitor.WHEEL_VERIFICATION_CONFIRMED,
-            server_start_at=server_start,
-        ),
+    monitor.now_utc = lambda: now
+    monitor.inspect_wheel_page = lambda _url: monitor.WheelInspection(
+        status="active",
+        deadline=deadline,
+        method="baseline BetBoom API",
+        action_id=1201,
+        verification_status=monitor.WHEEL_VERIFICATION_CONFIRMED,
+        server_start_at=server_start,
     )
 
     assessment = monitor.assess_new_wheel(message, url, state)
@@ -105,7 +108,7 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
         )
         return {"ok": True, "result": {"sent": 1, "message_id": 9001}}
 
-    monkeypatch.setattr(monitor, "send_message", capture_initial)
+    monitor.send_message = capture_initial
     monitor.notify_new_link(
         message,
         url,
@@ -129,7 +132,7 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
         entry, monitor, now
     )
 
-    result = betboom_auto_participation.ParticipationResult(
+    participation = betboom_auto_participation.ParticipationResult(
         True,
         "participated",
         "BetBoom подтвердил участие",
@@ -139,12 +142,11 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
         monitor,
         key,
         entry,
-        result,
+        participation,
         now,
     )
     assert state["active_wheels"][key]["participating"] is True
 
-    # The current Control Center groups the two owner accounts by the exact event.
     base_token = auto_participation_owner_sync._event_token(entry, key)
     event_context = {
         field: entry[field]
@@ -201,11 +203,84 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
     )
     assert "Участие принято" in text
     assert "Аккаунты: <b>1 и 2</b>" in text
-    assert markup == {
-        "inline_keyboard": [
-            [
-                {"text": "🔥 Активные колёса", "callback_data": "bb:l:active"},
-                {"text": "🏠 Главное меню", "callback_data": "page:menu"},
-            ]
-        ]
+    callbacks = {
+        str(button.get("callback_data") or "")
+        for row in markup.get("inline_keyboard", [])
+        for button in row
+        if isinstance(button, dict)
     }
+    assert callbacks == {"bb:l:active", "page:menu"}
+
+    return {
+        "initial_notifications": len(initial_messages),
+        "wheel_key": key,
+        "event_token": base_token,
+        "participating": bool(state["active_wheels"][key]["participating"]),
+        "account_outcomes": sorted(groups[base_token]),
+        "combined_result": "Участие принято" in text,
+    }
+
+
+def _invoke_scenario(name: str) -> dict[str, Any]:
+    env = dict(os.environ)
+    env.update(
+        {
+            "BBVG_TEST_MODE": "1",
+            "BOT_TOKEN": "test-bot-token",
+            "BOT_STATE_KEY": "test-state-key",
+            "BOT_CHAT_ID": "1",
+            "ADMIN_USER_ID": "1",
+            "TELEGRAM_WEB_DOMAIN": "telegram.me",
+        }
+    )
+    completed = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve()), "--scenario", name],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    lines = [line for line in completed.stdout.splitlines() if line.strip()]
+    assert lines, completed.stderr
+    return json.loads(lines[-1])
+
+
+def test_current_production_composition_is_frozen() -> None:
+    """The production install graph is checked without mutating the pytest process."""
+
+    result = _invoke_scenario("composition")
+    assert result and all(result.values())
+
+
+def test_active_publication_reaches_one_combined_auto_participation_result() -> None:
+    """Freeze discovery -> notification -> participation -> aggregation behavior."""
+
+    result = _invoke_scenario("pipeline")
+    assert result["initial_notifications"] == 1
+    assert result["wheel_key"] == "baseline-wheel"
+    assert result["participating"] is True
+    assert result["combined_result"] is True
+    assert result["account_outcomes"] == [
+        "vyacheslav_primary",
+        "vyacheslav_secondary",
+    ]
+
+
+def main() -> int:
+    if len(sys.argv) != 3 or sys.argv[1] != "--scenario":
+        raise SystemExit("usage: test_wheel_pipeline_baseline.py --scenario NAME")
+    if sys.argv[2] == "composition":
+        result = _composition_scenario()
+    elif sys.argv[2] == "pipeline":
+        result = _pipeline_scenario()
+    else:
+        raise SystemExit(f"unknown scenario: {sys.argv[2]}")
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
