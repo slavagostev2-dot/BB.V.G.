@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -13,6 +16,31 @@ def _text(path: str) -> str:
 def _ordered(text: str, markers: tuple[str, ...]) -> bool:
     positions = [text.index(marker) for marker in markers]
     return positions == sorted(positions)
+
+
+def _run(*args: str) -> str:
+    env = dict(os.environ)
+    env.update(
+        {
+            "BBVG_TEST_MODE": "1",
+            "BOT_TOKEN": "test-bot-token",
+            "BOT_STATE_KEY": "test-state-key",
+            "BOT_CHAT_ID": "1",
+            "ADMIN_USER_ID": "1",
+            "TELEGRAM_WEB_DOMAIN": "telegram.me",
+        }
+    )
+    completed = subprocess.run(
+        [sys.executable, *args],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=90,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    return completed.stdout
 
 
 def test_current_monitor_composition_order_is_documented_and_frozen() -> None:
@@ -46,3 +74,21 @@ def test_current_monitor_composition_order_is_documented_and_frozen() -> None:
         "Замороженные контракты этапа 1",
     ):
         assert section in baseline
+
+
+def test_existing_scenario_contracts_cover_pipeline_boundaries() -> None:
+    """Run existing stable contracts at every boundary of the wheel pipeline."""
+
+    assert "10 scenarios" in _run("wheel_scenario_suite.py")
+    assert "exact participation controls self-test passed" in _run(
+        "betboom_participation_browser.py"
+    )
+    assert "authoritative-outcome self-test passed" in _run(
+        "auto_participation_recovery.py", "--self-test"
+    )
+    assert "auto participation bot outcome sync self-test passed" in _run(
+        "auto_participation_bot_sync.py", "--self-test"
+    )
+    assert "unified auto participation notifications self-test passed" in _run(
+        "auto_participation_notifications.py"
+    )
