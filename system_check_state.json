@@ -1,9 +1,9 @@
 {
   "active_incidents": 33,
   "admin_panel": {
-    "age_minutes": 12,
-    "last_heartbeat_at": "2026-07-24T21:36:34.261583+00:00",
-    "started_at": "2026-07-24T19:20:15.392783+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-24T23:51:36.084309+00:00",
+    "started_at": "2026-07-24T23:51:32.083661+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,22 +13,22 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 32,
-    "decision_id": "d3718c31677a4b798b06f01ad3215f12",
+    "decision_id": "69f12ceb8a3f4914bd65350cef9d4eba",
     "finding_count": 33,
     "finding_kinds": [
-      "monitor_stale",
+      "monitor_source_count",
       "source_timeout",
       "sources_quarantined"
     ],
-    "generated_at": "2026-07-24T21:48:55.599406+00:00",
-    "impact": "Данные от ключевых источников не поступают, что приводит к остановке актуализации контента и потере мониторинга по 32 каналам.",
+    "generated_at": "2026-07-24T23:51:54.149907+00:00",
+    "impact": "Система не получает данные от 31 источника, что приводит к потере актуальности информации и неполному покрытию мониторинга.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: основной монитор не обновлялся более 10 минут, зафиксировано 32 критические ошибки из-за таймаутов при обращении к источникам Telegram.",
+    "summary": "Критический сбой мониторинга: из 169 источников проверяются только 138, зафиксировано 32 критические ошибки из-за таймаутов при обращении к telegram.me.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -44,7 +44,7 @@
     "source_tier_last_run_at": "2026-07-24T14:31:12.508209+00:00",
     "source_tier_policy": "manual_nightly_only",
     "transport_accounted_sources": 170,
-    "transport_checked_at": "2026-07-24T14:31:15.842882+00:00",
+    "transport_checked_at": "2026-07-24T23:51:15.931371+00:00",
     "transport_domain": "telegram.me",
     "transport_status": "success"
   },
@@ -65,13 +65,13 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T21:48:51.785911+00:00",
+  "checked_at": "2026-07-24T23:51:52.494592+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 552,
     "catalog_size": 1,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-23T23:42:43.034857+00:00",
+    "discovery_last_run_at": "2026-07-24T23:50:53.539832+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
     "intelligence_last_run_at": "2026-07-24T21:48:26.538694+00:00",
@@ -106,11 +106,11 @@
   "finding_count": 33,
   "findings": [
     {
-      "detail": "Последний heartbeat был 10 минут назад.",
-      "kind": "monitor_stale",
+      "detail": "В последней итерации проверено 138 из 169 источников основного режима.",
+      "kind": "monitor_source_count",
       "severity": "critical",
       "subject": "",
-      "title": "Основной монитор давно не обновлялся"
+      "title": "Основной монитор проверяет не все источники"
     },
     {
       "detail": "telegram.me не ответил за отведённое время",
@@ -339,19 +339,19 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 33,
-    "bot_panel_heartbeat": "2026-07-24T21:36:34.261583+00:00",
-    "checked_sources": 169,
+    "bot_panel_heartbeat": "2026-07-24T23:51:36.084309+00:00",
+    "checked_sources": 138,
     "configured_sources": 170,
     "domain": "telegram.me",
-    "reachable_sources": 169,
+    "reachable_sources": 138,
     "single_source": "system_check_state.json",
     "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-24T21:43:22.465583+00:00",
+      "last_checked_at": "2026-07-24T23:51:22.581092+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-24T21:43:22.465583+00:00",
+      "last_success_at": "2026-07-24T23:51:22.581092+00:00",
       "status": "ok"
     }
   },
@@ -363,7 +363,7 @@
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 151,
+  "incident_sequence": 153,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -385,22 +385,22 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 169,
+    "checked_sources": 138,
     "checks_delta": 169,
-    "checks_total": 906609,
+    "checks_total": 928579,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "a7ff5802e67610574ea174601ca749a5a6c80d78",
-    "iteration": 136,
+    "iteration": 266,
     "last_failure_at": "2026-07-24T18:52:55.417066+00:00",
-    "last_iteration_at": "2026-07-24T21:38:19.813302+00:00",
-    "last_iteration_duration_seconds": 9,
+    "last_iteration_at": "2026-07-24T23:51:22.767533+00:00",
+    "last_iteration_duration_seconds": 8,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-24T21:38:19.813302+00:00",
-    "last_successful_checks_total": 906609,
-    "last_successful_iteration_at": "2026-07-24T21:38:19.813302+00:00",
+    "last_process_heartbeat_at": "2026-07-24T23:51:22.767533+00:00",
+    "last_successful_checks_total": 928579,
+    "last_successful_iteration_at": "2026-07-24T23:51:22.767533+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 169,
+    "reachable_sources": 138,
     "restart_recommended": false,
     "run_attempt": "1",
     "run_id": "30120296794",
@@ -411,8 +411,8 @@
     "version": 3,
     "workflow_run_id": "30120296794"
   },
-  "monitor_age_minutes": 10,
-  "monitor_effective_heartbeat_at": "2026-07-24T21:38:19.813302+00:00",
+  "monitor_age_minutes": 0,
+  "monitor_effective_heartbeat_at": "2026-07-24T23:51:22.767533+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -701,9 +701,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-24T21:43:22.465583+00:00",
+    "last_checked_at": "2026-07-24T23:51:22.581092+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-24T21:43:22.465583+00:00",
+    "last_success_at": "2026-07-24T23:51:22.581092+00:00",
     "status": "ok"
   }
 }
