@@ -19,6 +19,12 @@ from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
 FAST_SYNC_INTERVAL_SECONDS = 5
 FAST_CACHE_REFRESH_SECONDS = 5
 _AUTO_OUTCOME_DELIVERY_KIND = "auto_participation_outcome"
+_OWNER_ACCOUNT_UNAVAILABLE_STATUSES = {
+    "button_not_found",
+    "participation_closed",
+    "not_eligible",
+}
+_OWNER_ACCOUNT_UNAVAILABLE_REASON = "owner_accounts_unavailable"
 _outcome_delivery_context = threading.local()
 
 
@@ -45,6 +51,16 @@ def _take_outcome_delivery_identity() -> str:
     return identity
 
 
+def _set_outcome_delivery_suppression(reason: str) -> None:
+    _outcome_delivery_context.suppression = str(reason or "")
+
+
+def _take_outcome_delivery_suppression() -> str:
+    reason = str(getattr(_outcome_delivery_context, "suppression", "") or "")
+    _outcome_delivery_context.suppression = ""
+    return reason
+
+
 def _outcome_delivery_identity(
     audience: str,
     event_key: str,
@@ -69,7 +85,16 @@ def _send_outcome_once(
     reply_markup: dict[str, Any] | None = None,
     chat_id: str | None = None,
 ) -> dict:
+    suppression = _take_outcome_delivery_suppression()
     identity = _take_outcome_delivery_identity()
+    if suppression:
+        return {
+            "ok": True,
+            "result": {
+                "suppressed": True,
+                "reason": suppression,
+            },
+        }
     if not identity:
         return original_send(text, reply_markup=reply_markup, chat_id=chat_id)
 
@@ -128,6 +153,7 @@ def _run_with_outcome_delivery_claims(
         )
 
     _take_outcome_delivery_identity()
+    _take_outcome_delivery_suppression()
     panel.send = send_once
     try:
         value = callback(panel)
@@ -135,6 +161,23 @@ def _run_with_outcome_delivery_claims(
     finally:
         panel.send = original_send
         _take_outcome_delivery_identity()
+        _take_outcome_delivery_suppression()
+
+
+def _owner_accounts_unavailable(
+    accounts: dict[str, tuple[str, dict[str, Any], bool]],
+) -> bool:
+    if not accounts or any(bool(value[2]) for value in accounts.values()):
+        return False
+    statuses = {
+        str(
+            record.get("bot_failure_status")
+            or record.get("status")
+            or ""
+        ).casefold()
+        for _token, record, _success in accounts.values()
+    }
+    return bool(statuses) and statuses <= _OWNER_ACCOUNT_UNAVAILABLE_STATUSES
 
 
 def _install_auto_outcome_delivery_claims() -> None:
@@ -153,13 +196,16 @@ def _install_auto_outcome_delivery_claims() -> None:
         accounts: dict[str, tuple[str, dict[str, Any], bool]],
     ) -> tuple[str, dict[str, Any]]:
         event_key = personal_wheel_voting.wheel_event_key(key, item)
-        _set_outcome_delivery_identity(
-            _outcome_delivery_identity(
-                "owner",
-                event_key,
-                success=all(value[2] for value in accounts.values()),
+        if _owner_accounts_unavailable(accounts):
+            _set_outcome_delivery_suppression(_OWNER_ACCOUNT_UNAVAILABLE_REASON)
+        else:
+            _set_outcome_delivery_identity(
+                _outcome_delivery_identity(
+                    "owner",
+                    event_key,
+                    success=all(value[2] for value in accounts.values()),
+                )
             )
-        )
         return original_result_message(key, item, accounts)
 
     def xflarxx_message_with_identity(
@@ -293,6 +339,34 @@ def self_test() -> None:
     assert _outcome_delivery_identity(
         "owner", "wheel#action:42", success=False
     ).endswith(":failure")
+    assert _owner_accounts_unavailable(
+        {
+            "vyacheslav_primary": (
+                "wheel#account:primary",
+                {"status": "button_not_found"},
+                False,
+            ),
+            "vyacheslav_secondary": (
+                "wheel#account:secondary",
+                {"status": "button_not_found"},
+                False,
+            ),
+        }
+    )
+    assert not _owner_accounts_unavailable(
+        {
+            "vyacheslav_primary": (
+                "wheel#account:primary",
+                {"status": "participated"},
+                True,
+            ),
+            "vyacheslav_secondary": (
+                "wheel#account:secondary",
+                {"status": "button_not_found"},
+                False,
+            ),
+        }
+    )
 
     original_delivery_key = notification_router.delivery_key
     original_claim = notification_router.claim_delivery
@@ -315,6 +389,16 @@ def self_test() -> None:
         )
         assert sent_outcomes == ["result"]
         assert completed_outcomes == ["delivery-key"]
+
+        _set_outcome_delivery_suppression(_OWNER_ACCOUNT_UNAVAILABLE_REASON)
+        unavailable = _send_outcome_once(
+            lambda text, **_kwargs: sent_outcomes.append(text) or {"ok": True},
+            "unavailable",
+            chat_id="1",
+        )
+        assert unavailable["result"]["suppressed"] is True
+        assert unavailable["result"]["reason"] == _OWNER_ACCOUNT_UNAVAILABLE_REASON
+        assert sent_outcomes == ["result"]
 
         notification_router.claim_delivery = lambda _key: False
         notification_router.delivery_reservation_status = lambda _key: "completed"
