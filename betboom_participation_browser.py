@@ -115,6 +115,14 @@ def _visible_exact_control(root: Any, pattern: re.Pattern[str]) -> tuple[Any | N
     return None, ""
 
 
+def _visible_control_location(page: Any, pattern: re.Pattern[str]) -> str:
+    for root in _search_roots(page):
+        candidate, label = _visible_exact_control(root, pattern)
+        if candidate is not None:
+            return f"{_root_name(root, page)}:{label}"[:180]
+    return ""
+
+
 def _success(page: Any) -> bool:
     """Accept only a visible, self-contained confirmation label in any frame."""
 
@@ -202,7 +210,7 @@ def _click_preparation_control(
     pattern: re.Pattern[str],
     timeout_ms: int,
 ) -> str:
-    """Click one exact, harmless UI preparation control across page and frames."""
+    """Click one exact harmless preparation control across page and frames."""
 
     for root in _search_roots(page):
         candidate, label = _visible_exact_control(root, pattern)
@@ -216,24 +224,58 @@ def _click_preparation_control(
     return ""
 
 
+def _preparation_patterns() -> tuple[re.Pattern[str], ...]:
+    """Only consent controls are safe before participation.
+
+    «Об акции» is a post-click BetBoom state and must never be clicked as preparation.
+    """
+
+    return (COOKIE_RE,)
+
+
 def _prepare_page(page: Any, timeout_ms: int) -> list[str]:
-    """Dismiss consent and open the current promotion before seeking participation."""
+    """Dismiss consent without touching the promotion state."""
 
     actions: list[str] = []
-    for pattern in (COOKIE_RE, PROMO_DETAILS_RE):
+    for pattern in _preparation_patterns():
         location = _click_preparation_control(page, pattern, timeout_ms)
         if not location:
             continue
         actions.append(location)
         try:
-            page.wait_for_timeout(600)
+            page.wait_for_timeout(350)
         except Exception:
             pass
     return actions
 
 
+def _accepted_post_click_layout(
+    *,
+    participation_visible: bool,
+    promo_details_visible: bool,
+) -> bool:
+    """Recognize the BetBoom layout that replaces participation after a click."""
+
+    return promo_details_visible and not participation_visible
+
+
+def _post_click_confirmed(page: Any) -> tuple[bool, str]:
+    """Confirm participation after our click without opening «Об акции»."""
+
+    if _success(page):
+        return True, "exact_success_label"
+    participation_location = _visible_control_location(page, CLICK_RE)
+    promo_location = _visible_control_location(page, PROMO_DETAILS_RE)
+    if _accepted_post_click_layout(
+        participation_visible=bool(participation_location),
+        promo_details_visible=bool(promo_location),
+    ):
+        return True, f"post_click_layout:{promo_location}"[:180]
+    return False, ""
+
+
 def _find_and_click(page: Any, timeout_ms: int) -> tuple[bool, str, list[str]]:
-    """Hydrate briefly, prepare the UI, and seek the button without long network-idle waits."""
+    """Dismiss consent, then seek the real participation button only."""
 
     preparations: list[str] = []
     for _ in range(8):
@@ -242,6 +284,8 @@ def _find_and_click(page: Any, timeout_ms: int) -> tuple[bool, str, list[str]]:
         for item in _prepare_page(page, timeout_ms):
             if item not in preparations:
                 preparations.append(item)
+        if _success(page):
+            return False, "already_participating", preparations
         clicked, location = _click_candidates(page, timeout_ms)
         if clicked:
             return True, location, preparations
@@ -350,7 +394,7 @@ def participate(url: str) -> auto.ParticipationResult:
                 detail = (
                     "страница показывает вход/авторизацию"
                     if any(value in body for value in ("войти", "авторизоваться", "авторизация"))
-                    else "кнопка участия не найдена после подготовки интерфейса"
+                    else "кнопка участия не найдена после закрытия cookie"
                 )
                 if preparations:
                     detail += "; подготовка: " + " | ".join(preparations)
@@ -359,11 +403,14 @@ def participate(url: str) -> auto.ParticipationResult:
                 browser.close()
                 return auto.ParticipationResult(False, "button_not_found", detail[:300])
 
-            for _ in range(6):
-                page.wait_for_timeout(750)
-                if _success(page):
+            for _ in range(8):
+                page.wait_for_timeout(500)
+                confirmed, confirmation = _post_click_confirmed(page)
+                if confirmed:
                     browser.close()
-                    detail = f"BetBoom подтвердил участие после нажатия ({location})"
+                    detail = (
+                        f"BetBoom подтвердил участие после нажатия ({location}; {confirmation})"
+                    )
                     if preparations:
                         detail += "; подготовка: " + " | ".join(preparations)
                     return auto.ParticipationResult(True, "participated", detail[:300])
@@ -374,19 +421,23 @@ def participate(url: str) -> auto.ParticipationResult:
                 _prepare_page(page, timeout_ms)
             except Exception:
                 pass
-            if _success(page):
+            confirmed, confirmation = _post_click_confirmed(page)
+            if confirmed:
                 browser.close()
                 return auto.ParticipationResult(
                     True,
                     "participated",
-                    f"BetBoom подтвердил участие после контрольной перезагрузки ({location})"[:300],
+                    (
+                        "BetBoom подтвердил участие после контрольной перезагрузки "
+                        f"({location}; {confirmation})"
+                    )[:300],
                 )
 
             browser.close()
             return auto.ParticipationResult(
                 False,
                 "unconfirmed",
-                f"элемент участия нажат ({location}), но точное подтверждение BetBoom не найдено"[:300],
+                f"элемент участия нажат ({location}), но состояние после нажатия не распознано"[:300],
             )
     except Exception as exc:
         return auto.ParticipationResult(
@@ -412,6 +463,19 @@ def self_test() -> None:
     assert _matches_full_label(COOKIE_RE, "Окей")
     assert _matches_full_label(PROMO_DETAILS_RE, "Об акции")
     assert not _matches_full_label(PROMO_DETAILS_RE, "Другие акции")
+    assert PROMO_DETAILS_RE not in _preparation_patterns()
+    assert _accepted_post_click_layout(
+        participation_visible=False,
+        promo_details_visible=True,
+    )
+    assert not _accepted_post_click_layout(
+        participation_visible=True,
+        promo_details_visible=True,
+    )
+    assert not _accepted_post_click_layout(
+        participation_visible=False,
+        promo_details_visible=False,
+    )
     print("BetBoom exact participation controls self-test passed")
 
 
