@@ -1054,6 +1054,47 @@ class TelegramPanelV2(RuntimeAdminBot):
         for entry in snap.state.get("active_wheels", {}).values():
             if isinstance(entry, dict) and str(entry.get("source") or "").casefold() == source.casefold() and int(entry.get("message_id") or 0) == node_id:
                 state_hits.append("колесо находится в активном списке")
+
+        if not state_hits:
+            wheel_keys = {
+                str(link).split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1].casefold()
+                for link in wheel_links
+                if str(link).strip()
+            }
+            observations = [
+                entry
+                for entry in snap.state.get("wheel_generation_observations", {}).values()
+                if isinstance(entry, dict)
+                and str(entry.get("wheel_key") or "").casefold() in wheel_keys
+            ]
+            if observations:
+                latest = max(
+                    observations,
+                    key=lambda entry: str(
+                        entry.get("last_seen_at") or entry.get("first_seen_at") or ""
+                    ),
+                )
+                statuses = latest.get("statuses")
+                statuses = statuses if isinstance(statuses, dict) else {}
+                action_id = str(latest.get("action_id") or "не указан")
+                server_start = str(latest.get("server_start_at") or "не указан")
+                if int(statuses.get("inactive", 0) or 0) > 0:
+                    state_hits.append(
+                        "колесо найдено монитором, но к моменту проверки BetBoom "
+                        f"уже закрыл участие; action_id {action_id}; "
+                        f"серверный старт {server_start}"
+                    )
+                elif int(statuses.get("active", 0) or 0) > 0:
+                    state_hits.append(
+                        "колесо было подтверждено BetBoom; "
+                        f"action_id {action_id}; серверный старт {server_start}"
+                    )
+                else:
+                    state_hits.append(
+                        "колесо найдено в истории проверок BetBoom; "
+                        f"action_id {action_id}; серверный старт {server_start}"
+                    )
+
         reason = "; ".join(state_hits) if state_hits else (
             "пост ещё не попал в состояние монитора" if source.casefold() in primary | reserve else "канал не включён в мониторинг"
         )
