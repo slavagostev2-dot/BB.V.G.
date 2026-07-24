@@ -395,11 +395,50 @@ def _install_analytics_section_ownership(mixin_cls: type) -> None:
     mixin_cls._bbvg_analytics_section_ownership_installed = True
 
 
+def _cached_snapshot(instance: Any) -> Any | None:
+    cache = getattr(instance, "cache", None)
+    if not isinstance(cache, tuple) or len(cache) != 2:
+        return None
+    return cache[1]
+
+
+def _restore_cached_snapshot_sections(current: Any, previous: Any | None) -> Any:
+    """Keep the last valid state when one remote JSON read temporarily defaults empty."""
+
+    if previous is None:
+        return current
+    for field in ("state", "stats", "health", "discovery", "unknown"):
+        current_value = getattr(current, field, None)
+        previous_value = getattr(previous, field, None)
+        if (
+            isinstance(current_value, dict)
+            and not current_value
+            and isinstance(previous_value, dict)
+            and previous_value
+        ):
+            setattr(current, field, previous_value)
+    return current
+
+
 def install(mixin_cls: type) -> None:
     if getattr(mixin_cls, "_bbvg_hunter_profile_installed", False):
         return
 
     _install_analytics_section_ownership(mixin_cls)
+
+    def snapshot_with_cached_fallback(self, *, force: bool = False):
+        previous = _cached_snapshot(self)
+        try:
+            current = super(mixin_cls, self).snapshot(force=force)
+        except Exception as exc:
+            if previous is None:
+                raise
+            print(
+                "WARNING panel snapshot refresh unavailable; "
+                f"using last valid snapshot: {type(exc).__name__}: {exc}"
+            )
+            return previous
+        return _restore_cached_snapshot_sections(current, previous)
 
     def compact_menu_rows_with_profile(
         self, admin: bool
@@ -415,7 +454,14 @@ def install(mixin_cls: type) -> None:
         import personal_wheel_voting
 
         user_id = str(self.current_user_id or "")
-        access = self.load_access(force=True)
+        try:
+            access = self.load_access(force=True)
+        except Exception as exc:
+            print(
+                "WARNING profile access refresh unavailable; "
+                f"using cached/local access: {type(exc).__name__}: {exc}"
+            )
+            access = self.load_access(force=False)
         users = access.get("users") if isinstance(access.get("users"), dict) else {}
         record = users.get(user_id) if isinstance(users.get(user_id), dict) else {}
         owner_id = str(access.get("owner_id") or "")
@@ -464,6 +510,7 @@ def install(mixin_cls: type) -> None:
             return
         super(mixin_cls, self).handle_callback(query)
 
+    mixin_cls.snapshot = snapshot_with_cached_fallback
     mixin_cls.compact_menu_rows = compact_menu_rows_with_profile
     mixin_cls.show_profile = show_profile
     mixin_cls.handle_callback = handle_callback_with_profile
