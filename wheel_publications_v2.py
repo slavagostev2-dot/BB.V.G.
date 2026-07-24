@@ -42,7 +42,9 @@ def is_referral_restricted(text: str) -> bool:
     """Recognize an explicit referral/promo eligibility restriction in a post."""
 
     value = " ".join(str(text or "").split())
-    return bool(value and any(pattern.search(value) for pattern in _REFERRAL_RESTRICTION_PATTERNS))
+    return bool(
+        value and any(pattern.search(value) for pattern in _REFERRAL_RESTRICTION_PATTERNS)
+    )
 
 
 def entry_is_referral_restricted(entry: Any) -> bool:
@@ -56,7 +58,11 @@ def entry_is_referral_restricted(entry: Any) -> bool:
 def referral_restriction_notice(text: str, *, html_mode: bool = True) -> str:
     if not is_referral_restricted(text):
         return ""
-    return REFERRAL_RESTRICTED_NOTICE_HTML if html_mode else REFERRAL_RESTRICTED_NOTICE_TEXT
+    return (
+        REFERRAL_RESTRICTED_NOTICE_HTML
+        if html_mode
+        else REFERRAL_RESTRICTED_NOTICE_TEXT
+    )
 
 
 def _clean_source(value: Any) -> str:
@@ -69,8 +75,7 @@ def _publication_key(row: dict[str, Any]) -> tuple[str, int, str]:
         message_id = int(row.get("message_id", 0) or 0)
     except (TypeError, ValueError):
         message_id = 0
-    message_url = str(row.get("message_url") or "")
-    return source, message_id, message_url
+    return source, message_id, str(row.get("message_url") or "")
 
 
 def _normalized_row(row: dict[str, Any]) -> dict[str, Any] | None:
@@ -81,22 +86,17 @@ def _normalized_row(row: dict[str, Any]) -> dict[str, Any] | None:
         message_id = int(row.get("message_id", 0) or 0)
     except (TypeError, ValueError):
         message_id = 0
-    return {
+    result: dict[str, Any] = {
         "source": source,
         "message_id": message_id,
         "message_date": str(row.get("message_date") or row.get("created_at") or ""),
         "message_url": str(row.get("message_url") or ""),
-        **(
-            {"has_future_deadline": bool(row.get("has_future_deadline"))}
-            if "has_future_deadline" in row
-            else {}
-        ),
-        **(
-            {"has_future_availability": bool(row.get("has_future_availability"))}
-            if "has_future_availability" in row
-            else {}
-        ),
     }
+    if "has_future_deadline" in row:
+        result["has_future_deadline"] = bool(row.get("has_future_deadline"))
+    if "has_future_availability" in row:
+        result["has_future_availability"] = bool(row.get("has_future_availability"))
+    return result
 
 
 def merge_publications(
@@ -140,7 +140,9 @@ def merge_publications(
     )
 
 
-def publication_sources(state: dict[str, Any], key: str, fallback: Any = None) -> list[str]:
+def publication_sources(
+    state: dict[str, Any], key: str, fallback: Any = None
+) -> list[str]:
     result: list[str] = []
     rows = state.get("wheel_publications", {}).get(str(key).casefold(), [])
     if isinstance(rows, list):
@@ -154,6 +156,7 @@ def publication_sources(state: dict[str, Any], key: str, fallback: Any = None) -
         if isinstance(raw_sources, list):
             result.extend(_clean_source(source) for source in raw_sources)
         result.append(_clean_source(fallback.get("source")))
+
     seen: set[str] = set()
     unique: list[str] = []
     for source in result:
@@ -183,8 +186,7 @@ def closed_event_blocks_publications(
     normalized = str(key or "").casefold()
     if normalized in state.get("active_wheels", {}):
         return False
-    inactive = state.get("inactive_wheels", {}).get(normalized)
-    if isinstance(inactive, dict):
+    if isinstance(state.get("inactive_wheels", {}).get(normalized), dict):
         return True
     completed = state.get("recently_completed_wheels", {}).get(normalized)
     if not isinstance(completed, dict):
@@ -222,15 +224,31 @@ def prune_closed_publications(state: dict[str, Any]) -> int:
     return removed
 
 
-def install(monitor_module: Any, runtime_module: Any) -> None:
-    """Persist every Telegram publication for one current wheel event.
+def _preliminary_alert_exists(state: dict[str, Any], key: str) -> bool:
+    alerts = state.get("url_alerts")
+    return isinstance(alerts, dict) and str(key).casefold() in alerts
 
-    The monitor keeps a single canonical post for notification and deadline
-    extraction. This layer retains all other publications so the active list and
-    source rating can credit every channel that found the same wheel. Duplicate
-    alert checks also persist the newly found source before suppressing a second
-    notification.
-    """
+
+def _any_notification_suppressed(
+    original_suppressed: Callable,
+    original_activation_suppressed: Callable,
+    state: dict[str, Any],
+    link: str,
+    key: str,
+) -> bool:
+    """Treat an actually recorded preliminary alert as the same event delivery."""
+
+    return bool(
+        original_activation_suppressed(state, link)
+        or (
+            _preliminary_alert_exists(state, key)
+            and original_suppressed(state, link)
+        )
+    )
+
+
+def install(monitor_module: Any, runtime_module: Any) -> None:
+    """Persist every source while delivering only one alert per wheel generation."""
 
     base_runtime = runtime_module.base_runtime
     if getattr(base_runtime, "_bbvg_publication_merge_v2_installed", False):
@@ -250,7 +268,6 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
         normalized = str(key or "").casefold()
         collection = state.setdefault("wheel_publications", {})
         previous = collection.get(normalized, [])
-
         incoming_rows = base_runtime._WHEEL_PUBLICATIONS.get(normalized, [])
         if closed_event_blocks_publications(state, normalized, incoming_rows):
             collection.pop(normalized, None)
@@ -258,11 +275,6 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
 
         original(state, normalized, fallback)
         incoming = collection.get(normalized, [])
-
-        # Never drop previously observed publications merely because active_wheels
-        # is temporarily rebuilt during one monitor cycle. Old event publications
-        # are already removed explicitly by prune_closed_publications(), so keeping
-        # the accumulated rows here is safe and preserves multi-source attribution.
         merged = merge_publications(previous, incoming, reset_event=False)
         if merged:
             collection[normalized] = merged
@@ -284,7 +296,13 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
 
     def is_activation_suppressed_with_publications(state: dict, link: str) -> bool:
         persist_before_suppression(state, link)
-        return bool(original_activation_suppressed(state, link))
+        return _any_notification_suppressed(
+            original_suppressed,
+            original_activation_suppressed,
+            state,
+            link,
+            monitor_module.wheel_key(link),
+        )
 
     base_runtime._persist_publications = persist_merged
     monitor_module.load_state = load_state_without_closed_publications
@@ -330,8 +348,6 @@ def self_test() -> None:
         {"source": "official", "sources": ["official", "collector"]},
     ) == ["official", "collector"]
 
-    # A transient active_wheels rebuild must not erase a source already observed
-    # for the same still-open event.
     transient_merge = merge_publications(merged, [dict(first[0])], reset_event=False)
     assert [row["source"] for row in transient_merge] == ["official", "collector"]
 
@@ -352,6 +368,28 @@ def self_test() -> None:
         "marked_at": "2026-07-14T12:00:00+00:00"
     }
     assert closed_event_blocks_publications(closed_state, "wheel", newer)
+
+    assert _any_notification_suppressed(
+        lambda _state, _link: True,
+        lambda _state, _link: False,
+        {"url_alerts": {"wheel": {"alerted_at": "now"}}},
+        "wheel",
+        "wheel",
+    )
+    assert _any_notification_suppressed(
+        lambda _state, _link: False,
+        lambda _state, _link: True,
+        {},
+        "wheel",
+        "wheel",
+    )
+    assert not _any_notification_suppressed(
+        lambda _state, _link: True,
+        lambda _state, _link: False,
+        {},
+        "wheel",
+        "wheel",
+    )
     print("wheel publication merge v2 self-test passed")
 
 

@@ -12,8 +12,13 @@ from bs4 import BeautifulSoup
 
 MINIMUM_FRESH_UNKNOWN_MINUTES = 360
 POST_MARKER_RE = re.compile(r'data-post="([^"/]+)/(\d+)"', re.IGNORECASE)
-WHEEL_CONTEXT_RE = re.compile(r"\b(?:колес\w*|крутил\w*|прокрут\w*|wheel\w*|spin\w*)\b", re.IGNORECASE)
-BETBOOM_CONTEXT_RE = re.compile(r"\b(?:betboom|bet\s*boom|бетбум|бэтбум)\b", re.IGNORECASE)
+WHEEL_CONTEXT_RE = re.compile(
+    r"\b(?:колес\w*|крутил\w*|прокрут\w*|wheel\w*|spin\w*)\b",
+    re.IGNORECASE,
+)
+BETBOOM_CONTEXT_RE = re.compile(
+    r"\b(?:betboom|bet\s*boom|бетбум|бэтбум)\b", re.IGNORECASE
+)
 ANNOUNCEMENT_ACTION_RE = re.compile(
     r"\b(?:сегодня|завтра|скоро|сейчас|начал\w*|старт\w*|крутим\w*|"
     r"прокрут\w*|розыгрыш\w*|участв\w*|ссылк\w*|позже)\b",
@@ -30,12 +35,7 @@ PARTICIPATION_EVIDENCE_RE = re.compile(
 
 
 def _post_segments(page: str):
-    """Yield one raw HTML segment per Telegram post.
-
-    Some Telegram URL buttons are rendered after the message wrapper rather
-    than inside it. The only stable boundary in the public preview is the next
-    ``data-post`` marker, so every post owns the HTML up to that marker.
-    """
+    """Yield one raw HTML segment per Telegram post."""
 
     matches = list(POST_MARKER_RE.finditer(page or ""))
     for index, match in enumerate(matches):
@@ -49,9 +49,7 @@ def parse_public_channel_html(monitor_module: Any, username: str, page: str):
     result = []
     for source, message_id, segment in _post_segments(page or ""):
         observed_source = source or username
-        monitor_module.telegram_transport.register_source_alias(
-            username, observed_source
-        )
+        monitor_module.telegram_transport.register_source_alias(username, observed_source)
         canonical_source = monitor_module.telegram_transport.canonical_source(
             observed_source
         )
@@ -67,9 +65,9 @@ def parse_public_channel_html(monitor_module: Any, username: str, page: str):
             if href:
                 parts.append(href)
 
-        # Keep a regex fallback because the segment starts at the data-post
-        # attribute and therefore intentionally omits the opening message tag.
-        for raw_href in re.findall(r'href=["\']([^"\']+)["\']', segment, re.IGNORECASE):
+        for raw_href in re.findall(
+            r'href=["\']([^"\']+)["\']', segment, re.IGNORECASE
+        ):
             href = html.unescape(raw_href).strip()
             if href:
                 parts.append(href)
@@ -77,10 +75,16 @@ def parse_public_channel_html(monitor_module: Any, username: str, page: str):
         time_node = fragment.select_one("time[datetime]")
         date_text = str(time_node.get("datetime") or "") if time_node else ""
         if not date_text:
-            match = re.search(r'<time[^>]+datetime=["\']([^"\']+)', segment, re.IGNORECASE)
+            match = re.search(
+                r'<time[^>]+datetime=["\']([^"\']+)', segment, re.IGNORECASE
+            )
             date_text = match.group(1) if match else ""
         try:
-            date = datetime.fromisoformat(date_text) if date_text else monitor_module.now_utc()
+            date = (
+                datetime.fromisoformat(date_text)
+                if date_text
+                else monitor_module.now_utc()
+            )
         except ValueError:
             date = monitor_module.now_utc()
         if date.tzinfo is None:
@@ -102,6 +106,22 @@ def parse_public_channel_html(monitor_module: Any, username: str, page: str):
     return sorted(result, key=lambda item: item.message_id)
 
 
+def fresh_public_source_url(
+    monitor_module: Any,
+    username: str,
+    *,
+    before: int | None = None,
+) -> str:
+    """Use a short-lived query token so Telegram/CDN cannot reuse a stale preview."""
+
+    base = monitor_module.telegram_transport.public_source_url(
+        username, before=before
+    )
+    slot = int(monitor_module.now_utc().timestamp() // 30)
+    separator = "&" if "?" in base else "?"
+    return f"{base}{separator}bbvg_fresh={slot}"
+
+
 def _ai_wheel_evidence_cap(text: str, classification: str = "") -> float:
     """Cap AI confidence by explicit, independently verifiable post evidence."""
 
@@ -114,9 +134,6 @@ def _ai_wheel_evidence_cap(text: str, classification: str = "") -> float:
     has_current_action = bool(CURRENT_ACTION_RE.search(value))
     category = str(classification or "").casefold()
 
-    # A generic reference such as “the wheel will be on stream” is context, not
-    # evidence of a BetBoom event. It must not reach the AI provider or produce
-    # a high-confidence alert.
     if not has_brand:
         return 0.79 if has_participation else 0.49
     if category == "active_wheel" and not has_current_action:
@@ -129,15 +146,10 @@ def _ai_wheel_evidence_cap(text: str, classification: str = "") -> float:
 
 
 def _install_suspicious_post_policy(suspicious_posts: Any) -> None:
-    """Install strict evidence handling only around monitor delivery.
-
-    The core classifier functions remain unchanged. This prevents runtime import
-    order from leaking policy monkeypatches into tests or other callers.
-    """
+    """Install strict evidence handling only around monitor delivery."""
 
     if getattr(suspicious_posts, "_bbvg_strict_evidence_policy_installed", False):
         return
-
     os.environ.setdefault("AI_SUSPICIOUS_POST_MIN_CONFIDENCE", "0.90")
     os.environ.setdefault("AI_SUSPICIOUS_ACTIVE_MIN_CONFIDENCE", "0.93")
     original_run_for_messages = suspicious_posts.run_for_messages
@@ -169,7 +181,9 @@ def _install_suspicious_post_policy(suspicious_posts: Any) -> None:
             summary = original_analyze_posts(post_rows, state, **kwargs)
             original_alerts = list(summary.get("alerts", []))
             by_key = {suspicious_posts._key(post): post for post in post_rows}
-            records = state.get("posts") if isinstance(state.get("posts"), dict) else {}
+            records = (
+                state.get("posts") if isinstance(state.get("posts"), dict) else {}
+            )
             base_threshold = suspicious_posts._float_env(
                 "AI_SUSPICIOUS_POST_MIN_CONFIDENCE", 0.90, 0.50, 0.99
             )
@@ -229,11 +243,17 @@ def install(monitor_module: Any) -> None:
     ):
         response = monitor_module.request_with_retries(
             "GET",
-            monitor_module.telegram_transport.public_source_url(
-                username, before=before
+            fresh_public_source_url(
+                monitor_module,
+                username,
+                before=before,
             ),
             timeout=monitor_module.REQUEST_TIMEOUT,
-            headers={"User-Agent": monitor_module.USER_AGENT},
+            headers={
+                "User-Agent": monitor_module.USER_AGENT,
+                "Cache-Control": "no-cache, no-store, max-age=0",
+                "Pragma": "no-cache",
+            },
             allow_redirects=True,
         )
         response.raise_for_status()
@@ -246,16 +266,11 @@ def install(monitor_module: Any) -> None:
     )
     monitor_module._bbvg_telegram_button_links_installed = True
 
-    # Suspicious-post analysis belongs to the Telegram post ingestion boundary.
-    # It wraps the final multi-source fetch result but never changes wheel state.
     try:
         from bbvg.monitor import suspicious_posts
 
         _install_suspicious_post_policy(suspicious_posts)
         suspicious_posts.install(monitor_module)
-        # Production validation treats telegram_transport as the stable owner of
-        # source fetching. Preserve that public integration identity even though
-        # the optional AI layer wraps the returned messages.
         monitor_module.fetch_all_sources.__module__ = "telegram_transport"
     except Exception as exc:
         print(
@@ -311,11 +326,15 @@ def self_test() -> None:
         "BetBoom: сейчас крутим колесо, участвуйте в розыгрыше",
         "active_wheel",
     ) >= 0.93
+    fresh = fresh_public_source_url(monitor, "jestercast")
+    assert "bbvg_fresh=" in fresh
+    before = fresh_public_source_url(monitor, "jestercast", before=100)
+    assert "before=100" in before and "&bbvg_fresh=" in before
     install(monitor)
     assert monitor.FRESH_UNKNOWN_POST_MINUTES >= 360
     assert monitor._bbvg_ai_suspicious_post_analysis_installed is True
     assert monitor.fetch_all_sources.__module__ == "telegram_transport"
-    print("telegram_post_links_v2 parser and strict AI evidence self-test passed")
+    print("telegram post parser, freshness and strict AI evidence self-test passed")
 
 
 if __name__ == "__main__":
