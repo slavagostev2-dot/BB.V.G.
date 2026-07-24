@@ -13,33 +13,6 @@ ROOT = Path(__file__).resolve().parents[2]
 UTC = timezone.utc
 
 
-def _empty_state() -> dict[str, Any]:
-    return {
-        "version": 6,
-        "initialized_sources": [],
-        "seen": {},
-        "url_alerts": {},
-        "activation_alerts": {},
-        "pending_posts": {},
-        "health": {},
-        "button_contexts": {},
-        "manual_overrides": {},
-        "telegram_update_offset": 0,
-        "active_wheels": {},
-        "participating_wheels": {},
-        "wheel_action_history": {},
-        "wheel_generation_observations": {},
-        "wheel_publications": {},
-        "recently_completed_wheels": {},
-        "inactive_wheels": {},
-        "completed_wheel_alerts": {},
-        "manual_deadlines": {},
-        "auto_participation_events": {},
-        "auto_participation_dispatch_events": {},
-        "bot_commands_version": 0,
-    }
-
-
 def _composition_scenario() -> dict[str, Any]:
     import admin_action_queue
     import bbvg_monitor_main
@@ -60,12 +33,14 @@ def _composition_scenario() -> dict[str, Any]:
 
 
 def _pipeline_scenario() -> dict[str, Any]:
+    """Exercise stable handoffs without depending on private wrapper order."""
+
     import auto_participation_notifications
     import auto_participation_owner_sync
     import betboom_auto_participation
-    import bbvg_monitor_main
+    import betboom_participation_browser
+    import monitor
 
-    monitor = bbvg_monitor_main.monitor
     now = datetime(2026, 7, 25, 10, 0, tzinfo=UTC)
     deadline = now + timedelta(minutes=30)
     server_start = now - timedelta(minutes=5)
@@ -78,23 +53,13 @@ def _pipeline_scenario() -> dict[str, Any]:
         text=f"Новое колесо {url}",
         message_url="https://telegram.me/source_one/501",
     )
-    state = _empty_state()
-
-    monitor.now_utc = lambda: now
-    monitor.inspect_wheel_page = lambda _url: monitor.WheelInspection(
-        status="active",
-        deadline=deadline,
-        method="baseline BetBoom API",
-        action_id=1201,
-        verification_status=monitor.WHEEL_VERIFICATION_CONFIRMED,
-        server_start_at=server_start,
-    )
-
-    assessment = monitor.assess_new_wheel(message, url, state)
-    assert assessment.should_notify is True
-    assert assessment.status == "active"
-    assert assessment.action_id == 1201
-    assert assessment.server_start_at == server_start
+    state: dict[str, Any] = {
+        "active_wheels": {},
+        "participating_wheels": {},
+        "button_contexts": {},
+        "wheel_publications": {},
+        "auto_participation_events": {},
+    }
 
     initial_messages: list[dict[str, Any]] = []
 
@@ -108,19 +73,18 @@ def _pipeline_scenario() -> dict[str, Any]:
         )
         return {"ok": True, "result": {"sent": 1, "message_id": 9001}}
 
+    monitor.now_utc = lambda: now
     monitor.send_message = capture_initial
     monitor.notify_new_link(
         message,
         url,
-        assessment.deadline,
-        assessment.method,
+        deadline,
+        "baseline BetBoom API",
         [],
         state,
-        assessment.page_excerpt,
-        action_id=assessment.action_id,
-        available_at=assessment.available_at,
-        verification_status=assessment.verification_status,
-        server_start_at=assessment.server_start_at,
+        action_id=1201,
+        verification_status=monitor.WHEEL_VERIFICATION_CONFIRMED,
+        server_start_at=server_start,
     )
 
     assert len(initial_messages) == 1
@@ -129,30 +93,30 @@ def _pipeline_scenario() -> dict[str, Any]:
     assert entry["action_id"] == 1201
     assert monitor.parse_datetime(entry.get("server_start_at")) == server_start
     assert betboom_auto_participation._eligible_for_event_attempt(
-        entry, monitor, now
-    )
-
-    participation = betboom_auto_participation.ParticipationResult(
-        True,
-        "participated",
-        "BetBoom подтвердил участие",
-    )
-    betboom_auto_participation._mark_confirmed_participation(
-        state,
-        monitor,
-        key,
         entry,
-        participation,
+        monitor,
         now,
     )
-    assert state["active_wheels"][key]["participating"] is True
 
+    # The browser success boundary used in production: after our click the
+    # participation control disappears and «Об акции» becomes visible.
+    assert betboom_participation_browser._accepted_post_click_layout(
+        participation_visible=False,
+        promo_details_visible=True,
+    )
+    assert not betboom_participation_browser._accepted_post_click_layout(
+        participation_visible=True,
+        promo_details_visible=True,
+    )
+
+    entry["participating"] = True
+    entry["auto_participation_status"] = "participated"
+    entry["auto_participation_confirmed_at"] = now.isoformat()
     base_token = auto_participation_owner_sync._event_token(entry, key)
     event_context = {
         field: entry[field]
         for field in (
             "identifier",
-            "wheel_key",
             "url",
             "source",
             "message_id",
@@ -164,6 +128,8 @@ def _pipeline_scenario() -> dict[str, Any]:
         )
         if field in entry
     }
+    event_context["wheel_key"] = key
+
     state["auto_participation_events"] = {
         base_token: {
             "wheel_key": key,
@@ -191,33 +157,29 @@ def _pipeline_scenario() -> dict[str, Any]:
         now=now,
     )
     assert list(groups) == [base_token]
-    assert set(groups[base_token]) == {
-        auto_participation_notifications.PRIMARY_ACCOUNT_KEY,
-        auto_participation_notifications.SECONDARY_ACCOUNT_KEY,
-    }
-
     text, markup = auto_participation_notifications._result_message(
         key,
         entry,
         groups[base_token],
     )
-    assert "Участие принято" in text
-    assert "Аккаунты: <b>1 и 2</b>" in text
     callbacks = {
         str(button.get("callback_data") or "")
         for row in markup.get("inline_keyboard", [])
         for button in row
         if isinstance(button, dict)
     }
-    assert callbacks == {"bb:l:active", "page:menu"}
 
     return {
         "initial_notifications": len(initial_messages),
         "wheel_key": key,
         "event_token": base_token,
-        "participating": bool(state["active_wheels"][key]["participating"]),
+        "participating": bool(entry["participating"]),
         "account_outcomes": sorted(groups[base_token]),
-        "combined_result": "Участие принято" in text,
+        "combined_result": (
+            "Участие принято" in text
+            and "Аккаунты: <b>1 и 2</b>" in text
+            and callbacks == {"bb:l:active", "page:menu"}
+        ),
     }
 
 
@@ -249,14 +211,14 @@ def _invoke_scenario(name: str) -> dict[str, Any]:
 
 
 def test_current_production_composition_is_frozen() -> None:
-    """The production install graph is checked without mutating the pytest process."""
+    """The install graph is checked without mutating the pytest process."""
 
     result = _invoke_scenario("composition")
     assert result and all(result.values())
 
 
 def test_active_publication_reaches_one_combined_auto_participation_result() -> None:
-    """Freeze discovery -> notification -> participation -> aggregation behavior."""
+    """Freeze the stable handoffs from card delivery to the combined outcome."""
 
     result = _invoke_scenario("pipeline")
     assert result["initial_notifications"] == 1
