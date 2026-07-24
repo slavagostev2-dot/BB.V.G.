@@ -181,9 +181,15 @@ def merge_recovered_notification_state(
 
 
 def sync_recovered_notification_state(monitor_module: Any) -> bool:
-    """Refresh recovery handoffs before this monitor iteration reads state.json."""
+    """Refresh recovery handoffs before this live monitor iteration reads state.json."""
 
     if str(os.getenv("GITHUB_ACTIONS") or "").casefold() != "true":
+        return False
+    live_runtime = any(
+        str(os.getenv(name) or "").casefold() == "true"
+        for name in ("AUTO_RUN", "MANUAL_RUN")
+    )
+    if not live_runtime:
         return False
     try:
         subprocess.run(
