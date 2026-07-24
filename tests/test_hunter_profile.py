@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 from bbvg.bot import profile
 
@@ -180,6 +181,145 @@ def test_profile_callback_edits_same_message_and_keeps_menu_order() -> None:
 
     runtime.handle_callback({"data": "other"})
     assert runtime.delegated == "other"
+
+
+def test_forced_snapshot_refresh_falls_back_to_last_valid_cache() -> None:
+    cached = SimpleNamespace(
+        state={"active_wheels": {"wheel-a": {"identifier": "wheel-a"}}},
+        stats={"personal_wheel_votes": {"one": {}}},
+        health={"sources": {"source": {}}},
+        discovery={"last_run_at": "2026-07-24T10:00:00+00:00"},
+        unknown={"samples": [{"value": "10 минут"}]},
+        fast=["source"],
+        nightly=[],
+    )
+
+    class Base:
+        def compact_menu_rows(self, admin: bool):
+            return []
+
+        def handle_callback(self, query):
+            return None
+
+        def snapshot(self, *, force: bool = False):
+            raise RuntimeError("GitHub API 403 rate limit")
+
+    class Mixin:
+        pass
+
+    profile.install(Mixin)
+
+    class Runtime(Mixin, Base):
+        pass
+
+    runtime = Runtime()
+    runtime.cache = (1.0, cached)
+    assert runtime.snapshot(force=True) is cached
+    assert "wheel-a" in runtime.snapshot(force=True).state["active_wheels"]
+
+
+def test_empty_remote_sections_keep_cached_active_wheels_and_profile_stats() -> None:
+    cached = SimpleNamespace(
+        state={"active_wheels": {"wheel-a": {"identifier": "wheel-a"}}},
+        stats={"personal_wheel_votes": {"one": {"actor": "vote_user"}}},
+        health={"sources": {"source": {}}},
+        discovery={"last_run_at": "2026-07-24T10:00:00+00:00"},
+        unknown={"samples": [{"value": "10 минут"}]},
+        fast=["source"],
+        nightly=[],
+    )
+    refreshed = SimpleNamespace(
+        state={},
+        stats={},
+        health={},
+        discovery={},
+        unknown={},
+        fast=["source"],
+        nightly=[],
+    )
+
+    class Base:
+        def compact_menu_rows(self, admin: bool):
+            return []
+
+        def handle_callback(self, query):
+            return None
+
+        def snapshot(self, *, force: bool = False):
+            return refreshed
+
+    class Mixin:
+        pass
+
+    profile.install(Mixin)
+
+    class Runtime(Mixin, Base):
+        pass
+
+    runtime = Runtime()
+    runtime.cache = (1.0, cached)
+    result = runtime.snapshot(force=True)
+    assert result.state == cached.state
+    assert result.stats == cached.stats
+    assert result.health == cached.health
+    assert result.discovery == cached.discovery
+    assert result.unknown == cached.unknown
+
+
+def test_profile_uses_cached_access_when_remote_refresh_fails(monkeypatch) -> None:
+    import personal_wheel_voting
+
+    class Base:
+        def compact_menu_rows(self, admin: bool):
+            return []
+
+        def handle_callback(self, query):
+            return None
+
+        def load_access(self, force: bool = False):
+            self.access_calls.append(force)
+            if force:
+                raise RuntimeError("GitHub API 403 rate limit")
+            return {
+                "owner_id": "1",
+                "users": {
+                    "1": {
+                        "first_seen_at": "2026-07-01T00:00:00+00:00",
+                    }
+                },
+            }
+
+        def snapshot(self, *, force: bool = False):
+            return SimpleNamespace(state={}, stats={})
+
+        def with_nav(self, rows=None):
+            return {"inline_keyboard": rows or []}
+
+        def send(self, text, *, reply_markup=None, chat_id=None):
+            self.sent = (text, reply_markup, chat_id)
+            return {}
+
+    class Mixin:
+        pass
+
+    profile.install(Mixin)
+
+    class Runtime(Mixin, Base):
+        current_user_id = "1"
+
+    monkeypatch.setattr(
+        personal_wheel_voting,
+        "actor_vote_token",
+        lambda user_id: "vote_user",
+    )
+    runtime = Runtime()
+    runtime.access_calls = []
+    runtime.cache = None
+    runtime.show_profile()
+
+    assert runtime.access_calls == [True, False]
+    assert "Мой профиль охотника за колёсами" in runtime.sent[0]
+    assert "Подтверждённых автоучастий" in runtime.sent[0]
 
 
 def test_analytics_keeps_period_metrics_and_links_to_detail_sections() -> None:
