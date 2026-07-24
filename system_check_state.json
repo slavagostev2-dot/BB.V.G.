@@ -10,16 +10,16 @@
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": false,
+    "cached": true,
     "confidence": 0.0,
     "critical_count": 2,
-    "decision_id": "d4c1711258fa4684846f9badae8c4efa",
+    "decision_id": "f0df8320d9ec45cdb7a68bbc5b9a1b1a",
     "finding_count": 2,
     "finding_kinds": [
       "admin_panel_stale",
       "monitor_stale"
     ],
-    "generated_at": "2026-07-24T11:46:27.882766+00:00",
+    "generated_at": "2026-07-24T11:47:04.866646+00:00",
     "impact": "Бот перестал принимать команды пользователей, а система мониторинга не обновляет данные, что делает текущее состояние сервиса неконтролируемым.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -64,7 +64,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T11:46:25.984370+00:00",
+  "checked_at": "2026-07-24T11:47:03.938855+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -138,11 +138,11 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 1,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 108,
