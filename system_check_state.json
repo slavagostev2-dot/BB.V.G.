@@ -1,7 +1,7 @@
 {
   "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 29,
+    "age_minutes": 30,
     "last_heartbeat_at": "2026-07-24T16:16:14.942619+00:00",
     "started_at": "2026-07-24T15:26:55.653710+00:00",
     "status": "running",
@@ -13,21 +13,21 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 2,
-    "decision_id": "491b15fdff8b433ea2010a617b3549e6",
+    "decision_id": "ff5cf1704cec4c6f87a7c5f3df427d07",
     "finding_count": 2,
     "finding_kinds": [
       "admin_panel_stale",
       "monitor_stale"
     ],
-    "generated_at": "2026-07-24T16:45:33.601466+00:00",
-    "impact": "Бот перестал принимать команды пользователей, а система мониторинга не обновляет данные, что делает текущее состояние сервиса неконтролируемым.",
+    "generated_at": "2026-07-24T16:47:07.314818+00:00",
+    "impact": "Бот не реагирует на действия пользователей, а мониторинг системы неактуален, что делает невозможным отслеживание текущих инцидентов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 2 инцидента, связанных с отсутствием активности бота и монитора в течение последних 30 минут.",
+    "summary": "Система находится в критическом состоянии: бот перестал принимать команды, а основной монитор не обновлял данные последние 30 минут.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -64,7 +64,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T16:45:31.330860+00:00",
+  "checked_at": "2026-07-24T16:47:05.089822+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -105,14 +105,14 @@
   "finding_count": 2,
   "findings": [
     {
-      "detail": "Последний heartbeat был 28 минут назад.",
+      "detail": "Последний heartbeat был 29 минут назад.",
       "kind": "monitor_stale",
       "severity": "critical",
       "subject": "",
       "title": "Основной монитор давно не обновлялся"
     },
     {
-      "detail": "Последний живой сигнал был 29 минут назад.",
+      "detail": "Последний живой сигнал был 30 минут назад.",
       "kind": "admin_panel_stale",
       "severity": "critical",
       "subject": "",
@@ -138,11 +138,11 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 1,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 114,
@@ -192,7 +192,7 @@
     "version": 3,
     "workflow_run_id": "30105258748"
   },
-  "monitor_age_minutes": 28,
+  "monitor_age_minutes": 29,
   "monitor_effective_heartbeat_at": "2026-07-24T16:17:11.005372+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
