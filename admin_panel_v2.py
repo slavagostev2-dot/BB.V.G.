@@ -1336,7 +1336,14 @@ class TelegramPanelV2(RuntimeAdminBot):
     def run(self) -> int:
         if not legacy.BOT_TOKEN or not legacy.BOT_CHAT_ID or not legacy.GITHUB_TOKEN or not legacy.GITHUB_REPOSITORY:
             raise RuntimeError("BOT_TOKEN, BOT_CHAT_ID, GITHUB_TOKEN and GITHUB_REPOSITORY are required")
-        self.load_access(force=True)
+        try:
+            self.load_access(force=True)
+        except Exception as exc:
+            print(
+                "WARNING remote access bootstrap unavailable; "
+                f"using validated local encrypted state: {type(exc).__name__}: {exc}"
+            )
+            self.load_access(force=False)
         self.setup_bot()
         self.record_runtime_heartbeat(force=True)
         refresh_thread = threading.Thread(target=self.refresh_loop, name="snapshot-refresh", daemon=True)

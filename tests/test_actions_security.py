@@ -191,6 +191,17 @@ def test_cancelled_control_center_shift_never_self_dispatches() -> None:
     assert replacement.count("gh workflow run admin-bot.yml") == 1
 
 
+def test_control_center_starts_when_startup_heartbeat_hits_rate_limit() -> None:
+    admin = workflow_texts()["admin-bot.yml"]
+    startup = admin.split("      - name: Record panel status", 1)[1].split(
+        "      - name: Run BB V.G. control center v41", 1
+    )[0]
+    assert "Control Center startup heartbeat was not published" in startup
+    assert "exit 1" not in startup
+    assert "exit 0" in startup
+    assert 'ADMIN_CACHE_SECONDS: "60"' in admin
+
+
 def test_failed_monitor_shift_is_recovered_only_by_watchdog() -> None:
     monitor = workflow_texts()["monitor.yml"]
     watchdog = workflow_texts()["monitor-watchdog.yml"]

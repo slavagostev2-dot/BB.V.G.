@@ -305,7 +305,8 @@ jobs:
             fi
             sleep 1
           done
-          exit 1
+          echo "::warning::Control Center startup heartbeat was not published; live runtime will retry"
+          exit 0
 
       - name: Run BB V.G. control center v41
         id: run_panel
@@ -320,7 +321,7 @@ jobs:
           DISPLAY_TIMEZONE: Asia/Barnaul
           RUN_SECONDS: "16200"
           REQUEST_TIMEOUT_SECONDS: "20"
-          ADMIN_CACHE_SECONDS: "20"
+          ADMIN_CACHE_SECONDS: "60"
           SOURCE_INACTIVITY_DAYS: "7"
           SOURCE_INACTIVITY_REPORT_DAYS: "7"
           BBVG_AI_ENABLED: "true"

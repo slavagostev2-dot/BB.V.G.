@@ -32,6 +32,10 @@
 - Control Center создаёт смену-преемника только после успешного завершения.
   Отмена, вытеснение или ошибка не запускают recovery из завершающегося run;
   почасовой schedule страхует разрыв без каскада взаимных отмен.
+- Временный GitHub API `403 rate limit` при стартовой записи heartbeat не
+  блокирует Telegram consumer: запуск использует проверенную локальную
+  encrypted-копию exact release SHA, а удалённый heartbeat повторяется после
+  восстановления API. Фоновый snapshot панели обновляется раз в минуту.
 - Монитор не вызывает Telegram `getUpdates`.
 - Неуспешная смена Monitor не перезапускает себя. Controlled recovery выполняет
   только `monitor-watchdog.yml` после проверки heartbeat и прогресса.
