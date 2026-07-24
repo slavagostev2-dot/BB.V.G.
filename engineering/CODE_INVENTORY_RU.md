@@ -50,7 +50,7 @@ compatibility API и запрещены preflight. В production сохраня�
 | Событие колеса | `wheel_event_runtime.py`, `wheel_lifecycle_v2.py`, `wheel_link_lifecycle.py`, `recurring_wheel_events.py` |
 | Качество обнаружения | `wheel_detection_reliability.py`, `wheel_metadata_quality.py`, `wheel_publications_v2.py`, `telegram_post_links_v2.py` |
 | Напоминания | `personal_reminder_filter.py`, `notification_navigation.py` |
-| Замороженный baseline | `engineering/WHEEL_PIPELINE_BASELINE_RU.md`, `tests/scenarios/test_wheel_pipeline_baseline.py` |
+| Замороженный baseline | `engineering/WHEEL_PIPELINE_BASELINE_RU.md`, `tests/test_wheel_pipeline_baseline.py` |
 
 Суффикс `v2` у перечисленных активных предметных модулей пока является частью
 импортного контракта. Эти файлы нельзя удалять как «старые» без отдельной
