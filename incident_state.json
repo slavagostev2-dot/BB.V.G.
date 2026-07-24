@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -186,20 +186,22 @@
       "first_seen_at": "2026-07-14T04:04:11.018046+00:00",
       "key": "system_checks:monitor_stale:e73e4f9e136f77bb",
       "kind": "monitor_stale",
-      "last_seen_at": "2026-07-24T18:46:06.090162+00:00",
+      "last_seen_at": "2026-07-24T18:53:13.237579+00:00",
       "lifecycle_started_at": "2026-07-24T18:46:06.090162+00:00",
       "metadata": {},
-      "notification_skipped_because_resolved_before_delivery": "2026-07-24T18:32:56.244997+00:00",
+      "notification_skipped_because_resolved_before_delivery": "2026-07-24T18:53:13.237579+00:00",
       "notification_stabilizing_until": "2026-07-24T18:51:06.090162+00:00",
       "occurrences": 65,
       "open_notification_pending": false,
       "opened_sequence": 117,
       "reopen_notification_suppressed_at": "2026-07-24T14:42:27.309416+00:00",
       "reopen_notification_suppressed_until": "2026-07-24T17:46:28.230853+00:00",
-      "resolved_sequence": 116,
+      "resolution_notification_pending": false,
+      "resolved_at": "2026-07-24T18:53:13.237579+00:00",
+      "resolved_sequence": 118,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Основной монитор давно не обновлялся"
     },
@@ -315,17 +317,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-24T18:46:06.090162+00:00",
-  "last_reconcile_at": "2026-07-24T18:46:06.090162+00:00",
+  "last_change_at": "2026-07-24T18:53:13.237579+00:00",
+  "last_reconcile_at": "2026-07-24T18:53:13.237579+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 0,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 117,
+  "sequence": 118,
   "status": "initializing",
-  "updated_at": "2026-07-24T18:46:06.090277+00:00",
+  "updated_at": "2026-07-24T18:53:13.237634+00:00",
   "version": 1
 }
