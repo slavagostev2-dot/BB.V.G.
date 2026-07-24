@@ -1,7 +1,7 @@
 {
-  "active_incidents": 32,
+  "active_incidents": 33,
   "admin_panel": {
-    "age_minutes": 10,
+    "age_minutes": 12,
     "last_heartbeat_at": "2026-07-24T21:36:34.261583+00:00",
     "started_at": "2026-07-24T19:20:15.392783+00:00",
     "status": "running",
@@ -12,22 +12,23 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 31,
-    "decision_id": "a535d9539a8a46febf42d614d947ec90",
-    "finding_count": 32,
+    "critical_count": 32,
+    "decision_id": "d3718c31677a4b798b06f01ad3215f12",
+    "finding_count": 33,
     "finding_kinds": [
+      "monitor_stale",
       "source_timeout",
       "sources_quarantined"
     ],
-    "generated_at": "2026-07-24T21:46:41.206384+00:00",
-    "impact": "Массовая недоступность источников данных, что приводит к остановке обновления контента по 31 каналу.",
+    "generated_at": "2026-07-24T21:48:55.599406+00:00",
+    "impact": "Данные от ключевых источников не поступают, что приводит к остановке актуализации контента и потере мониторинга по 32 каналам.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критический сбой: 31 из 32 активных инцидентов связаны с таймаутами при подключении к Telegram.",
+    "summary": "Система находится в критическом состоянии: основной монитор не обновлялся более 10 минут, зафиксировано 32 критические ошибки из-за таймаутов при обращении к источникам Telegram.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -57,34 +58,34 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "ok",
+    "monitor": "failed",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T21:46:39.019347+00:00",
+  "checked_at": "2026-07-24T21:48:51.785911+00:00",
   "discovery": {
     "active_size": 169,
-    "candidate_count": 516,
+    "candidate_count": 552,
     "catalog_size": 1,
     "discovery_errors": 0,
     "discovery_last_run_at": "2026-07-23T23:42:43.034857+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-23T21:47:43.023869+00:00",
+    "intelligence_last_run_at": "2026-07-24T21:48:26.538694+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
       "known_sources": 170,
-      "references_found": 304,
-      "relevant_candidates": 163,
+      "references_found": 338,
+      "relevant_candidates": 193,
       "sources_scanned": 170,
       "strong_candidates": 1,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 163,
+      "unique_candidates": 193,
       "verified_candidates": 150,
       "workers": 12
     }
@@ -102,8 +103,15 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 32,
+  "finding_count": 33,
   "findings": [
+    {
+      "detail": "Последний heartbeat был 10 минут назад.",
+      "kind": "monitor_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор давно не обновлялся"
+    },
     {
       "detail": "telegram.me не ответил за отведённое время",
       "kind": "source_timeout",
@@ -330,7 +338,7 @@
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 32,
+    "active_incidents": 33,
     "bot_panel_heartbeat": "2026-07-24T21:36:34.261583+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
@@ -348,14 +356,14 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 32,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 150,
+  "incident_sequence": 151,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -403,7 +411,7 @@
     "version": 3,
     "workflow_run_id": "30120296794"
   },
-  "monitor_age_minutes": 8,
+  "monitor_age_minutes": 10,
   "monitor_effective_heartbeat_at": "2026-07-24T21:38:19.813302+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
