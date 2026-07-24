@@ -5,6 +5,7 @@ from typing import Any
 
 import bbvg_monitor_runtime as runtime
 import betboom_auto_participation
+import betboom_participation_browser
 
 
 SUCCESS_STATUSES = {"participated", "already_participating"}
@@ -59,6 +60,28 @@ def _queue_new_successes(
     return queued
 
 
+def _run_exact_primary_attempt(state: dict[str, Any], monitor: Any) -> dict[str, Any]:
+    """Run event processing with the exact-label Playwright implementation.
+
+    The legacy direct browser keeps compatibility helpers used elsewhere, but
+    production must not classify arbitrary wheel-rules text as a successful
+    participation result. The exact browser accepts only visible, standalone
+    confirmation labels and clicks only exact participation controls.
+    """
+
+    original_participate = betboom_auto_participation.participate
+    original_notify = betboom_auto_participation._notify_manual_participation
+    betboom_auto_participation.participate = betboom_participation_browser.participate
+    betboom_auto_participation._notify_manual_participation = _defer_failure_notification
+    try:
+        return dict(
+            betboom_auto_participation.process_new_wheel_events(state, monitor)
+        )
+    finally:
+        betboom_auto_participation.participate = original_participate
+        betboom_auto_participation._notify_manual_participation = original_notify
+
+
 def main() -> int:
     monitor = runtime.monitor
     state = runtime.load_state_without_pending()
@@ -68,12 +91,7 @@ def main() -> int:
     # auto_participation_recovery.py runs immediately afterwards with an independent
     # scanner/browser. Do not send a false manual-action alert before that recovery
     # path has had its chance (the hooch07 incident exposed this race).
-    original_notify = betboom_auto_participation._notify_manual_participation
-    betboom_auto_participation._notify_manual_participation = _defer_failure_notification
-    try:
-        result = betboom_auto_participation.process_new_wheel_events(state, monitor)
-    finally:
-        betboom_auto_participation._notify_manual_participation = original_notify
+    result = _run_exact_primary_attempt(state, monitor)
 
     queued_successes = _queue_new_successes(
         state,
@@ -84,6 +102,7 @@ def main() -> int:
     result["debug_active_wheels"] = len(state.get("active_wheels", {}))
     result["debug_events"] = len(state.get("auto_participation_events", {}))
     result["debug_configured"] = betboom_auto_participation.configured()
+    result["browser_policy"] = "exact_visible_confirmation"
     result["failure_alert_policy"] = "deferred_to_recovery"
     if bool(result.get("changed")) or queued_successes:
         monitor.save_state(state)
