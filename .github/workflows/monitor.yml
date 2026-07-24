@@ -308,6 +308,7 @@ jobs:
           TELEGRAM_WEB_DOMAIN: telegram.me
           DISPLAY_TIMEZONE: Asia/Barnaul
           REQUEST_TIMEOUT_SECONDS: "10"
+          MONITOR_INTERVAL_MINUTES: "1"
           BBVG_AI_ENABLED: "true"
           BBVG_AI_FEATURES: "suspicious_post_analysis,source_discovery"
           BBVG_AI_PROVIDER: ${{ vars.BBVG_AI_PROVIDER }}
@@ -350,8 +351,7 @@ jobs:
 
           runtime_files=(
             state.json source_health.json source_stats.json
-            unknown_timer_samples.json monitor_status.json
-            notification_delivery_state.json ai_runtime_state.json
+            unknown_timer_samples.json ai_runtime_state.json
           )
 
           publish_monitor_status() {
@@ -387,6 +387,11 @@ jobs:
 
             git add "${runtime_files[@]}"
             git commit -m "Update BB V.G. runtime data [skip ci]" || true
+
+            # These files have their own Contents API checkpoints. Leaving their
+            # local copies dirty blocks `git pull --rebase` and can prevent
+            # state.json from reaching Control Center after a wheel is found.
+            git restore --source=HEAD --               monitor_status.json notification_delivery_state.json || true
 
             for attempt in 1 2 3; do
               if timeout --signal=TERM --kill-after=10s 30s git push origin "HEAD:${GITHUB_REF_NAME:-main}"; then
@@ -445,7 +450,7 @@ jobs:
               if publish_monitor_status; then
                 last_status_publish_at=$status_now
               else
-                echo "WARNING monitor_status.json could not be published independently; bulk runtime sync will retry it."
+                echo "WARNING monitor_status.json could not be published independently; the next heartbeat will retry it."
               fi
             fi
 
@@ -500,13 +505,32 @@ jobs:
             fi
 
             interval_seconds=$(python - <<'PY'
+          import os
+          import sys
           import bot_notification_state
+
+          allowed = {1, 3, 5, 10, 15, 30}
+          try:
+              fallback = int(os.getenv("MONITOR_INTERVAL_MINUTES", "1"))
+          except (TypeError, ValueError):
+              fallback = 1
+          fallback = fallback if fallback in allowed else 1
+
           try:
               data, _ = bot_notification_state.load_config()
-              value = int(data.get("settings", {}).get("monitor_interval_minutes", 5))
-          except Exception:
-              value = 5
-          value = value if value in {1, 3, 5, 10, 15, 30} else 5
+              value = int(
+                  data.get("settings", {}).get(
+                      "monitor_interval_minutes", fallback
+                  )
+              )
+          except Exception as exc:
+              print(
+                  f"WARNING monitor interval config unavailable: "
+                  f"{type(exc).__name__}; using {fallback} minute(s)",
+                  file=sys.stderr,
+              )
+              value = fallback
+          value = value if value in allowed else fallback
           print(value * 60)
           PY
             )

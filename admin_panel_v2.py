@@ -24,7 +24,7 @@ UTC = timezone.utc
 ACCESS_PATH = "bot_access.json"
 CACHE_REFRESH_SECONDS = max(10, int(os.getenv("ADMIN_CACHE_SECONDS", "20")))
 SOURCE_INACTIVITY_DAYS = max(1, int(os.getenv("SOURCE_INACTIVITY_DAYS", "7")))
-MONITOR_INTERVAL_MINUTES = max(1, int(os.getenv("MONITOR_INTERVAL_MINUTES", "5")))
+MONITOR_INTERVAL_MINUTES = max(1, int(os.getenv("MONITOR_INTERVAL_MINUTES", "1")))
 BLOCKED_SOURCES = {"frixa_betboom", "gazazor"}
 USERNAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{3,31}$")
 POST_URL_RE = re.compile(
@@ -83,6 +83,7 @@ COMMANDS = [
 DEFAULT_SETTINGS = {
     "public_panel": True,
     "notifications": True,
+    "monitor_interval_minutes": MONITOR_INTERVAL_MINUTES,
 }
 
 
@@ -179,6 +180,19 @@ class TelegramPanelV2(RuntimeAdminBot):
                     "notifications",
                     raw_settings.get("wheel_notifications", DEFAULT_SETTINGS["notifications"]),
                 )
+            )
+            try:
+                interval = int(
+                    raw_settings.get(
+                        "monitor_interval_minutes",
+                        DEFAULT_SETTINGS["monitor_interval_minutes"],
+                    )
+                )
+            except (TypeError, ValueError):
+                interval = DEFAULT_SETTINGS["monitor_interval_minutes"]
+            settings["monitor_interval_minutes"] = (
+                interval if interval in {1, 3, 5, 10, 15, 30}
+                else DEFAULT_SETTINGS["monitor_interval_minutes"]
             )
         result["settings"] = settings
         result["version"] = 2
@@ -987,7 +1001,19 @@ class TelegramPanelV2(RuntimeAdminBot):
         snap = self.snapshot()
         primary = {x.casefold() for x in snap.fast}
         reserve = {x.casefold() for x in snap.nightly}
-        mode = "основная проверка каждые 5 минут" if source.casefold() in primary else (
+        settings = self.load_access().get("settings", {})
+        try:
+            interval = int(
+                settings.get(
+                    "monitor_interval_minutes",
+                    MONITOR_INTERVAL_MINUTES,
+                )
+            )
+        except (TypeError, ValueError):
+            interval = MONITOR_INTERVAL_MINUTES
+        interval = interval if interval in {1, 3, 5, 10, 15, 30} else MONITOR_INTERVAL_MINUTES
+        interval_label = "минуту" if interval == 1 else f"{interval} минут"
+        mode = f"основная проверка каждую {interval_label}" if source.casefold() in primary else (
             "резервная проверка" if source.casefold() in reserve else "не добавлен в мониторинг"
         )
         url = f"https://telegram.me/s/{source}"
