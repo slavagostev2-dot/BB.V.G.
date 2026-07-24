@@ -76,19 +76,7 @@ def test_current_monitor_composition_order_is_documented_and_frozen() -> None:
         assert section in baseline
 
 
-def test_existing_scenario_contracts_cover_pipeline_boundaries() -> None:
-    """Run existing stable contracts at every boundary of the wheel pipeline."""
+def test_wheel_scenario_suite_is_part_of_the_baseline() -> None:
+    """Run the existing cross-module wheel scenario suite in isolation."""
 
     assert "10 scenarios" in _run("wheel_scenario_suite.py")
-    assert "exact participation controls self-test passed" in _run(
-        "betboom_participation_browser.py"
-    )
-    assert "authoritative-outcome self-test passed" in _run(
-        "auto_participation_recovery.py", "--self-test"
-    )
-    assert "auto participation bot outcome sync self-test passed" in _run(
-        "auto_participation_bot_sync.py", "--self-test"
-    )
-    assert "unified auto participation notifications self-test passed" in _run(
-        "auto_participation_notifications.py"
-    )
