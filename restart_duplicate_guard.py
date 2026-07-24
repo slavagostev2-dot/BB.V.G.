@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+import notification_delivery_guard
+
 
 def _source(value: Any) -> str:
     return str(value or "").strip().lstrip("@").casefold()
@@ -65,6 +67,7 @@ def publication_already_known(
 
 def install(monitor_module: Any) -> None:
     if getattr(monitor_module, "_bbvg_restart_duplicate_guard_installed", False):
+        notification_delivery_guard.install(monitor_module)
         return
 
     original_new: Callable = monitor_module.assess_new_wheel
@@ -95,6 +98,7 @@ def install(monitor_module: Any) -> None:
     monitor_module.assess_new_wheel = assess_new_once
     monitor_module.assess_pending_wheel = assess_pending_once
     monitor_module._bbvg_restart_duplicate_guard_installed = True
+    notification_delivery_guard.install(monitor_module)
 
 
 def self_test() -> None:
