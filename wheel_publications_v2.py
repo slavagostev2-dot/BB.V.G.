@@ -224,17 +224,26 @@ def prune_closed_publications(state: dict[str, Any]) -> int:
     return removed
 
 
+def _preliminary_alert_exists(state: dict[str, Any], key: str) -> bool:
+    alerts = state.get("url_alerts")
+    return isinstance(alerts, dict) and str(key).casefold() in alerts
+
+
 def _any_notification_suppressed(
     original_suppressed: Callable,
     original_activation_suppressed: Callable,
     state: dict[str, Any],
     link: str,
+    key: str,
 ) -> bool:
-    """Treat preliminary and activation alerts as one delivery for one wheel event."""
+    """Treat an actually recorded preliminary alert as the same event delivery."""
 
     return bool(
         original_activation_suppressed(state, link)
-        or original_suppressed(state, link)
+        or (
+            _preliminary_alert_exists(state, key)
+            and original_suppressed(state, link)
+        )
     )
 
 
@@ -292,6 +301,7 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
             original_activation_suppressed,
             state,
             link,
+            monitor_module.wheel_key(link),
         )
 
     base_runtime._persist_publications = persist_merged
@@ -362,7 +372,8 @@ def self_test() -> None:
     assert _any_notification_suppressed(
         lambda _state, _link: True,
         lambda _state, _link: False,
-        {},
+        {"url_alerts": {"wheel": {"alerted_at": "now"}}},
+        "wheel",
         "wheel",
     )
     assert _any_notification_suppressed(
@@ -370,11 +381,13 @@ def self_test() -> None:
         lambda _state, _link: True,
         {},
         "wheel",
+        "wheel",
     )
     assert not _any_notification_suppressed(
-        lambda _state, _link: False,
+        lambda _state, _link: True,
         lambda _state, _link: False,
         {},
+        "wheel",
         "wheel",
     )
     print("wheel publication merge v2 self-test passed")
