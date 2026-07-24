@@ -80,3 +80,34 @@ def test_wheel_scenario_suite_is_part_of_the_baseline() -> None:
     """Run the existing cross-module wheel scenario suite in isolation."""
 
     assert "10 scenarios" in _run("wheel_scenario_suite.py")
+
+
+def test_auto_participation_preflight_and_step_order_are_frozen() -> None:
+    """Keep every current account boundary visible before later consolidation."""
+
+    workflow = _text(".github/workflows/auto-participation.yml")
+    for required_contract in (
+        "auto_participation_recovery.self_test()",
+        "auto_participation_bot_sync.self_test()",
+        "auto_participation_owner_sync.self_test()",
+        "betboom_account_participation.self_test()",
+        "xflarxx_account_participation.self_test()",
+        "assert callable(betboom_participation_browser.participate)",
+    ):
+        assert required_contract in workflow
+
+    assert _ordered(
+        workflow,
+        (
+            "- name: Run event-based auto participation",
+            "- name: Retry current active wheels immediately",
+            "- name: Run second BetBoom account on fast result",
+            "- name: Run xFLARXx BetBoom account on fast result",
+            "- name: Queue fast outcomes for Control Center",
+            "- name: Recover fresh active wheels independently of monitor state",
+            "- name: Run second BetBoom account after full recovery",
+            "- name: Run xFLARXx BetBoom account after full recovery",
+            "- name: Queue confirmed participation for Control Center",
+            "- name: Persist participation state without losing concurrent monitor updates",
+        ),
+    )
