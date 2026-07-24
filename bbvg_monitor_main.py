@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -50,6 +50,9 @@ _original_send_message = monitor.send_message
 _original_load_stats = monitor.data_store.load_stats
 _original_record_admin_wheel_decision = monitor.data_store.record_admin_wheel_decision
 _original_save_stats = monitor.data_store.save_stats
+_original_recoverable_participation_failure = (
+    personal_reminder_filter._recoverable_processed_failure
+)
 
 SOURCE_RATING_RESET_DAY = "2026-07-17"
 SOURCE_RATING_RESET_VERSION = 2
@@ -68,6 +71,9 @@ SOURCE_RATING_RESET_FIELDS = (
     "admin_votes",
     "last_vote_at",
 )
+BUTTON_NOT_FOUND_RETRY_DELAY = timedelta(minutes=2)
+BUTTON_NOT_FOUND_RETRY_LIMIT = 2
+BUTTON_NOT_FOUND_MIN_REMAINING = timedelta(minutes=2)
 
 
 # Error notifications are produced by system_checks.py and deduplicated in
@@ -83,6 +89,66 @@ monitor.automatic_status_due = lambda state: False
 # monitor must not race it for menu and participation button updates.
 monitor.BOT_FEEDBACK_ENABLED = False
 monitor.process_admin_actions = admin_action_queue.process_pending
+
+
+def recoverable_active_button_not_found(
+    record: Any,
+    entry: dict[str, Any],
+) -> str:
+    """Retry a current button miss while the confirmed BetBoom timer is active.
+
+    The existing dispatcher already knows how to rearm recoverable outcomes. The
+    missing rule was that a current-version ``button_not_found`` was treated as
+    terminal immediately, even when the API still confirmed several minutes of
+    participation time. Keep the retry bounded so a broken page cannot create a
+    workflow storm.
+    """
+
+    reason = _original_recoverable_participation_failure(record, entry)
+    if reason:
+        return reason
+    if not isinstance(record, dict) or not isinstance(entry, dict):
+        return ""
+    status = str(
+        record.get("status") or entry.get("auto_participation_status") or ""
+    ).casefold()
+    if status != "button_not_found":
+        return ""
+    if (
+        str(entry.get("verification_status") or "")
+        != monitor.WHEEL_VERIFICATION_CONFIRMED
+    ):
+        return ""
+
+    current = monitor.now_utc()
+    if not personal_reminder_filter.betboom_auto_participation._eligible_for_event_attempt(
+        entry, monitor, current
+    ):
+        return ""
+
+    attempted_at = monitor.parse_datetime(
+        record.get("attempted_at") or entry.get("auto_participation_checked_at")
+    )
+    if (
+        attempted_at is not None
+        and current - attempted_at < BUTTON_NOT_FOUND_RETRY_DELAY
+    ):
+        return ""
+
+    deadline = monitor.parse_datetime(entry.get("deadline"))
+    if deadline is None or deadline - current <= BUTTON_NOT_FOUND_MIN_REMAINING:
+        return ""
+
+    try:
+        retry_count = int(entry.get("auto_participation_button_retry_count", 0) or 0)
+    except (TypeError, ValueError):
+        retry_count = 0
+    if retry_count >= BUTTON_NOT_FOUND_RETRY_LIMIT:
+        return ""
+
+    entry["auto_participation_button_retry_count"] = retry_count + 1
+    entry["auto_participation_button_retry_at"] = current.isoformat()
+    return "active_button_not_found_retry"
 
 
 def reset_source_rating_epoch(
@@ -345,6 +411,9 @@ monitor.process_active_wheels = process_active_without_unknown_time_spam
 monitor.send_message = branded_send_message
 notification_navigation.install(monitor)
 wheel_lifecycle_v2.install(monitor)
+personal_reminder_filter._recoverable_processed_failure = (
+    recoverable_active_button_not_found
+)
 personal_reminder_filter.install(monitor, notification_router)
 vk_wheel_notifications.install(monitor, notification_router)
 
