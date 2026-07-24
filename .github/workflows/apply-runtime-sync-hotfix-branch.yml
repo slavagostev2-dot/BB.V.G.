@@ -32,3 +32,5 @@ jobs:
           git add .github/workflows/monitor.yml admin_panel_v2.py tests/test_monitor_interval_runtime_sync.py
           git commit -m "Fix one-minute monitoring and runtime state publication"
           git push origin HEAD:agent/fix-one-minute-runtime-sync-20260725
+
+# Triggered after installation on the default branch.
