@@ -4,8 +4,9 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "scripts/apply_one_minute_runtime_sync_hotfix.py"
+      - "scripts/apply_one_minute-runtime-sync-hotfix.py"
       - ".github/workflows/apply-one-minute-runtime-sync-hotfix.yml"
+      - "scripts/apply_one_minute_runtime_sync_hotfix.py"
 
 permissions:
   contents: write
@@ -24,12 +25,14 @@ jobs:
       - name: Apply focused patch
         run: python scripts/apply_one_minute_runtime_sync_hotfix.py
 
-      - name: Commit patched production files
+      - name: Commit non-workflow files and staged workflow blob
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/workflows/monitor.yml admin_panel_v2.py tests/test_monitor_interval_runtime_sync.py
-          git commit -m "Fix one-minute monitoring and runtime state publication"
+          cp .github/workflows/monitor.yml monitor.runtime-sync-hotfix.yml
+          git restore --source=HEAD -- .github/workflows/monitor.yml
+          git add admin_panel_v2.py tests/test_monitor_interval_runtime_sync.py monitor.runtime-sync-hotfix.yml
+          git commit -m "Stage one-minute monitor and runtime state fix"
           git push origin HEAD:agent/fix-one-minute-runtime-sync-20260725
