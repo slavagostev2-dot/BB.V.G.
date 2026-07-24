@@ -10,15 +10,15 @@
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": false,
+    "cached": true,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "121953c00790494182d4ea8bfdd24d67",
+    "decision_id": "cf82698091ef4a62a57a38d04e8fa8b6",
     "finding_count": 1,
     "finding_kinds": [
       "monitor_stale"
     ],
-    "generated_at": "2026-07-24T14:42:28.341845+00:00",
+    "generated_at": "2026-07-24T14:42:52.435957+00:00",
     "impact": "Система мониторинга зависла, что делает невозможным получение актуальных данных о состоянии инфраструктуры в реальном времени.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T14:42:26.115033+00:00",
+  "checked_at": "2026-07-24T14:42:51.626507+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
