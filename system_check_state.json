@@ -1,9 +1,9 @@
 {
-  "active_incidents": 0,
+  "active_incidents": 32,
   "admin_panel": {
-    "age_minutes": 0,
-    "last_heartbeat_at": "2026-07-24T19:02:58.042378+00:00",
-    "started_at": "2026-07-24T19:02:54.949356+00:00",
+    "age_minutes": 10,
+    "last_heartbeat_at": "2026-07-24T21:36:34.261583+00:00",
+    "started_at": "2026-07-24T19:20:15.392783+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -12,22 +12,25 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 0,
-    "decision_id": "d6081c74d38649b9a2641dfe859e0cc0",
-    "finding_count": 0,
-    "finding_kinds": [],
-    "generated_at": "2026-07-24T19:03:43.991783+00:00",
-    "impact": "Отсутствует. Система работает в нормальном режиме, все показатели в пределах нормы.",
+    "critical_count": 31,
+    "decision_id": "a535d9539a8a46febf42d614d947ec90",
+    "finding_count": 32,
+    "finding_kinds": [
+      "source_timeout",
+      "sources_quarantined"
+    ],
+    "generated_at": "2026-07-24T21:46:41.206384+00:00",
+    "impact": "Массовая недоступность источников данных, что приводит к остановке обновления контента по 31 каналу.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Вмешательство не требуется, продолжать штатный мониторинг.",
-    "requires_human_attention": false,
-    "severity": "ok",
-    "summary": "Система BB V.G. функционирует штатно, все 169 источников доступны, ошибок не зафиксировано.",
+    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Критический сбой: 31 из 32 активных инцидентов связаны с таймаутами при подключении к Telegram.",
     "used_fallback": false,
     "version": 1,
-    "warning_count": 0
+    "warning_count": 1
   },
   "automation_state": {
     "expected_nightly_sources": 1,
@@ -57,11 +60,11 @@
     "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
-    "source_health": "ok",
+    "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-24T19:03:42.145832+00:00",
+  "checked_at": "2026-07-24T21:46:39.019347+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -99,35 +102,260 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 0,
-  "findings": [],
+  "finding_count": 32,
+  "findings": [
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "AdamStaya",
+      "title": "Источник @AdamStaya не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "Blindzonexbet",
+      "title": "Источник @Blindzonexbet не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "DayneezBet",
+      "title": "Источник @DayneezBet не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "KRATtv",
+      "title": "Источник @KRATtv не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "NeretCast",
+      "title": "Источник @NeretCast не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "PAPAdota2",
+      "title": "Источник @PAPAdota2 не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "RelaxCisBet",
+      "title": "Источник @RelaxCisBet не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "StrayDungeon228",
+      "title": "Источник @StrayDungeon228 не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "acoolbazarit",
+      "title": "Источник @acoolbazarit не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "aunkereEZ",
+      "title": "Источник @aunkereEZ не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "aviciixd",
+      "title": "Источник @aviciixd не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "boltcast",
+      "title": "Источник @boltcast не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "burdakekw",
+      "title": "Источник @burdakekw не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "chopperis",
+      "title": "Источник @chopperis не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "danila_gorilla",
+      "title": "Источник @danila_gorilla не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "dekocs",
+      "title": "Источник @dekocs не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "gorilla_armor",
+      "title": "Источник @gorilla_armor не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "hoochcs2",
+      "title": "Источник @hoochcs2 не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "ihuntnoobs",
+      "title": "Источник @ihuntnoobs не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "kzmantis",
+      "title": "Источник @kzmantis не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "mAger_de_nuke",
+      "title": "Источник @mAger_de_nuke не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "mechanogun",
+      "title": "Источник @mechanogun не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "meowbettt",
+      "title": "Источник @meowbettt не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "nixtalk",
+      "title": "Источник @nixtalk не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "obshakstaya",
+      "title": "Источник @obshakstaya не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "relaxcis",
+      "title": "Источник @relaxcis не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "shadowkekw",
+      "title": "Источник @shadowkekw не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "shoketg",
+      "title": "Источник @shoketg не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "smurf_gigachad",
+      "title": "Источник @smurf_gigachad не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "solo_q_q",
+      "title": "Источник @solo_q_q не проверяется"
+    },
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "critical",
+      "subject": "whylollycrry",
+      "title": "Источник @whylollycrry не проверяется"
+    },
+    {
+      "detail": "В карантине: 31. Источники остаются в общем пуле и будут перепроверяться.",
+      "kind": "sources_quarantined",
+      "severity": "warning",
+      "subject": "",
+      "title": "Источники попали в карантин"
+    }
+  ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-24T19:02:58.042378+00:00",
+    "active_incidents": 32,
+    "bot_panel_heartbeat": "2026-07-24T21:36:34.261583+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
     "reachable_sources": 169,
     "single_source": "system_check_state.json",
-    "status": "ok",
+    "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-24T19:00:22.211051+00:00",
+      "last_checked_at": "2026-07-24T21:43:22.465583+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-24T19:00:22.211051+00:00",
+      "last_success_at": "2026-07-24T21:43:22.465583+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
-    "opened": 0,
+    "messages_attempted": 1,
+    "opened": 32,
     "resolved": 0
   },
-  "incident_sequence": 118,
+  "incident_sequence": 150,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -151,32 +379,32 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 169,
-    "checks_total": 880921,
+    "checks_total": 906609,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "b0a1c66c5b5c6617ec8cd8450cd09194c4f8c3ef",
-    "iteration": 1,
+    "head_sha": "a7ff5802e67610574ea174601ca749a5a6c80d78",
+    "iteration": 136,
     "last_failure_at": "2026-07-24T18:52:55.417066+00:00",
-    "last_iteration_at": "2026-07-24T19:00:22.407698+00:00",
-    "last_iteration_duration_seconds": 12,
+    "last_iteration_at": "2026-07-24T21:38:19.813302+00:00",
+    "last_iteration_duration_seconds": 9,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-24T19:00:22.407698+00:00",
-    "last_successful_checks_total": 880921,
-    "last_successful_iteration_at": "2026-07-24T19:00:22.407698+00:00",
+    "last_process_heartbeat_at": "2026-07-24T21:38:19.813302+00:00",
+    "last_successful_checks_total": 906609,
+    "last_successful_iteration_at": "2026-07-24T21:38:19.813302+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "30119278188",
-    "run_started_at": "2026-07-24T19:03:04.648997078Z",
+    "run_id": "30120296794",
+    "run_started_at": "2026-07-24T19:19:49.620997+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
-    "status": "starting",
+    "status": "running",
     "version": 3,
-    "workflow_run_id": "30119278188"
+    "workflow_run_id": "30120296794"
   },
-  "monitor_age_minutes": 3,
-  "monitor_effective_heartbeat_at": "2026-07-24T19:00:22.407698+00:00",
+  "monitor_age_minutes": 8,
+  "monitor_effective_heartbeat_at": "2026-07-24T21:38:19.813302+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -218,23 +446,242 @@
     "configured_records": 170,
     "missing_sources": [],
     "nightly_pending_first_check": [],
-    "problem_details": [],
-    "problem_sources": [],
+    "problem_details": [
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "AdamStaya",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "Blindzonexbet",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "DayneezBet",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "KRATtv",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "NeretCast",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "PAPAdota2",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "RelaxCisBet",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "StrayDungeon228",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "acoolbazarit",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "aunkereEZ",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "aviciixd",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "boltcast",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "burdakekw",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "chopperis",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "danila_gorilla",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "dekocs",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "gorilla_armor",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "hoochcs2",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "ihuntnoobs",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "kzmantis",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "mAger_de_nuke",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "mechanogun",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "meowbettt",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "nixtalk",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "obshakstaya",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "relaxcis",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "shadowkekw",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "shoketg",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "smurf_gigachad",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "solo_q_q",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "whylollycrry",
+        "status": "quarantined"
+      }
+    ],
+    "problem_sources": [
+      "AdamStaya",
+      "Blindzonexbet",
+      "DayneezBet",
+      "KRATtv",
+      "NeretCast",
+      "PAPAdota2",
+      "RelaxCisBet",
+      "StrayDungeon228",
+      "acoolbazarit",
+      "aunkereEZ",
+      "aviciixd",
+      "boltcast",
+      "burdakekw",
+      "chopperis",
+      "danila_gorilla",
+      "dekocs",
+      "gorilla_armor",
+      "hoochcs2",
+      "ihuntnoobs",
+      "kzmantis",
+      "mAger_de_nuke",
+      "mechanogun",
+      "meowbettt",
+      "nixtalk",
+      "obshakstaya",
+      "relaxcis",
+      "shadowkekw",
+      "shoketg",
+      "smurf_gigachad",
+      "solo_q_q"
+    ],
     "records": 170,
     "required_primary_records": 169,
     "statuses": {
-      "ok": 170
+      "ok": 139,
+      "quarantined": 31
     },
     "transport_failure_types": {
       "dns": 0,
       "empty_or_html": 0,
       "http": 0,
       "other": 0,
-      "timeout": 0,
+      "timeout": 31,
       "tls": 0
     }
   },
-  "status": "ok",
+  "status": "degraded",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
@@ -246,9 +693,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-24T19:00:22.211051+00:00",
+    "last_checked_at": "2026-07-24T21:43:22.465583+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-24T19:00:22.211051+00:00",
+    "last_success_at": "2026-07-24T21:43:22.465583+00:00",
     "status": "ok"
   }
 }
