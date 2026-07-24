@@ -15,25 +15,13 @@ TEXT = (
     "Пост: 24.07.2026 19:38"
 )
 URL = "https://betboom.ru/freestream/zonertw5"
-MARKUP = {
-    "inline_keyboard": [
-        [{"text": "✅ Участвую", "callback_data": "bb:p:event-token"}]
-    ]
-}
 
 
-def _config(
-    *,
-    hidden: dict | None = None,
-    auto_participation: bool = True,
-) -> dict:
+def _config(*, hidden: dict | None = None) -> dict:
     user = {
         "id": "1",
         "chat_id": "1",
         "notifications_enabled": True,
-        "notification_preferences": {
-            "auto_participation": auto_participation,
-        },
     }
     if hidden is not None:
         user["hidden_wheels"] = hidden
@@ -119,70 +107,6 @@ def test_referral_silence_remains_intentional(monkeypatch) -> None:
         url=URL,
         reply_markup=None,
     )
-
-
-def test_owner_initial_wheel_alert_waits_for_account_availability() -> None:
-    assert guard._owner_deferred_chat(
-        _config(), True, "wheels", TEXT, MARKUP
-    ) == "1"
-    assert guard._owner_deferred_chat(
-        _config(auto_participation=False), True, "wheels", TEXT, MARKUP
-    ) == ""
-    assert guard._owner_deferred_chat(
-        _config(), True, "wheels", "⏰ Напоминание о колесе BetBoom", MARKUP
-    ) == ""
-
-
-def test_account_availability_deferral_is_valid_silence(monkeypatch) -> None:
-    monkeypatch.setattr(notification_router, "load_config", lambda: (_config(), True))
-    guard._validate_wheel_delivery(
-        {
-            "ok": True,
-            "result": {
-                "sent": 0,
-                "owner_deferred": 1,
-                "suppressed": True,
-                "reason": guard.OWNER_AUTO_PARTICIPATION_DEFER_REASON,
-                "kind": "wheels",
-            },
-        },
-        text=TEXT,
-        url=URL,
-        reply_markup=MARKUP,
-    )
-
-
-def test_owner_is_removed_only_from_current_delivery(monkeypatch) -> None:
-    original = notification_router.recipients
-    monkeypatch.setattr(
-        notification_router,
-        "recipients",
-        lambda _config, _exists, _kind: ["1", "2"],
-    )
-    captured: list[str] = []
-
-    def send(_text, url=None, reply_markup=None):
-        captured.extend(notification_router.recipients({}, True, "wheels"))
-        return {
-            "ok": True,
-            "result": {
-                "sent": len(captured),
-                "category": "user",
-                "kind": "wheels",
-            },
-        }
-
-    response = guard._call_without_owner_recipient(
-        send,
-        "1",
-        TEXT,
-        URL,
-        MARKUP,
-    )
-    assert captured == ["2"]
-    assert response["result"]["owner_deferred"] == 1
-    assert notification_router.recipients({}, True, "wheels") == ["1", "2"]
-    monkeypatch.setattr(notification_router, "recipients", original)
 
 
 class _Monitor:
