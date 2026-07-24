@@ -86,7 +86,7 @@ def test_existing_scenario_contracts_cover_pipeline_boundaries() -> None:
     assert "authoritative-outcome self-test passed" in _run(
         "auto_participation_recovery.py", "--self-test"
     )
-    assert "auto participation bot sync self-test passed" in _run(
+    assert "auto participation bot outcome sync self-test passed" in _run(
         "auto_participation_bot_sync.py", "--self-test"
     )
     assert "unified auto participation notifications self-test passed" in _run(
