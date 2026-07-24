@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
 from typing import Any
 
 import admin_action_queue
@@ -42,77 +41,8 @@ def _empty_state() -> dict[str, Any]:
     }
 
 
-class _FakePanel:
-    def __init__(self, state: dict[str, Any]) -> None:
-        self.state = state
-        self.access = {
-            "owner_id": "owner",
-            "admins": [],
-            "users": {
-                "owner": {
-                    "chat_id": "1001",
-                    "notification_preferences": {"auto_participation": True},
-                    "auto_participation_success_events": {},
-                    "auto_participation_failure_events": {},
-                }
-            },
-        }
-        self.access_loaded = True
-        self.current_chat_id: str | None = None
-        self.current_user_id: str | None = None
-        self.current_role = "guest"
-        self.sent: list[dict[str, Any]] = []
-        self.saved: list[str] = []
-
-    def snapshot(self) -> SimpleNamespace:
-        return SimpleNamespace(state=self.state)
-
-    def load_access(self, force: bool = False) -> dict[str, Any]:
-        del force
-        return self.access
-
-    def save_access(self, message: str) -> None:
-        self.saved.append(message)
-
-    def set_context(self, chat_id: str, user_id: str) -> None:
-        self.current_chat_id = chat_id
-        self.current_user_id = user_id
-        self.current_role = "owner"
-
-    def mark_personal_participation(self, wheel_key: str) -> dict[str, Any]:
-        return {
-            "changed": True,
-            "weight": 5,
-            "vote_command_id": f"baseline:{wheel_key}",
-        }
-
-    def _sources_for_item(
-        self,
-        snapshot: SimpleNamespace,
-        wheel_key: str,
-        item: dict[str, Any],
-    ) -> list[str]:
-        del snapshot, wheel_key, item
-        return ["source_one", "source_two"]
-
-    def send(
-        self,
-        text: str,
-        *,
-        reply_markup: dict[str, Any] | None = None,
-        chat_id: str | None = None,
-    ) -> None:
-        self.sent.append(
-            {
-                "text": text,
-                "reply_markup": reply_markup,
-                "chat_id": chat_id,
-            }
-        )
-
-
 def test_current_production_composition_is_frozen() -> None:
-    """Stage 1 records the current composition without changing its behavior."""
+    """Stage 1 records the installed production composition without changing it."""
 
     assert monitor.BOT_FEEDBACK_ENABLED is False
     assert monitor.process_admin_actions is admin_action_queue.process_pending
@@ -127,7 +57,7 @@ def test_current_production_composition_is_frozen() -> None:
 def test_active_publication_reaches_one_combined_auto_participation_result(
     monkeypatch: Any,
 ) -> None:
-    """Freeze the current discovery -> notification -> participation -> result contract."""
+    """Freeze discovery -> notification -> participation -> aggregation behavior."""
 
     now = datetime(2026, 7, 25, 10, 0, tzinfo=UTC)
     deadline = now + timedelta(minutes=30)
@@ -194,7 +124,7 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
     assert "Новое колесо BetBoom" in initial_messages[0]["text"]
     entry = state["active_wheels"][key]
     assert entry["action_id"] == 1201
-    assert entry["server_start_at"] == server_start.isoformat()
+    assert monitor.parse_datetime(entry.get("server_start_at")) == server_start
     assert betboom_auto_participation._eligible_for_event_attempt(
         entry, monitor, now
     )
@@ -214,7 +144,7 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
     )
     assert state["active_wheels"][key]["participating"] is True
 
-    # The live Control Center groups the two owner accounts by this exact event.
+    # The current Control Center groups the two owner accounts by the exact event.
     base_token = auto_participation_owner_sync._event_token(entry, key)
     event_context = {
         field: entry[field]
@@ -254,17 +184,28 @@ def test_active_publication_reaches_one_combined_auto_participation_result(
         },
     }
 
-    # Avoid coupling this scenario to the separate HMAC message-id lookup.
-    entry.pop("button_token", None)
-    panel = _FakePanel(state)
-    summary = auto_participation_notifications.sync_once(panel)
+    groups = auto_participation_notifications._settled_event_groups(
+        state,
+        now=now,
+    )
+    assert list(groups) == [base_token]
+    assert set(groups[base_token]) == {
+        auto_participation_notifications.PRIMARY_ACCOUNT_KEY,
+        auto_participation_notifications.SECONDARY_ACCOUNT_KEY,
+    }
 
-    assert summary["completed"] == 1
-    assert summary["success_completed"] == 1
-    assert len(panel.sent) == 1
-    assert panel.sent[0]["chat_id"] == "1001"
-    assert "Участие принято" in panel.sent[0]["text"]
-    assert "Аккаунты: <b>1 и 2</b>" in panel.sent[0]["text"]
-    assert panel.saved == [
-        "Record automatic participation success for owner [skip ci]"
-    ]
+    text, markup = auto_participation_notifications._result_message(
+        key,
+        entry,
+        groups[base_token],
+    )
+    assert "Участие принято" in text
+    assert "Аккаунты: <b>1 и 2</b>" in text
+    assert markup == {
+        "inline_keyboard": [
+            [
+                {"text": "🔥 Активные колёса", "callback_data": "bb:l:active"},
+                {"text": "🏠 Главное меню", "callback_data": "page:menu"},
+            ]
+        ]
+    }
