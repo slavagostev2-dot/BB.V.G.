@@ -6,8 +6,27 @@ from typing import Any
 
 import betboom_auto_participation as auto
 
-CLICK_RE = re.compile(r"(?:принять\s+участие|участвовать|участвую)", re.IGNORECASE)
-SUCCESS_RE = auto._SUCCESS_RE
+
+CLICK_RE = re.compile(
+    r"(?:принять\s+участие|участвовать|участвую)",
+    re.IGNORECASE,
+)
+SUCCESS_LABEL_RE = re.compile(
+    r"(?:участие\s+(?:принято|подтверждено|зарегистрировано|отмечено)|"
+    r"вы\s+(?:уже\s+)?участвуете(?:\s+в\s+розыгрыше)?|"
+    r"уже\s+участвуете(?:\s+в\s+розыгрыше)?|"
+    r"теперь\s+ты\s+участвуешь\s+в\s+розыгрыше|вы\s+в\s+розыгрыше)"
+    r"[.!]?",
+    re.IGNORECASE,
+)
+
+
+def _normalized_label(value: object) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _matches_full_label(pattern: re.Pattern[str], value: object) -> bool:
+    return bool(pattern.fullmatch(_normalized_label(value)))
 
 
 def _text(page: Any) -> str:
@@ -17,48 +36,81 @@ def _text(page: Any) -> str:
         return ""
 
 
+def _matching_visible_label(
+    locator: Any,
+    pattern: re.Pattern[str],
+    *,
+    limit: int = 50,
+) -> tuple[Any | None, str]:
+    try:
+        count = min(locator.count(), limit)
+    except Exception:
+        return None, ""
+    for index in range(count):
+        try:
+            candidate = locator.nth(index)
+            if not candidate.is_visible():
+                continue
+            label = _normalized_label(candidate.inner_text(timeout=1500))
+            if _matches_full_label(pattern, label):
+                return candidate, label[:120]
+        except Exception:
+            continue
+    return None, ""
+
+
 def _success(page: Any) -> bool:
-    return bool(SUCCESS_RE.search(_text(page)))
+    """Accept only a visible, self-contained confirmation label.
+
+    Searching the entire body is unsafe because wheel rules and help text may
+    contain phrases such as ``если вы участвуете`` without confirming the
+    current account's participation in the current wheel.
+    """
+
+    try:
+        locators = (
+            page.get_by_text(SUCCESS_LABEL_RE),
+            page.locator('[role="status"],[aria-live]').filter(
+                has_text=SUCCESS_LABEL_RE
+            ),
+        )
+    except Exception:
+        return False
+    return any(
+        _matching_visible_label(locator, SUCCESS_LABEL_RE)[0] is not None
+        for locator in locators
+    )
 
 
 def _click_candidates(page: Any, timeout_ms: int) -> tuple[bool, str]:
-    """Click a visible participation control across semantic and SPA wrappers."""
+    """Click only a visible control whose complete label is a participation verb."""
 
     selectors = (
         page.get_by_role("button", name=CLICK_RE),
         page.locator("button").filter(has_text=CLICK_RE),
         page.locator('[role="button"]').filter(has_text=CLICK_RE),
         page.locator("a").filter(has_text=CLICK_RE),
-        page.locator("div").filter(has_text=CLICK_RE),
-        page.locator("span").filter(has_text=CLICK_RE),
         page.get_by_text(CLICK_RE),
     )
     for locator in selectors:
+        candidate, label = _matching_visible_label(locator, CLICK_RE)
+        if candidate is None:
+            continue
         try:
-            count = min(locator.count(), 20)
+            candidate.click(timeout=timeout_ms, force=True)
+            return True, label or "playwright_locator"
         except Exception:
             continue
-        for index in range(count):
-            try:
-                candidate = locator.nth(index)
-                if not candidate.is_visible():
-                    continue
-                label = re.sub(
-                    r"\s+", " ", candidate.inner_text(timeout=1500)
-                ).strip()[:120]
-                candidate.click(timeout=timeout_ms, force=True)
-                return True, label or "playwright_locator"
-            except Exception:
-                continue
 
     try:
         result = page.evaluate(
             r"""
             () => {
-              const re = /(принять\s+участие|участвовать|участвую)/i;
+              const re = /^(принять\s+участие|участвовать|участвую)[.!]?$/i;
               const nodes = Array.from(document.querySelectorAll(
                 'button,[role="button"],a,div,span'
               ));
+              const candidates = [];
               for (const el of nodes) {
                 const text = (el.innerText || el.textContent || '')
                   .replace(/\s+/g, ' ').trim();
@@ -71,8 +123,15 @@ def _click_candidates(page: Any, timeout_ms: int) -> tuple[bool, str]:
                   rect.width <= 0 ||
                   rect.height <= 0
                 ) continue;
-                el.click();
-                return text.slice(0, 120);
+                candidates.push({el, text, area: rect.width * rect.height});
+              }
+              candidates.sort((a, b) => a.area - b.area);
+              for (const item of candidates) {
+                const target = item.el.closest('button,[role="button"],a') || item.el;
+                try {
+                  target.click();
+                  return item.text.slice(0, 120);
+                } catch (_) {}
               }
               return '';
             }
@@ -83,6 +142,36 @@ def _click_candidates(page: Any, timeout_ms: int) -> tuple[bool, str]:
     except Exception:
         pass
     return False, ""
+
+
+def _diagnostic_labels(page: Any) -> str:
+    """Return short visible clickable labels without storing page contents."""
+
+    try:
+        locator = page.locator('button,[role="button"],a')
+        count = min(locator.count(), 40)
+    except Exception:
+        return ""
+    labels: list[str] = []
+    seen: set[str] = set()
+    for index in range(count):
+        try:
+            candidate = locator.nth(index)
+            if not candidate.is_visible():
+                continue
+            label = _normalized_label(candidate.inner_text(timeout=1000))
+        except Exception:
+            continue
+        if not label or len(label) > 80:
+            continue
+        key = label.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        labels.append(label)
+        if len(labels) >= 8:
+            break
+    return " | ".join(labels)[:220]
 
 
 def participate(url: str) -> auto.ParticipationResult:
@@ -124,7 +213,7 @@ def participate(url: str) -> auto.ParticipationResult:
                 return auto.ParticipationResult(
                     True,
                     "already_participating",
-                    "BetBoom уже показывает подтверждённое участие",
+                    "BetBoom уже показывает точное подтверждение участия",
                 )
 
             clicked, _ = _click_candidates(page, timeout_ms)
@@ -140,19 +229,22 @@ def participate(url: str) -> auto.ParticipationResult:
                     return auto.ParticipationResult(
                         True,
                         "already_participating",
-                        "BetBoom подтвердил участие после повторной загрузки",
+                        "BetBoom показывает точное подтверждение после повторной загрузки",
                     )
                 clicked, _ = _click_candidates(page, timeout_ms)
 
             if not clicked:
                 body = _text(page).casefold()
+                labels = _diagnostic_labels(page)
                 detail = (
                     "страница показывает вход/авторизацию"
                     if any(value in body for value in ("войти", "авторизоваться", "авторизация"))
-                    else "кнопка участия не найдена после расширенного поиска"
+                    else "кнопка участия не найдена после точного поиска"
                 )
+                if labels:
+                    detail += f"; видимые действия: {labels}"
                 browser.close()
-                return auto.ParticipationResult(False, "button_not_found", detail)
+                return auto.ParticipationResult(False, "button_not_found", detail[:300])
 
             for _ in range(4):
                 page.wait_for_timeout(1500)
@@ -161,7 +253,7 @@ def participate(url: str) -> auto.ParticipationResult:
                     return auto.ParticipationResult(
                         True,
                         "participated",
-                        "BetBoom подтвердил участие после нажатия",
+                        "BetBoom показал точное подтверждение после нажатия",
                     )
 
             try:
@@ -174,14 +266,14 @@ def participate(url: str) -> auto.ParticipationResult:
                 return auto.ParticipationResult(
                     True,
                     "participated",
-                    "BetBoom подтвердил участие после контрольной перезагрузки",
+                    "BetBoom показал точное подтверждение после контрольной перезагрузки",
                 )
 
             browser.close()
             return auto.ParticipationResult(
                 False,
                 "unconfirmed",
-                "элемент участия нажат, но подтверждение BetBoom не найдено",
+                "элемент участия нажат, но точное подтверждение BetBoom не найдено",
             )
     except Exception as exc:
         return auto.ParticipationResult(
@@ -189,3 +281,23 @@ def participate(url: str) -> auto.ParticipationResult:
             "browser_error",
             f"{type(exc).__name__}: {exc}"[:300],
         )
+
+
+def self_test() -> None:
+    assert _matches_full_label(CLICK_RE, "Участвовать")
+    assert _matches_full_label(CLICK_RE, "  Принять   участие  ")
+    assert not _matches_full_label(
+        CLICK_RE,
+        "В розыгрыше могут участвовать все зарегистрированные пользователи",
+    )
+    assert _matches_full_label(SUCCESS_LABEL_RE, "Вы уже участвуете")
+    assert _matches_full_label(SUCCESS_LABEL_RE, "Вы уже участвуете в розыгрыше!")
+    assert not _matches_full_label(
+        SUCCESS_LABEL_RE,
+        "Если вы участвуете, дождитесь окончания таймера",
+    )
+    print("BetBoom exact participation controls self-test passed")
+
+
+if __name__ == "__main__":
+    self_test()
