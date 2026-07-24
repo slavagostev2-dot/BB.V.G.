@@ -176,23 +176,15 @@ Recovery может обнаружить событие, пропущенное 
 - workflow concurrency и continuity;
 - production entrypoints.
 
-## 13. Сценарные проверки baseline
+## 13. Проверки baseline
 
-`tests/scenarios/test_wheel_pipeline_baseline.py` фиксирует два контракта:
+`tests/test_wheel_pipeline_baseline.py` фиксирует три контракта:
 
-1. Production-композиция содержит действующие event, duplicate, lifecycle и auto-dispatch слои.
-2. Подтверждённая активная публикация проходит путь:
+1. Порядок установки действующих event, duplicate, lifecycle и auto-dispatch слоёв в production-композиции.
+2. Существующие предметные self-test для границ цепочки: обнаружение и дедупликация, точное браузерное подтверждение, recovery outcome, state handoff и единый итог двух аккаунтов.
+3. Фактический порядок шагов `auto-participation.yml`, включая быстрый проход, оба дополнительных аккаунта, полный recovery и финальный merge.
 
-```text
-BetBoom assessment
-→ одно первичное уведомление
-→ active wheel с точным action identity
-→ подтверждённое участие
-→ два account outcomes
-→ одно итоговое сообщение Control Center
-```
-
-Тесты не выполняют сетевые запросы, не запускают браузер, не пишут production JSON и не изменяют пользовательские данные.
+Все предметные self-test запускаются в отдельных процессах. Проверка не выполняет реальные сетевые запросы, не открывает браузер, не пишет production JSON и не изменяет пользовательские данные.
 
 ## 14. Следующий этап
 
