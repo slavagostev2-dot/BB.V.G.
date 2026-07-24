@@ -124,6 +124,48 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
             self.assertEqual(panel.run(), 0)
         self.assertEqual(panel_calls, ["getUpdates"])
 
+    def test_control_center_uses_local_encrypted_state_when_remote_bootstrap_fails(
+        self,
+    ) -> None:
+        panel = TelegramPanelRuntimeV41()
+        access_calls: list[bool] = []
+        panel_calls: list[str] = []
+
+        def load_access(force: bool = False) -> dict:
+            access_calls.append(force)
+            if force:
+                raise RuntimeError("GitHub API 403 rate limit")
+            return {}
+
+        panel.load_access = load_access
+        panel.setup_bot = lambda: None
+        panel.record_runtime_heartbeat = lambda force=False: None
+        panel.telegram_api = (
+            lambda method, payload: panel_calls.append(method)
+            or {"ok": True, "result": []}
+        )
+
+        class NoThread:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def start(self) -> None:
+                return None
+
+        with (
+            patch.object(admin_panel_v2.legacy, "BOT_TOKEN", "test"),
+            patch.object(admin_panel_v2.legacy, "BOT_CHAT_ID", "1"),
+            patch.object(admin_panel_v2.legacy, "GITHUB_TOKEN", "test"),
+            patch.object(admin_panel_v2.legacy, "GITHUB_REPOSITORY", "owner/repo"),
+            patch.object(admin_panel_v2.legacy, "RUN_SECONDS", 1),
+            patch.object(admin_panel_v2.threading, "Thread", NoThread),
+            patch.object(admin_panel_v2.time, "monotonic", side_effect=[0, 0, 2]),
+        ):
+            self.assertEqual(panel.run(), 0)
+
+        self.assertEqual(access_calls, [True, False])
+        self.assertEqual(panel_calls, ["getUpdates"])
+
     def test_current_inventory_transport_and_stale_incident_resolution(self) -> None:
         fixed = datetime(2026, 7, 17, 13, 0, tzinfo=timezone.utc)
         with TemporaryDirectory() as temporary:
