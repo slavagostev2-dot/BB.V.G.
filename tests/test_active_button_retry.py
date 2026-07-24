@@ -42,11 +42,6 @@ class ActiveButtonRetryTests(unittest.TestCase):
         )
         self.assertEqual(entry["auto_participation_button_retry_count"], 1)
 
-        self.assertEqual(
-            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
-            "",
-        )
-
         current = current + timedelta(minutes=3)
         bbvg_monitor_main.monitor.now_utc = lambda: current
         record["attempted_at"] = (current - timedelta(minutes=3)).isoformat()
@@ -63,6 +58,27 @@ class ActiveButtonRetryTests(unittest.TestCase):
             bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
             "",
         )
+
+    def test_button_miss_waits_for_retry_interval(self) -> None:
+        current = datetime(2026, 7, 24, 14, 5, tzinfo=UTC)
+        bbvg_monitor_main.monitor.now_utc = lambda: current
+        entry = {
+            "deadline": (current + timedelta(minutes=12)).isoformat(),
+            "verification_status": (
+                bbvg_monitor_main.monitor.WHEEL_VERIFICATION_CONFIRMED
+            ),
+            "url": "https://betboom.ru/freestream/deko2",
+        }
+        record = {
+            "status": "button_not_found",
+            "attempt_version": 2,
+            "attempted_at": (current - timedelta(minutes=1)).isoformat(),
+        }
+        self.assertEqual(
+            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
+            "",
+        )
+        self.assertNotIn("auto_participation_button_retry_count", entry)
 
     def test_button_miss_does_not_retry_near_deadline(self) -> None:
         current = datetime(2026, 7, 24, 14, 15, tzinfo=UTC)
