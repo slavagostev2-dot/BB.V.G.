@@ -31,9 +31,9 @@
 - создан `engineering/WHEEL_PIPELINE_BASELINE_RU.md` с фактической цепочкой
   поиска, классификации, уведомлений, lifecycle, автоучастия, recovery и
   финализации результата;
-- добавлены scenario-регрессии текущей production-композиции и пути
-  `active publication → initial notification → confirmed participation →
-  two account outcomes → one Control Center result`;
+- добавлен regression-контракт порядка production-композиции, исполняемый
+  cross-module `wheel_scenario_suite` и фиксация обязательных preflight/worker-
+  границ автоучастия;
 - production-код, workflow, runtime JSON, encrypted state и release-marker на
   этом этапе не изменялись.
 
