@@ -9,7 +9,15 @@ import notification_router
 
 
 _POST_TIME_RE = re.compile(r"Пост:\s*(\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2})")
+_OWNER_DEFERRED_PHASE_MARKERS = (
+    "новое колесо betboom",
+    "обнаружено колесо betboom",
+    "колесо betboom стало активно",
+    "колесо betboom доступно для участия",
+)
+OWNER_AUTO_PARTICIPATION_DEFER_REASON = "owner_auto_participation_deferred"
 _context = threading.local()
+_recipient_override_lock = threading.RLock()
 
 
 class WheelNotificationNotDelivered(RuntimeError):
@@ -38,6 +46,7 @@ def _structured_delivery_response(response: Any) -> bool:
             "sent",
             "suppressed",
             "hidden_skipped",
+            "owner_deferred",
             "category",
             "kind",
             "message_id",
@@ -155,6 +164,89 @@ def _completed_for_all(
     return bool(statuses and all(status == "completed" for status in statuses))
 
 
+def _owner_auto_participation_enabled(
+    config: dict[str, Any],
+) -> tuple[str, bool]:
+    owner_id = str(config.get("owner_id") or "").strip()
+    if not owner_id:
+        return "", False
+    users = config.get("users") if isinstance(config.get("users"), dict) else {}
+    owner = users.get(owner_id) if isinstance(users.get(owner_id), dict) else {}
+    preferences = (
+        owner.get("notification_preferences") if isinstance(owner, dict) else None
+    )
+    enabled = (
+        bool(preferences.get("auto_participation", True))
+        if isinstance(preferences, dict)
+        else True
+    )
+    return notification_router.chat_for_user(config, owner_id), enabled
+
+
+def _owner_deferred_chat(
+    config: dict[str, Any],
+    exists: bool,
+    kind: str,
+    text: str,
+    reply_markup: dict | None,
+) -> str:
+    """Return the owner chat whose initial wheel alert must wait for account proof."""
+
+    if kind != "wheels":
+        return ""
+    lowered = str(text or "").casefold()
+    if not any(marker in lowered for marker in _OWNER_DEFERRED_PHASE_MARKERS):
+        return ""
+    if not notification_router.participation_button_token(reply_markup):
+        return ""
+    owner_chat, enabled = _owner_auto_participation_enabled(config)
+    if not owner_chat or not enabled:
+        return ""
+    targets = notification_router.recipients(config, exists, kind)
+    return owner_chat if owner_chat in targets else ""
+
+
+def _call_without_owner_recipient(
+    original_send: Callable[..., Any],
+    owner_chat: str,
+    text: str,
+    url: str | None,
+    reply_markup: dict | None,
+) -> Any:
+    """Route one wheel alert to everyone except the owner awaiting account proof."""
+
+    with _recipient_override_lock:
+        original_recipients = notification_router.recipients
+
+        def recipients_without_owner(
+            config: dict[str, Any], config_exists: bool, category: str
+        ) -> list[str]:
+            return [
+                chat_id
+                for chat_id in original_recipients(config, config_exists, category)
+                if str(chat_id) != str(owner_chat)
+            ]
+
+        notification_router.recipients = recipients_without_owner
+        try:
+            response = original_send(text, url=url, reply_markup=reply_markup)
+        finally:
+            notification_router.recipients = original_recipients
+
+    if not isinstance(response, dict):
+        response = {"ok": True, "result": {}}
+    result = response.get("result")
+    if not isinstance(result, dict):
+        result = {}
+        response["result"] = result
+    result["owner_deferred"] = _positive_int(result.get("owner_deferred")) + 1
+    result["owner_deferred_chat_count"] = 1
+    if _positive_int(result.get("sent")) == 0:
+        result["suppressed"] = True
+        result["reason"] = OWNER_AUTO_PARTICIPATION_DEFER_REASON
+    return response
+
+
 def _validate_wheel_delivery(
     response: Any,
     *,
@@ -167,7 +259,10 @@ def _validate_wheel_delivery(
 
     result = _result(response)
     reason = str(result.get("reason") or "")
-    if reason == "referral_wheel_notifications_disabled":
+    if reason in {
+        "referral_wheel_notifications_disabled",
+        OWNER_AUTO_PARTICIPATION_DEFER_REASON,
+    }:
         return
 
     kind = notification_router.notification_kind(text)
@@ -248,7 +343,32 @@ def install(monitor_module: Any) -> None:
                 monitor_module, text, wheel_key
             )
         try:
-            response = original_send(text, url=url, reply_markup=reply_markup)
+            owner_chat = ""
+            if guarded:
+                try:
+                    config, exists = notification_router.load_config()
+                    owner_chat = _owner_deferred_chat(
+                        config,
+                        exists,
+                        kind,
+                        text,
+                        reply_markup,
+                    )
+                except Exception as exc:
+                    print(
+                        "WARNING owner wheel availability gate: "
+                        f"{type(exc).__name__}: {exc}"
+                    )
+            if owner_chat:
+                response = _call_without_owner_recipient(
+                    original_send,
+                    owner_chat,
+                    text,
+                    url,
+                    reply_markup,
+                )
+            else:
+                response = original_send(text, url=url, reply_markup=reply_markup)
             if guarded:
                 _validate_wheel_delivery(
                     response,
@@ -275,6 +395,9 @@ def self_test() -> None:
     assert not _delivered({"result": {"sent": 0}})
     assert _structured_delivery_response(
         {"result": {"suppressed": True, "kind": "wheels"}}
+    )
+    assert _structured_delivery_response(
+        {"result": {"owner_deferred": 1, "kind": "wheels"}}
     )
     print("notification delivery guard self-test passed")
 
