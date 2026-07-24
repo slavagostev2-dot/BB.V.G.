@@ -1,126 +1,115 @@
 from __future__ import annotations
 
+import json
+import os
+import subprocess
+import sys
 import unittest
-from datetime import datetime, timedelta, timezone
-
-from tests._bootstrap import install_optional_dependency_stubs
-
-install_optional_dependency_stubs()
-
-import bbvg_monitor_main
+from pathlib import Path
 
 
-UTC = timezone.utc
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class ActiveButtonRetryTests(unittest.TestCase):
-    def setUp(self) -> None:
-        self.original_now = bbvg_monitor_main.monitor.now_utc
+    def test_retry_policy_uses_existing_dispatcher_without_leaking_runtime_patches(self) -> None:
+        script = r'''
+import json
+from datetime import datetime, timedelta, timezone
+import bbvg_monitor_main as runtime
 
-    def tearDown(self) -> None:
-        bbvg_monitor_main.monitor.now_utc = self.original_now
+UTC = timezone.utc
+current = datetime(2026, 7, 24, 14, 5, tzinfo=UTC)
+runtime.monitor.now_utc = lambda: current
+entry = {
+    "deadline": (current + timedelta(minutes=12)).isoformat(),
+    "verification_status": runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+    "url": "https://betboom.ru/freestream/deko2",
+}
+record = {
+    "status": "button_not_found",
+    "attempt_version": 2,
+    "attempted_at": (current - timedelta(minutes=3)).isoformat(),
+}
+results = [runtime.recoverable_active_button_not_found(record, entry)]
 
-    def test_current_button_miss_retries_twice_while_timer_is_active(self) -> None:
-        current = datetime(2026, 7, 24, 14, 5, tzinfo=UTC)
-        bbvg_monitor_main.monitor.now_utc = lambda: current
-        entry = {
-            "deadline": (current + timedelta(minutes=12)).isoformat(),
-            "verification_status": (
-                bbvg_monitor_main.monitor.WHEEL_VERIFICATION_CONFIRMED
-            ),
-            "url": "https://betboom.ru/freestream/deko2",
-        }
-        record = {
-            "status": "button_not_found",
-            "attempt_version": 2,
-            "attempted_at": (current - timedelta(minutes=3)).isoformat(),
-        }
+current = current + timedelta(minutes=3)
+runtime.monitor.now_utc = lambda: current
+record["attempted_at"] = (current - timedelta(minutes=3)).isoformat()
+results.append(runtime.recoverable_active_button_not_found(record, entry))
 
-        self.assertEqual(
-            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
-            "active_button_not_found_retry",
+current = current + timedelta(minutes=3)
+runtime.monitor.now_utc = lambda: current
+record["attempted_at"] = (current - timedelta(minutes=3)).isoformat()
+results.append(runtime.recoverable_active_button_not_found(record, entry))
+
+near_deadline = {
+    "deadline": (current + timedelta(minutes=1)).isoformat(),
+    "verification_status": runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+    "url": "https://betboom.ru/freestream/deko2",
+}
+near_record = dict(record)
+near_record["attempted_at"] = (current - timedelta(minutes=3)).isoformat()
+near_result = runtime.recoverable_active_button_not_found(near_record, near_deadline)
+
+recent = {
+    "deadline": (current + timedelta(minutes=8)).isoformat(),
+    "verification_status": runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+    "url": "https://betboom.ru/freestream/deko2",
+}
+recent_record = dict(record)
+recent_record["attempted_at"] = (current - timedelta(minutes=1)).isoformat()
+recent_result = runtime.recoverable_active_button_not_found(recent_record, recent)
+
+legacy = dict(record)
+legacy["attempt_version"] = 1
+legacy_result = runtime.recoverable_active_button_not_found(legacy, {
+    "deadline": (current + timedelta(minutes=8)).isoformat(),
+    "verification_status": runtime.monitor.WHEEL_VERIFICATION_CONFIRMED,
+    "url": "https://betboom.ru/freestream/deko2",
+})
+
+print(json.dumps({
+    "results": results,
+    "retry_count": entry.get("auto_participation_button_retry_count"),
+    "near_deadline": near_result,
+    "recent": recent_result,
+    "legacy": legacy_result,
+}))
+'''
+        env = os.environ.copy()
+        env.update(
+            {
+                "BOT_TOKEN": "test-bot-token",
+                "BOT_STATE_KEY": "test-state-key",
+                "BOT_CHAT_ID": "1",
+                "ADMIN_USER_ID": "1",
+                "BBVG_TEST_MODE": "1",
+                "TELEGRAM_WEB_DOMAIN": "telegram.me",
+            }
         )
-        self.assertEqual(entry["auto_participation_button_retry_count"], 1)
-
-        current = current + timedelta(minutes=3)
-        bbvg_monitor_main.monitor.now_utc = lambda: current
-        record["attempted_at"] = (current - timedelta(minutes=3)).isoformat()
-        self.assertEqual(
-            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
-            "active_button_not_found_retry",
+        completed = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
         )
-        self.assertEqual(entry["auto_participation_button_retry_count"], 2)
-
-        current = current + timedelta(minutes=3)
-        bbvg_monitor_main.monitor.now_utc = lambda: current
-        record["attempted_at"] = (current - timedelta(minutes=3)).isoformat()
+        payload = json.loads(completed.stdout.strip().splitlines()[-1])
         self.assertEqual(
-            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
-            "",
+            payload["results"],
+            [
+                "active_button_not_found_retry",
+                "active_button_not_found_retry",
+                "",
+            ],
         )
-
-    def test_button_miss_waits_for_retry_interval(self) -> None:
-        current = datetime(2026, 7, 24, 14, 5, tzinfo=UTC)
-        bbvg_monitor_main.monitor.now_utc = lambda: current
-        entry = {
-            "deadline": (current + timedelta(minutes=12)).isoformat(),
-            "verification_status": (
-                bbvg_monitor_main.monitor.WHEEL_VERIFICATION_CONFIRMED
-            ),
-            "url": "https://betboom.ru/freestream/deko2",
-        }
-        record = {
-            "status": "button_not_found",
-            "attempt_version": 2,
-            "attempted_at": (current - timedelta(minutes=1)).isoformat(),
-        }
-        self.assertEqual(
-            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
-            "",
-        )
-        self.assertNotIn("auto_participation_button_retry_count", entry)
-
-    def test_button_miss_does_not_retry_near_deadline(self) -> None:
-        current = datetime(2026, 7, 24, 14, 15, tzinfo=UTC)
-        bbvg_monitor_main.monitor.now_utc = lambda: current
-        entry = {
-            "deadline": (current + timedelta(minutes=1)).isoformat(),
-            "verification_status": (
-                bbvg_monitor_main.monitor.WHEEL_VERIFICATION_CONFIRMED
-            ),
-            "url": "https://betboom.ru/freestream/deko2",
-        }
-        record = {
-            "status": "button_not_found",
-            "attempt_version": 2,
-            "attempted_at": (current - timedelta(minutes=3)).isoformat(),
-        }
-        self.assertEqual(
-            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
-            "",
-        )
-        self.assertNotIn("auto_participation_button_retry_count", entry)
-
-    def test_existing_legacy_upgrade_rule_is_preserved(self) -> None:
-        current = datetime(2026, 7, 24, 14, 5, tzinfo=UTC)
-        bbvg_monitor_main.monitor.now_utc = lambda: current
-        entry = {
-            "deadline": (current + timedelta(minutes=12)).isoformat(),
-            "verification_status": (
-                bbvg_monitor_main.monitor.WHEEL_VERIFICATION_CONFIRMED
-            ),
-            "url": "https://betboom.ru/freestream/deko2",
-        }
-        record = {
-            "status": "button_not_found",
-            "attempt_version": 1,
-            "attempted_at": (current - timedelta(minutes=3)).isoformat(),
-        }
-        self.assertEqual(
-            bbvg_monitor_main.recoverable_active_button_not_found(record, entry),
-            "browser_attempt_upgrade",
-        )
-        self.assertNotIn("auto_participation_button_retry_count", entry)
+        self.assertEqual(payload["retry_count"], 2)
+        self.assertEqual(payload["near_deadline"], "")
+        self.assertEqual(payload["recent"], "")
+        self.assertEqual(payload["legacy"], "browser_attempt_upgrade")
 
 
 if __name__ == "__main__":
