@@ -1,4 +1,7 @@
-  File "monitor.py", line 1715
-    "🎡 <b>Новое колесо BetBoom</b>\n\n"
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-SyntaxError: invalid syntax. Perhaps you forgot a comma?
+Traceback (most recent call last):
+  File "/home/runner/work/BB.V.G./BB.V.G./auto_participation_dispatch.py", line 339, in <module>
+    self_test()
+  File "/home/runner/work/BB.V.G./BB.V.G./auto_participation_dispatch.py", line 333, in self_test
+    assert "import subprocess" not in Path(__file__).read_text(encoding="utf-8")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
