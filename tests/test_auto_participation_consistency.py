@@ -183,4 +183,4 @@ def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:
         action_id=701,
         server_start_at=datetime(2026, 7, 25, 8, 36, 46, 419000, tzinfo=UTC),
     )
-    assert calls == ["send", "save", "dispatch"]
+    assert calls == ["save", "dispatch", "send"]

@@ -568,7 +568,13 @@ class RecurringWheelHotfixTests(unittest.TestCase):
 
             @staticmethod
             def send_message(*args, **kwargs):
+                captured["sent"] = True
                 return {"ok": True}
+
+            @staticmethod
+            def dispatch_notified_wheel_event(state, link):
+                captured["dispatched_link"] = link
+                return True
 
             @staticmethod
             def remember_active_wheel(state, message, link, deadline, status, method, excerpt, **kwargs):

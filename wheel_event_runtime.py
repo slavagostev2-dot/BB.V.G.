@@ -625,22 +625,7 @@ def _availability_message(
         if verification_status == monitor_module.WHEEL_VERIFICATION_FAILED
         else ""
     )
-    monitor_module.send_message(
-        f"{title}\n\n"
-        f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
-        f"@{html.escape(message.source)}</a>\n"
-        f"Идентификатор: <code>{identifier}</code>\n"
-        f"Пост: {published:%d.%m.%Y %H:%M}\n"
-        f"{timing}{verification}",
-        reply_markup=monitor_module.wheel_reply_markup(
-            state,
-            message,
-            link,
-            active=not future,
-            status=status,
-            method=method,
-        ),
-    )
+
     monitor_module.remember_active_wheel(
         state,
         message,
@@ -663,7 +648,24 @@ def _availability_message(
         available_at=available_at,
         method=method,
     )
+    monitor_module.dispatch_notified_wheel_event(state, link)
 
+    monitor_module.send_message(
+        f"{title}\n\n"
+        f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
+        f"@{html.escape(message.source)}</a>\n"
+        f"Идентификатор: <code>{identifier}</code>\n"
+        f"Пост: {published:%d.%m.%Y %H:%M}\n"
+        f"{timing}{verification}",
+        reply_markup=monitor_module.wheel_reply_markup(
+            state,
+            message,
+            link,
+            active=not future,
+            status=status,
+            method=method,
+        ),
+    )
 
 def process_due_availability(monitor_module: Any, state: dict[str, Any]) -> dict[str, Any]:
     current = monitor_module.now_utc()

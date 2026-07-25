@@ -219,3 +219,30 @@ class CurrentProductionContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def _source_block(path: str, start: str, end: str) -> str:
+    source = Path(path).read_text(encoding="utf-8")
+    return source.split(start, 1)[1].split(end, 1)[0]
+
+
+def test_auto_participation_event_is_durable_before_notification_delivery() -> None:
+    new_wheel = _source_block("monitor.py", "def notify_new_link(", "def notify_activation(")
+    activation = _source_block("monitor.py", "def notify_activation(", "def fetch_all_sources(")
+    availability = _source_block(
+        "wheel_event_runtime.py",
+        "def _availability_message(",
+        "def process_due_availability(",
+    )
+    for block in (new_wheel, activation, availability):
+        assert block.index("remember_active_wheel(") < block.index("send_message(")
+        assert block.index("dispatch_notified_wheel_event") < block.index("send_message(")
+
+
+def test_auto_participation_dispatch_uses_state_file_cas() -> None:
+    source = Path("auto_participation_dispatch.py").read_text(encoding="utf-8")
+    block = source.split("def _push_state_before_dispatch", 1)[1].split("def _dispatch", 1)[0]
+    assert "merge_auto_participation_state" in block
+    assert "_put_remote_state" in block
+    assert "git pull" not in block
+    assert "git rebase" not in block
