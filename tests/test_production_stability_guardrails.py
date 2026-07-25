@@ -2,6 +2,11 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from personal_wheel_voting import PersonalWheelVotingMixin
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -168,6 +173,79 @@ def test_wheel_participation_callbacks_have_one_subject_owner() -> None:
     assert 'data.startswith(("bb:p:", "wheel:part:"))' not in runtime
     assert 'data.startswith("bb:p:")' not in runtime
     assert 'data.startswith("wheel:part:")' not in runtime
+
+
+def test_notification_callback_resolver_uses_saved_context_and_active_fallback() -> None:
+    panel = PersonalWheelVotingMixin.__new__(PersonalWheelVotingMixin)
+    panel.snapshot = lambda force=True: SimpleNamespace(  # type: ignore[method-assign]
+        state={"button_contexts": {"saved": {"wheel_key": "Wheel-B"}}}
+    )
+    assert panel._notification_wheel_key("saved") == "wheel-b"
+
+    active = {
+        "source": "hoochcs2",
+        "message_id": 2198,
+        "identifier": "hooch07",
+    }
+    token = panel._notification_token("hooch07", active)
+    assert token == "cba7abb40c5b77"
+    panel.snapshot = lambda force=True: SimpleNamespace(  # type: ignore[method-assign]
+        state={"button_contexts": {}, "active_wheels": {"hooch07": active}}
+    )
+    assert panel._notification_wheel_key(token) == "hooch07"
+
+    panel.snapshot = lambda force=True: SimpleNamespace(  # type: ignore[method-assign]
+        state={"button_contexts": {}, "active_wheels": {}}
+    )
+    with pytest.raises(ValueError, match="Контекст кнопки устарел"):
+        panel._notification_wheel_key("missing")
+
+
+def test_single_callback_owner_preserves_notification_and_active_list_behavior() -> None:
+    panel = PersonalWheelVotingMixin.__new__(PersonalWheelVotingMixin)
+    events: list[tuple[str, object]] = []
+    panel._edit_message_id = None
+    panel._prepare_callback_user = lambda query: events.append(  # type: ignore[method-assign]
+        ("prepare", str(query.get("data") or ""))
+    )
+    panel.snapshot = lambda force=True: SimpleNamespace(  # type: ignore[method-assign]
+        state={"button_contexts": {"saved": {"wheel_key": "wheel-b"}}}
+    )
+    panel._resolve_wheel_token = lambda token: token  # type: ignore[method-assign]
+    panel.mark_personal_participation = lambda key: (  # type: ignore[method-assign]
+        events.append(("participate", key)),
+        {"changed": True},
+    )[1]
+    panel.answer = lambda query_id, text: events.append(("answer", text))  # type: ignore[method-assign]
+    panel._delete_callback_message = lambda query: events.append(  # type: ignore[method-assign]
+        ("delete", str(query.get("data") or ""))
+    )
+    panel.show_active = lambda page=0: events.append(("active", page))  # type: ignore[method-assign]
+
+    panel.handle_callback(
+        {
+            "id": "q-notification",
+            "data": "bb:p:saved",
+            "message": {"message_id": 77},
+        }
+    )
+    assert ("participate", "wheel-b") in events
+    assert ("delete", "bb:p:saved") in events
+    assert not any(name == "active" for name, _ in events)
+    assert panel._edit_message_id is None
+
+    events.clear()
+    panel.handle_callback(
+        {
+            "id": "q-active",
+            "data": "wheel:part:wheel-a",
+            "message": {"message_id": 78},
+        }
+    )
+    assert ("participate", "wheel-a") in events
+    assert ("active", 0) in events
+    assert not any(name == "delete" for name, _ in events)
+    assert panel._edit_message_id is None
 
 
 def test_historical_panel_runtime_ladder_cannot_return() -> None:
