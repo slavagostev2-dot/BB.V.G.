@@ -220,7 +220,7 @@ def test_single_callback_owner_preserves_notification_and_active_list_behavior()
     panel._delete_callback_message = lambda query: events.append(  # type: ignore[method-assign]
         ("delete", str(query.get("data") or ""))
     )
-    panel.show_active = lambda page=0: events.append(("active", page))  # type: ignore[method-assign]
+    panel.show_menu = lambda clear_stack=True: events.append(("menu", clear_stack))  # type: ignore[method-assign]
 
     panel.handle_callback(
         {
@@ -231,7 +231,7 @@ def test_single_callback_owner_preserves_notification_and_active_list_behavior()
     )
     assert ("participate", "wheel-b") in events
     assert ("delete", "bb:p:saved") in events
-    assert not any(name == "active" for name, _ in events)
+    assert not any(name == "menu" for name, _ in events)
     assert panel._edit_message_id is None
 
     events.clear()
@@ -243,7 +243,7 @@ def test_single_callback_owner_preserves_notification_and_active_list_behavior()
         }
     )
     assert ("participate", "wheel-a") in events
-    assert ("active", 0) in events
+    assert ("menu", True) in events
     assert not any(name == "delete" for name, _ in events)
     assert panel._edit_message_id is None
 

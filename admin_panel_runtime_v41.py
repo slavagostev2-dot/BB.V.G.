@@ -382,7 +382,7 @@ def self_test() -> None:
         {"changed": True},
     )[1]
     panel.answer = lambda query_id, text: events.append(("answer", str(text)))  # type: ignore[method-assign]
-    panel.show_active = lambda page=0: events.append(("active", str(page)))  # type: ignore[method-assign]
+    panel.show_menu = lambda clear_stack=True: events.append(("menu", str(clear_stack)))  # type: ignore[method-assign]
     panel.handle_callback(
         {
             "id": "q-active",
@@ -392,7 +392,7 @@ def self_test() -> None:
         }
     )
     assert ("participate", "wheel-a") in events
-    assert ("active", "0") in events
+    assert ("menu", "True") in events
     assert panel._edit_message_id is None
 
     events.clear()

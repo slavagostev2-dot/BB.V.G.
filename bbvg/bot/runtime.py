@@ -737,7 +737,7 @@ def self_test() -> None:
     )
     panel.mark_personal_participation = lambda key: {"changed": True}  # type: ignore[method-assign]
     panel.answer = lambda query_id, text: callback_calls.append(("answer", text))  # type: ignore[method-assign]
-    panel.show_active = lambda page=0: callback_calls.append(("active", page))  # type: ignore[method-assign]
+    panel.show_menu = lambda clear_stack=True: callback_calls.append(("menu", clear_stack))  # type: ignore[method-assign]
     panel._delete_callback_message = lambda query: callback_calls.append(  # type: ignore[method-assign]
         ("delete", str(query.get("data") or ""))
     )
@@ -750,7 +750,7 @@ def self_test() -> None:
         }
     )
     assert ("delete", "bb:p:token") in callback_calls
-    assert not any(event[0] == "active" for event in callback_calls)
+    assert not any(event[0] == "menu" for event in callback_calls)
     assert panel._edit_message_id is None
 
     callback_calls.clear()
@@ -762,7 +762,7 @@ def self_test() -> None:
             "from": {"id": "1"},
         }
     )
-    assert ("active", 0) in callback_calls
+    assert ("menu", True) in callback_calls
     assert panel._edit_message_id is None
 
     print("BB V.G. consolidated Telegram panel runtime self-test passed")

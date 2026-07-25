@@ -810,7 +810,7 @@ class PersonalWheelVotingMixin:
                 if notification_button:
                     self._delete_callback_message(query)
                 else:
-                    self.show_active()
+                    self.show_menu(clear_stack=True)
             except Exception as exc:
                 print(f"ERROR personal wheel vote: {type(exc).__name__}: {exc}")
                 self.answer(query_id, "Не удалось отметить участие")
