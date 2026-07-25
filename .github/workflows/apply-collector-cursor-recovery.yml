@@ -1,0 +1,68 @@
+name: Apply collector cursor recovery
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.actor != 'github-actions[bot]' && github.head_ref == 'agent/collector-cursor-recovery-20260725' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      BOT_TOKEN: test-bot-token
+      BOT_STATE_KEY: test-state-key
+      BOT_CHAT_ID: '1'
+      ADMIN_USER_ID: '1'
+      BBVG_TEST_MODE: '1'
+      TELEGRAM_WEB_DOMAIN: telegram.me
+      FINAL_REMINDER_BEFORE_MINUTES: '5'
+      ACTIVE_REMOVE_GRACE_MINUTES: '0'
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: agent/collector-cursor-recovery-20260725
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Apply fix
+        run: python scripts/apply_collector_cursor_recovery.py
+
+      - name: Compile changed files
+        run: python -m py_compile telegram_post_links_v2.py tests/test_current_contracts.py
+
+      - name: Run collector recovery self-test
+        run: python telegram_post_links_v2.py
+
+      - name: Run focused contracts
+        run: python -m pytest -q tests/test_current_contracts.py tests/test_production_stability_guardrails.py
+
+      - name: Run production acceptance
+        run: python tests/production_acceptance.py --section unified
+
+      - name: Run full repository tests
+        run: python -m pytest -q
+
+      - name: Commit verified production diff
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git reset
+          git add telegram_post_links_v2.py tests/test_current_contracts.py docs/PROJECT_CHANGELOG_RU.md
+          git status --short
+          git commit -m 'Recover missing Telegram collector posts by message cursor'
+          git push origin HEAD:agent/collector-cursor-recovery-20260725
