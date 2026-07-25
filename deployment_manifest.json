@@ -1,14 +1,27 @@
 {
   "compatibility_epoch": "durable-event-ledger-v1",
-  "component_sha_contract": {
-    "browser_worker": "dispatcher workflow checkout SHA",
-    "control_center": "control_center_release.txt exact SHA",
-    "dispatcher": "monitor GITHUB_SHA pinned as workflow_dispatch ref",
-    "monitor": "monitor workflow checkout SHA"
+  "compatibility_error": "component SHA mismatch or missing runtime status",
+  "compatible": false,
+  "components": {
+    "browser_worker": {
+      "sha": "b094b4b9c7888f265d63d8c886c766e5f12b3036"
+    },
+    "control_center": {
+      "run_id": "30171493252",
+      "sha": "98508d01d471e428fc77f0dd74ef6c04c5c24636",
+      "started_at": "2026-07-25T19:23:56.929760+00:00"
+    },
+    "dispatcher": {
+      "sha": "b094b4b9c7888f265d63d8c886c766e5f12b3036"
+    },
+    "monitor": {
+      "run_id": "30171574805",
+      "sha": "b094b4b9c7888f265d63d8c886c766e5f12b3036",
+      "started_at": "2026-07-25T19:26:10.496207+00:00"
+    }
   },
   "event_ledger_schema_version": 2,
-  "incompatible_behavior": "system health fails until every component reports the same exact SHA",
+  "generated_at": "2026-07-25T19:37:41.114285+00:00",
   "legacy_state_schema_version": "compatibility-json-v1",
-  "manifest_schema_version": 1,
-  "runtime_manifest": "runtime-status:deployment_manifest.json"
+  "manifest_schema_version": 1
 }
