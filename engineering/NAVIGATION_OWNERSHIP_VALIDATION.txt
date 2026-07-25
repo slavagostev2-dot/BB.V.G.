@@ -43,10 +43,10 @@ BB V.G. consolidated Telegram panel runtime self-test passed
 BB V.G. consolidated Telegram panel runtime self-test passed
 =========================== short test summary info ============================
 FAILED tests/test_navigation_ownership.py::test_navigation_ownership_self_test - AssertionError
-FAILED tests/test_navigation_ownership.py::test_menu_rows_have_one_real_owner - AssertionError: assert 'compact_menu_rows' not in mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f845c37e700>)>, '_bbvg_hunter_profile_menu_installed': True})
- +  where mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f845c37e700>)>, '_bbvg_hunter_profile_menu_installed': True}) = UserManagementRuntime.__dict__
+FAILED tests/test_navigation_ownership.py::test_menu_rows_have_one_real_owner - AssertionError: assert 'compact_menu_rows' not in mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f124afd6700>)>, '_bbvg_hunter_profile_menu_installed': True})
+ +  where mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f124afd6700>)>, '_bbvg_hunter_profile_menu_installed': True}) = UserManagementRuntime.__dict__
 FAILED tests/test_current_contracts.py::CurrentProductionContractTests::test_runtime_chain_contracts_used_by_v41 - AssertionError
-3 failed, 44 passed in 1.04s
+3 failed, 44 passed in 0.65s
 ........................................................................ [ 26%]
 ...F.............................................FF..................... [ 53%]
 ........................................................................ [ 80%]
@@ -219,8 +219,8 @@ ______________________ test_menu_rows_have_one_real_owner ______________________
     def test_menu_rows_have_one_real_owner() -> None:
         assert "compact_menu_rows" in PanelInterfaceRuntime.__dict__
 >       assert "compact_menu_rows" not in UserManagementRuntime.__dict__
-E       AssertionError: assert 'compact_menu_rows' not in mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7fabf06d5e40>)>, '_bbvg_hunter_profile_menu_installed': True})
-E        +  where mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7fabf06d5e40>)>, '_bbvg_hunter_profile_menu_installed': True}) = UserManagementRuntime.__dict__
+E       AssertionError: assert 'compact_menu_rows' not in mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f946e515e40>)>, '_bbvg_hunter_profile_menu_installed': True})
+E        +  where mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f946e515e40>)>, '_bbvg_hunter_profile_menu_installed': True}) = UserManagementRuntime.__dict__
 
 tests/test_navigation_ownership.py:17: AssertionError
 ____ Chapter4InterfaceTests.test_system_status_has_no_admin_button_for_user ____
@@ -254,7 +254,7 @@ tests/test_ui_contracts.py:286: AssertionError
 =========================== short test summary info ============================
 FAILED tests/test_current_contracts.py::CurrentProductionContractTests::test_runtime_chain_contracts_used_by_v41 - AssertionError
 FAILED tests/test_navigation_ownership.py::test_navigation_ownership_self_test - AssertionError
-FAILED tests/test_navigation_ownership.py::test_menu_rows_have_one_real_owner - AssertionError: assert 'compact_menu_rows' not in mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7fabf06d5e40>)>, '_bbvg_hunter_profile_menu_installed': True})
- +  where mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7fabf06d5e40>)>, '_bbvg_hunter_profile_menu_installed': True}) = UserManagementRuntime.__dict__
+FAILED tests/test_navigation_ownership.py::test_menu_rows_have_one_real_owner - AssertionError: assert 'compact_menu_rows' not in mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f946e515e40>)>, '_bbvg_hunter_profile_menu_installed': True})
+ +  where mappingproxy({'__module__': 'bbvg.bot.users', '__doc__': 'User registration, roles and base personal notification pref...ticmethod(<function _compact_menu_rows_with_profile at 0x7f946e515e40>)>, '_bbvg_hunter_profile_menu_installed': True}) = UserManagementRuntime.__dict__
 FAILED tests/test_ui_contracts.py::Chapter4InterfaceTests::test_system_status_has_no_admin_button_for_user - AssertionError: 'control:monitor' not found in "{'inline_keyboard': [[{'text': '🔄 Обновить', 'callback_data': 'refresh:status'}], [{'text': '🏠 Главное меню', 'callback_data': 'nav:home'}]]}"
-4 failed, 264 passed in 2.03s
+4 failed, 264 passed in 1.91s
