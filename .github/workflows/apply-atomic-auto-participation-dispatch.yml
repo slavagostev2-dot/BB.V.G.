@@ -58,8 +58,17 @@ jobs:
             docs/.create-pr-marker \
             engineering/ATOMIC_DISPATCH_VALIDATION.txt
 
-      - name: Compile changed modules
-        run: python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
+      - name: Compile monitor
+        run: python -m py_compile monitor.py
+
+      - name: Compile wheel event runtime
+        run: python -m py_compile wheel_event_runtime.py
+
+      - name: Compile atomic dispatcher
+        run: python -m py_compile auto_participation_dispatch.py
+
+      - name: Compile current contracts
+        run: python -m py_compile tests/test_current_contracts.py
 
       - name: Validate atomic dispatcher
         run: python auto_participation_dispatch.py --self-test
