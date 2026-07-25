@@ -89,7 +89,7 @@ validation_stage="runtime_v41_self_test"
 python admin_panel_runtime_v41.py --self-test
 validation_stage="telegram_start_state_smoke"
 if [[ -f scripts/telegram_start_state_smoke.py ]]; then
-  python scripts/telegram_start_state_smoke.py
+  python -m scripts.telegram_start_state_smoke
 elif [[ "$release_sha" == "26efd716070d8933cb5aab0ceaef64d606236f21" ]]; then
   echo "Telegram start/state smoke is grandfathered for the emergency rollback release ${release_sha}"
 else
