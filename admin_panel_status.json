@@ -18,12 +18,17 @@
   "started_at": "2026-07-25T07:09:48.930810+00:00",
   "state_format": "bbvg-bot-state-v2",
   "state_key_mode": "dedicated",
-  "status": "running",
+  "status": "validation_failed",
   "storage": "encrypted_bot_state",
   "summary_delivery": "direct_in_process",
   "update_consumer": "single_getUpdates_owner",
   "version": 41,
   "wheel_colors": "callback_payload_unchanged",
   "wheel_link_lifecycle": "timer_or_manual_deadline_else_two_hours",
-  "workflow_run_id": "30148783923"
+  "workflow_run_id": "30148783923",
+  "last_validation_at": "2026-07-25T07:13:06.167983472Z",
+  "validation_error": "dependencies=success; candidate=failure; button_recovery=skipped; owner_sync=skipped; ai_provider=skipped; state_migration=skipped\n\nHEAD is now at 25b9eb88 Устранить регулярные отключения и ложные циклы диагностики\nValidating exact Control Center release SHA: 25b9eb883e4681cd045b019fe67d8b77e2416946\nBB V.G. AES-GCM bot private state self-test passed\nnotification integrity v2 self-test passed\nUnified notification, source and administrator acceptance passed\nProduction acceptance passed: unified\nnotification remote checkpoint self-test passed\nauto participation authoritative owner sync self-test passed\nBB V.G. bot notification state self-test passed\nprivacy retention self-test passed\nCurrent-tree security audit passed.\nBB V.G. bot state migration v2 self-test passed\nBB V.G. additive administrator action self-test passed\nadmin action v3 personal vote idempotency self-test passed\nadmin action queue self-test passed\nBB V.G. AES-GCM bot private state self-test passed\nBB V.G. encrypted private state subsystem self-test passed\nBB V.G. user management and settings subsystem self-test passed\nwheel link lifecycle scenario self-test passed\nBB V.G. wheel scenario suite passed: 10 scenarios\nBB V.G. consolidated Telegram panel runtime self-test passed\nBB V.G. consolidated Telegram panel runtime self-test passed\nBB V.G. v41 compact UI, participation and owner user deletion self-test passed\nTraceback (most recent call last):\n  File \"/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py\", line 7, in <module>\n    from admin_bot import Snapshot\nModuleNotFoundError: No module named 'admin_bot'\nControl Center preflight failed: stage=telegram_start_state_smoke; command=python scripts/telegram_start_state_smoke.py; exit=1",
+  "validation_run_id": "30148902526",
+  "validation_head_sha": "69f8d23ae58d35f39db2897fe03de1e9c40bdac1",
+  "validation_event": "push"
 }
