@@ -43,7 +43,7 @@ jobs:
 
       - name: Remove temporary automation
         run: |
-          git rm -f --ignore-unmatch scripts/apply_stale_recovery_notification_expiry.py .github/workflows/apply-stale-recovery-expiry.yml
+          git rm -f --ignore-unmatch scripts/apply_stale_recovery_notification_expiry.py engineering/.stale-recovery-expiry-trigger .github/workflows/apply-stale-recovery-expiry.yml
 
       - name: Validate expiry and repository
         run: |
