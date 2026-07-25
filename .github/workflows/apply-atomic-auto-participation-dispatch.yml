@@ -58,13 +58,20 @@ jobs:
             docs/.create-pr-marker \
             engineering/ATOMIC_DISPATCH_VALIDATION.txt
 
-      - name: Validate focused contracts
-        run: |
-          python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
-          python auto_participation_dispatch.py --self-test
-          python wheel_event_runtime.py
-          python personal_reminder_filter.py
-          python -m pytest -q tests/test_current_contracts.py tests/test_production_stability_guardrails.py tests/test_telegram_start_state_safety.py
+      - name: Compile changed modules
+        run: python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
+
+      - name: Validate atomic dispatcher
+        run: python auto_participation_dispatch.py --self-test
+
+      - name: Validate wheel event lifecycle
+        run: python wheel_event_runtime.py
+
+      - name: Validate reminder dispatcher
+        run: python personal_reminder_filter.py
+
+      - name: Run focused pytest contracts
+        run: python -m pytest -q tests/test_current_contracts.py tests/test_production_stability_guardrails.py tests/test_telegram_start_state_safety.py
 
       - name: Run full repository tests
         run: python -m pytest -q
