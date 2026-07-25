@@ -12,105 +12,35 @@ jobs:
   diagnose:
     if: ${{ github.head_ref == 'diagnostic/kolesabb-cache-20260725' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
+    env:
+      BOT_TOKEN: test-bot-token
+      BOT_STATE_KEY: test-state-key
+      BOT_CHAT_ID: '1'
+      ADMIN_USER_ID: '1'
+      BBVG_TEST_MODE: '1'
+      TELEGRAM_WEB_DOMAIN: telegram.me
+      FINAL_REMINDER_BEFORE_MINUTES: '5'
+      ACTIVE_REMOVE_GRACE_MINUTES: '0'
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
+          cache: pip
 
-      - name: Install diagnostic dependencies
-        run: python -m pip install requests beautifulsoup4
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
 
-      - name: Compare Telegram public page variants
+      - name: Run production and full-day gap diagnostic
         env:
           PYTHONUNBUFFERED: '1'
-        run: |
-          python - <<'PY' | tee /tmp/kolesabb-diagnostic.txt
-          import json
-          import time
-
-          import requests
-          from bs4 import BeautifulSoup
-
-          session = requests.Session()
-          session.headers.update({
-              'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36',
-              'Cache-Control': 'no-cache, no-store, max-age=0',
-              'Pragma': 'no-cache',
-          })
-
-          stamp = int(time.time() * 1000)
-          urls = [
-              'https://telegram.me/s/kolesaBB',
-              f'https://telegram.me/s/kolesaBB?bbvg_fresh={stamp}',
-              f'https://t.me/s/kolesaBB?bbvg_fresh={stamp + 1}',
-              f'https://telegram.me/s/kolesaBB?before=1000000000&bbvg_fresh={stamp + 2}',
-          ]
-
-          def summarize(url):
-              response = session.get(url, timeout=20, allow_redirects=True)
-              print('\n=== PAGE', url)
-              print('final_url=', response.url)
-              print('status=', response.status_code)
-              print('headers=', json.dumps({
-                  key: response.headers.get(key)
-                  for key in ('date', 'age', 'cache-control', 'etag', 'last-modified', 'cf-cache-status', 'x-cache')
-              }, ensure_ascii=False, sort_keys=True))
-              response.raise_for_status()
-              soup = BeautifulSoup(response.text, 'html.parser')
-              rows = []
-              for node in soup.select('div.tgme_widget_message[data-post]'):
-                  data_post = str(node.get('data-post') or '')
-                  time_node = node.select_one('time[datetime]')
-                  links = []
-                  for anchor in node.select('a[href]'):
-                      href = str(anchor.get('href') or '')
-                      if 'betboom.ru/freestream/' in href:
-                          links.append(href)
-                  text_node = node.select_one('div.tgme_widget_message_text')
-                  rows.append({
-                      'post': data_post,
-                      'datetime': time_node.get('datetime') if time_node else None,
-                      'links': sorted(set(links)),
-                      'text': text_node.get_text(' ', strip=True)[:180] if text_node else '',
-                  })
-              print('count=', len(rows))
-              print(json.dumps(rows[-25:], ensure_ascii=False, indent=2))
-
-          for url in urls:
-              try:
-                  summarize(url)
-              except Exception as exc:
-                  print('ERROR', url, type(exc).__name__, str(exc))
-
-          print('\n=== DIRECT POSTS')
-          for message_id in range(249, 260):
-              url = f'https://telegram.me/kolesaBB/{message_id}?embed=1&mode=tme&bbvg_fresh={stamp + message_id}'
-              try:
-                  response = session.get(url, timeout=20, allow_redirects=True)
-                  soup = BeautifulSoup(response.text, 'html.parser')
-                  node = soup.select_one('div.tgme_widget_message[data-post]')
-                  links = sorted({
-                      str(anchor.get('href') or '')
-                      for anchor in soup.select('a[href]')
-                      if 'betboom.ru/freestream/' in str(anchor.get('href') or '')
-                  })
-                  time_node = soup.select_one('time[datetime]')
-                  print(json.dumps({
-                      'requested_id': message_id,
-                      'status': response.status_code,
-                      'post': str(node.get('data-post') or '') if node else None,
-                      'datetime': time_node.get('datetime') if time_node else None,
-                      'links': links,
-                      'final_url': response.url,
-                  }, ensure_ascii=False))
-              except Exception as exc:
-                  print(json.dumps({'requested_id': message_id, 'error': f'{type(exc).__name__}: {exc}'}, ensure_ascii=False))
-          PY
+        run: python scripts/diagnose_today_wheels.py | tee /tmp/kolesabb-diagnostic.txt
 
       - name: Upload diagnostic artifact
         uses: actions/upload-artifact@v4
