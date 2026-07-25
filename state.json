@@ -356,11 +356,9 @@
   "active_wheels": {
     "zonertg16": {
       "action_id": 701,
-      "auto_participation_checked_at": "2026-07-25T09:06:21.492612+00:00",
       "auto_participation_confirmed_at": "2026-07-25T09:05:17.937720+00:00",
-      "auto_participation_error": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
-      "auto_participation_retry_allowed": false,
-      "auto_participation_status": "button_not_found",
+      "auto_participation_rearm_reason": "browser_attempt_upgrade",
+      "auto_participation_rearmed_at": "2026-07-25T11:13:06.552852+00:00",
       "availability_status": "available",
       "button_token": "e69d380f347843",
       "deadline": "2026-07-25T18:36:46.419000+00:00",
@@ -370,9 +368,9 @@
       "first_notified_at": "2026-07-25T09:04:19.934269+00:00",
       "generation_id": "6b6a163030b5ef75219f",
       "identifier": "zonertg16",
-      "last_checked_at": "2026-07-25T11:10:27.964987+00:00",
+      "last_checked_at": "2026-07-25T11:13:06.552811+00:00",
       "last_notification_at": "2026-07-25T09:04:19.934269+00:00",
-      "last_verification_at": "2026-07-25T11:10:27.831644+00:00",
+      "last_verification_at": "2026-07-25T11:13:06.127082+00:00",
       "lifecycle_changed_at": "2026-07-25T09:10:18.398488+00:00",
       "lifecycle_state": "participating",
       "message_date": "2026-07-25T08:36:49+00:00",
@@ -2681,6 +2679,11 @@
       "status": "workflow_dispatch_sent",
       "wheel_key": "zonertg15"
     },
+    "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00": {
+      "scheduled_at": "2026-07-25T11:13:06.552852+00:00",
+      "status": "workflow_dispatch_scheduled",
+      "wheel_key": "zonertg16"
+    },
     "zonertg16#event:6b6a163030b5ef75219f": {
       "dispatch_error": "GitHub принял запуск автоучастия, но worker не записал результат за 5 минут",
       "dispatched_at": "2026-07-25T09:04:22.848324+00:00",
@@ -4660,35 +4663,6 @@
       "status": "participated",
       "wheel_key": "zonertg15"
     },
-    "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00": {
-      "attempted_at": "2026-07-25T09:06:21.492612+00:00",
-      "bot_failure_detail": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
-      "bot_failure_pending_at": "2026-07-25T09:05:36.232511+00:00",
-      "bot_failure_status": "button_not_found",
-      "bot_failure_sync_status": "waiting_for_control_center",
-      "bot_failure_sync_version": 1,
-      "detail": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
-      "event_context": {
-        "action_id": 701,
-        "button_token": "e69d380f347843",
-        "deadline": "2026-07-25T18:36:46.419000+00:00",
-        "generation_id": "6b6a163030b5ef75219f",
-        "identifier": "zonertg16",
-        "message_date": "2026-07-25T08:36:49+00:00",
-        "message_id": 35756,
-        "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ:\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\n10 ПО 1000 20 ПО 500\nИТОГИ ЧЕРЕЗ 10 ЧАСОВ\nhttps://telegram.me/mechanogun\nhttps://telegram.me/mechanogun/35756\nhttps://betboom.ru/freestream/zonertg16?utm_content=zoner&utm_source=freestream",
-        "message_url": "https://telegram.me/mechanogun/35756",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-25T08:36:46.419000+00:00",
-        "source": "mechanogun",
-        "url": "https://betboom.ru/freestream/zonertg16",
-        "wheel_key": "zonertg16"
-      },
-      "recovery_scan": true,
-      "retry_allowed": false,
-      "status": "button_not_found",
-      "wheel_key": "zonertg16"
-    },
     "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00#account:vyacheslav_secondary": {
       "account_key": "vyacheslav_secondary",
       "account_label": "Аккаунт 2",
@@ -5684,7 +5658,6 @@
     "792c44b4d7ea1dddc563326556acee815ba645502d7b39e68ec97a0f6cd63c33": "2026-07-21T21:45:48.747399+00:00",
     "79fecd77f1ec0e6d8082765413edba53fa79be8b5920cf720dbf0e38c588a630": "2026-07-12T18:26:19.628034+00:00",
     "7a2d4eb58b48e0f1e620dab809f03843b2c7162695831c03a4a79e684176961b": "2026-07-12T18:26:20.897392+00:00",
-    "7a97766b271c84902552f65aad8b0c1f9fe0df66a80776191215a8dabd802875": "2026-07-25T11:10:39.553957+00:00",
     "7b1e4eeacb8c3b8a18ce17ddd255e6bb63ea2db9eb9770e74622d330bd442c66": "2026-07-12T15:09:58.068418+00:00",
     "7bab602703db41b8bd21bb622afe0c672292b34510de7770abcf2f5d68fd3846": "2026-07-23T02:20:12.746661+00:00",
     "7c0db4a6feeda434bed555b014e9a856a4100e6789887aea7ff339197f46dbd4": "2026-07-12T15:10:04.958832+00:00",
@@ -6875,7 +6848,7 @@
     "zonertg16": {
       "action_id": 701,
       "generation_id": "6b6a163030b5ef75219f",
-      "seen_at": "2026-07-25T11:10:27.831644+00:00",
+      "seen_at": "2026-07-25T11:13:06.127082+00:00",
       "server_start_at": "2026-07-25T08:36:46.419000+00:00",
       "state": "active"
     },
@@ -6931,9 +6904,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-25T11:10:39.553664+00:00",
+    "last_checked_at": "2026-07-25T11:13:06.127082+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-25T11:10:39.553664+00:00",
+    "last_success_at": "2026-07-25T11:13:06.127082+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -7585,11 +7558,11 @@
       "action_id": 701,
       "first_seen_at": "2026-07-25T09:04:19.934448+00:00",
       "generation_id": "6b6a163030b5ef75219f",
-      "last_seen_at": "2026-07-25T11:10:27.831644+00:00",
-      "observations": 39,
+      "last_seen_at": "2026-07-25T11:13:06.127082+00:00",
+      "observations": 41,
       "server_start_at": "2026-07-25T08:36:46.419000+00:00",
       "statuses": {
-        "active": 39
+        "active": 41
       },
       "wheel_key": "zonertg16"
     },
