@@ -85,12 +85,13 @@ jobs:
           git push origin HEAD:agent/periodic-outage-root-fix-20260725
           exit 1
 
-      - name: Commit clean root fix
+      - name: Commit clean non-workflow root fix
         run: |
           set -euo pipefail
+          git checkout -- .github/workflows/admin-bot.yml .github/workflows/system-health.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git status --short
-          git commit -m 'Eliminate periodic runtime outage feedback loop'
+          git commit -m 'Stabilize incident lifecycle and verify snapshot safety'
           git push origin HEAD:agent/periodic-outage-root-fix-20260725
