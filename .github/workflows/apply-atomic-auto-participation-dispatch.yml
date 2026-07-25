@@ -41,6 +41,9 @@ jobs:
       - name: Align patch with current dispatcher
         run: python scripts/prepare_atomic_dispatch_patch_v3.py
 
+      - name: Repair generated notification quotes
+        run: python scripts/fix_atomic_notification_quote_generation.py
+
       - name: Apply atomic dispatch patch
         run: python scripts/apply_atomic_auto_participation_dispatch.py
 
@@ -51,6 +54,7 @@ jobs:
             scripts/prepare_atomic_dispatch_patch_v2.py \
             scripts/prepare_atomic_dispatch_patch_v3.py \
             scripts/fix_prepare_atomic_dispatch_quotes.py \
+            scripts/fix_atomic_notification_quote_generation.py \
             scripts/auto_participation_dispatch_atomic_payload.txt \
             .github/workflows/apply-atomic-auto-participation-dispatch.yml \
             scripts/.atomic-dispatch-pr-trigger \
@@ -58,28 +62,8 @@ jobs:
             docs/.create-pr-marker \
             engineering/ATOMIC_DISPATCH_VALIDATION.txt
 
-      - name: Compile monitor and publish exact error
-        shell: bash
-        run: |
-          set +e
-          python -m py_compile monitor.py 2>&1 | tee /tmp/monitor-compile.log
-          code=${PIPESTATUS[0]}
-          set -e
-          if [[ "$code" -ne 0 ]]; then
-            cp /tmp/monitor-compile.log /tmp/monitor-compile-copy.log
-            git reset --hard HEAD
-            mkdir -p engineering
-            cat /tmp/monitor-compile-copy.log > engineering/ATOMIC_DISPATCH_VALIDATION.txt
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add engineering/ATOMIC_DISPATCH_VALIDATION.txt
-            git commit -m 'Record generated monitor syntax diagnostic [skip ci]'
-            git push origin HEAD:fix/atomic-auto-participation-dispatch-20260725
-            exit "$code"
-          fi
-
-      - name: Compile remaining modules
-        run: python -m py_compile wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
+      - name: Compile changed modules
+        run: python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
 
       - name: Validate atomic dispatcher
         run: python auto_participation_dispatch.py --self-test
