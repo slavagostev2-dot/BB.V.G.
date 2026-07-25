@@ -1,9 +1,9 @@
 {
   "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-07-25T16:22:06.539351+00:00",
-    "started_at": "2026-07-25T16:22:02.381256+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-25T16:29:13.514665+00:00",
+    "started_at": "2026-07-25T16:29:10.774109+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,21 +13,21 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 2,
-    "decision_id": "3f9b26f07e754b40b6fe26a9e1543a09",
+    "decision_id": "cab9693f0f2a4deb917eacf87d4f7bfc",
     "finding_count": 2,
     "finding_kinds": [
       "admin_panel_stale",
       "monitor_stale"
     ],
-    "generated_at": "2026-07-25T16:23:28.110883+00:00",
-    "impact": "Бот не реагирует на команды пользователей, а система мониторинга не предоставляет актуальных данных о состоянии сервисов.",
+    "generated_at": "2026-07-25T16:29:36.424248+00:00",
+    "impact": "Бот перестал принимать команды пользователей и перестал обновлять данные мониторинга, что делает систему неработоспособной.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: бот и основной монитор перестали обновляться 23 минуты назад, несмотря на корректную работу источников данных.",
+    "summary": "Система находится в критическом состоянии: зафиксировано 2 инцидента, связанных с отсутствием активности монитора и панели управления в течение 23 минут.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -64,7 +64,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-25T16:23:26.411810+00:00",
+  "checked_at": "2026-07-25T16:29:34.219331+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -106,7 +106,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-07-25T16:22:06.539351+00:00",
+    "bot_panel_heartbeat": "2026-07-25T16:29:13.514665+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
@@ -116,9 +116,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-25T16:22:06.958207+00:00",
+      "last_checked_at": "2026-07-25T16:24:44.955336+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-25T16:22:06.958207+00:00",
+      "last_success_at": "2026-07-25T16:24:44.955336+00:00",
       "status": "ok"
     }
   },
@@ -153,32 +153,32 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 169,
-    "checks_delta": 914890,
-    "checks_total": 914890,
+    "checks_delta": 169,
+    "checks_total": 915059,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "ab7fc56c6409a7c0e709059ae56463d357d12917",
+    "head_sha": "17bec3dfa1946e69c630ae5d63eda66797606cb2",
     "iteration": 1,
-    "last_iteration_at": "2026-07-25T16:22:07.167975+00:00",
-    "last_iteration_duration_seconds": 32,
+    "last_iteration_at": "2026-07-25T16:24:45.157541+00:00",
+    "last_iteration_duration_seconds": 23,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-25T16:22:07.167975+00:00",
-    "last_successful_checks_total": 914890,
-    "last_successful_iteration_at": "2026-07-25T16:22:07.167975+00:00",
+    "last_process_heartbeat_at": "2026-07-25T16:24:45.157541+00:00",
+    "last_successful_checks_total": 915059,
+    "last_successful_iteration_at": "2026-07-25T16:24:45.157541+00:00",
     "pending_wheels": 1,
     "reachable_sources": 169,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "30165447330",
-    "run_started_at": "2026-07-25T16:21:35.961371+00:00",
+    "run_id": "30165694695",
+    "run_started_at": "2026-07-25T16:28:45.332132369Z",
     "source_errors": 0,
-    "stats_counter_reset": true,
-    "status": "running",
+    "stats_counter_reset": false,
+    "status": "starting",
     "version": 3,
-    "workflow_run_id": "30165447330"
+    "workflow_run_id": "30165694695"
   },
-  "monitor_age_minutes": 1,
-  "monitor_effective_heartbeat_at": "2026-07-25T16:22:07.167975+00:00",
+  "monitor_age_minutes": 4,
+  "monitor_effective_heartbeat_at": "2026-07-25T16:24:45.157541+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -248,9 +248,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-25T16:22:06.958207+00:00",
+    "last_checked_at": "2026-07-25T16:24:44.955336+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-25T16:22:06.958207+00:00",
+    "last_success_at": "2026-07-25T16:24:44.955336+00:00",
     "status": "ok"
   }
 }
