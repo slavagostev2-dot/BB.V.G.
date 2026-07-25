@@ -44,6 +44,9 @@ jobs:
       - name: Repair generated notification quotes
         run: python scripts/fix_atomic_notification_quote_generation.py
 
+      - name: Repair dispatcher self-test
+        run: python scripts/fix_atomic_dispatch_payload_self_test.py
+
       - name: Apply atomic dispatch patch
         run: python scripts/apply_atomic_auto_participation_dispatch.py
 
@@ -55,6 +58,7 @@ jobs:
             scripts/prepare_atomic_dispatch_patch_v3.py \
             scripts/fix_prepare_atomic_dispatch_quotes.py \
             scripts/fix_atomic_notification_quote_generation.py \
+            scripts/fix_atomic_dispatch_payload_self_test.py \
             scripts/auto_participation_dispatch_atomic_payload.txt \
             .github/workflows/apply-atomic-auto-participation-dispatch.yml \
             scripts/.atomic-dispatch-pr-trigger \
