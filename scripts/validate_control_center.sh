@@ -88,7 +88,14 @@ python -m bbvg.bot.runtime --self-test
 validation_stage="runtime_v41_self_test"
 python admin_panel_runtime_v41.py --self-test
 validation_stage="telegram_start_state_smoke"
-python scripts/telegram_start_state_smoke.py
+if [[ -f scripts/telegram_start_state_smoke.py ]]; then
+  python scripts/telegram_start_state_smoke.py
+elif [[ "$release_sha" == "26efd716070d8933cb5aab0ceaef64d606236f21" ]]; then
+  echo "Telegram start/state smoke is grandfathered for the emergency rollback release ${release_sha}"
+else
+  echo "Release candidate is missing scripts/telegram_start_state_smoke.py: ${release_sha}" >&2
+  false
+fi
 
 validation_stage="production_entrypoint"
 if ! grep -Fq 'run: python notification_button_recovery.py' .github/workflows/admin-bot.yml; then
