@@ -1,27 +1,27 @@
 from pathlib import Path
 
-import yaml
-
 
 WORKFLOW_PATH = Path(".github/workflows/system-health.yml")
 
 
-def test_system_health_uses_existing_remote_delivery_claim() -> None:
-    workflow = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
-    steps = workflow["jobs"]["health"]["steps"]
-    run_checks = next(
-        step for step in steps if step.get("name") == "Run centralized bot checks"
-    )
-    env = run_checks.get("env", {})
+def workflow_text() -> str:
+    return WORKFLOW_PATH.read_text(encoding="utf-8")
 
-    assert env.get("GITHUB_TOKEN") == "${{ github.token }}"
-    assert env.get("GITHUB_REPOSITORY") == "${{ github.repository }}"
-    assert env.get("GITHUB_BRANCH") == "main"
+
+def test_system_health_uses_existing_remote_delivery_claim() -> None:
+    text = workflow_text()
+    step = text.split("- name: Run centralized bot checks", 1)[1].split(
+        "- name: Save incident state", 1
+    )[0]
+
+    assert "GITHUB_TOKEN: ${{ github.token }}" in step
+    assert "GITHUB_REPOSITORY: ${{ github.repository }}" in step
+    assert "GITHUB_BRANCH: main" in step
 
 
 def test_system_health_keeps_one_serial_delivery_owner() -> None:
-    workflow = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
-    concurrency = workflow.get("concurrency", {})
+    text = workflow_text()
+    concurrency = text.split("concurrency:", 1)[1].split("jobs:", 1)[0]
 
-    assert "bb-vg-system-health" in str(concurrency.get("group", ""))
-    assert concurrency.get("cancel-in-progress") is False
+    assert "bb-vg-system-health" in concurrency
+    assert "cancel-in-progress: false" in concurrency
