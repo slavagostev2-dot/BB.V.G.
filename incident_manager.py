@@ -35,6 +35,9 @@ VOLATILE_NOTIFICATION_KINDS = {
 RECOVERY_STABILIZATION_MINUTES = max(
     1, int(os.getenv("INCIDENT_RECOVERY_STABILIZATION_MINUTES", "10"))
 )
+RESOLUTION_NOTIFICATION_MAX_AGE_MINUTES = max(
+    5, int(os.getenv("INCIDENT_RESOLUTION_NOTIFICATION_MAX_AGE_MINUTES", "30"))
+)
 
 
 def now_utc() -> datetime:
@@ -122,6 +125,45 @@ def requires_recovery_stabilization(kind: object) -> bool:
     return requires_notification_stabilization(kind)
 
 
+def resolution_notification_is_fresh(
+    entry: dict[str, Any],
+    *,
+    current: datetime | None = None,
+) -> bool:
+    resolved_at = parse_datetime(entry.get("resolved_at"))
+    if resolved_at is None:
+        return True
+    reference = current or now_utc()
+    return reference - resolved_at <= timedelta(
+        minutes=RESOLUTION_NOTIFICATION_MAX_AGE_MINUTES
+    )
+
+
+def expire_stale_resolution_notifications(
+    state: dict[str, Any],
+    *,
+    current: datetime | None = None,
+) -> bool:
+    reference = current or now_utc()
+    incidents = state.get("incidents") if isinstance(state.get("incidents"), dict) else {}
+    changed = False
+    for entry in incidents.values():
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("status") != "resolved":
+            continue
+        if not entry.get("resolution_notification_pending"):
+            continue
+        if entry.get("resolution_notified_at"):
+            continue
+        if resolution_notification_is_fresh(entry, current=reference):
+            continue
+        entry["resolution_notification_pending"] = False
+        entry["resolution_notification_expired_at"] = reference.isoformat()
+        changed = True
+    return changed
+
+
 def reconcile(findings: Iterable[dict[str, Any]], *, scope: str) -> dict[str, Any]:
     state = load_state()
     incidents = state.setdefault("incidents", {})
@@ -129,7 +171,7 @@ def reconcile(findings: Iterable[dict[str, Any]], *, scope: str) -> dict[str, An
     current_time = current.isoformat()
     normalized = [normalize_finding({**finding, "scope": scope}) for finding in findings]
     current_keys = {finding["key"] for finding in normalized}
-    changed = False
+    changed = expire_stale_resolution_notifications(state, current=current)
 
     for finding in normalized:
         key = finding["key"]
@@ -265,12 +307,14 @@ def pending_open(state: dict[str, Any]) -> list[dict[str, Any]]:
 
 def pending_resolved(state: dict[str, Any]) -> list[dict[str, Any]]:
     incidents = state.get("incidents") if isinstance(state.get("incidents"), dict) else {}
+    current = now_utc()
     result = [
         entry for entry in incidents.values()
         if isinstance(entry, dict)
         and entry.get("status") == "resolved"
         and bool(entry.get("resolution_notification_pending"))
         and not entry.get("resolution_notified_at")
+        and resolution_notification_is_fresh(entry, current=current)
     ]
     return sorted(result, key=lambda entry: int(entry.get("resolved_sequence", 0) or 0))
 

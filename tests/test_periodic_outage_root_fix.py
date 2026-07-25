@@ -73,3 +73,58 @@ def test_current_panel_keeps_last_verified_snapshot() -> None:
     assert 'values[key] = ""' not in refresh
     assert "return current" in refresh
     assert "SnapshotUnavailableError" in refresh
+
+
+def test_stale_recovery_notification_cannot_surface_as_fresh_news() -> None:
+    original_path = incident_manager.STATE_PATH
+    original_now = incident_manager.now_utc
+    current = datetime(2026, 7, 25, 8, 0, tzinfo=UTC)
+    try:
+        with TemporaryDirectory() as temporary:
+            incident_manager.STATE_PATH = Path(temporary) / "incident_state.json"
+            incident_manager.now_utc = lambda: current  # type: ignore[assignment]
+            old_key = incident_manager.incident_key("test", "admin_panel_stale")
+            fresh_key = incident_manager.incident_key("test", "monitor_stale")
+            incident_manager.STATE_PATH.write_text(
+                __import__("json").dumps(
+                    {
+                        "version": 1,
+                        "sequence": 2,
+                        "incidents": {
+                            old_key: {
+                                "key": old_key,
+                                "scope": "test",
+                                "kind": "admin_panel_stale",
+                                "status": "resolved",
+                                "resolved_at": (current - timedelta(minutes=31)).isoformat(),
+                                "resolved_sequence": 1,
+                                "resolution_notification_pending": True,
+                            },
+                            fresh_key: {
+                                "key": fresh_key,
+                                "scope": "test",
+                                "kind": "monitor_stale",
+                                "status": "resolved",
+                                "resolved_at": (current - timedelta(minutes=5)).isoformat(),
+                                "resolved_sequence": 2,
+                                "resolution_notification_pending": True,
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            before = incident_manager.load_state()
+            assert [row["key"] for row in incident_manager.pending_resolved(before)] == [fresh_key]
+
+            after = incident_manager.reconcile([], scope="test")
+            old = after["incidents"][old_key]
+            fresh = after["incidents"][fresh_key]
+            assert old["resolution_notification_pending"] is False
+            assert old["resolution_notification_expired_at"] == current.isoformat()
+            assert fresh["resolution_notification_pending"] is True
+            assert [row["key"] for row in incident_manager.pending_resolved(after)] == [fresh_key]
+    finally:
+        incident_manager.STATE_PATH = original_path
+        incident_manager.now_utc = original_now  # type: ignore[assignment]
