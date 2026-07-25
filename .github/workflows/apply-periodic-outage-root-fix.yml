@@ -41,12 +41,15 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
 
+      - name: Narrow transient incident policy
+        run: python scripts/adjust_periodic_outage_root_fix.py
+
       - name: Apply root-cause patch
         run: python scripts/apply_periodic_outage_root_fix.py
 
       - name: Remove temporary patch automation
         run: |
-          git rm -f --ignore-unmatch scripts/apply_periodic_outage_root_fix.py engineering/.periodic-outage-root-fix-trigger .github/workflows/apply-periodic-outage-root-fix.yml engineering/PERIODIC_OUTAGE_VALIDATION.txt
+          git rm -f --ignore-unmatch scripts/apply_periodic_outage_root_fix.py scripts/adjust_periodic_outage_root_fix.py engineering/.periodic-outage-root-fix-trigger .github/workflows/apply-periodic-outage-root-fix.yml engineering/PERIODIC_OUTAGE_VALIDATION.txt
 
       - name: Validate control-plane stability
         id: validation
@@ -58,7 +61,7 @@ jobs:
             python -m py_compile incident_manager.py tests/test_periodic_outage_root_fix.py
             python incident_manager.py
             python system_checks_v3.py --self-test
-            python scripts/telegram_start_state_smoke.py
+            python -m scripts.telegram_start_state_smoke
             python -m pytest -q tests/test_periodic_outage_root_fix.py tests/test_telegram_start_state_safety.py tests/test_production_stability_guardrails.py tests/test_current_contracts.py
             python tests/production_acceptance.py --section stability
             python -m pytest -q
