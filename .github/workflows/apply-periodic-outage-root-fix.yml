@@ -1,0 +1,69 @@
+name: Apply periodic outage root fix
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.actor != 'github-actions[bot]' && github.head_ref == 'agent/periodic-outage-root-fix-20260725' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BOT_TOKEN: test-bot-token
+      BOT_STATE_KEY: test-state-key
+      BOT_CHAT_ID: '1'
+      ADMIN_USER_ID: '1'
+      BBVG_TEST_MODE: '1'
+      TELEGRAM_WEB_DOMAIN: telegram.me
+      FINAL_REMINDER_BEFORE_MINUTES: '5'
+      ACTIVE_REMOVE_GRACE_MINUTES: '0'
+    steps:
+      - name: Checkout root-fix branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: agent/periodic-outage-root-fix-20260725
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+
+      - name: Apply root-cause patch
+        run: python scripts/apply_periodic_outage_root_fix.py
+
+      - name: Remove temporary patch automation
+        run: |
+          git rm -f --ignore-unmatch scripts/apply_periodic_outage_root_fix.py engineering/.periodic-outage-root-fix-trigger .github/workflows/apply-periodic-outage-root-fix.yml
+
+      - name: Validate control-plane stability
+        run: |
+          python -m py_compile incident_manager.py tests/test_periodic_outage_root_fix.py
+          python incident_manager.py
+          python system_checks_v3.py --self-test
+          python scripts/telegram_start_state_smoke.py
+          python -m pytest -q tests/test_periodic_outage_root_fix.py tests/test_telegram_start_state_safety.py tests/test_production_stability_guardrails.py tests/test_current_contracts.py
+          python tests/production_acceptance.py --section stability
+          python -m pytest -q
+
+      - name: Commit clean root fix
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git status --short
+          git commit -m 'Eliminate periodic runtime outage feedback loop'
+          git push origin HEAD:agent/periodic-outage-root-fix-20260725
