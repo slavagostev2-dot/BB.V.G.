@@ -64,6 +64,7 @@ jobs:
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
           ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
           BBVG_TEST_MODE: "1"
+          CONTROL_CENTER_RELEASE_SHA: ${{ steps.release.outputs.release_sha }}
         shell: bash
         run: |
           set +e
