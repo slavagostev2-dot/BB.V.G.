@@ -43,6 +43,9 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
 
+      - name: Enforce production stability guardrails
+        run: python -m pytest -q tests/test_production_stability_guardrails.py
+
       - name: Validate consolidated runtime and state
         run: |
           set -euo pipefail
@@ -97,20 +100,20 @@ jobs:
           workflow = Path('.github/workflows/admin-bot.yml').read_text(encoding='utf-8')
           assert 'run: python notification_button_recovery.py' in workflow
           assert not any(
-            cls.__module__.startswith('admin_panel_runtime_v')
-            for cls in TelegramPanelRuntime.__mro__
+              cls.__module__.startswith('admin_panel_runtime_v')
+              for cls in TelegramPanelRuntime.__mro__
           )
           assert 'Role fingerprint' in workflow or 'role fingerprint' in workflow.lower()
           assert {'wheels', 'wheel_final_reminders', 'wheel_draw_alerts'} == {
-            key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
+              key for key, _, _ in WHEEL_NOTIFICATION_OPTIONS
           }
           handler = inspect.getsource(UserSettingsMixin.handle_callback)
           assert 'usernotify:' in handler and 'usernotifyall:' in handler
           assert '_load_remote_bundle' in inspect.getsource(PrivateStateRuntime._save_bot_bundle)
           assert 'page:status' in {
-            button['callback_data']
-            for row in TelegramPanelRuntime.compact_menu_rows(False)
-            for button in row
+              button['callback_data']
+              for row in TelegramPanelRuntime.compact_menu_rows(False)
+              for button in row
           }
           assert notification_router._bbvg_notification_integrity_v2_installed is True
           assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
