@@ -40,6 +40,9 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
 
+      - name: Align contract patch
+        run: python scripts/adjust_auto_participation_contract_extension.py
+
       - name: Apply full contract
         id: patch
         continue-on-error: true
@@ -68,7 +71,7 @@ jobs:
 
       - name: Remove temporary files
         run: |
-          git rm -f --ignore-unmatch scripts/extend_auto_participation_consistency.py engineering/AUTO_PARTICIPATION_CONTRACT_DIAGNOSTIC.txt
+          git rm -f --ignore-unmatch scripts/extend_auto_participation_consistency.py scripts/adjust_auto_participation_contract_extension.py scripts/.auto-participation-contract-trigger engineering/AUTO_PARTICIPATION_CONTRACT_DIAGNOSTIC.txt
 
       - name: Validate focused contracts
         id: focused
