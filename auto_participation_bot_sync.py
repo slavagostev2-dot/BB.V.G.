@@ -12,6 +12,9 @@ import wheel_publications_v2
 
 UTC = timezone.utc
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
+PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
+PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
+SUCCESS_STATUSES = {"participated", "already_participating", "already_marked_participating", "already_marked_in_bot"}
 
 _AUTO_PARTICIPATION_FIELDS = {
     "participating",
@@ -188,11 +191,35 @@ def _event_context(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any
     return context
 
 
+def _record_success(record: Any) -> bool:
+    return isinstance(record, dict) and str(record.get("status") or "").casefold() in SUCCESS_STATUSES
+
+
 def _merge_timed_record(remote: Any, local: Any) -> Any:
     if not isinstance(remote, dict):
         return copy.deepcopy(local)
     if not isinstance(local, dict):
         return copy.deepcopy(remote)
+
+    remote_success = _record_success(remote)
+    local_success = _record_success(local)
+    if remote_success != local_success:
+        winner = remote if remote_success else local
+        loser = local if remote_success else remote
+        result = copy.deepcopy(loser)
+        result.update(copy.deepcopy(winner))
+        for field in (
+            "bot_failure_pending_at",
+            "bot_failure_sync_status",
+            "bot_failure_sync_version",
+            "bot_failure_status",
+            "bot_failure_detail",
+        ):
+            result.pop(field, None)
+        result["status"] = str(winner.get("status") or "participated")
+        result["retry_allowed"] = False
+        return result
+
     local_is_newer = _record_timestamp(local) >= _record_timestamp(remote)
     older, newer = (remote, local) if local_is_newer else (local, remote)
     result = copy.deepcopy(older)
@@ -263,11 +290,33 @@ def merge_auto_participation_state(
                 active[key] = updated
                 continue
             updated = copy.deepcopy(current)
+            success_already_confirmed = bool(
+                current.get("participating")
+                or current.get("auto_participation_confirmed_at")
+                or str(current.get("auto_participation_status") or "").casefold() in SUCCESS_STATUSES
+            )
+            incoming_success = bool(
+                raw_item.get("participating")
+                or raw_item.get("auto_participation_confirmed_at")
+                or str(raw_item.get("auto_participation_status") or "").casefold() in SUCCESS_STATUSES
+            )
             for field in _AUTO_PARTICIPATION_FIELDS:
-                if field in raw_item:
-                    updated[field] = copy.deepcopy(raw_item[field])
-            if bool(raw_item.get("participating")):
+                if field not in raw_item:
+                    continue
+                if success_already_confirmed and not incoming_success and field in {
+                    "participating",
+                    "auto_participation_status",
+                    "auto_participation_confirmed_at",
+                    "auto_participation_retry_allowed",
+                    "auto_participation_error",
+                }:
+                    continue
+                updated[field] = copy.deepcopy(raw_item[field])
+            if success_already_confirmed or incoming_success:
                 updated["participating"] = True
+                updated["auto_participation_status"] = "participated"
+                updated["auto_participation_retry_allowed"] = False
+                updated.pop("auto_participation_error", None)
             active[key] = updated
     for item in active.values():
         _suppress_delivered_recovery_pending(item)
@@ -356,6 +405,9 @@ def queue_recovery_outcomes(
         record = events.get(token)
         if not isinstance(record, dict):
             continue
+        record.setdefault("account_key", PRIMARY_ACCOUNT_KEY)
+        record.setdefault("account_label", PRIMARY_ACCOUNT_LABEL)
+        record.setdefault("event_token", token)
         context = _event_context(state, attempt)
         if context and record.get("event_context") != context:
             record["event_context"] = context

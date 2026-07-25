@@ -11,6 +11,9 @@ import monitor
 import wheel_publications_v2
 
 ROOT = Path(__file__).resolve().parent
+PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
+PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
+SUCCESS_STATUSES = {"participated", "already_participating", "already_marked_participating", "already_marked_in_bot"}
 
 
 def _json(path: Path, default: Any) -> Any:
@@ -33,11 +36,35 @@ def _event_token(item: dict[str, Any]) -> str:
     return f"{key}#seen:{item.get('message_date') or ''}"
 
 
+def _record_matches_event(record: dict[str, Any], item: dict[str, Any]) -> bool:
+    key = str(item.get("wheel_key") or "").casefold()
+    if str(record.get("wheel_key") or "").casefold() != key:
+        return False
+    explicit = str(record.get("event_token") or "")
+    if explicit:
+        return explicit == _event_token(item)
+    context = record.get("event_context")
+    if isinstance(context, dict) and _event_token(context) == _event_token(item):
+        return True
+    started = monitor.parse_datetime(item.get("server_start_at") or item.get("message_date"))
+    attempted = monitor.parse_datetime(
+        record.get("bot_success_pending_at") or record.get("attempted_at") or record.get("recorded_at")
+    )
+    deadline = monitor.parse_datetime(item.get("deadline"))
+    if started is None or attempted is None:
+        return False
+    if attempted < started - timedelta(minutes=5):
+        return False
+    if deadline is not None and attempted > deadline + timedelta(minutes=5):
+        return False
+    return True
+
+
 def _confirmed_success_for_event(
     state: dict[str, Any],
     item: dict[str, Any],
 ) -> bool:
-    """Return True only when this exact wheel event was already confirmed participating."""
+    """Return True when this exact event has any durable successful outcome."""
 
     key = str(item.get("wheel_key") or "").casefold()
     if not key:
@@ -45,19 +72,24 @@ def _confirmed_success_for_event(
     token = _event_token(item)
 
     processed = state.get("auto_participation_events")
-    record = processed.get(token) if isinstance(processed, dict) else None
-    if isinstance(record, dict) and str(record.get("status") or "") in {
-        "participated",
-        "already_marked_participating",
-    }:
-        return True
+    if isinstance(processed, dict):
+        exact = processed.get(token)
+        if isinstance(exact, dict) and str(exact.get("status") or "").casefold() in SUCCESS_STATUSES:
+            return True
+        for record in processed.values():
+            if not isinstance(record, dict):
+                continue
+            if str(record.get("status") or "").casefold() not in SUCCESS_STATUSES:
+                continue
+            if _record_matches_event(record, item):
+                return True
 
     active = state.get("active_wheels")
     entry = active.get(key) if isinstance(active, dict) else None
     if isinstance(entry, dict) and _event_token(entry) == token:
         if bool(entry.get("participating")):
             return True
-        if str(entry.get("auto_participation_status") or "") == "participated":
+        if str(entry.get("auto_participation_status") or "").casefold() in SUCCESS_STATUSES:
             return True
         if entry.get("auto_participation_confirmed_at"):
             return True
@@ -124,6 +156,8 @@ def _failure_record(
 
     record: dict[str, Any] = {
         "wheel_key": key,
+        "account_key": PRIMARY_ACCOUNT_KEY,
+        "account_label": PRIMARY_ACCOUNT_LABEL,
         "status": status,
         "detail": detail[:300],
         "attempted_at": scanned_at.isoformat(),
@@ -331,6 +365,10 @@ def _restore_runtime_state(
         previous = processed.get(token)
         success_record: dict[str, Any] = {
             "wheel_key": key,
+            "account_key": PRIMARY_ACCOUNT_KEY,
+            "account_label": PRIMARY_ACCOUNT_LABEL,
+            "event_token": token,
+            "event_context": {field: item.get(field) for field in ("wheel_key", "action_id", "server_start_at", "message_date", "deadline") if item.get(field) is not None},
             "status": "participated",
             "detail": str(
                 attempt.get("detail") or "BetBoom подтвердил участие"
