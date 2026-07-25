@@ -1641,6 +1641,26 @@ def assess_pending_wheel(
     )
 
 
+def dispatch_notified_wheel_event(state: dict, link: str) -> bool:
+    """Persist and dispatch the exact event before the source scan continues."""
+
+    key = wheel_key(link)
+    try:
+        save_state(state)
+        return bool(process_auto_participation_dispatch(state))
+    except Exception as exc:
+        entry = state.get("active_wheels", {}).get(key)
+        if isinstance(entry, dict):
+            entry["auto_participation_immediate_dispatch_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )[:300]
+        print(
+            "WARNING immediate auto participation dispatch: "
+            f"wheel={key} {type(exc).__name__}: {exc}"
+        )
+        return False
+
+
 def notify_new_link(
     message: Message,
     link: str,
@@ -1702,6 +1722,7 @@ def notify_new_link(
             verification_status=verification_status,
             server_start_at=server_start_at,
         )
+        dispatch_notified_wheel_event(state, link)
 
 
 def notify_activation(
@@ -1764,6 +1785,7 @@ def notify_activation(
             verification_status=verification_status,
             server_start_at=server_start_at,
         )
+        dispatch_notified_wheel_event(state, link)
 
 
 def fetch_all_sources(

@@ -19,6 +19,19 @@ _BUTTON_RE = re.compile(
 )
 _DEFAULT_ALERT_USER = "Вячеслав"
 _PARTICIPATION_ATTEMPT_VERSION = 2
+PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
+PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
+PRIMARY_ACCOUNT_OWNER = "vyacheslav"
+PRIMARY_ACCOUNT_ORDER = 10
+SECONDARY_ACCOUNT_KEY = "vyacheslav_secondary"
+SECONDARY_ACCOUNT_LABEL = "Аккаунт 2"
+SECONDARY_ACCOUNT_ORDER = 20
+SUCCESS_STATUSES = {
+    "participated",
+    "already_participating",
+    "already_marked_participating",
+    "already_marked_in_bot",
+}
 
 
 @dataclass(frozen=True)
@@ -217,14 +230,50 @@ def participate(url: str) -> ParticipationResult:
         )
 
 
+def register_account(
+    state: dict[str, Any],
+    *,
+    account_key: str,
+    account_label: str,
+    account_owner: str,
+    account_order: int,
+) -> bool:
+    registry = state.setdefault("auto_participation_account_registry", {})
+    record = {
+        "account_key": str(account_key),
+        "account_label": str(account_label or account_key),
+        "account_owner": str(account_owner),
+        "account_order": int(account_order),
+        "enabled": True,
+    }
+    if registry.get(account_key) == record:
+        return False
+    registry[account_key] = record
+    return True
+
+
+def ensure_default_account_registry(state: dict[str, Any]) -> bool:
+    changed = register_account(
+        state,
+        account_key=PRIMARY_ACCOUNT_KEY,
+        account_label=PRIMARY_ACCOUNT_LABEL,
+        account_owner=PRIMARY_ACCOUNT_OWNER,
+        account_order=PRIMARY_ACCOUNT_ORDER,
+    )
+    changed = register_account(
+        state,
+        account_key=SECONDARY_ACCOUNT_KEY,
+        account_label=SECONDARY_ACCOUNT_LABEL,
+        account_owner=PRIMARY_ACCOUNT_OWNER,
+        account_order=SECONDARY_ACCOUNT_ORDER,
+    ) or changed
+    return changed
+
+
 def _event_token(key: str, entry: dict[str, Any]) -> str:
-    """Return a stable identity for one concrete use of a wheel link."""
+    """Use the BetBoom action identity before internal generation aliases."""
 
-    normalized = str(key or "").casefold()
-    event_id = str(entry.get("event_id") or entry.get("generation_id") or "").strip()
-    if event_id:
-        return f"{normalized}#event:{event_id}"
-
+    normalized = str(key or entry.get("wheel_key") or entry.get("identifier") or "").casefold()
     try:
         action_id = int(entry.get("action_id") or 0)
     except (TypeError, ValueError):
@@ -233,6 +282,10 @@ def _event_token(key: str, entry: dict[str, Any]) -> str:
     if action_id > 0:
         return f"{normalized}#action:{action_id}:{server_start}"
 
+    event_id = str(entry.get("event_id") or entry.get("generation_id") or "").strip()
+    if event_id:
+        return f"{normalized}#event:{event_id}"
+
     first_seen = str(
         entry.get("first_notified_at")
         or entry.get("message_date")
@@ -240,6 +293,132 @@ def _event_token(key: str, entry: dict[str, Any]) -> str:
         or ""
     ).strip()
     return f"{normalized}#seen:{first_seen}"
+
+
+def _record_account_key(token: str, record: dict[str, Any]) -> str:
+    explicit = str(record.get("account_key") or "").strip()
+    if explicit:
+        return explicit
+    if "#account:" in str(token):
+        return str(token).split("#account:", 1)[1].strip()
+    return PRIMARY_ACCOUNT_KEY
+
+
+def _record_success(record: Any) -> bool:
+    return isinstance(record, dict) and str(record.get("status") or "").casefold() in SUCCESS_STATUSES
+
+
+def _record_time(record: Any) -> str:
+    if not isinstance(record, dict):
+        return ""
+    return max(
+        (
+            str(record.get(field) or "")
+            for field in (
+                "bot_success_pending_at",
+                "bot_failure_pending_at",
+                "attempted_at",
+                "recorded_at",
+            )
+        ),
+        default="",
+    )
+
+
+def merge_event_record(previous: Any, incoming: Any) -> dict[str, Any]:
+    left = dict(previous) if isinstance(previous, dict) else {}
+    right = dict(incoming) if isinstance(incoming, dict) else {}
+    left_success = _record_success(left)
+    right_success = _record_success(right)
+    if left_success != right_success:
+        winner, older = (left, right) if left_success else (right, left)
+    elif _record_time(right) >= _record_time(left):
+        winner, older = right, left
+    else:
+        winner, older = left, right
+    result = dict(older)
+    result.update(winner)
+    if _record_success(result):
+        for field in (
+            "bot_failure_pending_at",
+            "bot_failure_sync_status",
+            "bot_failure_sync_version",
+            "bot_failure_status",
+            "bot_failure_detail",
+            "manual_notification_sent",
+            "manual_notification_at",
+            "manual_notification_detail",
+        ):
+            result.pop(field, None)
+        result["retry_allowed"] = False
+    return result
+
+
+def _record_matches_active_event(
+    token: str,
+    record: dict[str, Any],
+    key: str,
+    entry: dict[str, Any],
+) -> bool:
+    canonical = _event_token(key, entry)
+    base = str(token).split("#account:", 1)[0]
+    explicit = str(record.get("event_token") or "").split("#account:", 1)[0]
+    if canonical in {base, explicit}:
+        return True
+    legacy_id = str(entry.get("event_id") or entry.get("generation_id") or "").strip()
+    if legacy_id and f"{key}#event:{legacy_id}" in {base, explicit}:
+        return True
+    context = record.get("event_context")
+    if isinstance(context, dict) and _event_token(key, context) == canonical:
+        return True
+    return False
+
+
+def canonicalize_primary_event_aliases(state: dict[str, Any]) -> bool:
+    """Collapse legacy #event primary rows into the canonical #action row."""
+
+    changed = ensure_default_account_registry(state)
+    events = state.setdefault("auto_participation_events", {})
+    active = state.get("active_wheels")
+    if not isinstance(events, dict) or not isinstance(active, dict):
+        return changed
+    for raw_key, entry in list(active.items()):
+        if not isinstance(entry, dict):
+            continue
+        key = str(raw_key or entry.get("wheel_key") or entry.get("identifier") or "").casefold()
+        canonical = _event_token(key, entry)
+        for raw_token in list(events):
+            record = events.get(raw_token)
+            if not isinstance(record, dict):
+                continue
+            if _record_account_key(str(raw_token), record) != PRIMARY_ACCOUNT_KEY:
+                continue
+            if not _record_matches_active_event(str(raw_token), record, key, entry):
+                continue
+            suffix = (
+                f"#account:{PRIMARY_ACCOUNT_KEY}"
+                if "#account:" in str(raw_token)
+                else ""
+            )
+            target = canonical + suffix
+            normalized = dict(record)
+            normalized.update(
+                {
+                    "event_token": canonical,
+                    "account_key": PRIMARY_ACCOUNT_KEY,
+                    "account_label": PRIMARY_ACCOUNT_LABEL,
+                    "account_owner": PRIMARY_ACCOUNT_OWNER,
+                    "account_order": PRIMARY_ACCOUNT_ORDER,
+                }
+            )
+            merged = merge_event_record(events.get(target), normalized)
+            if events.get(target) != merged:
+                events[target] = merged
+                changed = True
+            if str(raw_token) != target:
+                events.pop(raw_token, None)
+                changed = True
+    return changed
 
 
 def _eligible_for_event_attempt(entry: dict[str, Any], monitor: Any, current: Any) -> bool:
@@ -428,7 +607,7 @@ def process_new_wheel_events(
     current = monitor.now_utc()
     active = state.setdefault("active_wheels", {})
     events = state.setdefault("auto_participation_events", {})
-    changed = False
+    changed = canonicalize_primary_event_aliases(state)
 
     # First event-mode deployment establishes a baseline so historical active
     # wheels are never opened by the participation browser.
@@ -441,6 +620,11 @@ def process_new_wheel_events(
                 continue
             events[token] = {
                 "wheel_key": str(key).casefold(),
+                "event_token": token,
+                "account_key": PRIMARY_ACCOUNT_KEY,
+                "account_label": PRIMARY_ACCOUNT_LABEL,
+                "account_owner": PRIMARY_ACCOUNT_OWNER,
+                "account_order": PRIMARY_ACCOUNT_ORDER,
                 "status": "baseline_existing",
                 "recorded_at": current.isoformat(),
             }
@@ -483,6 +667,11 @@ def process_new_wheel_events(
         if monitor.is_participating(state, normalized):
             events[token] = {
                 "wheel_key": normalized,
+                "event_token": token,
+                "account_key": PRIMARY_ACCOUNT_KEY,
+                "account_label": PRIMARY_ACCOUNT_LABEL,
+                "account_owner": PRIMARY_ACCOUNT_OWNER,
+                "account_order": PRIMARY_ACCOUNT_ORDER,
                 "status": "already_marked_in_bot",
                 "recorded_at": current.isoformat(),
                 "attempt_version": _PARTICIPATION_ATTEMPT_VERSION,
@@ -498,17 +687,26 @@ def process_new_wheel_events(
 
         event_record: dict[str, Any] = {
             "wheel_key": normalized,
+            "event_token": token,
+            "account_key": PRIMARY_ACCOUNT_KEY,
+            "account_label": PRIMARY_ACCOUNT_LABEL,
+            "account_owner": PRIMARY_ACCOUNT_OWNER,
+            "account_order": PRIMARY_ACCOUNT_ORDER,
             "attempted_at": current.isoformat(),
             "status": result.status,
             "detail": result.detail[:300],
             "retry_allowed": False,
             "attempt_version": _PARTICIPATION_ATTEMPT_VERSION,
         }
+        event_record = merge_event_record(events.get(token), event_record)
         events[token] = event_record
-        entry["auto_participation_status"] = result.status
+        entry["auto_participation_status"] = event_record["status"]
         entry["auto_participation_checked_at"] = current.isoformat()
         entry["auto_participation_retry_allowed"] = False
         changed = True
+
+        if _record_success(event_record):
+            result = ParticipationResult(True, str(event_record.get("status") or "participated"), str(event_record.get("detail") or result.detail))
 
         if not result.success:
             failed += 1

@@ -85,6 +85,7 @@ def _run_exact_primary_attempt(state: dict[str, Any], monitor: Any) -> dict[str,
 def main() -> int:
     monitor = runtime.monitor
     state = runtime.load_state_without_pending()
+    betboom_auto_participation.canonicalize_primary_event_aliases(state)
     event_versions_before = _event_versions(state)
 
     # The event worker is only the first browser path. A failure here is not final:
