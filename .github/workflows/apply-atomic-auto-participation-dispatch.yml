@@ -69,8 +69,25 @@ jobs:
       - name: Compile changed modules
         run: python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
 
-      - name: Validate atomic dispatcher
-        run: python auto_participation_dispatch.py --self-test
+      - name: Validate atomic dispatcher and publish exact error
+        shell: bash
+        run: |
+          set +e
+          python auto_participation_dispatch.py --self-test 2>&1 | tee /tmp/atomic-dispatch-self-test.log
+          code=${PIPESTATUS[0]}
+          set -e
+          if [[ "$code" -ne 0 ]]; then
+            cp /tmp/atomic-dispatch-self-test.log /tmp/atomic-dispatch-self-test-copy.log
+            git reset --hard HEAD
+            mkdir -p engineering
+            cat /tmp/atomic-dispatch-self-test-copy.log > engineering/ATOMIC_DISPATCH_VALIDATION.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add engineering/ATOMIC_DISPATCH_VALIDATION.txt
+            git commit -m 'Record atomic dispatcher self-test diagnostic [skip ci]'
+            git push origin HEAD:fix/atomic-auto-participation-dispatch-20260725
+            exit "$code"
+          fi
 
       - name: Validate wheel event lifecycle
         run: python wheel_event_runtime.py
