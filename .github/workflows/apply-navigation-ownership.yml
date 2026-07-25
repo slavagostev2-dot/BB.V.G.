@@ -45,11 +45,32 @@ jobs:
         run: python scripts/prepare_navigation_patch_v2.py
 
       - name: Apply navigation ownership patch
-        run: python scripts/apply_navigation_ownership_consolidation.py
+        id: apply_patch
+        shell: bash
+        run: |
+          set +e
+          python scripts/apply_navigation_ownership_consolidation.py 2>&1 | tee /tmp/navigation-ownership-apply.log
+          code=${PIPESTATUS[0]}
+          set -e
+          exit "$code"
+
+      - name: Publish exact patch diagnostic
+        if: ${{ steps.apply_patch.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+          cp /tmp/navigation-ownership-apply.log /tmp/navigation-ownership-diagnostic.txt
+          git reset --hard HEAD
+          mkdir -p engineering
+          tail -n 160 /tmp/navigation-ownership-diagnostic.txt > engineering/NAVIGATION_OWNERSHIP_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add engineering/NAVIGATION_OWNERSHIP_DIAGNOSTIC.txt
+          git commit -m 'Record navigation ownership patch diagnostic [skip ci]'
+          git push origin HEAD:agent/control-center-navigation-consolidation-20260725
 
       - name: Remove temporary patch files
         run: |
-          git rm -f --ignore-unmatch scripts/apply_navigation_ownership_consolidation.py scripts/prepare_navigation_patch_v2.py scripts/.navigation-ownership-trigger .github/workflows/apply-navigation-ownership.yml
+          git rm -f --ignore-unmatch scripts/apply_navigation_ownership_consolidation.py scripts/prepare_navigation_patch_v2.py scripts/.navigation-ownership-trigger .github/workflows/apply-navigation-ownership.yml engineering/NAVIGATION_OWNERSHIP_DIAGNOSTIC.txt
 
       - name: Validate navigation and full repository
         run: |
