@@ -356,25 +356,37 @@
   "active_wheels": {
     "zonertg16": {
       "action_id": 701,
+      "auto_participation_checked_at": "2026-07-25T09:09:23.437907+00:00",
+      "auto_participation_error": "GitHub принял запуск автоучастия, но worker не записал результат за 5 минут",
+      "auto_participation_retry_allowed": true,
+      "auto_participation_status": "workflow_dispatch_retry_wait",
+      "availability_status": "available",
       "button_token": "e69d380f347843",
       "deadline": "2026-07-25T18:36:46.419000+00:00",
+      "deadline_source": "api",
+      "event_id": "6b6a163030b5ef75219f",
       "expires_at": "2026-07-25T19:06:46.419000+00:00",
       "first_notified_at": "2026-07-25T09:04:19.934269+00:00",
       "generation_id": "6b6a163030b5ef75219f",
       "identifier": "zonertg16",
-      "last_checked_at": "2026-07-25T09:04:19.934269+00:00",
+      "last_checked_at": "2026-07-25T09:09:15.545525+00:00",
       "last_notification_at": "2026-07-25T09:04:19.934269+00:00",
+      "last_verification_at": "2026-07-25T09:09:15.177767+00:00",
+      "lifecycle_changed_at": "2026-07-25T09:05:14.438381+00:00",
+      "lifecycle_state": "scheduled_draw",
       "message_date": "2026-07-25T08:36:49+00:00",
       "message_id": 35756,
       "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ:\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\n10 ПО 1000 20 ПО 500\nИТОГИ ЧЕРЕЗ 10 ЧАСОВ\nhttps://telegram.me/mechanogun\nhttps://telegram.me/mechanogun/35756\nhttps://betboom.ru/freestream/zonertg16?utm_content=zoner&utm_source=freestream\nhttps://betboom.ru/freestream/zonertg16?utm_content=zoner&amp;utm_source=freestream",
       "message_url": "https://telegram.me/mechanogun/35756",
-      "method": "активность и таймер подтверждены BetBoom",
+      "method": "состояние определяется пользователями BB V.G.",
+      "needs_manual_time": false,
       "page_excerpt": "",
+      "page_status": "active",
       "participating": false,
       "referral_restricted": false,
       "server_start_at": "2026-07-25T08:36:46.419000+00:00",
       "source": "mechanogun",
-      "status": "preliminary",
+      "status": "unknown",
       "url": "https://betboom.ru/freestream/zonertg16",
       "verification_status": "confirmed",
       "auto_participation_confirmed_at": "2026-07-25T09:05:17.937720+00:00",
@@ -2619,9 +2631,15 @@
       "wheel_key": "staya"
     },
     "zonertg16#event:6b6a163030b5ef75219f": {
+      "dispatch_error": "GitHub принял запуск автоучастия, но worker не записал результат за 5 минут",
       "dispatched_at": "2026-07-25T09:04:22.848324+00:00",
+      "failure_count": 1,
+      "last_failure_at": "2026-07-25T09:09:23.437907+00:00",
+      "manual_notification_sent": false,
+      "retry_after_at": "2026-07-25T09:12:23.437907+00:00",
       "scheduled_at": "2026-07-25T09:04:19.969390+00:00",
-      "status": "workflow_dispatch_sent",
+      "status": "workflow_dispatch_retry_wait",
+      "user_alert_policy": "forbidden_transport_is_not_participation_outcome",
       "wheel_key": "zonertg16"
     },
     "zonertw1#event:49708ed982329cd19b10": {
@@ -6842,7 +6860,7 @@
     "zonertg16": {
       "action_id": 701,
       "generation_id": "6b6a163030b5ef75219f",
-      "seen_at": "2026-07-25T09:04:19.934448+00:00",
+      "seen_at": "2026-07-25T09:09:15.177767+00:00",
       "server_start_at": "2026-07-25T08:36:46.419000+00:00",
       "state": "active"
     },
@@ -6898,9 +6916,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-25T09:04:19.876926+00:00",
+    "last_checked_at": "2026-07-25T09:09:15.177767+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-25T09:04:19.876926+00:00",
+    "last_success_at": "2026-07-25T09:09:15.177767+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -7552,11 +7570,11 @@
       "action_id": 701,
       "first_seen_at": "2026-07-25T09:04:19.934448+00:00",
       "generation_id": "6b6a163030b5ef75219f",
-      "last_seen_at": "2026-07-25T09:04:19.934448+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-25T09:09:15.177767+00:00",
+      "observations": 11,
       "server_start_at": "2026-07-25T08:36:46.419000+00:00",
       "statuses": {
-        "active": 1
+        "active": 11
       },
       "wheel_key": "zonertg16"
     },
