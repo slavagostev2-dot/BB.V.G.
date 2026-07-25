@@ -70,9 +70,12 @@ jobs:
           git push origin HEAD:agent/control-center-navigation-consolidation-20260725
           exit 1
 
+      - name: Adjust preserved navigation contracts
+        run: python scripts/adjust_navigation_ownership_contracts.py
+
       - name: Remove temporary patch files
         run: |
-          git rm -f --ignore-unmatch scripts/apply_navigation_ownership_consolidation.py scripts/prepare_navigation_patch_v2.py scripts/.navigation-ownership-trigger .github/workflows/apply-navigation-ownership.yml engineering/NAVIGATION_OWNERSHIP_DIAGNOSTIC.txt engineering/NAVIGATION_OWNERSHIP_VALIDATION.txt
+          git rm -f --ignore-unmatch scripts/apply_navigation_ownership_consolidation.py scripts/prepare_navigation_patch_v2.py scripts/adjust_navigation_ownership_contracts.py scripts/.navigation-ownership-trigger .github/workflows/apply-navigation-ownership.yml engineering/NAVIGATION_OWNERSHIP_DIAGNOSTIC.txt engineering/NAVIGATION_OWNERSHIP_VALIDATION.txt
 
       - name: Validate navigation and full repository
         id: validation
