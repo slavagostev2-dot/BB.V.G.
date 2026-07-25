@@ -43,37 +43,16 @@ jobs:
         run: python scripts/apply_callback_consolidation.py
 
       - name: Compile changed modules
-        run: python -m py_compile bbvg/bot/wheels.py admin_panel_runtime_v41.py notification_button_recovery.py
+        run: python -m py_compile personal_wheel_voting.py admin_panel_runtime_v41.py notification_button_recovery.py
 
-      - name: Validate wheel callback owner
-        run: python -m bbvg.bot.wheels
+      - name: Validate personal voting callback owner
+        run: python personal_wheel_voting.py
 
       - name: Validate consolidated bot runtime
         run: python -m bbvg.bot.runtime --self-test
 
       - name: Validate v41 inherited callback behavior
-        id: v41
-        shell: bash
-        run: |
-          set +e
-          python admin_panel_runtime_v41.py --self-test > /tmp/bbvg-v41-callback.log 2>&1
-          code=$?
-          set -e
-          cat /tmp/bbvg-v41-callback.log
-          if [[ $code -ne 0 ]]; then
-            cp /tmp/bbvg-v41-callback.log engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt
-          fi
-          exit $code
-
-      - name: Preserve exact v41 failure for repair
-        if: ${{ failure() && steps.v41.outcome == 'failure' }}
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt
-          git commit -m 'Record callback consolidation diagnostic [skip ci]'
-          git push origin HEAD:agent/control-center-callback-consolidation-20260725
+        run: python admin_panel_runtime_v41.py --self-test
 
       - name: Validate production entrypoint callback recovery
         run: python notification_button_recovery.py --self-test
@@ -88,8 +67,9 @@ jobs:
         run: |
           set -euo pipefail
           git rm scripts/apply_callback_consolidation.py .github/workflows/apply-callback-consolidation.yml
+          git rm -f engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt || true
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add bbvg/bot/wheels.py admin_panel_runtime_v41.py notification_button_recovery.py tests/test_production_stability_guardrails.py engineering/REFACTOR_PLAN_RU.md
+          git add personal_wheel_voting.py admin_panel_runtime_v41.py notification_button_recovery.py tests/test_production_stability_guardrails.py engineering/REFACTOR_PLAN_RU.md
           git commit -m 'Consolidate Control Center participation callbacks'
           git push origin HEAD:agent/control-center-callback-consolidation-20260725
