@@ -41,9 +41,12 @@ jobs:
           python -m pip install -r requirements-dev.txt
 
       - name: Apply authoritative button-matrix contract
-        run: python scripts/apply_callback_menu_contract.py
+        run: |
+          python scripts/apply_callback_menu_contract.py
+          git rm scripts/apply_callback_menu_contract.py .github/workflows/apply-callback-menu-contract.yml
+          git rm -f engineering/CALLBACK_PYTEST_DIAGNOSTIC.txt || true
 
-      - name: Validate callback routes and full pytest
+      - name: Validate exact clean callback diff
         run: |
           python -m py_compile personal_wheel_voting.py bbvg/bot/runtime.py admin_panel_runtime_v41.py notification_button_recovery.py
           python personal_wheel_voting.py
@@ -56,12 +59,8 @@ jobs:
       - name: Commit clean implementation
         run: |
           set -euo pipefail
-          git rm scripts/apply_callback_menu_contract.py .github/workflows/apply-callback-menu-contract.yml
-          git rm -f engineering/CALLBACK_PYTEST_DIAGNOSTIC.txt || true
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add personal_wheel_voting.py bbvg/bot/runtime.py admin_panel_runtime_v41.py tests/test_production_stability_guardrails.py engineering/REFACTOR_PLAN_RU.md docs/PROJECT_CHANGELOG_RU.md
           git commit -m 'Preserve same-message menu after personal participation'
           git push origin HEAD:agent/control-center-callback-consolidation-20260725
-
-# One-shot workflow: removed after full validation.
