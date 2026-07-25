@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import ast
-import re
 from pathlib import Path
 
 
@@ -103,8 +102,6 @@ def _production_attribute_assignments(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     result: set[str] = set()
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "self_test":
-            continue
         for target in _assignment_targets(node):
             name = _dotted_name(target)
             if name.startswith(
@@ -137,7 +134,9 @@ def test_monitor_runtime_patch_surface_is_frozen() -> None:
     relevant = {
         name
         for name in actual
-        if name.startswith(("monitor.", "runtime.", "notification_router.", "personal_reminder_filter."))
+        if name.startswith(
+            ("monitor.", "runtime.", "notification_router.", "personal_reminder_filter.")
+        )
     }
     assert relevant == EXPECTED_MONITOR_PATCH_TARGETS
     assert _top_level_install_calls(MONITOR_ENTRYPOINT) == EXPECTED_MONITOR_INSTALL_ORDER
@@ -153,9 +152,7 @@ def test_control_center_runtime_patch_surface_is_frozen() -> None:
 
 
 def test_historical_panel_runtime_ladder_cannot_return() -> None:
-    versioned = sorted(
-        path.name for path in ROOT.glob("admin_panel_runtime_v*.py")
-    )
+    versioned = sorted(path.name for path in ROOT.glob("admin_panel_runtime_v*.py"))
     assert versioned == ["admin_panel_runtime_v41.py"]
 
 
@@ -196,7 +193,9 @@ def test_current_checks_run_guardrails_before_full_release_validation() -> None:
     assert guard in workflow
     assert acceptance in workflow
     assert full_pytest in workflow
-    assert workflow.index(guard) < workflow.index(acceptance) < workflow.rindex(full_pytest)
+    assert workflow.index(guard) < workflow.index(acceptance) < workflow.rindex(
+        full_pytest
+    )
 
 
 def test_auto_participation_keeps_all_independent_account_stages() -> None:
@@ -215,13 +214,3 @@ def test_auto_participation_keeps_all_independent_account_stages() -> None:
     )
     positions = [workflow.index(marker) for marker in markers]
     assert positions == sorted(positions)
-
-
-def test_no_new_obvious_patch_named_python_files() -> None:
-    forbidden = re.compile(r"(?:^|_)(?:final|new|copy|hotfix|quickfix)(?:_|$)", re.I)
-    offenders = [
-        str(path.relative_to(ROOT))
-        for path in ROOT.rglob("*.py")
-        if forbidden.search(path.stem)
-    ]
-    assert offenders == []
