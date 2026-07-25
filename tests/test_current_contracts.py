@@ -26,6 +26,7 @@ import source_intelligence_alerts
 import source_registry
 import system_checks_v2
 import system_checks_v3
+import telegram_post_links_v2
 import wheel_lifecycle_v2
 import wheel_link_lifecycle
 import wheel_metadata_quality
@@ -209,6 +210,7 @@ class CurrentProductionContractTests(unittest.TestCase):
         panel_sources.self_test()
         source_registry.self_test()
         source_intelligence_alerts.self_test()
+        telegram_post_links_v2.self_test()
         wheel_lifecycle_v2.self_test()
         wheel_link_lifecycle.self_test()
         wheel_scenario_suite.self_test()
