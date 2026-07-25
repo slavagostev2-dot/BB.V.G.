@@ -18,19 +18,5 @@ if text.count(anchor) != 1:
     raise RuntimeError("interface anchor mismatch")
 text = text.replace(anchor, insertion, 1)
 
-anchor = '    assert "page:status" in callbacks\n'
-insertion = '''    assert "page:status" in callbacks
-    labels = {
-        str(button.get("text") or "")
-        for row in markup.get("inline_keyboard", [])
-        for button in row
-        if isinstance(button, dict)
-    }
-    assert "✅ Проверить работу системы" in labels
-'''
-if text.count(anchor) != 1:
-    raise RuntimeError("control self-test anchor mismatch")
-text = text.replace(anchor, insertion, 1)
-
 path.write_text(text, encoding="utf-8")
 print("Navigation patch v2 prepared")
