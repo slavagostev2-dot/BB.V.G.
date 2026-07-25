@@ -11,7 +11,7 @@ permissions:
 jobs:
   apply:
     if: ${{ github.actor != 'github-actions[bot]' && github.head_ref == 'agent/start-resilience-20260725' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 35
     env:
       BOT_TOKEN: test-bot-token
