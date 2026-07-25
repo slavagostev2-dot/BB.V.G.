@@ -283,10 +283,6 @@ class UserManagementRuntime(WheelInteractionRuntime):
         separator = "&" if "?" in base else "?"
         return base + separator + "&".join(params)
 
-    @staticmethod
-    def compact_menu_rows(admin: bool) -> list[list[dict[str, Any]]]:
-        return WheelInteractionRuntime.compact_menu_rows(admin)
-
     def notification_preferences(self, user_id: str | None = None) -> dict[str, bool]:
         access = self.load_access()
         target = str(user_id or self.current_user_id or "")

@@ -80,7 +80,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
     def control_menu_rows() -> list[list[dict[str, Any]]]:
         return [
             [{"text": "▶️ Проверить источники сейчас", "callback_data": "control:monitor"}],
-            [{"text": "✅ Состояние системы", "callback_data": "page:status"}],
+            [{"text": "✅ Проверить работу системы", "callback_data": "page:status"}],
             [{"text": "🔍 Почему не пришло колесо?", "callback_data": "page:diagnostic"}],
         ]
 
@@ -249,6 +249,11 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
         buttons.append([{"text": "🔄 Обновить", "callback_data": f"page:report:inactive:{page}"}])
         self.send("\n".join(lines), reply_markup=self.with_nav(buttons))
 
+    def status_action_rows(self) -> list[list[dict[str, str]]]:
+        if self.is_admin():
+            return [[{"text": "▶️ Проверить сейчас", "callback_data": "control:monitor"}]]
+        return []
+
     def show_status(self) -> None:
         snap = self.snapshot(force=True)
         status = self._monitor_status()
@@ -277,8 +282,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
         buttons: list[list[dict[str, str]]] = [
             [{"text": "🔄 Обновить", "callback_data": "refresh:status"}]
         ]
-        if self.is_admin():
-            buttons.append([{"text": "▶️ Проверить сейчас", "callback_data": "control:monitor"}])
+        buttons.extend(self.status_action_rows())
         self.send("\n".join(lines), reply_markup=self.with_nav(buttons))
 
     def _hide_reply_keyboard(self) -> None:
@@ -365,13 +369,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             "⋯ <b>Дополнительные разделы</b>",
             reply_markup=self.with_nav(
                 [
-                    [
-                        {"text": "⚙️ Настройки", "callback_data": "page:settings"},
-                        {
-                            "text": "✅ Состояние системы",
-                            "callback_data": "page:status",
-                        },
-                    ],
+                    [{"text": "⚙️ Настройки", "callback_data": "page:settings"}],
                 ]
             ),
         )

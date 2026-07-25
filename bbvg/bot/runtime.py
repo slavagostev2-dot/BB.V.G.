@@ -523,7 +523,6 @@ class TelegramPanelRuntime(
     def show_settings(self) -> None:
         rows: list[list[dict[str, Any]]] = [
             [{"text": "🔔 Уведомления", "callback_data": "page:notifications"}],
-            [{"text": "✅ Работа системы", "callback_data": "page:status"}],
         ]
         lines = [
             "⚙️ <b>Настройки</b>",

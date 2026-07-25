@@ -2,65 +2,19 @@ from __future__ import annotations
 
 import argparse
 import html
-from typing import Any, Callable
+from pathlib import Path
+from typing import Any
 
 import privacy_retention
 from bbvg.bot.runtime import TelegramPanelRuntime
 from bbvg.bot.runtime import self_test as _runtime_self_test
+from bbvg.bot.users import UserManagementRuntime
 
 
 class TelegramPanelRuntimeV41(TelegramPanelRuntime):
     """Production v41 entrypoint with compact single-message navigation."""
 
     RUNTIME_VERSION = 41
-
-    @staticmethod
-    def _without_callbacks(
-        reply_markup: dict[str, Any] | None,
-        blocked: set[str],
-    ) -> dict[str, Any] | None:
-        if not isinstance(reply_markup, dict):
-            return reply_markup
-        rows: list[list[dict[str, Any]]] = []
-        for row in reply_markup.get("inline_keyboard", []):
-            if not isinstance(row, list):
-                continue
-            filtered = [
-                dict(button)
-                for button in row
-                if isinstance(button, dict)
-                and str(button.get("callback_data") or "") not in blocked
-            ]
-            if filtered:
-                rows.append(filtered)
-        result = dict(reply_markup)
-        result["inline_keyboard"] = rows
-        return result
-
-    def _render_with_filtered_callbacks(
-        self,
-        renderer: Callable[[], None],
-        blocked: set[str],
-    ) -> None:
-        original_send = self.send
-
-        def filtered_send(
-            text: str,
-            *,
-            reply_markup: dict[str, Any] | None = None,
-            chat_id: str | None = None,
-        ) -> dict:
-            return original_send(
-                text,
-                reply_markup=self._without_callbacks(reply_markup, blocked),
-                chat_id=chat_id,
-            )
-
-        self.send = filtered_send  # type: ignore[method-assign]
-        try:
-            renderer()
-        finally:
-            self.send = original_send  # type: ignore[method-assign]
 
     def show_control(self) -> None:
         if not self.is_admin():
@@ -69,36 +23,15 @@ class TelegramPanelRuntimeV41(TelegramPanelRuntime):
                 reply_markup=self.with_nav(),
             )
             return
-        rows = [
-            [{"text": "▶️ Проверить источники сейчас", "callback_data": "control:monitor"}],
-            [{"text": "✅ Проверить работу системы", "callback_data": "page:status"}],
-            [{"text": "🔍 Почему не пришло колесо?", "callback_data": "page:diagnostic"}],
-        ]
+        rows = self.control_menu_rows()
         self.send(
             "🛠 <b>Управление</b>\n\nВыберите действие.",
             reply_markup=self.with_nav(rows),
         )
 
-    def show_settings(self) -> None:
-        # System status belongs to Control, not Settings.
-        self._render_with_filtered_callbacks(
-            lambda: super(TelegramPanelRuntimeV41, self).show_settings(),
-            {"page:status"},
-        )
-
-    def show_status(self) -> None:
-        # Manual source check belongs to Control; status page only reports state.
-        self._render_with_filtered_callbacks(
-            lambda: super(TelegramPanelRuntimeV41, self).show_status(),
-            {"control:monitor"},
-        )
-
-    def show_more(self) -> None:
-        # Keep the same single owner for the system-status entry point.
-        self._render_with_filtered_callbacks(
-            lambda: super(TelegramPanelRuntimeV41, self).show_more(),
-            {"page:status"},
-        )
+    def status_action_rows(self) -> list[list[dict[str, str]]]:
+        # Manual checks remain available only in the Control section.
+        return []
 
     def show_analytics(self, days: int = 1) -> None:
         current_errors = int(self._monitor_status().get("source_errors", 0) or 0)
@@ -413,21 +346,75 @@ def self_test() -> None:
     assert ("participate", "wheel-b") in events
     assert ("delete", "bb:p:token") in events
 
-    assert TelegramPanelRuntimeV41._without_callbacks(
-        {
-            "inline_keyboard": [
-                [
-                    {"text": "status", "callback_data": "page:status"},
-                    {"text": "notifications", "callback_data": "page:notifications"},
-                ]
-            ]
-        },
-        {"page:status"},
-    ) == {
-        "inline_keyboard": [
-            [{"text": "notifications", "callback_data": "page:notifications"}]
-        ]
+    users_source = Path("bbvg/bot/users.py").read_text(encoding="utf-8")
+    assert "return WheelInteractionRuntime.compact_menu_rows(admin)" not in users_source
+    for name in (
+        "_without_callbacks",
+        "_render_with_filtered_callbacks",
+        "show_settings",
+        "show_status",
+        "show_more",
+    ):
+        assert name not in TelegramPanelRuntimeV41.__dict__
+
+    captured.clear()
+    panel = TelegramPanelRuntimeV41.__new__(TelegramPanelRuntimeV41)
+    panel.current_user_id = "1"
+    panel.current_chat_id = "1"
+    panel.current_role = "owner"
+    panel.navigation = {}
+    panel.is_admin = lambda: True  # type: ignore[method-assign]
+    panel.is_owner = lambda: True  # type: ignore[method-assign]
+    panel.role_for = lambda user_id=None: "owner"  # type: ignore[method-assign]
+    panel.load_access = lambda force=False: {  # type: ignore[method-assign]
+        "settings": {"monitor_interval_minutes": 5},
+        "users": {},
+        "owner_id": "1",
+        "admins": [],
     }
+    panel.send = lambda text, **kwargs: captured.append((text, kwargs)) or {}  # type: ignore[method-assign]
+    panel.show_settings()
+    settings_callbacks = {
+        str(button.get("callback_data") or "")
+        for row in captured[-1][1]["reply_markup"]["inline_keyboard"]
+        for button in row
+    }
+    assert "page:notifications" in settings_callbacks
+    assert "page:status" not in settings_callbacks
+
+    captured.clear()
+    panel.show_more()
+    more_callbacks = {
+        str(button.get("callback_data") or "")
+        for row in captured[-1][1]["reply_markup"]["inline_keyboard"]
+        for button in row
+    }
+    assert "page:settings" in more_callbacks
+    assert "page:status" not in more_callbacks
+
+    captured.clear()
+    panel.snapshot = lambda force=False: type(  # type: ignore[method-assign]
+        "Snap",
+        (),
+        {"fast": ["source"], "nightly": [], "state": {}, "stats": {}, "health": {}},
+    )()
+    panel._monitor_status = lambda: {  # type: ignore[method-assign]
+        "checked_sources": 1,
+        "reachable_sources": 1,
+        "source_errors": 0,
+        "last_successful_iteration_at": "2026-07-25T00:00:00+00:00",
+    }
+    panel.load_source_registry = lambda: {"summary": {"total": 1}}  # type: ignore[method-assign]
+    panel._collect_current_wheels = lambda: []  # type: ignore[method-assign]
+    panel.show_status()
+    status_callbacks = {
+        str(button.get("callback_data") or "")
+        for row in captured[-1][1]["reply_markup"]["inline_keyboard"]
+        for button in row
+    }
+    assert "refresh:status" in status_callbacks
+    assert "control:monitor" not in status_callbacks
+
 
     access = {
         "owner_id": "1",
