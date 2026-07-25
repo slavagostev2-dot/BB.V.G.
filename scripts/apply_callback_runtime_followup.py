@@ -15,6 +15,7 @@ def replace_once(path: str, old: str, new: str) -> None:
     target.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
+# PersonalWheelVotingMixin already owns edit/delete behavior; runtime must not intercept it.
 replace_once(
     "bbvg/bot/runtime.py",
     '''        if data.startswith(("bb:p:", "wheel:part:")):
@@ -31,26 +32,9 @@ replace_once(
                 self.show_active = original_show_active  # type: ignore[method-assign]
                 self._edit_message_id = previous_edit_message_id
             return
-''',
-    '''        if data.startswith("wheel:part:"):
-            message = query.get("message") or {}
-            previous_edit_message_id = getattr(self, "_edit_message_id", None)
-            original_show_active = self.show_active
-            self._edit_message_id = int(message.get("message_id") or 0) or None
-            self.show_active = (  # type: ignore[method-assign]
-                lambda page=0: self.show_menu(clear_stack=True)
-            )
-            try:
-                super().handle_callback(query)
-            finally:
-                self.show_active = original_show_active  # type: ignore[method-assign]
-                self._edit_message_id = previous_edit_message_id
-            return
 
-        if data.startswith("bb:p:"):
-            super().handle_callback(query)
-            return
 ''',
+    "",
 )
 
 replace_once(
@@ -71,7 +55,7 @@ replace_once(
 ''',
     '''    panel.mark_personal_participation = lambda key: {"changed": True}  # type: ignore[method-assign]
     panel.answer = lambda query_id, text: callback_calls.append(("answer", text))  # type: ignore[method-assign]
-    panel.show_menu = lambda clear_stack=True: callback_calls.append(("menu", clear_stack))  # type: ignore[method-assign]
+    panel.show_active = lambda page=0: callback_calls.append(("active", page))  # type: ignore[method-assign]
     panel._delete_callback_message = lambda query: callback_calls.append(  # type: ignore[method-assign]
         ("delete", str(query.get("data") or ""))
     )
@@ -84,7 +68,7 @@ replace_once(
         }
     )
     assert ("delete", "bb:p:token") in callback_calls
-    assert ("menu", True) not in callback_calls
+    assert not any(event[0] == "active" for event in callback_calls)
     assert panel._edit_message_id is None
 
     callback_calls.clear()
@@ -96,7 +80,7 @@ replace_once(
             "from": {"id": "1"},
         }
     )
-    assert ("menu", True) in callback_calls
+    assert ("active", 0) in callback_calls
     assert panel._edit_message_id is None
 ''',
 )
@@ -107,10 +91,10 @@ replace_once(
 ''',
     '''    assert "def _notification_token" not in entrypoint
     runtime = (ROOT / "bbvg/bot/runtime.py").read_text(encoding="utf-8")
-    assert 'if data.startswith("wheel:part:")' in runtime
-    assert 'if data.startswith("bb:p:")' in runtime
-    assert 'if data.startswith(("bb:p:", "wheel:part:"))' not in runtime
+    assert 'data.startswith(("bb:p:", "wheel:part:"))' not in runtime
+    assert 'data.startswith("bb:p:")' not in runtime
+    assert 'data.startswith("wheel:part:")' not in runtime
 ''',
 )
 
-print("Callback navigation follow-up applied")
+print("Redundant runtime callback interception removed")
