@@ -286,17 +286,6 @@ class TelegramPanelRuntimeV41(TelegramPanelRuntime):
             self.dispatch("monitor.yml", {"continuous": "true", "replace": "true"})
         return changed
 
-    def _mark_personal_from_notification(self, query: dict[str, Any]) -> None:
-        data = str(query.get("data") or "")
-        token = data.split(":", 2)[2]
-        context = self.snapshot().state.get("button_contexts", {}).get(token)
-        if not isinstance(context, dict):
-            raise ValueError("Контекст кнопки устарел")
-        key = str(context.get("wheel_key") or context.get("identifier") or "").casefold()
-        if not key:
-            raise ValueError("Не удалось определить колесо")
-        self.mark_personal_participation(key)
-
     def handle_callback(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
         query_id = str(query.get("id") or "")
@@ -359,36 +348,6 @@ class TelegramPanelRuntimeV41(TelegramPanelRuntime):
                 )
             return
 
-        if data.startswith("wheel:part:"):
-            message = query.get("message") if isinstance(query, dict) else None
-            message = message if isinstance(message, dict) else {}
-            previous_edit_message_id = getattr(self, "_edit_message_id", None)
-            self._edit_message_id = int(message.get("message_id") or 0) or None
-            try:
-                self._prepare_callback_user(query)
-                key = data.split(":", 2)[2]
-                self.mark_personal_participation(key)
-                self.answer(query_id, "Ваше участие отмечено")
-                # Re-render the same Active Wheels message. No navigation occurs.
-                self.show_active()
-            except Exception as exc:
-                print(f"ERROR active participation {data}: {type(exc).__name__}: {exc}")
-                self.answer(query_id, "Не удалось выполнить действие")
-            finally:
-                self._edit_message_id = previous_edit_message_id
-            return
-
-        if data.startswith("bb:p:"):
-            try:
-                self._prepare_callback_user(query)
-                self._mark_personal_from_notification(query)
-                self.answer(query_id, "Ваше участие отмечено")
-                self._delete_callback_message(query)
-            except Exception as exc:
-                print(f"ERROR notification participation {data}: {type(exc).__name__}: {exc}")
-                self.answer(query_id, "Не удалось выполнить действие")
-            return
-
         super().handle_callback(query)
 
 
@@ -418,9 +377,12 @@ def self_test() -> None:
     panel = TelegramPanelRuntimeV41.__new__(TelegramPanelRuntimeV41)
     panel._edit_message_id = None
     panel._prepare_callback_user = lambda query: events.append(("prepare", str(query.get("data"))))  # type: ignore[method-assign]
-    panel.mark_personal_participation = lambda key: events.append(("participate", str(key)))  # type: ignore[method-assign]
+    panel.mark_personal_participation = lambda key: (  # type: ignore[method-assign]
+        events.append(("participate", str(key))),
+        {"changed": True},
+    )[1]
     panel.answer = lambda query_id, text: events.append(("answer", str(text)))  # type: ignore[method-assign]
-    panel.show_active = lambda page=0: events.append(("active", str(page)))  # type: ignore[method-assign]
+    panel.show_menu = lambda clear_stack=True: events.append(("menu", str(clear_stack)))  # type: ignore[method-assign]
     panel.handle_callback(
         {
             "id": "q-active",
@@ -430,7 +392,7 @@ def self_test() -> None:
         }
     )
     assert ("participate", "wheel-a") in events
-    assert ("active", "0") in events
+    assert ("menu", "True") in events
     assert panel._edit_message_id is None
 
     events.clear()

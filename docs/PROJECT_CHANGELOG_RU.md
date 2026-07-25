@@ -6,6 +6,27 @@
 
 ---
 
+## 2026-07-25 — Callback участия сведены к одному владельцу
+
+Обработка `bb:p:<token>` и `wheel:part:<key>` больше не дублируется в трёх
+runtime-слоях. Единственным владельцем личного event-scoped участия закреплён
+существующий `PersonalWheelVotingMixin` в `personal_wheel_voting.py`.
+
+К тому же владельцу перенесено восстановление потерянного `button_contexts` по
+однозначному активному событию. Из `admin_panel_runtime_v41.py`,
+`bbvg/bot/runtime.py` и `notification_button_recovery.py` удалены отдельные
+перехваты, token-helper и override. Строки callback не изменены: кнопка из
+уведомления удаляет исходную карточку после отметки, а кнопка списка активных
+колёс открывает главное меню в том же сообщении.
+
+Добавлен отрицательный архитектурный контракт против возврата нескольких
+владельцев. Runtime JSON, encrypted state, список источников и release marker не
+изменялись.
+
+**Backup перед изменением:**
+`backup/before-control-center-callback-consolidation-20260725` →
+`48f3c3e24150025fd8769f6ea92e4ffae9f8d550`.
+
 ## 2026-07-24 — Control Center запускается при временном GitHub API rate limit
 
 Смена Control Center `30052499442` штатно завершилась после 4,5 часа и создала
