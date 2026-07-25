@@ -38,11 +38,21 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements-dev.txt
 
+      - name: Align patch with current dispatcher
+        run: python scripts/prepare_atomic_dispatch_patch_v2.py
+
       - name: Apply atomic dispatch patch
         run: python scripts/apply_atomic_auto_participation_dispatch.py
 
       - name: Remove temporary files before validation
-        run: git rm -f --ignore-unmatch scripts/apply_atomic_auto_participation_dispatch.py .github/workflows/apply-atomic-auto-participation-dispatch.yml
+        run: |
+          git rm -f --ignore-unmatch \
+            scripts/apply_atomic_auto_participation_dispatch.py \
+            scripts/prepare_atomic_dispatch_patch_v2.py \
+            .github/workflows/apply-atomic-auto-participation-dispatch.yml \
+            scripts/.atomic-dispatch-pr-trigger \
+            docs/.atomic-dispatch-pr-ready \
+            docs/.create-pr-marker
 
       - name: Validate focused contracts
         run: |
