@@ -2651,8 +2651,9 @@
       "wheel_key": "zonertg15"
     },
     "zonertg16#event:6b6a163030b5ef75219f": {
+      "dispatched_at": "2026-07-25T09:04:22.848324+00:00",
       "scheduled_at": "2026-07-25T09:04:19.969390+00:00",
-      "status": "workflow_dispatch_scheduled",
+      "status": "workflow_dispatch_sent",
       "wheel_key": "zonertg16"
     },
     "zonertw1#event:49708ed982329cd19b10": {
@@ -5297,11 +5298,11 @@
   "last_admin_action_applied_at": "2026-07-24T16:50:57.053763+00:00",
   "last_auto_participation_recovery_scan_at": "2026-07-21T19:22:00.289412+00:00",
   "last_automatic_status_at": "2026-07-17T06:35:52.571822+00:00",
-  "last_heartbeat_at": "2026-07-25T02:07:40.664157+00:00",
+  "last_heartbeat_at": "2026-07-25T09:04:23.232314+00:00",
   "last_run_kind": "schedule",
   "last_run_summary": {
-    "activation_sent": 0,
-    "active_wheels": 0,
+    "activation_sent": 1,
+    "active_wheels": 1,
     "admin_actions": {
       "applied": 0,
       "changed": false,
@@ -5316,7 +5317,7 @@
     },
     "checked_sources": 169,
     "duplicates_suppressed": 0,
-    "inactive_waiting": 1,
+    "inactive_waiting": 0,
     "initialized_now": 0,
     "notification_errors": 0,
     "pending_expired": 0,
@@ -5326,22 +5327,22 @@
     "reachable_sources": 169,
     "reminders": {
       "availability_notifications": 0,
-      "changed": true,
+      "changed": false,
       "draw_alerts": 0,
       "final_reminders": 0,
       "known_reminders": 0,
-      "pending_total": 1,
+      "pending_total": 0,
       "recovered_duplicates_suppressed": 0,
       "recovered_initial_notifications_failed": 0,
       "recovered_initial_notifications_sent": 0,
       "removed": 0,
       "tracked": 0,
       "unknown_reminders": 0,
-      "verification_checked": 1,
+      "verification_checked": 0,
       "verification_confirmed": 0,
       "verification_deferred": 0,
       "verification_failed": 0,
-      "verification_removed": 1
+      "verification_removed": 0
     },
     "source_errors": 0,
     "source_inactivity": {
@@ -5350,7 +5351,7 @@
       "sent": false
     },
     "sources": 169,
-    "stale_skipped": 3,
+    "stale_skipped": 0,
     "unconfirmed_waiting": 0,
     "unknown_timer_samples_added": 0
   },
