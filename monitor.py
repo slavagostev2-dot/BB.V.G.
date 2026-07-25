@@ -1691,23 +1691,10 @@ def notify_new_link(
     )
     referral_notice = wheel_publications_v2.referral_restriction_notice(message.text)
     referral_line = f"{referral_notice}\n" if referral_notice else ""
-    send_message(
-        "🎡 <b>Новое колесо BetBoom</b>\n\n"
-        f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
-        f"@{html.escape(message.source)}</a>\n"
-        f"Идентификатор: <code>{identifier}</code>\n"
-        f"Пост: {published:%d.%m.%Y %H:%M}\n"
-        f"{verification}"
-        f"{referral_line}"
-        f"{timing}",
-        reply_markup=(
-            wheel_reply_markup(
-                state, message, link, active=False, status="preliminary",
-                method=method, page_excerpt=page_excerpt
-            ) if state is not None else None
-        ),
-        url=link if state is None else None,
-    )
+
+    # The event and its dispatch outbox must exist before the external Telegram
+    # delivery. A notification checkpoint advances main, so persisting afterwards
+    # creates a race where the card exists but auto participation has no event.
     if state is not None:
         remember_active_wheel(
             state,
@@ -1724,6 +1711,23 @@ def notify_new_link(
         )
         dispatch_notified_wheel_event(state, link)
 
+    send_message(
+        "🎡 <b>Новое колесо BetBoom</b>\n\n"
+        f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
+        f"@{html.escape(message.source)}</a>\n"
+        f"Идентификатор: <code>{identifier}</code>\n"
+        f"Пост: {published:%d.%m.%Y %H:%M}\n"
+        f"{verification}"
+        f"{referral_line}"
+        f"{timing}",
+        reply_markup=(
+            wheel_reply_markup(
+                state, message, link, active=False, status="preliminary",
+                method=method, page_excerpt=page_excerpt
+            ) if state is not None else None
+        ),
+        url=link if state is None else None,
+    )
 
 def notify_activation(
     message: Message,
@@ -1754,23 +1758,7 @@ def notify_activation(
     )
     referral_notice = wheel_publications_v2.referral_restriction_notice(message.text)
     referral_line = f"{referral_notice}\n" if referral_notice else ""
-    send_message(
-        "✅ <b>Колесо BetBoom стало активно</b>\n\n"
-        f"Источник: <a href=\"{html.escape(message.message_url, quote=True)}\">"
-        f"@{html.escape(message.source)}</a>\n"
-        f"Идентификатор: <code>{identifier}</code>\n"
-        f"Пост: {published:%d.%m.%Y %H:%M}\n"
-        f"{verification}"
-        f"{referral_line}"
-        f"{timing}",
-        reply_markup=(
-            wheel_reply_markup(
-                state, message, link, active=True, status="active",
-                method=method, page_excerpt=page_excerpt
-            ) if state is not None else None
-        ),
-        url=link if state is None else None,
-    )
+
     if state is not None:
         remember_active_wheel(
             state,
@@ -1787,6 +1775,23 @@ def notify_activation(
         )
         dispatch_notified_wheel_event(state, link)
 
+    send_message(
+        "✅ <b>Колесо BetBoom стало активно</b>\n\n"
+        f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
+        f"@{html.escape(message.source)}</a>\n"
+        f"Идентификатор: <code>{identifier}</code>\n"
+        f"Пост: {published:%d.%m.%Y %H:%M}\n"
+        f"{verification}"
+        f"{referral_line}"
+        f"{timing}",
+        reply_markup=(
+            wheel_reply_markup(
+                state, message, link, active=True, status="active",
+                method=method, page_excerpt=page_excerpt
+            ) if state is not None else None
+        ),
+        url=link if state is None else None,
+    )
 
 def fetch_all_sources(
     sources: list[str],
