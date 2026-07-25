@@ -10,27 +10,21 @@ on:
       - "system_checks_v3.py"
       - "incident_manager.py"
       - "monitor_health.py"
-      - "monitor_status.json"
       - "bbvg/ai_core.py"
       - "bbvg/health_inspector.py"
-      - "ai_runtime_state.json"
       - "telegram_transport.py"
       - "notification_router.py"
       - "notification_integrity_v2.py"
       - "rating_policy.py"
       - "wheel_publications_v2.py"
       - "wheel_event_runtime.py"
-      - "notification_delivery_state.json"
       - "admin_action_queue.py"
-      - "admin_panel_status.json"
       - "bot_notification_state.py"
       - "bot_private_state.py"
-      - "bot_private_state.enc.json"
       - "privacy_retention.py"
       - "monitor_data.py"
       - "source_intelligence.py"
       - "nightly_discovery.py"
-      - "source_transport_state.json"
       - "admin_panel_runtime_v41.py"
       - "bbvg/bot/**"
       - "telegram_ui.py"
@@ -38,17 +32,8 @@ on:
       - "source_catalog.txt"
       - "partners_catalog.json"
       - ".github/workflows/system-health.yml"
+      - ".github/workflows/admin-bot.yml"
   workflow_dispatch:
-  workflow_run:
-    workflows:
-      - "BB V.G. wheel monitor"
-      - "BB V.G. Control Center"
-      - "Telegram candidate discovery"
-      - "Telegram source intelligence"
-      - "Telegram transport checks"
-      - "Verify configured Telegram source transport"
-    types: [completed]
-    branches: [main]
   schedule:
     - cron: "7,22,37,52 * * * *"
     - cron: "*/5 * * * *"
@@ -58,7 +43,7 @@ permissions:
 
 concurrency:
   group: ${{ github.event_name == 'schedule' && github.event.schedule == '*/5 * * * *' && 'bb-vg-monitor-watchdog' || 'bb-vg-system-health' }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   monitor-watchdog:
@@ -133,6 +118,52 @@ jobs:
 
           echo "Monitor heartbeat is stale and no fresh active run exists; requesting an authoritative replacement."
           gh workflow run monitor.yml --ref main -f continuous=true -f replace=true
+
+      - name: Check Control Center heartbeat freshness
+        id: panel_heartbeat
+        shell: bash
+        run: |
+          set -euo pipefail
+          max_age_seconds=900
+          heartbeat=$(jq -r '.last_heartbeat_at // .started_at // empty' admin_panel_status.json)
+          run_id=$(jq -r '.workflow_run_id // .run_id // empty' admin_panel_status.json)
+          stale=false
+          age_seconds=999999
+
+          if [[ -n "$heartbeat" ]]; then
+            heartbeat_epoch=$(date -u -d "$heartbeat" +%s 2>/dev/null || echo 0)
+            now_epoch=$(date -u +%s)
+            if (( heartbeat_epoch > 0 )); then
+              age_seconds=$(( now_epoch - heartbeat_epoch ))
+              if (( age_seconds < 0 )); then
+                age_seconds=0
+              fi
+            fi
+          fi
+
+          if [[ -z "$heartbeat" ]] || (( age_seconds > max_age_seconds )); then
+            stale=true
+          fi
+
+          echo "stale=$stale" >> "$GITHUB_OUTPUT"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "age_seconds=$age_seconds" >> "$GITHUB_OUTPUT"
+          echo "Control Center heartbeat age: $(( age_seconds / 60 )) minute(s); stale=$stale; run_id=${run_id:-unknown}"
+
+      - name: Replace stale Control Center
+        if: ${{ steps.panel_heartbeat.outputs.stale == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          active=$(gh run list             --workflow admin-bot.yml             --limit 30             --json status,createdAt             | jq '[.[] | select((.status == "queued" or .status == "in_progress") and (now - (.createdAt | fromdateiso8601)) < 1200)] | length')
+          if (( active > 0 )); then
+            echo "A current Control Center validation or runtime is already inside the 20-minute startup/recovery window."
+            exit 0
+          fi
+          echo "Control Center heartbeat is stale and no fresh run exists; requesting one replacement."
+          gh workflow run admin-bot.yml --repo "$GITHUB_REPOSITORY" --ref main
 
   health:
     if: ${{ github.event_name != 'schedule' || github.event.schedule != '*/5 * * * *' }}
