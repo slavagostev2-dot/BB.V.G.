@@ -1,0 +1,368 @@
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+path = Path(__file__).with_name("apply_atomic_auto_participation_dispatch.py")
+text = path.read_text(encoding="utf-8")
+
+replacement = r'''dispatch_path = ROOT / "auto_participation_dispatch.py"
+dispatch_path.write_text(r'''from __future__ import annotations
+
+import base64
+import copy
+import json
+import os
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import requests
+
+import auto_participation_bot_sync
+
+
+STATE_PATH = Path(__file__).with_name("state.json")
+WORKFLOW_FILE = "auto-participation.yml"
+_TIMEOUT = 20
+_PENDING_STATUSES = {
+    "workflow_dispatch_scheduled",
+    "workflow_dispatch_retry_scheduled",
+}
+
+
+def _load_state() -> dict[str, Any]:
+    try:
+        value = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _save_state(state: dict[str, Any]) -> None:
+    STATE_PATH.write_text(
+        json.dumps(state, ensure_ascii=False, indent=2) + "\\n",
+        encoding="utf-8",
+    )
+
+
+def _github_headers(token: str) -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "BB-VG-auto-participation-dispatch",
+    }
+
+
+def _state_endpoint(repository: str) -> str:
+    return f"https://api.github.com/repos/{repository}/contents/state.json"
+
+
+def _remote_state(
+    token: str,
+    repository: str,
+    branch: str,
+) -> tuple[dict[str, Any], str]:
+    response = requests.get(
+        _state_endpoint(repository),
+        headers=_github_headers(token),
+        params={"ref": branch},
+        timeout=_TIMEOUT,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    raw = base64.b64decode(str(payload.get("content") or "")).decode("utf-8")
+    value = json.loads(raw)
+    return (value if isinstance(value, dict) else {}), str(payload.get("sha") or "")
+
+
+def _put_remote_state(
+    token: str,
+    repository: str,
+    branch: str,
+    value: dict[str, Any],
+    sha: str,
+    message: str,
+) -> requests.Response:
+    body: dict[str, Any] = {
+        "message": message,
+        "content": base64.b64encode(
+            (json.dumps(value, ensure_ascii=False, indent=2) + "\\n").encode("utf-8")
+        ).decode("ascii"),
+        "branch": branch,
+    }
+    if sha:
+        body["sha"] = sha
+    return requests.put(
+        _state_endpoint(repository),
+        headers=_github_headers(token),
+        json=body,
+        timeout=_TIMEOUT,
+    )
+
+
+def _push_state_before_dispatch(
+    state: dict[str, Any],
+    token: str,
+    repository: str,
+    branch: str,
+    *,
+    message: str = "Persist auto participation dispatch state [skip ci]",
+) -> tuple[bool, str]:
+    """Publish state.json with file-level CAS and event-aware merge.
+
+    Notification claim/checkpoint commits are allowed to advance ``main`` without
+    disturbing this operation. Only a concurrent change to ``state.json`` causes
+    a retry, and each retry merges the exact local event and dispatch ledger into
+    the newest remote monitor state.
+    """
+
+    local = copy.deepcopy(state if isinstance(state, dict) else {})
+    last_error = ""
+    for attempt in range(1, 6):
+        try:
+            remote, sha = _remote_state(token, repository, branch)
+            merged = auto_participation_bot_sync.merge_auto_participation_state(
+                remote,
+                local,
+            )
+            response = _put_remote_state(
+                token,
+                repository,
+                branch,
+                merged,
+                sha,
+                message,
+            )
+            if response.status_code in {409, 422}:
+                last_error = f"state_cas_conflict:http_{response.status_code}"
+                time.sleep(0.35 * attempt)
+                continue
+            response.raise_for_status()
+            _save_state(merged)
+            state.clear()
+            state.update(copy.deepcopy(merged))
+            return True, ""
+        except Exception as exc:
+            last_error = f"state_cas_failed:{type(exc).__name__}: {exc}"[:500]
+            if attempt < 5:
+                time.sleep(0.35 * attempt)
+                continue
+    return False, last_error or "state_cas_failed:unknown"
+
+
+def _workflow_urls(repository: str) -> tuple[str, str]:
+    base = f"https://api.github.com/repos/{repository}/actions/workflows/{WORKFLOW_FILE}"
+    return f"{base}/dispatches", f"{base}/enable"
+
+
+def _workflow_disabled(response: requests.Response) -> bool:
+    if response.status_code != 422:
+        return False
+    detail = str(response.text or "").casefold()
+    return "disabled workflow" in detail or (
+        "cannot trigger" in detail and "disabled" in detail
+    )
+
+
+def _dispatch_with_recovery(
+    token: str,
+    repository: str,
+    branch: str,
+) -> tuple[requests.Response, bool, str]:
+    """Dispatch the worker and self-heal a workflow disabled in Actions."""
+
+    dispatch_url, enable_url = _workflow_urls(repository)
+    headers = _github_headers(token)
+    response = requests.post(
+        dispatch_url,
+        headers=headers,
+        json={"ref": branch},
+        timeout=_TIMEOUT,
+    )
+    if not _workflow_disabled(response):
+        return response, False, ""
+
+    enable_response = requests.put(
+        enable_url,
+        headers=headers,
+        timeout=_TIMEOUT,
+    )
+    if enable_response.status_code != 204:
+        detail = (
+            f"workflow_enable_failed: HTTP {enable_response.status_code} "
+            f"{enable_response.text[:500]}"
+        )
+        return response, False, detail
+
+    response = requests.post(
+        dispatch_url,
+        headers=headers,
+        json={"ref": branch},
+        timeout=_TIMEOUT,
+    )
+    return response, True, ""
+
+
+def _persist_result(
+    state: dict[str, Any],
+    token: str,
+    repository: str,
+    branch: str,
+) -> tuple[bool, str]:
+    return _push_state_before_dispatch(
+        state,
+        token,
+        repository,
+        branch,
+        message="Record auto participation workflow dispatch [skip ci]",
+    )
+
+
+def main() -> int:
+    """Persist queued event, then request workflow_dispatch synchronously."""
+
+    token = os.getenv("GITHUB_TOKEN", "").strip()
+    repository = os.getenv("GITHUB_REPOSITORY", "").strip()
+    branch = os.getenv("GITHUB_BRANCH", "main").strip() or "main"
+    if not token or not repository:
+        print("Auto participation dispatch skipped: GitHub runtime credentials are missing")
+        return 0
+
+    state = _load_state()
+    dispatch_events = state.get("auto_participation_dispatch_events")
+    if not isinstance(dispatch_events, dict):
+        print("Auto participation dispatch skipped: no dispatch ledger")
+        return 0
+
+    pending = {
+        token_key: entry
+        for token_key, entry in dispatch_events.items()
+        if isinstance(entry, dict) and str(entry.get("status") or "") in _PENDING_STATUSES
+    }
+    if not pending:
+        print("Auto participation dispatch skipped: no queued events")
+        return 0
+
+    pushed, push_error = _push_state_before_dispatch(
+        state,
+        token,
+        repository,
+        branch,
+    )
+    if not pushed:
+        now = datetime.now(timezone.utc).isoformat()
+        for entry in pending.values():
+            entry["dispatch_failed_at"] = now
+            entry["dispatch_error"] = f"state_push_failed: {push_error}"[:500]
+        _save_state(state)
+        print(f"Auto participation dispatch blocked: state push failed: {push_error}")
+        return 1
+
+    try:
+        response, workflow_reenabled, recovery_error = _dispatch_with_recovery(
+            token,
+            repository,
+            branch,
+        )
+    except requests.RequestException as exc:
+        detail = f"{type(exc).__name__}: {exc}"
+        now = datetime.now(timezone.utc).isoformat()
+        for entry in pending.values():
+            entry["dispatch_failed_at"] = now
+            entry["dispatch_error"] = detail[:500]
+        _persist_result(state, token, repository, branch)
+        print(f"Auto participation dispatch request failed: {detail}")
+        return 1
+
+    now = datetime.now(timezone.utc).isoformat()
+    if response.status_code == 204:
+        for entry in pending.values():
+            entry["status"] = "workflow_dispatch_sent"
+            entry["dispatched_at"] = now
+            if workflow_reenabled:
+                entry["workflow_reenabled_at"] = now
+            entry.pop("dispatch_error", None)
+            entry.pop("dispatch_failed_at", None)
+            entry.pop("probe_requested", None)
+        saved, save_error = _persist_result(state, token, repository, branch)
+        if not saved:
+            print(
+                "Auto participation workflow was dispatched, but final ledger "
+                f"checkpoint failed: {save_error}"
+            )
+            return 1
+        recovery_note = " workflow_reenabled=true" if workflow_reenabled else ""
+        print(
+            "Auto participation workflow dispatched: "
+            f"events={len(pending)} repository={repository} ref={branch} "
+            f"workflow={WORKFLOW_FILE}{recovery_note}"
+        )
+        return 0
+
+    detail = recovery_error or f"HTTP {response.status_code} {response.text[:500]}"
+    for entry in pending.values():
+        entry["dispatch_failed_at"] = now
+        entry["dispatch_error"] = detail[:500]
+    _persist_result(state, token, repository, branch)
+    print(
+        "Auto participation dispatch failed: "
+        f"repository={repository} ref={branch} workflow={WORKFLOW_FILE} {detail}"
+    )
+    return 1
+
+
+def self_test() -> None:
+    event_token = "deko2#action:2000:2026-07-25T15:17:00+00:00"
+    local = {
+        "active_wheels": {
+            "deko2": {
+                "wheel_key": "deko2",
+                "action_id": 2000,
+                "server_start_at": "2026-07-25T15:17:00+00:00",
+                "message_id": 260,
+            }
+        },
+        "auto_participation_dispatch_events": {
+            event_token: {
+                "wheel_key": "deko2",
+                "status": "workflow_dispatch_scheduled",
+            }
+        },
+    }
+    remote = {
+        "active_wheels": {
+            "deko2": {
+                "wheel_key": "deko2",
+                "action_id": 1028,
+                "server_start_at": "2026-07-24T13:57:57.122000+00:00",
+            }
+        }
+    }
+    merged = auto_participation_bot_sync.merge_auto_participation_state(remote, local)
+    assert merged["active_wheels"]["deko2"]["action_id"] == 2000
+    assert event_token in merged["auto_participation_dispatch_events"]
+    assert "subprocess" not in Path(__file__).read_text(encoding="utf-8")
+    print("atomic auto participation dispatcher self-test passed")
+
+
+if __name__ == "__main__":
+    if "--self-test" in sys.argv:
+        self_test()
+    else:
+        raise SystemExit(main())
+''', encoding="utf-8")
+'''
+
+pattern = re.compile(
+    r'dispatch_path = ROOT / "auto_participation_dispatch\.py".*?dispatch_path\.write_text\(dispatch, encoding="utf-8"\)\n',
+    re.DOTALL,
+)
+updated, count = pattern.subn(lambda _match: replacement, text, count=1)
+if count != 1:
+    raise RuntimeError(f"dispatcher generator block count={count}")
+path.write_text(updated, encoding="utf-8")
+print("Atomic dispatch patch updated for current dispatcher")
