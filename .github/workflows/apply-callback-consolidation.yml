@@ -48,6 +48,9 @@ jobs:
       - name: Validate wheel callback owner
         run: python -m bbvg.bot.wheels
 
+      - name: Validate consolidated bot runtime
+        run: python -m bbvg.bot.runtime --self-test
+
       - name: Validate v41 inherited callback behavior
         run: python admin_panel_runtime_v41.py --self-test
 
