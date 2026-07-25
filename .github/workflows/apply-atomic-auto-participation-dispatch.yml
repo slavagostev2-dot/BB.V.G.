@@ -38,11 +38,8 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements-dev.txt
 
-      - name: Repair generator delimiters
-        run: python scripts/fix_prepare_atomic_dispatch_quotes.py
-
       - name: Align patch with current dispatcher
-        run: python scripts/prepare_atomic_dispatch_patch_v2.py
+        run: python scripts/prepare_atomic_dispatch_patch_v3.py
 
       - name: Apply atomic dispatch patch
         run: python scripts/apply_atomic_auto_participation_dispatch.py
@@ -52,7 +49,9 @@ jobs:
           git rm -f --ignore-unmatch \
             scripts/apply_atomic_auto_participation_dispatch.py \
             scripts/prepare_atomic_dispatch_patch_v2.py \
+            scripts/prepare_atomic_dispatch_patch_v3.py \
             scripts/fix_prepare_atomic_dispatch_quotes.py \
+            scripts/auto_participation_dispatch_atomic_payload.txt \
             .github/workflows/apply-atomic-auto-participation-dispatch.yml \
             scripts/.atomic-dispatch-pr-trigger \
             docs/.atomic-dispatch-pr-ready \
