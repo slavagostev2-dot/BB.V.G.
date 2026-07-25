@@ -4,13 +4,17 @@ on:
   push:
     branches:
       - agent/telegram-start-state-safety-20260725
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: ${{ github.actor != 'github-actions[bot]' }}
+    if: ${{ github.actor != 'github-actions[bot]' && github.head_ref == 'agent/telegram-start-state-safety-20260725' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
