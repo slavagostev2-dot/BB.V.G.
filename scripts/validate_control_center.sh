@@ -87,6 +87,8 @@ validation_stage="bot_runtime_self_test"
 python -m bbvg.bot.runtime --self-test
 validation_stage="runtime_v41_self_test"
 python admin_panel_runtime_v41.py --self-test
+validation_stage="telegram_start_state_smoke"
+python scripts/telegram_start_state_smoke.py
 
 validation_stage="production_entrypoint"
 if ! grep -Fq 'run: python notification_button_recovery.py' .github/workflows/admin-bot.yml; then

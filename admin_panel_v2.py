@@ -98,6 +98,10 @@ def default_access() -> dict[str, Any]:
     }
 
 
+class SnapshotUnavailableError(RuntimeError):
+    """Critical monitor files could not be read without inventing empty state."""
+
+
 class TelegramPanelV2(RuntimeAdminBot):
     def __init__(self) -> None:
         super().__init__()
@@ -308,6 +312,7 @@ class TelegramPanelV2(RuntimeAdminBot):
             "nightly": "source_catalog.txt",
         }
         values: dict[str, str] = {}
+        failures: dict[str, str] = {}
         with ThreadPoolExecutor(max_workers=len(files)) as pool:
             futures = {pool.submit(self._direct_get_file, path): key for key, path in files.items()}
             for future in as_completed(futures):
@@ -315,14 +320,55 @@ class TelegramPanelV2(RuntimeAdminBot):
                 try:
                     values[key] = future.result()
                 except Exception as exc:
-                    print(f"WARNING snapshot {key}: {type(exc).__name__}: {exc}")
-                    values[key] = ""
+                    detail = f"{type(exc).__name__}: {exc}"
+                    failures[key] = detail
+                    print(f"WARNING snapshot {key}: {detail}")
+
+        parsed: dict[str, dict[str, Any]] = {}
+        json_defaults: dict[str, dict[str, Any]] = {
+            "state": {},
+            "stats": {"sources": {}, "daily": {}},
+            "health": {"sources": {}},
+            "discovery": {},
+            "unknown": {"samples": []},
+        }
+        for key in json_defaults:
+            raw = values.get(key)
+            if raw is None:
+                continue
+            try:
+                value = json.loads(raw)
+                if not isinstance(value, dict):
+                    raise ValueError("top-level JSON value is not an object")
+                parsed[key] = value
+            except (json.JSONDecodeError, TypeError, ValueError) as exc:
+                failures[key] = f"{type(exc).__name__}: {exc}"
+
+        if "fast" in values and not values["fast"].strip():
+            failures["fast"] = "configured source list is empty"
+
+        critical = {"state", "stats", "health", "fast"}
+        critical_failures = sorted(critical.intersection(failures))
+        with self.snapshot_lock:
+            current = self.snapshot_value
+        if failures and current is not None:
+            print(
+                "WARNING snapshot refresh kept the last verified snapshot; failures="
+                + ",".join(sorted(failures))
+            )
+            return current
+        if critical_failures:
+            raise SnapshotUnavailableError(
+                "Не удалось загрузить обязательные данные мониторинга: "
+                + ", ".join(critical_failures)
+            )
+
         snap = Snapshot(
-            state=self._json_text(values.get("state", ""), {}),
-            stats=self._json_text(values.get("stats", ""), {"sources": {}, "daily": {}}),
-            health=self._json_text(values.get("health", ""), {"sources": {}}),
-            discovery=self._json_text(values.get("discovery", ""), {}),
-            unknown=self._json_text(values.get("unknown", ""), {"samples": []}),
+            state=parsed.get("state", json_defaults["state"]),
+            stats=parsed.get("stats", json_defaults["stats"]),
+            health=parsed.get("health", json_defaults["health"]),
+            discovery=parsed.get("discovery", json_defaults["discovery"]),
+            unknown=parsed.get("unknown", json_defaults["unknown"]),
             fast=self.parse_list(values.get("fast", "")),
             nightly=self.parse_list(values.get("nightly", "")),
         )
@@ -1052,6 +1098,28 @@ class TelegramPanelV2(RuntimeAdminBot):
 
     # ---------- Handlers ----------
     def handle_message(self, message: dict[str, Any]) -> None:
+        try:
+            self._handle_message_impl(message)
+        except Exception as exc:
+            print(f"ERROR Telegram message: {type(exc).__name__}: {exc}")
+            chat = message.get("chat") if isinstance(message, dict) else None
+            sender = message.get("from") if isinstance(message, dict) else None
+            chat = chat if isinstance(chat, dict) else {}
+            sender = sender if isinstance(sender, dict) else {}
+            self.current_chat_id = str(chat.get("id")) if chat.get("id") is not None else None
+            self.current_user_id = str(sender.get("id")) if sender.get("id") is not None else None
+            try:
+                self.send(
+                    "⚠️ <b>Панель временно не смогла загрузить данные.</b>\n\n"
+                    "Сохранённые данные не обнулены. Повторите команду /start через несколько секунд."
+                )
+            except Exception as send_exc:
+                print(
+                    "ERROR Telegram fallback response: "
+                    f"{type(send_exc).__name__}: {send_exc}"
+                )
+
+    def _handle_message_impl(self, message: dict[str, Any]) -> None:
         if not self.private_chat(message):
             return
         chat = message.get("chat") or {}
