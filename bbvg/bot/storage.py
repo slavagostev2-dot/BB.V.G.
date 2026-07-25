@@ -16,6 +16,7 @@ from bbvg.bot.sources import SourceRegistryRuntime
 
 UTC = timezone.utc
 INTERVAL_OPTIONS = (1, 3, 5, 10, 15, 30)
+PRIVATE_STATE_SAVE_RETRY_SECONDS = 15.0
 _MISSING = object()
 
 
@@ -80,6 +81,9 @@ class PrivateStateRuntime(SourceRegistryRuntime):
         self._bot_state_lock = threading.RLock()
         self._bot_bundle: dict[str, Any] | None = None
         self._bundle_baseline: dict[str, Any] | None = None
+        self._pending_bundle_save_message: str | None = None
+        self._bundle_save_event = threading.Event()
+        self._bundle_save_thread: threading.Thread | None = None
 
     @staticmethod
     def _bootstrap_access(value: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -195,18 +199,30 @@ class PrivateStateRuntime(SourceRegistryRuntime):
         )
         return self._normalize_bundle(bundle), sha
 
+    def _load_local_bundle(self) -> dict[str, Any]:
+        bundle = bot_private_state.load_file(
+            access_default=self._bootstrap_access(),
+            source_requests_default=default_source_requests(),
+        )
+        return self._normalize_bundle(bundle)
+
     def _load_bot_bundle(self, force: bool = False) -> dict[str, Any]:
         with self._bot_state_lock:
             if self._bot_bundle is not None and not force:
                 return self._bot_bundle
             if force:
-                bundle, _ = self._load_remote_bundle()
+                try:
+                    bundle, _ = self._load_remote_bundle()
+                except Exception as exc:
+                    if self._bot_bundle is not None:
+                        print(
+                            "WARNING private state refresh kept verified local bundle: "
+                            f"{type(exc).__name__}: {exc}"
+                        )
+                        return self._bot_bundle
+                    bundle = self._load_local_bundle()
             else:
-                bundle = bot_private_state.load_file(
-                    access_default=self._bootstrap_access(),
-                    source_requests_default=default_source_requests(),
-                )
-                bundle = self._normalize_bundle(bundle)
+                bundle = self._load_local_bundle()
             self._bot_bundle = bundle
             self._bundle_baseline = _clone(bundle)
             return bundle
@@ -328,6 +344,59 @@ class PrivateStateRuntime(SourceRegistryRuntime):
                 "Не удалось безопасно сохранить состояние без потери ролей"
             ) from last_error
 
+    def _ensure_bundle_save_worker(self) -> None:
+        with self._bot_state_lock:
+            worker = self._bundle_save_thread
+            if worker is not None and worker.is_alive():
+                return
+            worker = threading.Thread(
+                target=self._bundle_save_loop,
+                name="bbvg-private-state-save",
+                daemon=True,
+            )
+            self._bundle_save_thread = worker
+        worker.start()
+
+    def _queue_bot_bundle_save(self, message: str) -> None:
+        with self._bot_state_lock:
+            self._pending_bundle_save_message = str(
+                message or "Update Telegram bot access [skip ci]"
+            )
+        self._ensure_bundle_save_worker()
+        self._bundle_save_event.set()
+
+    def flush_pending_bot_bundle_save(self) -> bool:
+        with self._bot_state_lock:
+            message = self._pending_bundle_save_message
+        if not message:
+            return True
+        try:
+            self._save_bot_bundle(message)
+        except Exception as exc:
+            print(
+                "WARNING deferred private state persistence: "
+                f"{type(exc).__name__}: {exc}"
+            )
+            return False
+        with self._bot_state_lock:
+            if self._pending_bundle_save_message == message:
+                self._pending_bundle_save_message = None
+        return True
+
+    def _bundle_save_loop(self) -> None:
+        while True:
+            self._bundle_save_event.wait()
+            self._bundle_save_event.clear()
+            while True:
+                with self._bot_state_lock:
+                    pending = self._pending_bundle_save_message
+                if not pending:
+                    break
+                if self.flush_pending_bot_bundle_save():
+                    continue
+                self._bundle_save_event.wait(PRIVATE_STATE_SAVE_RETRY_SECONDS)
+                self._bundle_save_event.clear()
+
     def load_access(self, force: bool = False) -> dict[str, Any]:
         with self.access_lock:
             if self.access_loaded and not force:
@@ -340,11 +409,17 @@ class PrivateStateRuntime(SourceRegistryRuntime):
     def save_access(self, message: str = "Update Telegram bot access [skip ci]") -> None:
         with self.access_lock:
             normalized = self.normalize_access(self.access)
-            bundle = self._load_bot_bundle()
-            bundle["access"] = normalized
             self.access = normalized
             self.access_loaded = True
-            self._save_bot_bundle(message)
+        with self._bot_state_lock:
+            bundle = self._load_bot_bundle()
+            bundle["access"] = _clone(normalized)
+        with self.access_lock:
+            # A concurrent background merge may have refreshed the public view
+            # while this update waited for the bundle lock.
+            self.access = normalized
+            self.access_loaded = True
+        self._queue_bot_bundle_save(message)
 
     def load_source_requests(self) -> dict[str, Any]:
         value = self._load_bot_bundle().get("source_requests")
@@ -426,6 +501,44 @@ def self_test() -> None:
     )
     assert round_trip["access"]["owner_id"] == "1"
     assert round_trip["source_requests"]["version"] == 1
+
+    panel._bot_bundle = _clone(bundle)
+    panel._bundle_baseline = _clone(bundle)
+    panel.access = panel.normalize_access(bundle["access"])
+    panel.access_loaded = True
+    panel._ensure_bundle_save_worker = lambda: None  # type: ignore[method-assign]
+    panel.access["users"]["1"]["last_seen_at"] = "2026-07-25T12:00:00+00:00"
+    panel.save_access("Queue profile refresh [skip ci]")
+    assert panel._pending_bundle_save_message == "Queue profile refresh [skip ci]"
+    assert (
+        panel._bot_bundle["access"]["users"]["1"]["last_seen_at"]
+        == "2026-07-25T12:00:00+00:00"
+    )
+
+    attempts: list[str] = []
+
+    def fail_once(message: str) -> bool:
+        attempts.append(message)
+        raise RuntimeError("simulated remote state failure")
+
+    panel._save_bot_bundle = fail_once  # type: ignore[method-assign]
+    assert panel.flush_pending_bot_bundle_save() is False
+    assert panel._pending_bundle_save_message == "Queue profile refresh [skip ci]"
+
+    panel._save_bot_bundle = lambda message: attempts.append(message) or True  # type: ignore[method-assign]
+    assert panel.flush_pending_bot_bundle_save() is True
+    assert panel._pending_bundle_save_message is None
+    assert attempts == [
+        "Queue profile refresh [skip ci]",
+        "Queue profile refresh [skip ci]",
+    ]
+
+    verified = panel._bot_bundle
+    panel._load_remote_bundle = lambda: (_ for _ in ()).throw(  # type: ignore[method-assign]
+        RuntimeError("simulated remote refresh failure")
+    )
+    assert panel._load_bot_bundle(force=True) is verified
+
     print("BB V.G. encrypted private state subsystem self-test passed")
 
 
