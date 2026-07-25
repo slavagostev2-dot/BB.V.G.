@@ -14,7 +14,8 @@ def test_telegram_start_and_state_smoke() -> None:
 
 def test_release_validation_runs_telegram_start_state_smoke() -> None:
     validation = Path("scripts/validate_control_center.sh").read_text(encoding="utf-8")
-    assert "python scripts/telegram_start_state_smoke.py" in validation
+    assert "python -m scripts.telegram_start_state_smoke" in validation
+    assert "python scripts/telegram_start_state_smoke.py" not in validation
     assert "Release candidate is missing scripts/telegram_start_state_smoke.py" in validation
 
 
