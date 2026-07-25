@@ -46,19 +46,24 @@ def _canonical_event_token(
     record: dict[str, Any],
 ) -> str:
     base = _base_event_token(token, record)
-    if "#action:" in base:
-        return base
+    explicit = str(
+        record.get("canonical_event_id")
+        or record.get("event_id")
+        or ""
+    ).strip()
+    if explicit:
+        return explicit
     context = record.get("event_context")
     if isinstance(context, dict):
         contextual = auto_participation_owner_sync._event_token(context)
-        if "#action:" in contextual:
+        if contextual:
             return contextual
     key = str(record.get("wheel_key") or "").casefold()
     active = state.get("active_wheels")
     item = active.get(key) if isinstance(active, dict) else None
     if isinstance(item, dict):
         active_token = auto_participation_owner_sync._event_token(item, key)
-        if "#action:" in active_token:
+        if active_token:
             return active_token
     return base
 
@@ -790,7 +795,11 @@ def self_test() -> None:
         zonertg16_state,
         now=datetime(2026, 7, 25, 9, 10, tzinfo=UTC),
     )
-    event = grouped["zonertg16#action:701:2026-07-25T08:36:46.419000+00:00"]
+    event_id = auto_participation_owner_sync._event_token(
+        zonertg16_state["active_wheels"]["zonertg16"],
+        "zonertg16",
+    )
+    event = grouped[event_id]
     assert event[PRIMARY_ACCOUNT_KEY][2] is True
     assert event[SECONDARY_ACCOUNT_KEY][2] is True
     text, _markup = _result_message("zonertg16", {"identifier": "zonertg16"}, event)
@@ -803,3 +812,4 @@ def self_test() -> None:
 
 if __name__ == "__main__":
     self_test()
+
