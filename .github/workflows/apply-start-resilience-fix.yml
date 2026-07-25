@@ -55,27 +55,11 @@ jobs:
           python -m scripts.telegram_start_state_smoke
           python -m pytest -q tests/test_telegram_start_state_safety.py tests/test_current_contracts.py tests/test_production_stability_guardrails.py
 
-      - name: Validate Control Center candidate
-        run: bash scripts/validate_control_center.sh
-
       - name: Run full repository tests
         run: python -m pytest -q
 
-      - name: Export verified production files
-        uses: actions/upload-artifact@v4
-        with:
-          name: start-resilience-verified
-          if-no-files-found: error
-          retention-days: 1
-          path: |
-            admin_panel_v2.py
-            bbvg/bot/users.py
-            scripts/telegram_start_state_smoke.py
-            tests/test_telegram_start_state_safety.py
-            docs/PROJECT_CHANGELOG_RU.md
-
-      - name: Commit verified production diff
-        continue-on-error: true
+      - name: Commit verified production candidate
+        id: candidate
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
@@ -89,4 +73,11 @@ jobs:
             docs/PROJECT_CHANGELOG_RU.md
           git status --short
           git commit -m 'Keep Telegram start independent from profile persistence'
+          candidate_sha=$(git rev-parse HEAD)
           git push origin HEAD:agent/start-resilience-20260725
+          echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Validate exact Control Center candidate
+        env:
+          CONTROL_CENTER_RELEASE_SHA: ${{ steps.candidate.outputs.candidate_sha }}
+        run: bash scripts/validate_control_center.sh
