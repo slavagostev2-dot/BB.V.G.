@@ -1,9 +1,9 @@
 {
-  "active_incidents": 0,
+  "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-07-25T10:57:36.295211+00:00",
-    "started_at": "2026-07-25T10:27:24.186098+00:00",
+    "age_minutes": 40,
+    "last_heartbeat_at": "2026-07-25T12:08:26.254663+00:00",
+    "started_at": "2026-07-25T11:57:54.445144+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -12,19 +12,22 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 0,
-    "decision_id": "477af378bdb6440d989a76ae2302e4dd",
-    "finding_count": 0,
-    "finding_kinds": [],
-    "generated_at": "2026-07-25T10:58:59.402000+00:00",
-    "impact": "Отсутствует. Все сервисы работают согласно целевым показателям.",
+    "critical_count": 2,
+    "decision_id": "f8e7ea59e56c48babf16995c9681012f",
+    "finding_count": 2,
+    "finding_kinds": [
+      "admin_panel_stale",
+      "monitor_stale"
+    ],
+    "generated_at": "2026-07-25T12:48:33.152118+00:00",
+    "impact": "Бот не реагирует на действия пользователей, а система мониторинга не предоставляет актуальных данных о состоянии сервисов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Вмешательство не требуется. Продолжать штатный мониторинг.",
-    "requires_human_attention": false,
-    "severity": "ok",
-    "summary": "Система BB V.G. функционирует в штатном режиме, все 169 источников доступны, ошибок не зафиксировано.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Система находится в критическом состоянии: бот перестал принимать команды (последний сигнал 40 минут назад), а основной монитор не обновлялся 34 минуты.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -50,18 +53,18 @@
   },
   "check_matrix": {
     "automations": "ok",
-    "bot_panel": "ok",
+    "bot_panel": "failed",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "ok",
+    "monitor": "failed",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-25T10:58:57.786904+00:00",
+  "checked_at": "2026-07-25T12:48:31.025299+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 516,
@@ -99,23 +102,38 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 0,
-  "findings": [],
+  "finding_count": 2,
+  "findings": [
+    {
+      "detail": "Последний heartbeat был 34 минут назад.",
+      "kind": "monitor_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор давно не обновлялся"
+    },
+    {
+      "detail": "Последний живой сигнал был 40 минут назад.",
+      "kind": "admin_panel_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Бот давно не принимает команды пользователей"
+    }
+  ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-25T10:57:36.295211+00:00",
+    "active_incidents": 2,
+    "bot_panel_heartbeat": "2026-07-25T12:08:26.254663+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
     "reachable_sources": 169,
     "single_source": "system_check_state.json",
-    "status": "ok",
+    "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-25T10:32:06.304720+00:00",
+      "last_checked_at": "2026-07-25T11:58:40.639476+00:00",
       "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-25T10:32:06.304720+00:00",
+      "last_success_at": "2026-07-25T11:58:40.639476+00:00",
       "status": "ok"
     }
   },
@@ -127,7 +145,7 @@
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 116,
+  "incident_sequence": 118,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -151,35 +169,35 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 169,
-    "checks_total": 909820,
+    "checks_total": 915228,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "86a6cffbd6d8c8b8d3b58490b8e2edfc1ed839c9",
-    "iteration": 24,
-    "last_iteration_at": "2026-07-25T10:57:44.915274+00:00",
-    "last_iteration_duration_seconds": 12,
+    "head_sha": "78a6162035d3e7b845754f8ff4d97c1062761616",
+    "iteration": 17,
+    "last_iteration_at": "2026-07-25T12:13:56.171225+00:00",
+    "last_iteration_duration_seconds": 13,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-25T10:57:44.915274+00:00",
-    "last_successful_checks_total": 909820,
-    "last_successful_iteration_at": "2026-07-25T10:57:44.915274+00:00",
+    "last_process_heartbeat_at": "2026-07-25T12:13:56.171225+00:00",
+    "last_successful_checks_total": 915228,
+    "last_successful_iteration_at": "2026-07-25T12:13:56.171225+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "30154644280",
-    "run_started_at": "2026-07-25T10:33:09.900892+00:00",
+    "run_id": "30157109320",
+    "run_started_at": "2026-07-25T11:57:26.157517+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "30154644280"
+    "workflow_run_id": "30157109320"
   },
-  "monitor_age_minutes": 1,
-  "monitor_effective_heartbeat_at": "2026-07-25T10:57:44.915274+00:00",
+  "monitor_age_minutes": 34,
+  "monitor_effective_heartbeat_at": "2026-07-25T12:13:56.171225+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 65,
+    "entry_count": 85,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -207,11 +225,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 169,
+    "personal_vote_records": 170,
     "policy": "personal_votes_v1",
     "rated_sources": 35,
     "score_mismatches": [],
-    "valid_personal_votes": 169
+    "valid_personal_votes": 170
   },
   "source_health_summary": {
     "configured_records": 170,
@@ -233,7 +251,7 @@
       "tls": 0
     }
   },
-  "status": "ok",
+  "status": "degraded",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
@@ -245,9 +263,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-25T10:32:06.304720+00:00",
+    "last_checked_at": "2026-07-25T11:58:40.639476+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-25T10:32:06.304720+00:00",
+    "last_success_at": "2026-07-25T11:58:40.639476+00:00",
     "status": "ok"
   }
 }
