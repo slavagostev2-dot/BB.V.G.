@@ -114,6 +114,11 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add admin_panel_runtime_v41.py bbvg/bot/interface.py bbvg/bot/runtime.py bbvg/bot/users.py tests/test_navigation_ownership.py docs/PROJECT_CHANGELOG_RU.md engineering/REFACTOR_PLAN_RU.md
+          git add -A
+          git status --short
+          if git diff --cached --quiet; then
+            echo 'Navigation implementation produced no staged changes' >&2
+            exit 1
+          fi
           git commit -m 'Consolidate Control Center navigation ownership'
           git push origin HEAD:agent/control-center-navigation-consolidation-20260725
