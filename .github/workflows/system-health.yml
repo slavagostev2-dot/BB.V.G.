@@ -215,6 +215,9 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
           BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_BRANCH: main
           TELEGRAM_WEB_DOMAIN: telegram.me
           MONITOR_MAX_AGE_MINUTES: "10"
           ADMIN_PANEL_MAX_AGE_MINUTES: "20"
