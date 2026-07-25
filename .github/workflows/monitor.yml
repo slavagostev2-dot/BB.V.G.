@@ -50,6 +50,7 @@ on:
       - "requirements.txt"
       - "self_test.py"
       - "preflight.py"
+      - "control_center_release.txt"
       - ".github/workflows/monitor.yml"
       - ".github/workflows/auto-participation.yml"
   workflow_dispatch:
@@ -89,6 +90,20 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Pin runtime to unified release SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_sha=$(head -n 1 control_center_release.txt | tr -d '\r\n[:space:]')
+          if [[ ! "$release_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "control_center_release.txt must contain an exact commit SHA" >&2
+            exit 1
+          fi
+          git cat-file -e "${release_sha}^{commit}"
+          git checkout --detach "$release_sha"
+          echo "BBVG_DEPLOYMENT_SHA=$release_sha" >> "$GITHUB_ENV"
+          echo "Monitor runtime pinned to $release_sha"
+
       - name: Ensure isolated runtime status branch
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,7 +128,7 @@ jobs:
           jq \
             --arg run_id "${GITHUB_RUN_ID:-}" \
             --arg started_at "$started_at" \
-            --arg head_sha "${GITHUB_SHA:-}" \
+            --arg head_sha "${BBVG_DEPLOYMENT_SHA:-${GITHUB_SHA:-}}" \
             '.workflow_run_id = $run_id
              | .run_id = $run_id
              | .run_started_at = $started_at
@@ -560,3 +575,4 @@ jobs:
           gh workflow run monitor.yml --ref main -f continuous=true -f replace=false
 
 # Gemini/OpenAI analysis is optional and falls back to deterministic monitoring rules.
+

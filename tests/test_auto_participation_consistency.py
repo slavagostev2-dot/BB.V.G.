@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import auto_participation_notifications
+import auto_participation_owner_sync
 import betboom_auto_participation as auto
 import monitor
 
@@ -134,7 +135,11 @@ def test_owner_registry_waits_for_all_enabled_owner_accounts() -> None:
     groups = auto_participation_notifications._settled_event_groups(
         state, now=datetime(2026, 7, 25, 9, 10, tzinfo=UTC)
     )
-    accounts = groups[base]
+    canonical = auto_participation_owner_sync._event_token(
+        state["active_wheels"]["wheel"],
+        "wheel",
+    )
+    accounts = groups[canonical]
     assert set(accounts) == {
         "vyacheslav_primary",
         "vyacheslav_secondary",
@@ -184,3 +189,4 @@ def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:
         server_start_at=datetime(2026, 7, 25, 8, 36, 46, 419000, tzinfo=UTC),
     )
     assert calls == ["save", "dispatch", "send"]
+
