@@ -74,13 +74,37 @@ jobs:
           git rm -f --ignore-unmatch scripts/apply_auto_participation_consistency.py scripts/adjust_auto_participation_consistency_patch.py scripts/.auto-participation-consistency-trigger engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
 
       - name: Validate focused contracts
+        id: focused
+        continue-on-error: true
+        shell: bash
         run: |
-          python -m py_compile auto_participation_bot_sync.py auto_participation_recovery.py auto_participation_notifications.py
-          python auto_participation_bot_sync.py --self-test
-          python auto_participation_recovery.py --self-test
-          python auto_participation_notifications.py
-          python betboom_participation_browser.py
-          python -m pytest -q -k 'auto_participation or participation_browser'
+          set +e
+          {
+            python -m py_compile auto_participation_bot_sync.py auto_participation_recovery.py auto_participation_notifications.py
+            python auto_participation_bot_sync.py --self-test
+            python auto_participation_recovery.py --self-test
+            python auto_participation_notifications.py
+            python betboom_participation_browser.py
+            python -m pytest -q -k 'auto_participation or participation_browser'
+          } 2>&1 | tee /tmp/auto-participation-focused.log
+          code=${PIPESTATUS[0]}
+          set -e
+          exit "$code"
+
+      - name: Publish focused validation diagnostic
+        if: ${{ steps.focused.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+          cp /tmp/auto-participation-focused.log /tmp/diagnostic.txt
+          git reset --hard HEAD
+          mkdir -p engineering
+          tail -n 260 /tmp/diagnostic.txt > engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
+          git commit -m 'Record auto participation focused validation diagnostic [skip ci]'
+          git push origin HEAD:agent/auto-participation-consistency-20260725
+          exit 1
 
       - name: Validate full repository
         run: python -m pytest -q
