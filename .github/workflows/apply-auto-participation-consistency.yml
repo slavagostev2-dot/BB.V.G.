@@ -40,6 +40,9 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
 
+      - name: Align patch with current contracts
+        run: python scripts/adjust_auto_participation_consistency_patch.py
+
       - name: Apply consistency patch
         id: patch
         continue-on-error: true
@@ -66,8 +69,9 @@ jobs:
           git push origin HEAD:agent/auto-participation-consistency-20260725
           exit 1
 
-      - name: Remove temporary patch script
-        run: git rm scripts/apply_auto_participation_consistency.py
+      - name: Remove temporary repair files
+        run: |
+          git rm -f --ignore-unmatch scripts/apply_auto_participation_consistency.py scripts/adjust_auto_participation_consistency_patch.py scripts/.auto-participation-consistency-trigger engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
 
       - name: Validate focused contracts
         run: |
@@ -76,7 +80,7 @@ jobs:
           python auto_participation_recovery.py --self-test
           python auto_participation_notifications.py
           python betboom_participation_browser.py
-          python -m pytest -q tests/test_auto_participation_notifications.py tests/test_auto_participation_owner_sync.py tests/test_auto_participation_bot_sync.py tests/test_auto_participation_recovery.py
+          python -m pytest -q -k 'auto_participation or participation_browser'
 
       - name: Validate full repository
         run: python -m pytest -q
@@ -86,7 +90,6 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm -f --ignore-unmatch engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
           git add -A
           git status --short
           if git diff --cached --quiet; then
