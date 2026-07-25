@@ -63,3 +63,5 @@ jobs:
           git add engineering/CALLBACK_PYTEST_DIAGNOSTIC.txt
           git commit -m 'Record callback pytest gate diagnostic [skip ci]'
           git push origin HEAD:agent/control-center-callback-consolidation-20260725
+
+# One-shot diagnostic; removed after writing the exact gate output.
