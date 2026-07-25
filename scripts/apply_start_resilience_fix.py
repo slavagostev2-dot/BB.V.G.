@@ -89,7 +89,7 @@ replace_once(
             self.queue_access_save("Register Telegram panel user [skip ci]")
         return self.role_for(user_id)
 ''',
-    "remove remote write from /start request path",
+    "remove remote write from base registration request path",
 )
 replace_once(
     panel,
@@ -115,6 +115,40 @@ replace_once(
     "flush deferred access persistence in background loop",
 )
 
+users = ROOT / "bbvg" / "bot" / "users.py"
+replace_once(
+    users,
+    '''        if user_id and not known_user:
+            access = self.load_access(force=True)
+            users = access.get("users") if isinstance(access.get("users"), dict) else {}
+            known_user = user_id in users
+
+''',
+    '''        # Registration must never wait for a remote encrypted-state refresh.
+        # The conflict-safe background merge will reconcile concurrent users.
+
+''',
+    "remove forced remote read from user registration",
+)
+replace_once(
+    users,
+    '''        if changed:
+            record["notification_preferences"] = prefs
+            self.save_access(
+                f"Enable wheel reminder notifications for Telegram user {user_id} [skip ci]"
+            )
+        return role
+''',
+    '''        if changed:
+            record["notification_preferences"] = prefs
+            self.queue_access_save(
+                f"Enable wheel reminder notifications for Telegram user {user_id} [skip ci]"
+            )
+        return role
+''',
+    "remove remote write from notification default registration",
+)
+
 smoke = ROOT / "scripts" / "telegram_start_state_smoke.py"
 replace_once(
     smoke,
@@ -133,6 +167,10 @@ replace_once(
                     "first_name": "Owner",
                     "first_seen_at": "2026-07-25T00:00:00+00:00",
                     "last_seen_at": "2026-07-25T00:00:00+00:00",
+                    "notification_preferences": {
+                        "wheel_final_reminders": True,
+                        "wheel_draw_alerts": False,
+                    },
                 }
             },
         }
@@ -140,6 +178,7 @@ replace_once(
     panel.access_loaded = True
     panel.load_access = lambda force=False: panel.access  # type: ignore[method-assign]
     panel.role_for = lambda user_id: "owner"  # type: ignore[method-assign]
+    panel.notify_owner_about_new_user = lambda user_id: None  # type: ignore[method-assign]
     queued: list[str] = []
     calls: list[tuple[str, Any]] = []
     panel.queue_access_save = lambda message: queued.append(str(message))  # type: ignore[method-assign]
@@ -189,12 +228,12 @@ replace_once(
 
 tests = ROOT / "tests" / "test_telegram_start_state_safety.py"
 text = tests.read_text(encoding="utf-8")
-addition = '''\n\ndef test_start_profile_persistence_is_outside_request_path() -> None:\n    source = Path("admin_panel_v2.py").read_text(encoding="utf-8")\n    registration = source.split("def register_user", 1)[1].split("def can_view", 1)[0]\n    refresh = source.split("def refresh_loop", 1)[1].split("# ---------- Navigation", 1)[0]\n    assert "queue_access_save" in registration\n    assert "self.save_access" not in registration\n    assert "flush_pending_access_save()" in refresh\n    assert "ACCESS_SAVE_RETRY_SECONDS" in source\n'''
+addition = '''\n\ndef test_start_profile_persistence_is_outside_request_path() -> None:\n    panel_source = Path("admin_panel_v2.py").read_text(encoding="utf-8")\n    base_registration = panel_source.split("def register_user", 1)[1].split("def can_view", 1)[0]\n    refresh = panel_source.split("def refresh_loop", 1)[1].split("# ---------- Navigation", 1)[0]\n    user_source = Path("bbvg/bot/users.py").read_text(encoding="utf-8")\n    management_registration = user_source.split("class UserManagementRuntime", 1)[1].split("def handle_update", 1)[0]\n    settings_registration = user_source.split("class UserSettingsMixin", 1)[1].split("def show_settings", 1)[0]\n    assert "queue_access_save" in base_registration\n    assert "self.save_access" not in base_registration\n    assert "load_access(force=True)" not in management_registration\n    assert "queue_access_save" in settings_registration\n    assert "self.save_access" not in settings_registration\n    assert "flush_pending_access_save()" in refresh\n    assert "ACCESS_SAVE_RETRY_SECONDS" in panel_source\n'''
 if "test_start_profile_persistence_is_outside_request_path" not in text:
     tests.write_text(text.rstrip() + addition + "\n", encoding="utf-8")
 
 changelog = ROOT / "docs" / "PROJECT_CHANGELOG_RU.md"
-entry = '''## 2026-07-25 — `/start` отделён от записи служебного профиля\n\nОткрытие панели больше не зависит от синхронной записи `last_seen_at` в GitHub.\nРегистрация и обновление профиля сначала применяются к уже загруженному локальному\nсостоянию, меню показывается сразу, а зашифрованный bundle сохраняется фоновым\nциклом с повтором после временного конфликта, rate limit или сетевой ошибки.\n\nPending-запись не очищается при неудаче и повторяется с ограниченным интервалом.\nКритические ошибки чтения состояния по-прежнему видимы пользователю и никогда не\nзаменяются пустым состоянием. Добавлен release-smoke, который проверяет открытие\nменю при отложенной записи и сохранение pending после неудачного retry.\n\n**Backup перед изменением:**\n`backup/before-start-resilience-fix-20260725`.\n\n'''
+entry = '''## 2026-07-25 — `/start` отделён от записи служебного профиля\n\nОткрытие панели больше не зависит от синхронного чтения или записи encrypted state\nв GitHub. Регистрация и обновление профиля сначала применяются к уже загруженному\nлокальному состоянию, меню показывается сразу, а зашифрованный bundle сохраняется\nфоновым циклом с повтором после временного конфликта, rate limit или сетевой ошибки.\n\nPending-запись не очищается при неудаче и повторяется с ограниченным интервалом.\nКритические ошибки первоначального чтения состояния по-прежнему видимы пользователю\nи никогда не заменяются пустыми данными. Добавлен release-smoke, который проверяет\nоткрытие меню при отложенной записи и сохранение pending после неудачного retry.\n\n**Backup перед изменением:**\n`backup/before-start-resilience-fix-20260725`.\n\n'''
 text = changelog.read_text(encoding="utf-8")
 if entry.splitlines()[0] not in text:
     marker = "---\n\n"
