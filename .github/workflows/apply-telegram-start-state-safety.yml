@@ -52,8 +52,7 @@ jobs:
 
       - name: Remove temporary automation before validation
         run: |
-          git rm scripts/apply_telegram_start_state_safety.py scripts/fix_telegram_start_state_patch_escaping.py .github/workflows/apply-telegram-start-state-safety.yml scripts/.telegram-start-state-safety-trigger
-          git rm -f engineering/TELEGRAM_START_STATE_DIAGNOSTIC.txt || true
+          git rm -f --ignore-unmatch scripts/apply_telegram_start_state_safety.py scripts/fix_telegram_start_state_patch_escaping.py .github/workflows/apply-telegram-start-state-safety.yml scripts/.telegram-start-state-safety-trigger engineering/TELEGRAM_START_STATE_DIAGNOSTIC.txt
 
       - name: Validate start, state and full repository
         id: validation
@@ -75,7 +74,7 @@ jobs:
           exit "$code"
 
       - name: Publish exact validation diagnostic
-        if: ${{ failure() }}
+        if: ${{ steps.validation.outcome == 'failure' }}
         run: |
           set -euo pipefail
           git reset
