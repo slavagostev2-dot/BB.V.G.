@@ -1,0 +1,63 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 170, in <module>
+    run_smoke()
+  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 160, in run_smoke
+    verify_start_profile_write_is_deferred()
+  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 65, in verify_start_profile_write_is_deferred
+    assert calls == [("menu", True)]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+ERROR Telegram message: BotStateIntegrityError: Bot private state authentication failed; key is wrong or data is damaged
+WARNING remove reply keyboard: HTTPError: 404 Client Error: Not Found for url: https://api.telegram.org/bottest-bot-token/sendMessage
+ERROR Telegram fallback response: HTTPError: 404 Client Error: Not Found for url: https://api.telegram.org/bottest-bot-token/sendMessage
+F...........................                                             [100%]
+=================================== FAILURES ===================================
+_____________________ test_telegram_start_and_state_smoke ______________________
+
+    def test_telegram_start_and_state_smoke() -> None:
+>       run_smoke()
+
+tests/test_telegram_start_state_safety.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/telegram_start_state_smoke.py:160: in run_smoke
+    verify_start_profile_write_is_deferred()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def verify_start_profile_write_is_deferred() -> None:
+        panel = TelegramPanelRuntimeV41()
+        _set_owner_context(panel)
+        panel.access = panel.normalize_access(
+            {
+                "owner_id": "1",
+                "users": {
+                    "1": {
+                        "id": "1",
+                        "chat_id": "1",
+                        "first_name": "Owner",
+                        "first_seen_at": "2026-07-25T00:00:00+00:00",
+                        "last_seen_at": "2026-07-25T00:00:00+00:00",
+                    }
+                },
+            }
+        )
+        panel.access_loaded = True
+        queued: list[str] = []
+        calls: list[tuple[str, Any]] = []
+        panel.queue_access_save = lambda message: queued.append(str(message))  # type: ignore[method-assign]
+        panel.can_view = lambda: True  # type: ignore[method-assign]
+        panel.show_menu = lambda clear_stack=True: calls.append(("menu", clear_stack))  # type: ignore[method-assign]
+        panel.handle_message(_message())
+>       assert calls == [("menu", True)]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+scripts/telegram_start_state_smoke.py:65: AssertionError
+----------------------------- Captured stdout call -----------------------------
+ERROR Telegram message: BotStateIntegrityError: Bot private state authentication failed; key is wrong or data is damaged
+WARNING remove reply keyboard: HTTPError: 404 Client Error: Not Found for url: https://api.telegram.org/bottest-bot-token/sendMessage
+ERROR Telegram fallback response: HTTPError: 404 Client Error: Not Found for url: https://api.telegram.org/bottest-bot-token/sendMessage
+=========================== short test summary info ============================
+FAILED tests/test_telegram_start_state_safety.py::test_telegram_start_and_state_smoke - AssertionError
+1 failed, 27 passed in 1.24s
