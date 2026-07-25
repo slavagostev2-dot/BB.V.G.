@@ -45,7 +45,7 @@ replacement = '''def _result_message(
 pattern = r"^def _result_message\(.*?(?=^def sync_once\()"
 updated, count = re.subn(
     pattern,
-    replacement.rstrip() + "\n\n\n",
+    lambda _match: replacement.rstrip() + "\n\n\n",
     text,
     count=1,
     flags=re.M | re.S,
