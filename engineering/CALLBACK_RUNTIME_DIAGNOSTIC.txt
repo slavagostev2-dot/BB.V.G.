@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/runner/work/BB.V.G./BB.V.G./bbvg/bot/runtime.py", line 781, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/runner/work/BB.V.G./BB.V.G./bbvg/bot/runtime.py", line 775, in main
+    self_test()
+  File "/home/runner/work/BB.V.G./BB.V.G./bbvg/bot/runtime.py", line 764, in self_test
+    assert ("menu", True) in callback_calls
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+WARNING delete hidden wheel message: HTTPError: 404 Client Error: Not Found for url: https://api.telegram.org/bottest-bot-token/deleteMessage
