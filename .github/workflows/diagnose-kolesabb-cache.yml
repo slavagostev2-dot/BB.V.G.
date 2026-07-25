@@ -29,10 +29,9 @@ jobs:
         env:
           PYTHONUNBUFFERED: '1'
         run: |
-          python - <<'PY'
+          python - <<'PY' | tee /tmp/kolesabb-diagnostic.txt
           import json
           import time
-          from urllib.parse import urljoin
 
           import requests
           from bs4 import BeautifulSoup
@@ -89,7 +88,7 @@ jobs:
                   print('ERROR', url, type(exc).__name__, str(exc))
 
           print('\n=== DIRECT POSTS')
-          for message_id in range(249, 257):
+          for message_id in range(249, 260):
               url = f'https://telegram.me/kolesaBB/{message_id}?embed=1&mode=tme&bbvg_fresh={stamp + message_id}'
               try:
                   response = session.get(url, timeout=20, allow_redirects=True)
@@ -112,3 +111,10 @@ jobs:
               except Exception as exc:
                   print(json.dumps({'requested_id': message_id, 'error': f'{type(exc).__name__}: {exc}'}, ensure_ascii=False))
           PY
+
+      - name: Upload diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kolesabb-diagnostic
+          path: /tmp/kolesabb-diagnostic.txt
+          if-no-files-found: error
