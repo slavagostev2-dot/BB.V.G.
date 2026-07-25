@@ -1,0 +1,19 @@
+BB V.G. consolidated Telegram panel runtime self-test passed
+Traceback (most recent call last):
+  File "/home/runner/work/BB.V.G./BB.V.G./admin_panel_runtime_v41.py", line 474, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/runner/work/BB.V.G./BB.V.G./admin_panel_runtime_v41.py", line 468, in main
+    self_test()
+  File "/home/runner/work/BB.V.G./BB.V.G./admin_panel_runtime_v41.py", line 383, in self_test
+    panel.handle_callback(
+  File "/home/runner/work/BB.V.G./BB.V.G./admin_panel_runtime_v41.py", line 351, in handle_callback
+    super().handle_callback(query)
+  File "/home/runner/work/BB.V.G./BB.V.G./bbvg/bot/runtime.py", line 225, in handle_callback
+    super().handle_callback(query)
+  File "/home/runner/work/BB.V.G./BB.V.G./bot_notification_state.py", line 296, in _combined_profile_handler
+    _previous_profile_handler(self, query)
+  File "/home/runner/work/BB.V.G./BB.V.G./personal_wheel_voting.py", line 766, in handle_callback
+    "Участие уже было отмечено" if not result.get("changed") else "Ваше участие отмечено",
+                                       ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
