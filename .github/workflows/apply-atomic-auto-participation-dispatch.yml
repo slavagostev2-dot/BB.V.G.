@@ -69,25 +69,8 @@ jobs:
       - name: Compile changed modules
         run: python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
 
-      - name: Validate atomic dispatcher and publish exact error
-        shell: bash
-        run: |
-          set +e
-          python auto_participation_dispatch.py --self-test 2>&1 | tee /tmp/atomic-dispatch-self-test.log
-          code=${PIPESTATUS[0]}
-          set -e
-          if [[ "$code" -ne 0 ]]; then
-            cp /tmp/atomic-dispatch-self-test.log /tmp/atomic-dispatch-self-test-copy.log
-            git reset --hard HEAD
-            mkdir -p engineering
-            cat /tmp/atomic-dispatch-self-test-copy.log > engineering/ATOMIC_DISPATCH_VALIDATION.txt
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add engineering/ATOMIC_DISPATCH_VALIDATION.txt
-            git commit -m 'Record atomic dispatcher self-test diagnostic [skip ci]'
-            git push origin HEAD:fix/atomic-auto-participation-dispatch-20260725
-            exit "$code"
-          fi
+      - name: Validate atomic dispatcher
+        run: python auto_participation_dispatch.py --self-test
 
       - name: Validate wheel event lifecycle
         run: python wheel_event_runtime.py
@@ -98,8 +81,25 @@ jobs:
       - name: Run focused pytest contracts
         run: python -m pytest -q tests/test_current_contracts.py tests/test_production_stability_guardrails.py tests/test_telegram_start_state_safety.py
 
-      - name: Run full repository tests
-        run: python -m pytest -q
+      - name: Run full repository tests and publish exact error
+        shell: bash
+        run: |
+          set +e
+          python -m pytest -q 2>&1 | tee /tmp/atomic-dispatch-full-pytest.log
+          code=${PIPESTATUS[0]}
+          set -e
+          if [[ "$code" -ne 0 ]]; then
+            cp /tmp/atomic-dispatch-full-pytest.log /tmp/atomic-dispatch-full-pytest-copy.log
+            git reset --hard HEAD
+            mkdir -p engineering
+            tail -n 320 /tmp/atomic-dispatch-full-pytest-copy.log > engineering/ATOMIC_DISPATCH_VALIDATION.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add engineering/ATOMIC_DISPATCH_VALIDATION.txt
+            git commit -m 'Record atomic dispatch full pytest diagnostic [skip ci]'
+            git push origin HEAD:fix/atomic-auto-participation-dispatch-20260725
+            exit "$code"
+          fi
 
       - name: Commit clean verified change
         run: |
