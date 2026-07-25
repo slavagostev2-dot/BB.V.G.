@@ -49,7 +49,28 @@ jobs:
         run: python personal_wheel_voting.py
 
       - name: Validate consolidated bot runtime
-        run: python -m bbvg.bot.runtime --self-test
+        id: runtime
+        shell: bash
+        run: |
+          set +e
+          python -m bbvg.bot.runtime --self-test > /tmp/bbvg-runtime-callback.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/bbvg-runtime-callback.log
+          if [[ $code -ne 0 ]]; then
+            cp /tmp/bbvg-runtime-callback.log engineering/CALLBACK_RUNTIME_DIAGNOSTIC.txt
+          fi
+          exit $code
+
+      - name: Preserve exact runtime failure for repair
+        if: ${{ failure() && steps.runtime.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add engineering/CALLBACK_RUNTIME_DIAGNOSTIC.txt
+          git commit -m 'Record callback runtime diagnostic [skip ci]'
+          git push origin HEAD:agent/control-center-callback-consolidation-20260725
 
       - name: Validate v41 inherited callback behavior
         run: python admin_panel_runtime_v41.py --self-test
@@ -67,7 +88,7 @@ jobs:
         run: |
           set -euo pipefail
           git rm scripts/apply_callback_consolidation.py .github/workflows/apply-callback-consolidation.yml
-          git rm -f engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt || true
+          git rm -f engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt engineering/CALLBACK_RUNTIME_DIAGNOSTIC.txt || true
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add personal_wheel_voting.py admin_panel_runtime_v41.py notification_button_recovery.py tests/test_production_stability_guardrails.py engineering/REFACTOR_PLAN_RU.md
