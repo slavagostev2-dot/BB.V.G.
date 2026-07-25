@@ -42,7 +42,12 @@ jobs:
         run: python scripts/apply_atomic_auto_participation_dispatch.py
 
       - name: Remove temporary files before validation
-        run: git rm -f --ignore-unmatch scripts/apply_atomic_auto_participation_dispatch.py .github/workflows/apply-atomic-auto-participation-dispatch.yml
+        run: |
+          git rm -f --ignore-unmatch \
+            scripts/apply_atomic_auto_participation_dispatch.py \
+            .github/workflows/apply-atomic-auto-participation-dispatch.yml \
+            scripts/.atomic-dispatch-pr-trigger \
+            docs/.atomic-dispatch-pr-ready
 
       - name: Validate focused contracts
         run: |
