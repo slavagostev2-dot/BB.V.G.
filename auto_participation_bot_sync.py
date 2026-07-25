@@ -9,6 +9,7 @@ from typing import Any
 
 import monitor
 import wheel_publications_v2
+from bbvg.storage import event_id_from_entry
 
 UTC = timezone.utc
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
@@ -70,15 +71,7 @@ def _load_recovery_result(path: Path) -> dict[str, Any]:
 
 
 def _event_token(item: dict[str, Any]) -> str:
-    key = str(item.get("wheel_key") or "").casefold()
-    try:
-        action_id = int(item.get("action_id") or 0)
-    except (TypeError, ValueError):
-        action_id = 0
-    start = str(item.get("server_start_at") or "")
-    if action_id > 0:
-        return f"{key}#action:{action_id}:{start}"
-    return f"{key}#seen:{item.get('message_date') or ''}"
+    return event_id_from_entry(item)
 
 
 def _parse_datetime(value: Any) -> datetime | None:
@@ -496,13 +489,12 @@ def self_test() -> None:
         "success": False,
         "status": "unconfirmed",
     }
-    assert _event_token(success) == (
-        "lent#action:952:2026-07-21T14:01:28.861000+00:00"
+    assert _event_token(success) == "evt:8677da38477b0f44018a"
+    assert _event_token(failure) == "evt:6a1e2e7b3df94976b1a9"
+    assert (
+        _event_token({"wheel_key": "x", "message_date": "now"})
+        == "pending:035ba460a92f92976ab4"
     )
-    assert _event_token(failure) == (
-        "ctom11#action:958:2026-07-21T15:28:57.035000+00:00"
-    )
-    assert _event_token({"wheel_key": "x", "message_date": "now"}) == "x#seen:now"
 
     recurring_remote = {
         "active_wheels": {

@@ -21,6 +21,8 @@ from bs4 import BeautifulSoup
 import monitor_data as data_store
 import telegram_transport
 import wheel_publications_v2
+from bbvg import reconciliation
+from bbvg.storage import EventStore
 
 
 ROOT = Path(__file__).resolve().parent
@@ -28,6 +30,8 @@ STATE_PATH = ROOT / "state.json"
 SOURCES_PATH = ROOT / "public_sources.txt"
 IDENTIFIER_SOURCES_PATH = ROOT / "identifier_sources.json"
 CATALOG_PATH = ROOT / "source_catalog.txt"
+
+_EVENT_STORE: EventStore | None = None
 
 UTC = timezone.utc
 MOSCOW = ZoneInfo("Europe/Moscow")
@@ -277,6 +281,13 @@ def load_state() -> dict:
     state.pop("recent_url_alerts", None)
     state["version"] = 6
     return state
+
+
+def event_store() -> EventStore:
+    global _EVENT_STORE
+    if _EVENT_STORE is None:
+        _EVENT_STORE = EventStore()
+    return _EVENT_STORE
 
 
 def save_state(state: dict) -> None:
@@ -1645,20 +1656,77 @@ def dispatch_notified_wheel_event(state: dict, link: str) -> bool:
     """Persist and dispatch the exact event before the source scan continues."""
 
     key = wheel_key(link)
+    entry = state.get("active_wheels", {}).get(key)
+    if not isinstance(entry, dict):
+        raise RuntimeError(f"active event missing before dispatch: {key}")
+    event_id = event_store().prepare_event(
+        entry,
+        detected_at=entry.get("first_notified_at") or now_utc(),
+        enqueue_notification=not bool(entry.get("referral_restricted")),
+        discovery_reason="monitor_notification",
+    )
+    entry["canonical_event_id"] = event_id
+    entry["generation_id"] = event_id.removeprefix("evt:")
+    entry["durable_persisted_at"] = now_utc().isoformat()
+    save_state(state)
     try:
-        save_state(state)
         return bool(process_auto_participation_dispatch(state))
     except Exception as exc:
-        entry = state.get("active_wheels", {}).get(key)
-        if isinstance(entry, dict):
-            entry["auto_participation_immediate_dispatch_error"] = (
-                f"{type(exc).__name__}: {exc}"
-            )[:300]
+        entry["auto_participation_immediate_dispatch_error"] = (
+            f"{type(exc).__name__}: {exc}"
+        )[:300]
         print(
             "WARNING immediate auto participation dispatch: "
             f"wheel={key} {type(exc).__name__}: {exc}"
         )
         return False
+
+
+def record_event_notification(
+    event_id: str,
+    notification_type: str,
+    response: Any,
+) -> None:
+    """Checkpoint per-recipient delivery after Telegram returns a message ID."""
+
+    result = response.get("result") if isinstance(response, dict) else {}
+    result = result if isinstance(result, dict) else {}
+    deliveries = result.get("deliveries")
+    deliveries = deliveries if isinstance(deliveries, list) else []
+    sent = 0
+    failed = 0
+    for raw in deliveries:
+        if not isinstance(raw, dict):
+            continue
+        status = str(raw.get("status") or "unknown")
+        if status == "sent":
+            sent += 1
+        elif status == "failed":
+            failed += 1
+        event_store().record_notification(
+            event_id,
+            notification_type=notification_type,
+            recipient_scope=str(
+                raw.get("recipient_scope") or "configured_recipients"
+            ),
+            status=status,
+            telegram_message_id=raw.get("telegram_message_id"),
+            error_text=str(raw.get("error_type") or ""),
+            sent_at=now_utc() if status == "sent" else None,
+        )
+    if not deliveries:
+        event_store().record_notification(
+            event_id,
+            notification_type=notification_type,
+            recipient_scope="configured_recipients",
+            status="suppressed" if result.get("suppressed") else "unknown",
+        )
+    event_store().mark_event_outbox(
+        event_id,
+        "new_wheel_notification",
+        status="completed" if sent and not failed else "retry",
+        error_text=f"failed_recipients={failed}" if failed else "",
+    )
 
 
 def notify_new_link(
@@ -1711,7 +1779,7 @@ def notify_new_link(
         )
         dispatch_notified_wheel_event(state, link)
 
-    send_message(
+    response = send_message(
         "🎡 <b>Новое колесо BetBoom</b>\n\n"
         f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
         f"@{html.escape(message.source)}</a>\n"
@@ -1728,6 +1796,14 @@ def notify_new_link(
         ),
         url=link if state is None else None,
     )
+    if state is not None:
+        entry = state.get("active_wheels", {}).get(wheel_key(link))
+        if isinstance(entry, dict) and entry.get("canonical_event_id"):
+            record_event_notification(
+                str(entry["canonical_event_id"]),
+                "new_wheel",
+                response,
+            )
 
 def notify_activation(
     message: Message,
@@ -1775,7 +1851,7 @@ def notify_activation(
         )
         dispatch_notified_wheel_event(state, link)
 
-    send_message(
+    response = send_message(
         "✅ <b>Колесо BetBoom стало активно</b>\n\n"
         f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
         f"@{html.escape(message.source)}</a>\n"
@@ -1792,6 +1868,14 @@ def notify_activation(
         ),
         url=link if state is None else None,
     )
+    if state is not None:
+        entry = state.get("active_wheels", {}).get(wheel_key(link))
+        if isinstance(entry, dict) and entry.get("canonical_event_id"):
+            record_event_notification(
+                str(entry["canonical_event_id"]),
+                "wheel_activation",
+                response,
+            )
 
 def fetch_all_sources(
     sources: list[str],
@@ -1951,6 +2035,59 @@ def process_auto_participation_dispatch(state: dict) -> bool:
     return False
 
 
+def cold_start_probe() -> dict[str, Any]:
+    """Exercise the production entrypoint without external side effects."""
+
+    sources = read_list(SOURCES_PATH)
+    if not sources:
+        raise RuntimeError("production source inventory is empty")
+    current = now_utc()
+    store = event_store()
+    synthetic = {
+        "wheel_key": "cold-start-probe",
+        "identifier": "cold-start-probe",
+        "url": "https://betboom.ru/freestream/cold-start-probe",
+        "source": sources[0],
+        "message_id": 1,
+        "message_date": current.isoformat(),
+        "message_url": telegram_transport.public_message_url(sources[0], 1),
+        "action_id": 2147483647,
+        "server_start_at": current.isoformat(),
+        "status": "active",
+        "verification_status": WHEEL_VERIFICATION_CONFIRMED,
+    }
+    event_id = store.prepare_event(
+        synthetic,
+        detected_at=current,
+        enqueue_notification=True,
+        discovery_reason="cold_start_probe",
+    )
+    heartbeat_path = Path(
+        os.getenv("BBVG_RUNTIME_DIR", str(ROOT / "runtime"))
+    ) / "cold_start_heartbeat.json"
+    data_store.atomic_write_json(
+        heartbeat_path,
+        {
+            "status": "ok",
+            "started_at": current.isoformat(),
+            "source_count": len(sources),
+            "event_id": event_id,
+        },
+    )
+    restarted = EventStore()
+    restarted.event_snapshot(event_id)
+    return {
+        "status": "ok",
+        "production_entrypoint": "monitor.main",
+        "source_count": len(sources),
+        "test_message_processed": True,
+        "heartbeat_written": heartbeat_path.exists(),
+        "graceful_restart": True,
+        "event_id": event_id,
+        "storage": restarted.health(),
+    }
+
+
 def main() -> int:
     try:
         validate_environment()
@@ -1958,7 +2095,17 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 2
 
+    if os.getenv("BBVG_COLD_START_PROBE", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
+        print(json.dumps(cold_start_probe(), ensure_ascii=False, sort_keys=True))
+        return 0
+
     state = load_state()
+    durable_store = event_store()
+    legacy_migration = durable_store.import_legacy_state(state)
     health = data_store.load_health()
     stats = data_store.load_stats()
     unknown_samples = data_store.load_unknown_samples()
@@ -2389,6 +2536,21 @@ def main() -> int:
     state["notification_key_version"] = NOTIFICATION_KEY_VERSION
 
     try:
+        reconciliation_summary = reconciliation.reconcile_candidates(
+            durable_store,
+            reconciliation.state_generation_candidates(state),
+            recovery_reason="monitor_cycle_reconciliation",
+        )
+        if reconciliation_summary.get("recovered"):
+            changed = True
+    except Exception as exc:
+        reconciliation_summary = {"error": f"{type(exc).__name__}: {exc}"[:300]}
+        errors.append(
+            "durable reconciliation failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
+
+    try:
         if process_auto_participation_dispatch(state):
             changed = True
     except Exception as exc:
@@ -2427,6 +2589,8 @@ def main() -> int:
         "source_inactivity": inactivity_summary,
         "admin_actions": admin_action_summary,
         "active_wheels": len(state.get("active_wheels", {})),
+        "legacy_event_migration": legacy_migration,
+        "reconciliation": reconciliation_summary,
     }
 
     if MANUAL_RUN or heartbeat_due(state):
@@ -2470,6 +2634,13 @@ def main() -> int:
 
     if changed:
         save_state(state)
+    try:
+        health["functional"] = event_store().health()
+    except Exception as exc:
+        health["functional"] = {
+            "process_health": "degraded",
+            "error": f"{type(exc).__name__}: {exc}"[:300],
+        }
     data_store.save_health(health)
     data_store.save_stats(stats)
     data_store.save_unknown_samples(unknown_samples)

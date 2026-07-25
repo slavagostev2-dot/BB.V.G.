@@ -5,6 +5,20 @@
 Уменьшать количество параллельных реализаций и исторических файлов, не меняя
 пользовательское поведение, callback/state-контракты и production continuity.
 
+## Выполнено 26 июля 2026 года — durable event architecture
+
+- введён единый `EventStore` и удалён GitHub `state.json` из синхронного пути
+  dispatcher;
+- event, dispatch outbox и notification outbox создаются одной SQLite
+  транзакцией до внешнего уведомления;
+- cursor recovery защищён от redirect/alias poisoning collector-каналов;
+- reconciliation работает в production-цикле и восстанавливает пропущенные
+  активные генерации;
+- account results монотонны и разделены по `owner_id/account_key`;
+- Monitor, Control Center и browser dispatch связаны exact-SHA deployment
+  manifest;
+- heartbeat больше не является deployment-коммитом в `main`.
+
 ## Завершено 23 июля 2026 года
 
 - подтверждена независимая backup-ветка до очистки;

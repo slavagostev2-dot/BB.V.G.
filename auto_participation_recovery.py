@@ -9,6 +9,7 @@ import betboom_auto_participation as auto
 import betboom_participation_browser
 import monitor
 import wheel_publications_v2
+from bbvg.storage import event_id_from_entry
 
 ROOT = Path(__file__).resolve().parent
 PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
@@ -25,15 +26,7 @@ def _json(path: Path, default: Any) -> Any:
 
 
 def _event_token(item: dict[str, Any]) -> str:
-    key = str(item.get("wheel_key") or "").casefold()
-    try:
-        action_id = int(item.get("action_id") or 0)
-    except (TypeError, ValueError):
-        action_id = 0
-    start = str(item.get("server_start_at") or "")
-    if action_id:
-        return f"{key}#action:{action_id}:{start}"
-    return f"{key}#seen:{item.get('message_date') or ''}"
+    return event_id_from_entry(item)
 
 
 def _record_matches_event(record: dict[str, Any], item: dict[str, Any]) -> bool:
@@ -317,6 +310,10 @@ def _restore_runtime_state(
                 detail=detail,
                 scanned_at=scanned_at,
             )
+            processed[token]["account_owner"] = "vyacheslav"
+            processed[token]["artifact_url"] = str(
+                attempt.get("artifact_url") or ""
+            )
             entry.update(
                 {
                     "participating": False,
@@ -367,6 +364,7 @@ def _restore_runtime_state(
             "wheel_key": key,
             "account_key": PRIMARY_ACCOUNT_KEY,
             "account_label": PRIMARY_ACCOUNT_LABEL,
+            "account_owner": "vyacheslav",
             "event_token": token,
             "event_context": {field: item.get(field) for field in ("wheel_key", "action_id", "server_start_at", "message_date", "deadline") if item.get(field) is not None},
             "status": "participated",
@@ -376,6 +374,7 @@ def _restore_runtime_state(
             "attempted_at": scanned_at.isoformat(),
             "retry_allowed": False,
             "recovery_scan": True,
+            "artifact_url": str(attempt.get("artifact_url") or ""),
         }
         if isinstance(previous, dict):
             for field in (
@@ -474,6 +473,7 @@ def run_recovery() -> dict[str, Any]:
                 "success": bool(result.success),
                 "status": str(result.status),
                 "detail": str(result.detail)[:300],
+                "artifact_url": result.artifact_url,
             }
         )
 

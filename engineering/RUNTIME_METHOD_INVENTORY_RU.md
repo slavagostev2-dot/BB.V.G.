@@ -1,6 +1,6 @@
 # BB V.G. — владельцы методов Control Center
 
-Актуально на 23 июля 2026 года. Карта нужна для безопасного рефакторинга:
+Актуально на 26 июля 2026 года. Карта нужна для безопасного рефакторинга:
 изменение выполняется в предметном владельце, а не новым versioned-слоем.
 
 ## Production MRO
@@ -40,6 +40,10 @@ compatibility-слоем.
 | `mark_personal_participation` | `personal_wheel_voting.PersonalWheelVotingMixin` |
 | `set_candidate_mode`, `restore_candidate` | `bbvg.bot.interface.PanelInterfaceRuntime` |
 | `decide_source_request` | `bbvg.bot.source_requests.SourceRequestRuntime` |
+
+`save_access` меняет проверенный локальный snapshot немедленно и только ставит
+encrypted bundle в фоновую очередь с retry и трёхсторонним merge. GitHub write
+не выполняется в request-path `/start` или callback.
 
 `notification_button_recovery.py` устанавливает дополнительные runtime-политики
 для `show_settings`, recovery wheel-callback и объединённых результатов

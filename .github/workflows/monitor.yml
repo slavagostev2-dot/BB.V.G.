@@ -11,7 +11,6 @@ on:
       - "bbvg_monitor_main.py"
       - "bbvg/ai_core.py"
       - "bbvg/monitor/suspicious_posts.py"
-      - "ai_runtime_state.json"
       - "telegram_transport.py"
       - "telegram_post_links_v2.py"
       - "recurring_wheel_events.py"
@@ -24,9 +23,7 @@ on:
       - "notification_preferences_v2.py"
       - "notification_navigation.py"
       - "notification_integrity_v2.py"
-      - "notification_delivery_state.json"
       - "admin_action_queue.py"
-      - "admin_action_queue.json"
       - "monitor_health.py"
       - "incident_manager.py"
       - "notification_router.py"
@@ -37,9 +34,7 @@ on:
       - ".github/workflows/vk-start-welcome.yml"
       - "bot_notification_state.py"
       - "bot_private_state.py"
-      - "bot_private_state.enc.json"
       - "privacy_retention.py"
-      - "bot_access.json"
       - "monitor_data.py"
       - "daily_report.py"
       - "telegram_monitor.py"
@@ -94,6 +89,17 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Ensure isolated runtime status branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if ! gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/runtime-status" >/dev/null 2>&1; then
+            sha=$(gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')
+            gh api --method POST "/repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref='refs/heads/runtime-status' -f sha="$sha" >/dev/null
+          fi
+
       - name: Publish monitor startup marker
         continue-on-error: true
         timeout-minutes: 1
@@ -112,6 +118,8 @@ jobs:
              | .run_id = $run_id
              | .run_started_at = $started_at
              | .head_sha = $head_sha
+             | .compatibility_epoch = "durable-event-ledger-v1"
+             | .event_ledger_schema_version = 2
              | .status = "starting"
              | del(.startup_error)' \
             monitor_status.json > "$tmp"
@@ -119,7 +127,7 @@ jobs:
 
           current_sha=$(gh api \
             -H "Accept: application/vnd.github+json" \
-            "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=main" \
+            "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=runtime-status" \
             --jq '.sha')
           encoded=$(base64 -w0 monitor_status.json)
           timeout --signal=TERM --kill-after=10s 30s gh api \
@@ -129,7 +137,7 @@ jobs:
             -f message='Record monitor startup [skip ci]' \
             -f content="$encoded" \
             -f sha="$current_sha" \
-            -f branch=main >/dev/null
+            -f branch=runtime-status >/dev/null
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -166,7 +174,7 @@ jobs:
           mv "$tmp" monitor_status.json
           current_sha=$(gh api \
             -H "Accept: application/vnd.github+json" \
-            "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=main" \
+            "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=runtime-status" \
             --jq '.sha')
           encoded=$(base64 -w0 monitor_status.json)
           gh api \
@@ -176,7 +184,7 @@ jobs:
             -f message='Record monitor preflight failure [skip ci]' \
             -f content="$encoded" \
             -f sha="$current_sha" \
-            -f branch=main >/dev/null
+            -f branch=runtime-status >/dev/null
           exit "$code"
 
       - name: Check BB V.G. project files
@@ -275,6 +283,14 @@ jobs:
           python -m json.tool notification_delivery_state.json >/dev/null
           python self_test.py
 
+      - name: Cold-start production entrypoint
+        env:
+          BOT_TOKEN: cold-start-probe
+          BOT_CHAT_ID: "0"
+          BBVG_COLD_START_PROBE: "true"
+          BBVG_RUNTIME_DIR: ${{ runner.temp }}/bbvg-cold-start
+        run: python ./bbvg_monitor_main.py
+
       - name: Verify configured AI provider
         timeout-minutes: 2
         env:
@@ -350,7 +366,7 @@ jobs:
 
           runtime_files=(
             state.json source_health.json source_stats.json
-            unknown_timer_samples.json monitor_status.json
+            unknown_timer_samples.json
             notification_delivery_state.json ai_runtime_state.json
           )
 
@@ -358,7 +374,7 @@ jobs:
             for attempt in 1 2 3; do
               current_sha=$(timeout --signal=TERM --kill-after=5s 20s gh api \
                 -H "Accept: application/vnd.github+json" \
-                "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=main" \
+                "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=runtime-status" \
                 --jq '.sha' 2>/dev/null) || current_sha=""
               if [[ -z "$current_sha" ]]; then
                 sleep 1
@@ -372,7 +388,7 @@ jobs:
                 -f message='Publish monitor heartbeat [skip ci]' \
                 -f content="$encoded" \
                 -f sha="$current_sha" \
-                -f branch=main >/dev/null 2>&1; then
+                -f branch=runtime-status >/dev/null 2>&1; then
                 return 0
               fi
               sleep 1
@@ -445,7 +461,7 @@ jobs:
               if publish_monitor_status; then
                 last_status_publish_at=$status_now
               else
-                echo "WARNING monitor_status.json could not be published independently; bulk runtime sync will retry it."
+                echo "WARNING monitor_status.json could not be published to runtime-status; the next heartbeat will retry it."
               fi
             fi
 

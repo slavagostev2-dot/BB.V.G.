@@ -1,14 +1,35 @@
 from __future__ import annotations
 
 import json
+import os
 from typing import Any
 
 import bbvg_monitor_runtime as runtime
 import betboom_auto_participation
 import betboom_participation_browser
+from bbvg.storage.event_payload import materialize_event_payload
 
 
 SUCCESS_STATUSES = {"participated", "already_participating"}
+
+
+def load_dispatched_event_payload(
+    state: dict[str, Any],
+    monitor: Any,
+    raw_payload: str | None = None,
+) -> str:
+    """Materialize one explicitly dispatched event in the workflow checkout."""
+
+    raw = raw_payload
+    if raw is None:
+        raw = os.getenv("BBVG_EVENT_PAYLOAD_JSON", "")
+    if not str(raw or "").strip():
+        return ""
+    return materialize_event_payload(
+        state,
+        str(raw),
+        received_at=monitor.now_utc(),
+    )
 
 
 def _defer_failure_notification(monitor: Any, entry: dict[str, Any], result: Any) -> tuple[bool, str]:
@@ -85,6 +106,7 @@ def _run_exact_primary_attempt(state: dict[str, Any], monitor: Any) -> dict[str,
 def main() -> int:
     monitor = runtime.monitor
     state = runtime.load_state_without_pending()
+    dispatched_event_id = load_dispatched_event_payload(state, monitor)
     betboom_auto_participation.canonicalize_primary_event_aliases(state)
     event_versions_before = _event_versions(state)
 
@@ -105,6 +127,7 @@ def main() -> int:
     result["debug_configured"] = betboom_auto_participation.configured()
     result["browser_policy"] = "exact_visible_confirmation"
     result["failure_alert_policy"] = "deferred_to_recovery"
+    result["dispatched_event_id"] = dispatched_event_id
     if bool(result.get("changed")) or queued_successes:
         monitor.save_state(state)
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))

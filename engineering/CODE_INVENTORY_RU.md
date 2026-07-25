@@ -1,6 +1,6 @@
 # BB V.G. — инвентарь кода и данных
 
-Актуально на 23 июля 2026 года. Документ описывает действующих владельцев
+Актуально на 26 июля 2026 года. Документ описывает действующих владельцев
 ответственности. Исторические детали хранятся в `PROJECT_CHANGELOG_RU.md`, а не
 в отдельных файлах «глава», `changes`, `plan` или versioned-runtime.
 
@@ -15,6 +15,8 @@
 | `python nightly_discovery_entry.py` | Ручная/плановая проверка ночного списка |
 | `python source_intelligence_entry.py` | Разведка кандидатов источников |
 | `python daily_report_entry.py` | Формирование выбранной сводки |
+| `python -m bbvg.reconciliation --day YYYY-MM-DD --recover` | Полная сверка и восстановление immutable event ledger |
+| `python event_ledger_sync.py` | Асинхронная CAS-синхронизация локального ledger в `runtime-ledger` |
 
 ## Telegram-панель
 
@@ -44,6 +46,8 @@ compatibility API и запрещены preflight. В production сохраня�
 | Production-композиция | `bbvg_monitor_runtime.py`, `bbvg_monitor_main.py` |
 | Событие колеса | `wheel_event_runtime.py`, `wheel_lifecycle_v2.py`, `wheel_link_lifecycle.py`, `recurring_wheel_events.py` |
 | Качество обнаружения | `wheel_detection_reliability.py`, `wheel_metadata_quality.py`, `wheel_publications_v2.py`, `telegram_post_links_v2.py` |
+| Durable event storage | `bbvg/storage/event_store.py`, `bbvg/storage/github_sync.py`, `bbvg/storage/event_payload.py` |
+| Reconciliation и deploy contract | `bbvg/reconciliation.py`, `bbvg/deployment_manifest.py`, `deployment_manifest.json` |
 | Напоминания | `personal_reminder_filter.py`, `notification_navigation.py` |
 
 Суффикс `v2` у перечисленных активных предметных модулей пока является частью

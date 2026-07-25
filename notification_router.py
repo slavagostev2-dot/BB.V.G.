@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import hmac
 import html
 import json
 import os
@@ -51,6 +52,22 @@ DELIVERY_DEDUP_SECONDS = max(
 _delivered: dict[str, float] = {}
 _delivery_lock = threading.RLock()
 _pending_deliveries: set[str] = set()
+
+
+def recipient_scope(chat_id: str) -> str:
+    """Return a stable audit scope without exposing a Telegram user/chat ID."""
+
+    secret = (
+        os.getenv("BOT_STATE_KEY", "").strip()
+        or os.getenv("NOTIFICATION_AUDIT_KEY", "").strip()
+        or "bbvg-local-notification-audit"
+    )
+    digest = hmac.new(
+        secret.encode("utf-8"),
+        str(chat_id).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()[:20]
+    return f"recipient:{digest}"
 
 
 def load_config() -> tuple[dict[str, Any], bool]:
@@ -479,12 +496,19 @@ def install(monitor_module: Any) -> None:
         event_identity = notification_event_identity(kind, text, url, reply_markup)
         result: dict[str, Any] = {"ok": True, "result": {"sent": 0}}
         errors: list[str] = []
+        deliveries: list[dict[str, Any]] = []
         sent = 0
         skipped = 0
         for chat_id in targets:
             admin = is_admin_chat(config, chat_id)
             if category == "user" and hidden_for_chat(config, chat_id, key):
                 skipped += 1
+                deliveries.append(
+                    {
+                        "recipient_scope": recipient_scope(chat_id),
+                        "status": "hidden_suppressed",
+                    }
+                )
                 continue
             dedup_key = delivery_key(
                 chat_id,
@@ -494,6 +518,12 @@ def install(monitor_module: Any) -> None:
             )
             if not claim_delivery(dedup_key):
                 skipped += 1
+                deliveries.append(
+                    {
+                        "recipient_scope": recipient_scope(chat_id),
+                        "status": "duplicate_suppressed",
+                    }
+                )
                 continue
             payload: dict[str, Any] = {
                 "chat_id": chat_id,
@@ -512,6 +542,21 @@ def install(monitor_module: Any) -> None:
                 response = monitor_module.telegram_api("sendMessage", payload)
                 result = response
                 response_result = response.get("result") if isinstance(response, dict) else None
+                try:
+                    sent_message_id = int(
+                        response_result.get("message_id") or 0
+                        if isinstance(response_result, dict)
+                        else 0
+                    )
+                except (TypeError, ValueError):
+                    sent_message_id = 0
+                deliveries.append(
+                    {
+                        "recipient_scope": recipient_scope(chat_id),
+                        "status": "sent",
+                        "telegram_message_id": sent_message_id or None,
+                    }
+                )
                 button_token = participation_button_token(target_markup)
                 if button_token and isinstance(response_result, dict):
                     try:
@@ -524,6 +569,13 @@ def install(monitor_module: Any) -> None:
             except Exception as exc:
                 release_delivery(dedup_key)
                 errors.append(f"{chat_id}:{type(exc).__name__}")
+                deliveries.append(
+                    {
+                        "recipient_scope": recipient_scope(chat_id),
+                        "status": "failed",
+                        "error_type": type(exc).__name__,
+                    }
+                )
                 print(f"WARNING notification target {chat_id}: {type(exc).__name__}: {exc}")
             else:
                 complete_delivery(dedup_key)
@@ -536,6 +588,8 @@ def install(monitor_module: Any) -> None:
         result["result"]["hidden_skipped"] = skipped
         result["result"]["category"] = category
         result["result"]["kind"] = kind
+        result["result"]["deliveries"] = deliveries
+        result["result"]["failed"] = len(errors)
         return result
 
     monitor_module.send_message = routed_send_message

@@ -1,0 +1,14 @@
+{
+  "compatibility_epoch": "durable-event-ledger-v1",
+  "component_sha_contract": {
+    "browser_worker": "dispatcher workflow checkout SHA",
+    "control_center": "control_center_release.txt exact SHA",
+    "dispatcher": "monitor GITHUB_SHA pinned as workflow_dispatch ref",
+    "monitor": "monitor workflow checkout SHA"
+  },
+  "event_ledger_schema_version": 2,
+  "incompatible_behavior": "system health fails until every component reports the same exact SHA",
+  "legacy_state_schema_version": "compatibility-json-v1",
+  "manifest_schema_version": 1,
+  "runtime_manifest": "runtime-status:deployment_manifest.json"
+}

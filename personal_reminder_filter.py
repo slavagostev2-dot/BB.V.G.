@@ -311,8 +311,105 @@ def _record_dispatch_failure(
     return notified
 
 
+def _wake_durable_dispatcher(
+    state: dict[str, Any],
+    monitor_module: Any,
+) -> bool:
+    """Wake the local outbox worker and return without waiting for GitHub."""
+
+    if not state.get("auto_participation_event_mode_initialized_at"):
+        return False
+    current = monitor_module.now_utc()
+    processed = state.setdefault("auto_participation_events", {})
+    dispatched = state.setdefault("auto_participation_dispatch_events", {})
+    candidates: list[tuple[str, str]] = []
+    for key, entry in list(state.setdefault("active_wheels", {}).items()):
+        if not isinstance(entry, dict):
+            continue
+        normalized = str(key).casefold()
+        token = betboom_auto_participation._event_token(normalized, entry)
+        if not token or token in processed:
+            continue
+        previous = dispatched.get(token)
+        if isinstance(previous, dict):
+            previous_at = monitor_module.parse_datetime(
+                previous.get("dispatcher_started_at")
+                or previous.get("scheduled_at")
+            )
+            if previous_at is not None and current - previous_at < _DISPATCH_RETRY_AFTER:
+                continue
+        if not betboom_auto_participation._eligible_for_event_attempt(
+            entry,
+            monitor_module,
+            current,
+        ):
+            continue
+        candidates.append((token, normalized))
+    if not candidates:
+        return False
+
+    credentials_ready = bool(
+        os.getenv("GITHUB_TOKEN", "").strip()
+        and os.getenv("GITHUB_REPOSITORY", "").strip()
+    )
+    for token, normalized in candidates:
+        dispatched[token] = {
+            "wheel_key": normalized,
+            "canonical_event_id": token,
+            "scheduled_at": current.isoformat(),
+            "status": (
+                "local_outbox_queued"
+                if credentials_ready
+                else "local_outbox_waiting_credentials"
+            ),
+        }
+    monitor_module.save_state(state)
+    if not credentials_ready:
+        print(
+            "Auto participation remains in durable local outbox: "
+            "GitHub runtime credentials are unavailable"
+        )
+        return True
+
+    try:
+        process = subprocess.Popen(
+            [sys.executable, "auto_participation_dispatch.py"],
+            cwd=str(monitor_module.STATE_PATH.parent),
+            env=os.environ.copy(),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception as exc:
+        for token, _ in candidates:
+            dispatched[token]["status"] = "local_outbox_wake_failed"
+            dispatched[token]["dispatch_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )[:500]
+        monitor_module.save_state(state)
+        print(
+            "WARNING durable auto participation dispatcher wake failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return True
+
+    for token, _ in candidates:
+        dispatched[token]["status"] = "local_outbox_dispatcher_started"
+        dispatched[token]["dispatcher_started_at"] = current.isoformat()
+        dispatched[token]["dispatcher_pid"] = int(process.pid)
+    monitor_module.save_state(state)
+    print(
+        "Woke durable auto participation dispatcher: "
+        f"events={len(candidates)} pid={process.pid}"
+    )
+    return True
+
+
 def _schedule_auto_participation_dispatch(state: dict[str, Any], monitor_module: Any) -> bool:
-    """Persist new event requests and synchronously dispatch the isolated workflow."""
+    """Compatibility hook for the non-blocking durable dispatcher."""
+
+    return _wake_durable_dispatcher(state, monitor_module)
 
     if not os.getenv("GITHUB_TOKEN", "").strip() or not os.getenv(
         "GITHUB_REPOSITORY", ""
