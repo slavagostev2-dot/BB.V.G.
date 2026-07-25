@@ -5,7 +5,7 @@
 =================================== FAILURES ===================================
 ____________ test_notification_persists_exact_event_before_dispatch ____________
 
-monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5a30795a00>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f1fe21a1ac0>
 
     def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:
         calls: list[str] = []
@@ -222,4 +222,4 @@ FAILED tests/test_auto_participation_consistency.py::test_notification_persists_
   +     'send',
     ]
 FAILED tests/test_recurring_event_hotfix.py::RecurringWheelHotfixTests::test_scheduled_availability_preserves_server_generation - AttributeError: type object 'FakeMonitor' has no attribute 'dispatch_notified_wheel_event'
-2 failed, 276 passed in 1.76s
+2 failed, 276 passed in 1.79s
