@@ -45,6 +45,7 @@ jobs:
         run: |
           git rm scripts/apply_start_resilience_fix.py
           git rm .github/workflows/apply-start-resilience-fix.yml
+          git rm -f --ignore-unmatch engineering/START_RESILIENCE_DIAGNOSTIC.txt
 
       - name: Compile changed runtime
         run: python -m py_compile admin_panel_v2.py scripts/telegram_start_state_smoke.py tests/test_telegram_start_state_safety.py
