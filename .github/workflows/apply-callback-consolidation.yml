@@ -54,7 +54,28 @@ jobs:
         run: python -m bbvg.bot.runtime --self-test
 
       - name: Validate v41 inherited callback behavior
-        run: python admin_panel_runtime_v41.py --self-test
+        id: v41
+        shell: bash
+        run: |
+          set +e
+          python admin_panel_runtime_v41.py --self-test > /tmp/bbvg-v41-final.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/bbvg-v41-final.log
+          if [[ $code -ne 0 ]]; then
+            cp /tmp/bbvg-v41-final.log engineering/CALLBACK_V41_FINAL_DIAGNOSTIC.txt
+          fi
+          exit $code
+
+      - name: Preserve exact v41 failure for repair
+        if: ${{ failure() && steps.v41.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add engineering/CALLBACK_V41_FINAL_DIAGNOSTIC.txt
+          git commit -m 'Record final v41 callback diagnostic [skip ci]'
+          git push origin HEAD:agent/control-center-callback-consolidation-20260725
 
       - name: Validate production entrypoint callback recovery
         run: python notification_button_recovery.py --self-test
@@ -69,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           git rm scripts/apply_callback_consolidation.py scripts/apply_callback_runtime_followup.py .github/workflows/apply-callback-consolidation.yml
-          git rm -f engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt engineering/CALLBACK_RUNTIME_DIAGNOSTIC.txt || true
+          git rm -f engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt engineering/CALLBACK_RUNTIME_DIAGNOSTIC.txt engineering/CALLBACK_V41_FINAL_DIAGNOSTIC.txt || true
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add personal_wheel_voting.py bbvg/bot/runtime.py admin_panel_runtime_v41.py notification_button_recovery.py tests/test_production_stability_guardrails.py engineering/REFACTOR_PLAN_RU.md
