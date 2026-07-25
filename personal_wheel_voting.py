@@ -739,36 +739,84 @@ class PersonalWheelVotingMixin:
             return
         super().render_page(page)
 
+    @staticmethod
+    def _notification_token(key: str, entry: dict[str, Any]) -> str:
+        normalized = _clean_wheel_key(
+            key or entry.get("wheel_key") or entry.get("identifier")
+        )
+        source = str(entry.get("source") or "").strip().casefold()
+        try:
+            message_id = int(entry.get("message_id") or 0)
+        except (TypeError, ValueError):
+            message_id = 0
+        if not normalized or not source or message_id <= 0:
+            return ""
+        raw = f"{source}:{message_id}:{normalized}"
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:14]
+
+    def _notification_wheel_key(self, token: str) -> str:
+        snap = self.snapshot(force=True)
+        state = snap.state if isinstance(getattr(snap, "state", None), dict) else {}
+        context = state.get("button_contexts", {}).get(token)
+        if isinstance(context, dict):
+            key = _clean_wheel_key(
+                context.get("wheel_key") or context.get("identifier")
+            )
+            if key:
+                return key
+            raise ValueError("Не удалось определить колесо")
+
+        matches: list[str] = []
+        active = state.get("active_wheels")
+        if isinstance(active, dict):
+            for raw_key, raw in active.items():
+                if not isinstance(raw, dict):
+                    continue
+                key = _clean_wheel_key(raw_key)
+                stored = str(raw.get("button_token") or "")
+                computed = self._notification_token(key, raw)
+                if token and token in {stored, computed}:
+                    matches.append(key)
+        unique = sorted(set(matches))
+        if len(unique) != 1:
+            raise ValueError("Контекст кнопки устарел")
+        return unique[0]
+
     def handle_callback(self, query: dict[str, Any]) -> None:
         data = str(query.get("data") or "")
         query_id = str(query.get("id") or "")
         if data.startswith(("bb:p:", "wheel:part:")):
             self._prepare_callback_user(query)
+            notification_button = data.startswith("bb:p:")
+            message = query.get("message") if isinstance(query, dict) else None
+            message = message if isinstance(message, dict) else {}
+            previous_edit_message_id = getattr(self, "_edit_message_id", None)
+            if not notification_button:
+                self._edit_message_id = int(message.get("message_id") or 0) or None
             try:
-                if data.startswith("bb:p:"):
-                    token = data.split(":", 2)[2]
-                    context = self.snapshot(force=True).state.get("button_contexts", {}).get(token)
-                    if not isinstance(context, dict):
-                        raise ValueError("Контекст кнопки устарел")
-                    key = _clean_wheel_key(
-                        context.get("wheel_key") or context.get("identifier")
-                    )
-                else:
-                    token = data.split(":", 2)[2]
-                    key = self._resolve_wheel_token(token) or ""
+                token = data.split(":", 2)[2]
+                key = (
+                    self._notification_wheel_key(token)
+                    if notification_button
+                    else self._resolve_wheel_token(token) or ""
+                )
                 result = self.mark_personal_participation(key)
+                self.answer(
+                    query_id,
+                    "Участие уже было отмечено"
+                    if not result.get("changed")
+                    else "Ваше участие отмечено",
+                )
+                if notification_button:
+                    self._delete_callback_message(query)
+                else:
+                    self.show_active()
             except Exception as exc:
                 print(f"ERROR personal wheel vote: {type(exc).__name__}: {exc}")
                 self.answer(query_id, "Не удалось отметить участие")
-                return
-            self.answer(
-                query_id,
-                "Участие уже было отмечено" if not result.get("changed") else "Ваше участие отмечено",
-            )
-            try:
-                self.show_active()
-            except Exception:
-                pass
+            finally:
+                if not notification_button:
+                    self._edit_message_id = previous_edit_message_id
             return
         if data.startswith(("bb:x:", "wheel:inactive:", "wheel:finished:")):
             self._prepare_callback_user(query)

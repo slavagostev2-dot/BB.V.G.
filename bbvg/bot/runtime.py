@@ -213,21 +213,6 @@ class TelegramPanelRuntime(
                 self._edit_message_id = previous_edit_message_id
             return
 
-        if data.startswith(("bb:p:", "wheel:part:")):
-            message = query.get("message") or {}
-            previous_edit_message_id = getattr(self, "_edit_message_id", None)
-            original_show_active = self.show_active
-            self._edit_message_id = int(message.get("message_id") or 0) or None
-            self.show_active = (  # type: ignore[method-assign]
-                lambda page=0: self.show_menu(clear_stack=True)
-            )
-            try:
-                super().handle_callback(query)
-            finally:
-                self.show_active = original_show_active  # type: ignore[method-assign]
-                self._edit_message_id = previous_edit_message_id
-            return
-
         if data.startswith(("bb:t:", "wheel:time:", "wheel:timequick:")):
             message = query.get("message") or {}
             previous_edit_message_id = getattr(self, "_edit_message_id", None)
@@ -752,16 +737,32 @@ def self_test() -> None:
     )
     panel.mark_personal_participation = lambda key: {"changed": True}  # type: ignore[method-assign]
     panel.answer = lambda query_id, text: callback_calls.append(("answer", text))  # type: ignore[method-assign]
-    panel.show_menu = lambda clear_stack=True: callback_calls.append(("menu", clear_stack))  # type: ignore[method-assign]
+    panel.show_active = lambda page=0: callback_calls.append(("active", page))  # type: ignore[method-assign]
+    panel._delete_callback_message = lambda query: callback_calls.append(  # type: ignore[method-assign]
+        ("delete", str(query.get("data") or ""))
+    )
     panel.handle_callback(
         {
-            "id": "q",
+            "id": "q-notification",
             "data": "bb:p:token",
             "message": {"message_id": 77, "chat": {"id": "1"}},
             "from": {"id": "1"},
         }
     )
-    assert ("menu", True) in callback_calls
+    assert ("delete", "bb:p:token") in callback_calls
+    assert not any(event[0] == "active" for event in callback_calls)
+    assert panel._edit_message_id is None
+
+    callback_calls.clear()
+    panel.handle_callback(
+        {
+            "id": "q-active",
+            "data": "wheel:part:wheel-a",
+            "message": {"message_id": 78, "chat": {"id": "1"}},
+            "from": {"id": "1"},
+        }
+    )
+    assert ("active", 0) in callback_calls
     assert panel._edit_message_id is None
 
     print("BB V.G. consolidated Telegram panel runtime self-test passed")

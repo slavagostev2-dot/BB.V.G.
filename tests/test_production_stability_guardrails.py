@@ -151,6 +151,25 @@ def test_control_center_runtime_patch_surface_is_frozen() -> None:
     )
 
 
+def test_wheel_participation_callbacks_have_one_subject_owner() -> None:
+    owner = (ROOT / "personal_wheel_voting.py").read_text(encoding="utf-8")
+    runtime_v41 = (ROOT / "admin_panel_runtime_v41.py").read_text(encoding="utf-8")
+    entrypoint = (ROOT / "notification_button_recovery.py").read_text(
+        encoding="utf-8"
+    )
+    assert "def _notification_wheel_key" in owner
+    assert 'if data.startswith(("bb:p:", "wheel:part:"))' in owner
+    assert "def _mark_personal_from_notification" not in runtime_v41
+    assert 'if data.startswith("bb:p:")' not in runtime_v41
+    assert 'if data.startswith("wheel:part:")' not in runtime_v41
+    assert "def _mark_personal_from_notification" not in entrypoint
+    assert "def _notification_token" not in entrypoint
+    runtime = (ROOT / "bbvg/bot/runtime.py").read_text(encoding="utf-8")
+    assert 'data.startswith(("bb:p:", "wheel:part:"))' not in runtime
+    assert 'data.startswith("bb:p:")' not in runtime
+    assert 'data.startswith("wheel:part:")' not in runtime
+
+
 def test_historical_panel_runtime_ladder_cannot_return() -> None:
     versioned = sorted(path.name for path in ROOT.glob("admin_panel_runtime_v*.py"))
     assert versioned == ["admin_panel_runtime_v41.py"]
