@@ -4,15 +4,13 @@ on:
   push:
     branches:
       - agent/control-center-callback-consolidation-20260725
-  pull_request:
-    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
   record:
-    if: ${{ github.actor != 'github-actions[bot]' && github.head_ref == 'agent/control-center-callback-consolidation-20260725' }}
+    if: ${{ github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -23,42 +21,9 @@ jobs:
           fetch-depth: 0
 
       - name: Prepend project changelog entry
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('docs/PROJECT_CHANGELOG_RU.md')
-          text = path.read_text(encoding='utf-8')
-          heading = '## 2026-07-25 — Callback участия сведены к одному владельцу'
-          if heading not in text:
-              marker = '---\n\n'
-              entry = '''## 2026-07-25 — Callback участия сведены к одному владельцу
-
-Обработка `bb:p:<token>` и `wheel:part:<key>` больше не дублируется в трёх
-runtime-слоях. Единственным владельцем личного event-scoped участия закреплён
-существующий `PersonalWheelVotingMixin` в `personal_wheel_voting.py`.
-
-К тому же владельцу перенесено восстановление потерянного `button_contexts` по
-однозначному активному событию. Из `admin_panel_runtime_v41.py`,
-`bbvg/bot/runtime.py` и `notification_button_recovery.py` удалены отдельные
-перехваты, token-helper и override. Строки callback не изменены: кнопка из
-уведомления удаляет исходную карточку после отметки, а кнопка списка активных
-колёс обновляет то же сообщение.
-
-Добавлен отрицательный архитектурный контракт против возврата нескольких
-владельцев. Runtime JSON, encrypted state, список источников и release marker не
-изменялись.
-
-**Backup перед изменением:**
-`backup/before-control-center-callback-consolidation-20260725` →
-`48f3c3e24150025fd8769f6ea92e4ffae9f8d550`.
-
-'''
-              if marker not in text:
-                  raise SystemExit('Changelog separator is missing')
-              text = text.replace(marker, marker + entry, 1)
-              path.write_text(text, encoding='utf-8')
-          PY
+        env:
+          ENTRY_B64: IyMgMjAyNi0wNy0yNSDigJQgQ2FsbGJhY2sg0YPRh9Cw0YHRgtC40Y8g0YHQstC10LTQtdC90Ysg0Log0L7QtNC90L7QvNGDINCy0LvQsNC00LXQu9GM0YbRgwoK0J7QsdGA0LDQsdC+0YLQutCwIGBiYjpwOjx0b2tlbj5gINC4IGB3aGVlbDpwYXJ0OjxrZXk+YCDQsdC+0LvRjNGI0LUg0L3QtSDQtNGD0LHQu9C40YDRg9C10YLRgdGPINCyINGC0YDRkdGFCnJ1bnRpbWUt0YHQu9C+0Y/RhS4g0JXQtNC40L3RgdGC0LLQtdC90L3Ri9C8INCy0LvQsNC00LXQu9GM0YbQtdC8INC70LjRh9C90L7Qs9C+IGV2ZW50LXNjb3BlZCDRg9GH0LDRgdGC0LjRjyDQt9Cw0LrRgNC10L/Qu9GR0L0K0YHRg9GJ0LXRgdGC0LLRg9GO0YnQuNC5IGBQZXJzb25hbFdoZWVsVm90aW5nTWl4aW5gINCyIGBwZXJzb25hbF93aGVlbF92b3RpbmcucHlgLgoK0Jog0YLQvtC80YMg0LbQtSDQstC70LDQtNC10LvRjNGG0YMg0L/QtdGA0LXQvdC10YHQtdC90L4g0LLQvtGB0YHRgtCw0L3QvtCy0LvQtdC90LjQtSDQv9C+0YLQtdGA0Y/QvdC90L7Qs9C+IGBidXR0b25fY29udGV4dHNgINC/0L4K0L7QtNC90L7Qt9C90LDRh9C90L7QvNGDINCw0LrRgtC40LLQvdC+0LzRgyDRgdC+0LHRi9GC0LjRji4g0JjQtyBgYWRtaW5fcGFuZWxfcnVudGltZV92NDEucHlgLApgYmJ2Zy9ib3QvcnVudGltZS5weWAg0LggYG5vdGlmaWNhdGlvbl9idXR0b25fcmVjb3ZlcnkucHlgINGD0LTQsNC70LXQvdGLINC+0YLQtNC10LvRjNC90YvQtQrQv9C10YDQtdGF0LLQsNGC0YssIHRva2VuLWhlbHBlciDQuCBvdmVycmlkZS4g0KHRgtGA0L7QutC4IGNhbGxiYWNrINC90LUg0LjQt9C80LXQvdC10L3Rizog0LrQvdC+0L/QutCwINC40LcK0YPQstC10LTQvtC80LvQtdC90LjRjyDRg9C00LDQu9GP0LXRgiDQuNGB0YXQvtC00L3Rg9GOINC60LDRgNGC0L7Rh9C60YMg0L/QvtGB0LvQtSDQvtGC0LzQtdGC0LrQuCwg0LAg0LrQvdC+0L/QutCwINGB0L/QuNGB0LrQsCDQsNC60YLQuNCy0L3Ri9GFCtC60L7Qu9GR0YEg0L7QsdC90L7QstC70Y/QtdGCINGC0L4g0LbQtSDRgdC+0L7QsdGJ0LXQvdC40LUuCgrQlNC+0LHQsNCy0LvQtdC9INC+0YLRgNC40YbQsNGC0LXQu9GM0L3Ri9C5INCw0YDRhdC40YLQtdC60YLRg9GA0L3Ri9C5INC60L7QvdGC0YDQsNC60YIg0L/RgNC+0YLQuNCyINCy0L7Qt9Cy0YDQsNGC0LAg0L3QtdGB0LrQvtC70YzQutC40YUK0LLQu9Cw0LTQtdC70YzRhtC10LIuIFJ1bnRpbWUgSlNPTiwgZW5jcnlwdGVkIHN0YXRlLCDRgdC/0LjRgdC+0Log0LjRgdGC0L7Rh9C90LjQutC+0LIg0LggcmVsZWFzZSBtYXJrZXIg0L3QtQrQuNC30LzQtdC90Y/Qu9C40YHRjC4KCioqQmFja3VwINC/0LXRgNC10LQg0LjQt9C80LXQvdC10L3QuNC10Lw6KioKYGJhY2t1cC9iZWZvcmUtY29udHJvbC1jZW50ZXItY2FsbGJhY2stY29uc29saWRhdGlvbi0yMDI2MDcyNWAg4oaSCmA0OGYzYzNlMjQxNTAwMjVmZDg3NjlmNmVhOTJlNGZmYWU5ZjhkNTUwYC4KCg==
+        run: python -c "import base64,os,pathlib; p=pathlib.Path('docs/PROJECT_CHANGELOG_RU.md'); t=p.read_text(encoding='utf-8'); h='## 2026-07-25 — Callback участия сведены к одному владельцу'; e=base64.b64decode(os.environ['ENTRY_B64']).decode(); p.write_text(t if h in t else t.replace('---\n\n','---\n\n'+e,1),encoding='utf-8')"
 
       - name: Commit changelog and remove one-shot workflow
         run: |
@@ -69,5 +34,3 @@ runtime-слоях. Единственным владельцем личного
           git add docs/PROJECT_CHANGELOG_RU.md
           git commit -m 'Record callback consolidation in project changelog'
           git push origin HEAD:agent/control-center-callback-consolidation-20260725
-
-# One-shot workflow: removed after the changelog commit.
