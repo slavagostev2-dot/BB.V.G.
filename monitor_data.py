@@ -60,6 +60,11 @@ JSON_STATE_CONTRACTS: dict[str, dict[str, Any]] = {
         "owner": "nightly-discovery",
         "schema": ("version", (1, 2)),
     },
+    "deployment_manifest.json": {
+        "category": "config",
+        "owner": "deployment-contract",
+        "schema": ("manifest_schema_version", (1,)),
+    },
     "identifier_sources.json": {
         "category": "config",
         "owner": "source-catalog",
