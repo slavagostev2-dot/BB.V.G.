@@ -18,6 +18,8 @@ UTC = timezone.utc
 ACCOUNT_KEY = "xflarxx_primary"
 DEFAULT_ACCOUNT_LABEL = "xFLARXx"
 DEFAULT_ALERT_USER = "xFLARXx"
+ACCOUNT_OWNER = "xflarxx"
+ACCOUNT_ORDER = 10
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
 RETRY_DELAY_MINUTES = account_base.RETRY_DELAY_MINUTES
 TERMINAL_FAILURE_STATUSES = account_base.TERMINAL_FAILURE_STATUSES
@@ -80,6 +82,13 @@ def run_account(
     state = account_base._load_json(monitor.STATE_PATH, {})
     if not isinstance(state, dict):
         state = {}
+    account_base.primary_auto.register_account(
+        state,
+        account_key=ACCOUNT_KEY,
+        account_label=account_label(),
+        account_owner=ACCOUNT_OWNER,
+        account_order=ACCOUNT_ORDER,
+    )
     events = state.setdefault("auto_participation_events", {})
     current = monitor.now_utc()
     attempted = 0
@@ -107,6 +116,8 @@ def run_account(
             "account_key": ACCOUNT_KEY,
             "account_label": account_label(),
             "alert_user": alert_user(),
+            "account_owner": ACCOUNT_OWNER,
+            "account_order": ACCOUNT_ORDER,
             "status": str(result.status),
             "detail": str(result.detail)[:300],
             "attempted_at": current.isoformat(),
@@ -135,7 +146,9 @@ def run_account(
             record["user_alert_policy"] = "deferred_transient_failure"
             deferred += 1
 
-        events[token] = record
+        events[token] = account_base.primary_auto.merge_event_record(
+            events.get(token), record
+        )
 
     state["last_xflarxx_account_participation_at"] = current.isoformat()
     monitor.save_state(state)

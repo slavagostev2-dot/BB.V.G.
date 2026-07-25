@@ -19,6 +19,8 @@ UTC = timezone.utc
 ACCOUNT_KEY = "vyacheslav_secondary"
 DEFAULT_ACCOUNT_LABEL = "Аккаунт 2"
 DEFAULT_ALERT_USER = "Вячеслав"
+ACCOUNT_OWNER = "vyacheslav"
+ACCOUNT_ORDER = 20
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
 TRANSIENT_STATUSES = {
     "browser_error",
@@ -86,20 +88,8 @@ def _parse_datetime(value: Any) -> datetime | None:
 
 
 def _base_event_token(item: dict[str, Any], wheel_key: str = "") -> str:
-    key = str(
-        wheel_key
-        or item.get("wheel_key")
-        or item.get("identifier")
-        or ""
-    ).casefold()
-    try:
-        action_id = int(item.get("action_id") or 0)
-    except (TypeError, ValueError):
-        action_id = 0
-    start = str(item.get("server_start_at") or "")
-    if action_id > 0:
-        return f"{key}#action:{action_id}:{start}"
-    return f"{key}#seen:{item.get('message_date') or ''}"
+    key = str(wheel_key or item.get("wheel_key") or item.get("identifier") or "").casefold()
+    return primary_auto._event_token(key, item)
 
 
 def _account_event_token(item: dict[str, Any], wheel_key: str = "") -> str:
@@ -200,6 +190,15 @@ def run_second_account(
     state = _load_json(monitor.STATE_PATH, {})
     if not isinstance(state, dict):
         state = {}
+    primary_auto.ensure_default_account_registry(state)
+    primary_auto.register_account(
+        state,
+        account_key=ACCOUNT_KEY,
+        account_label=account_label(),
+        account_owner=ACCOUNT_OWNER,
+        account_order=ACCOUNT_ORDER,
+    )
+    primary_auto.canonicalize_primary_event_aliases(state)
     events = state.setdefault("auto_participation_events", {})
     current = monitor.now_utc()
     attempted = 0
@@ -227,6 +226,8 @@ def run_second_account(
             "account_key": ACCOUNT_KEY,
             "account_label": account_label(),
             "alert_user": alert_user(),
+            "account_owner": ACCOUNT_OWNER,
+            "account_order": ACCOUNT_ORDER,
             "status": str(result.status),
             "detail": str(result.detail)[:300],
             "attempted_at": current.isoformat(),
@@ -255,7 +256,7 @@ def run_second_account(
             record["user_alert_policy"] = "deferred_transient_failure"
             deferred += 1
 
-        events[token] = record
+        events[token] = primary_auto.merge_event_record(events.get(token), record)
 
     state["last_secondary_account_participation_at"] = current.isoformat()
     monitor.save_state(state)

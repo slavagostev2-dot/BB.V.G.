@@ -16,7 +16,8 @@ SECONDARY_ACCOUNT_KEY = "vyacheslav_secondary"
 SECONDARY_ACCOUNT_LABEL = "Аккаунт 2"
 AUTO_NOTIFICATION_KEY = "auto_participation"
 AUTO_NOTIFICATION_LABEL = "🤖 Автоучастие"
-AUTO_NOTIFICATION_DESCRIPTION = "Один общий итог по двум BetBoom-аккаунтам"
+AUTO_NOTIFICATION_DESCRIPTION = "Один общий итог по аккаунтам владельца"
+OWNER_SCOPE = "vyacheslav"
 RECOVERABLE_OUTCOME_WINDOW = timedelta(hours=12)
 SUCCESS_STATUSES = {
     "participated",
@@ -35,18 +36,75 @@ FAILURE_LABELS = {
 def _base_event_token(token: str, record: dict[str, Any]) -> str:
     explicit = str(record.get("event_token") or "").strip()
     if explicit:
-        return explicit
+        return explicit.split("#account:", 1)[0]
     return str(token or "").split("#account:", 1)[0]
 
 
+def _canonical_event_token(
+    state: dict[str, Any],
+    token: str,
+    record: dict[str, Any],
+) -> str:
+    base = _base_event_token(token, record)
+    if "#action:" in base:
+        return base
+    context = record.get("event_context")
+    if isinstance(context, dict):
+        contextual = auto_participation_owner_sync._event_token(context)
+        if "#action:" in contextual:
+            return contextual
+    key = str(record.get("wheel_key") or "").casefold()
+    active = state.get("active_wheels")
+    item = active.get(key) if isinstance(active, dict) else None
+    if isinstance(item, dict):
+        active_token = auto_participation_owner_sync._event_token(item, key)
+        if "#action:" in active_token:
+            return active_token
+    return base
+
+
 def _account_identity(record: dict[str, Any]) -> tuple[str, str]:
-    raw_key = str(record.get("account_key") or "").strip()
-    key = raw_key or PRIMARY_ACCOUNT_KEY
+    key = str(record.get("account_key") or "").strip()
+    if not key:
+        return "", ""
     if key == SECONDARY_ACCOUNT_KEY:
         return key, str(record.get("account_label") or SECONDARY_ACCOUNT_LABEL)
     if key == PRIMARY_ACCOUNT_KEY:
         return key, str(record.get("account_label") or PRIMARY_ACCOUNT_LABEL)
     return key, str(record.get("account_label") or key)
+
+
+def _expected_accounts(state: dict[str, Any]) -> list[tuple[str, str, int]]:
+    registry = state.get("auto_participation_account_registry")
+    rows: list[tuple[str, str, int]] = []
+    if isinstance(registry, dict):
+        for raw_key, raw in registry.items():
+            if not isinstance(raw, dict) or not bool(raw.get("enabled", True)):
+                continue
+            if str(raw.get("account_owner") or "") != OWNER_SCOPE:
+                continue
+            key = str(raw.get("account_key") or raw_key).strip()
+            if not key:
+                continue
+            label = str(raw.get("account_label") or key).strip() or key
+            try:
+                order = int(raw.get("account_order", 100) or 100)
+            except (TypeError, ValueError):
+                order = 100
+            rows.append((key, label, order))
+    if not rows:
+        rows = [
+            (PRIMARY_ACCOUNT_KEY, PRIMARY_ACCOUNT_LABEL, 10),
+            (SECONDARY_ACCOUNT_KEY, SECONDARY_ACCOUNT_LABEL, 20),
+        ]
+    return sorted(rows, key=lambda row: (row[2], row[0]))
+
+
+def _account_order(record: dict[str, Any], account_key: str) -> int:
+    try:
+        return int(record.get("account_order", 10 if account_key == PRIMARY_ACCOUNT_KEY else 20) or 100)
+    except (TypeError, ValueError):
+        return 100
 
 
 def _parse_datetime(value: Any) -> datetime | None:
@@ -146,6 +204,27 @@ def _failure_reason(record: dict[str, Any]) -> str:
     return detail[:120] or "участие не подтверждено"
 
 
+def _prefer_outcome(
+    existing: tuple[str, dict[str, Any], bool] | None,
+    incoming: tuple[str, dict[str, Any], bool],
+) -> tuple[str, dict[str, Any], bool]:
+    if existing is None:
+        return incoming
+    if existing[2] != incoming[2]:
+        return incoming if incoming[2] else existing
+    existing_at = max(
+        (_parse_datetime(existing[1].get(field)) for field in ("bot_success_pending_at", "bot_failure_pending_at", "attempted_at", "recorded_at")),
+        default=None,
+        key=lambda value: value or datetime.min.replace(tzinfo=UTC),
+    )
+    incoming_at = max(
+        (_parse_datetime(incoming[1].get(field)) for field in ("bot_success_pending_at", "bot_failure_pending_at", "attempted_at", "recorded_at")),
+        default=None,
+        key=lambda value: value or datetime.min.replace(tzinfo=UTC),
+    )
+    return incoming if (incoming_at or datetime.min.replace(tzinfo=UTC)) >= (existing_at or datetime.min.replace(tzinfo=UTC)) else existing
+
+
 def _settled_event_groups(
     state: dict[str, Any],
     *,
@@ -154,6 +233,9 @@ def _settled_event_groups(
     events = state.get("auto_participation_events")
     if not isinstance(events, dict):
         return {}
+    expected_accounts = _expected_accounts(state)
+    expected_keys = {key for key, _label, _order in expected_accounts}
+    registry_labels = {key: (label, order) for key, label, order in expected_accounts}
     approved_failures = {
         token: record
         for token, record in auto_participation_owner_sync.pending_failure_events(
@@ -166,23 +248,26 @@ def _settled_event_groups(
             continue
         token = str(raw_token)
         account_key, _label = _account_identity(raw_record)
-        if account_key not in {PRIMARY_ACCOUNT_KEY, SECONDARY_ACCOUNT_KEY}:
+        if account_key not in expected_keys:
             continue
+        label, order = registry_labels[account_key]
+        raw_record = dict(raw_record)
+        raw_record.setdefault("account_label", label)
+        raw_record.setdefault("account_owner", OWNER_SCOPE)
+        raw_record.setdefault("account_order", order)
         is_success = _success(raw_record)
         if not is_success and token not in approved_failures:
             continue
-        base_token = _base_event_token(token, raw_record)
+        base_token = _canonical_event_token(state, token, raw_record)
         if not base_token:
             continue
-        groups.setdefault(base_token, {})[account_key] = (
-            token,
-            raw_record,
-            is_success,
-        )
+        incoming = (token, raw_record, is_success)
+        current = groups.setdefault(base_token, {}).get(account_key)
+        groups[base_token][account_key] = _prefer_outcome(current, incoming)
     return {
         token: accounts
         for token, accounts in groups.items()
-        if {PRIMARY_ACCOUNT_KEY, SECONDARY_ACCOUNT_KEY}.issubset(accounts)
+        if expected_keys.issubset(accounts)
     }
 
 
@@ -229,37 +314,51 @@ def _navigation() -> dict[str, Any]:
     }
 
 
+def _success_description(record: dict[str, Any]) -> str:
+    detail = str(record.get("detail") or "").casefold()
+    if "post_click_layout" in detail or "об акции" in detail:
+        return "участие подтверждено изменением страницы BetBoom"
+    if str(record.get("status") or "").casefold() in {"already_participating", "already_marked_participating"}:
+        return "участие уже было принято ранее"
+    return "участие подтверждено BetBoom"
+
+
 def _result_message(
     key: str,
     item: dict[str, Any],
     accounts: dict[str, tuple[str, dict[str, Any], bool]],
 ) -> tuple[str, dict[str, Any]]:
     identifier = html.escape(str(item.get("identifier") or key))
-    primary = accounts[PRIMARY_ACCOUNT_KEY]
-    secondary = accounts[SECONDARY_ACCOUNT_KEY]
-    all_success = primary[2] and secondary[2]
-    if all_success:
-        return (
-            "✅ <b>Участие принято</b>\n\n"
-            f"Колесо: <code>{identifier}</code>\n"
-            "Аккаунты: <b>1 и 2</b>",
-            _navigation(),
-        )
-
-    lines = []
-    for account_key in (PRIMARY_ACCOUNT_KEY, SECONDARY_ACCOUNT_KEY):
-        _token, record, success = accounts[account_key]
+    all_success = all(value[2] for value in accounts.values())
+    any_success = any(value[2] for value in accounts.values())
+    lines: list[str] = []
+    ordered = sorted(
+        accounts.items(),
+        key=lambda row: (_account_order(row[1][1], row[0]), row[0]),
+    )
+    for account_key, (_token, record, success) in ordered:
         _key, label = _account_identity(record)
-        escaped_label = html.escape(label)
+        fallback = (
+            PRIMARY_ACCOUNT_LABEL
+            if account_key == PRIMARY_ACCOUNT_KEY
+            else SECONDARY_ACCOUNT_LABEL
+            if account_key == SECONDARY_ACCOUNT_KEY
+            else account_key
+        )
+        escaped_label = html.escape(label or fallback)
         if success:
-            lines.append(f"✅ {escaped_label}")
+            lines.append(
+                f"✅ {escaped_label} — {html.escape(_success_description(record))}"
+            )
         else:
             lines.append(
                 f"❌ {escaped_label} — {html.escape(_failure_reason(record))}"
             )
     title = (
-        "⚠️ <b>Автоучастие выполнено не полностью</b>"
-        if primary[2] or secondary[2]
+        "✅ <b>Участие принято</b>"
+        if all_success
+        else "⚠️ <b>Автоучастие выполнено не полностью</b>"
+        if any_success
         else "⚠️ <b>Участие не принято</b>"
     )
     return (
@@ -544,6 +643,9 @@ def self_test() -> None:
         "auto_participation_events": {
             base: {
                 "wheel_key": "wheel",
+                "account_key": PRIMARY_ACCOUNT_KEY,
+                "account_label": PRIMARY_ACCOUNT_LABEL,
+                "event_token": base,
                 "status": "participated",
                 "bot_success_pending_at": "2026-07-22T12:01:00+00:00",
             },
@@ -565,7 +667,8 @@ def self_test() -> None:
         "wheel", {"identifier": "wheel"}, groups[base]
     )
     assert text.count("Участие принято") == 1
-    assert "Аккаунты: <b>1 и 2</b>" in text
+    assert "✅ Аккаунт 1 — участие подтверждено BetBoom" in text
+    assert "✅ Аккаунт 2 — участие подтверждено BetBoom" in text
     state["auto_participation_events"][
         base + "#account:xflarxx_primary"
     ] = {
@@ -646,7 +749,56 @@ def self_test() -> None:
     assert active_matches is False
     assert recovered_item and recovered_item["action_id"] == 42
     assert wheel_publications_v2.entry_is_referral_restricted(recovered_item)
-    print("unified auto participation notifications self-test passed")
+    zonertg16_state = {
+        "active_wheels": {
+            "zonertg16": {
+                "wheel_key": "zonertg16",
+                "action_id": 701,
+                "server_start_at": "2026-07-25T08:36:46.419000+00:00",
+            }
+        },
+        "auto_participation_events": {
+            "zonertg16#event:legacy": {
+                "wheel_key": "zonertg16",
+                "account_key": PRIMARY_ACCOUNT_KEY,
+                "account_label": PRIMARY_ACCOUNT_LABEL,
+                "status": "participated",
+                "attempted_at": "2026-07-25T09:05:17+00:00",
+                "bot_success_pending_at": "2026-07-25T09:05:35+00:00",
+            },
+            "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00": {
+                "wheel_key": "zonertg16",
+                "account_key": PRIMARY_ACCOUNT_KEY,
+                "account_label": PRIMARY_ACCOUNT_LABEL,
+                "status": "button_not_found",
+                "attempted_at": "2026-07-25T09:06:21+00:00",
+                "bot_failure_pending_at": "2026-07-25T09:05:36+00:00",
+            },
+            "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00#account:vyacheslav_secondary": {
+                "wheel_key": "zonertg16",
+                "account_key": SECONDARY_ACCOUNT_KEY,
+                "account_label": SECONDARY_ACCOUNT_LABEL,
+                "event_token": "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00",
+                "status": "participated",
+                "detail": "post_click_layout:main:Об акции",
+                "attempted_at": "2026-07-25T09:05:50+00:00",
+                "bot_success_pending_at": "2026-07-25T09:05:50+00:00",
+            },
+        },
+    }
+    grouped = _settled_event_groups(
+        zonertg16_state,
+        now=datetime(2026, 7, 25, 9, 10, tzinfo=UTC),
+    )
+    event = grouped["zonertg16#action:701:2026-07-25T08:36:46.419000+00:00"]
+    assert event[PRIMARY_ACCOUNT_KEY][2] is True
+    assert event[SECONDARY_ACCOUNT_KEY][2] is True
+    text, _markup = _result_message("zonertg16", {"identifier": "zonertg16"}, event)
+    assert "Аккаунт 1 — участие подтверждено BetBoom" in text
+    assert "Аккаунт 2 — участие подтверждено изменением страницы BetBoom" in text
+    assert "кнопка участия не найдена" not in text
+    assert _account_identity({}) == ("", "")
+    print("auto participation notifications self-test passed")
 
 
 if __name__ == "__main__":
