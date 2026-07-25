@@ -47,9 +47,12 @@
   существующий `PersonalWheelVotingMixin` в `personal_wheel_voting.py`;
 - восстановление потерянного `button_contexts` перенесено к тому же владельцу;
 - из `admin_panel_runtime_v41.py` удалены две отдельные callback-ветки;
+- из `bbvg/bot/runtime.py` удалён промежуточный перехват тех же callback;
 - из `notification_button_recovery.py` удалены собственные token-helper и override;
 - удаление исходной карточки уведомления, редактирование сообщения «Активные колёса»,
-  event-scoped личный голос и прежние callback-строки сохранены.
+  event-scoped личный голос и прежние callback-строки сохранены;
+- отдельные self-test подтверждают владельца, общий runtime, compatibility-v41 и
+  прежний fallback-токен уведомления `cba7abb40c5b77`.
 
 ## Оставшийся технический долг
 
