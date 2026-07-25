@@ -9,8 +9,8 @@ anchor = 'interface = interface_path.read_text(encoding="utf-8")\n'
 insertion = '''interface = interface_path.read_text(encoding="utf-8")
 interface = replace_once(
     interface,
-    '                {"text": "✅ Состояние системы", "callback_data": "page:status"},\\n',
-    '                {"text": "✅ Проверить работу системы", "callback_data": "page:status"},\\n',
+    '            [{"text": "✅ Состояние системы", "callback_data": "page:status"}],\\n',
+    '            [{"text": "✅ Проверить работу системы", "callback_data": "page:status"}],\\n',
     label="preserve production control button label",
 )
 '''
