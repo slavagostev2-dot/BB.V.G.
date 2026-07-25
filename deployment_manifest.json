@@ -1,27 +1,27 @@
 {
+  "manifest_schema_version": 1,
   "compatibility_epoch": "durable-event-ledger-v1",
-  "compatibility_error": "component SHA mismatch or missing runtime status",
-  "compatible": false,
+  "event_ledger_schema_version": 2,
+  "legacy_state_schema_version": "compatibility-json-v1",
+  "generated_at": "2026-07-25T19:56:02.090Z",
+  "compatible": true,
+  "compatibility_error": "",
   "components": {
-    "browser_worker": {
-      "sha": "cfa54de77ca65dad3563df86f5e27bb91f75edb9"
+    "monitor": {
+      "sha": "adfe8e5747001582858d9cddb994fe5b83066f36",
+      "run_id": "30172348456",
+      "started_at": "2026-07-25T19:49:32.471675+00:00"
     },
     "control_center": {
-      "run_id": "30171992224",
-      "sha": "6719347e3319d8c341eb30c37eda63990f115a73",
-      "started_at": "2026-07-25T19:39:03.133236+00:00"
+      "sha": "adfe8e5747001582858d9cddb994fe5b83066f36",
+      "run_id": "30172348985",
+      "started_at": "2026-07-25T19:50:10.636987+00:00"
     },
     "dispatcher": {
-      "sha": "cfa54de77ca65dad3563df86f5e27bb91f75edb9"
+      "sha": "adfe8e5747001582858d9cddb994fe5b83066f36"
     },
-    "monitor": {
-      "run_id": "30172066596",
-      "sha": "cfa54de77ca65dad3563df86f5e27bb91f75edb9",
-      "started_at": "2026-07-25T19:40:44.172802+00:00"
+    "browser_worker": {
+      "sha": "adfe8e5747001582858d9cddb994fe5b83066f36"
     }
-  },
-  "event_ledger_schema_version": 2,
-  "generated_at": "2026-07-25T19:46:39.568962+00:00",
-  "legacy_state_schema_version": "compatibility-json-v1",
-  "manifest_schema_version": 1
+  }
 }
