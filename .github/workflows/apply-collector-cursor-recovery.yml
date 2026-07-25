@@ -41,6 +41,11 @@ jobs:
       - name: Apply fix
         run: python scripts/apply_collector_cursor_recovery.py
 
+      - name: Remove temporary patch tooling from validation worktree
+        run: |
+          rm -f scripts/apply_collector_cursor_recovery.py
+          rm -f .github/workflows/apply-collector-cursor-recovery.yml
+
       - name: Compile changed files
         run: python -m py_compile telegram_post_links_v2.py tests/test_current_contracts.py
 
@@ -54,22 +59,7 @@ jobs:
         run: python tests/production_acceptance.py --section unified
 
       - name: Run full repository tests
-        id: full_tests
-        shell: bash
-        run: |
-          set +e
-          python -m pytest -q 2>&1 | tee /tmp/collector-cursor-full-pytest.txt
-          code=${PIPESTATUS[0]}
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          exit "$code"
-
-      - name: Upload full pytest diagnostic
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: collector-cursor-full-pytest
-          path: /tmp/collector-cursor-full-pytest.txt
-          if-no-files-found: warn
+        run: python -m pytest -q
 
       - name: Commit verified production diff
         run: |
