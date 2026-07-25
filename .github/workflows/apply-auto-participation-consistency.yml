@@ -43,13 +43,16 @@ jobs:
       - name: Align patch with current contracts
         run: python scripts/adjust_auto_participation_consistency_patch.py
 
-      - name: Apply consistency patch
+      - name: Apply complete consistency contract
         id: patch
         continue-on-error: true
         shell: bash
         run: |
           set +e
-          python scripts/apply_auto_participation_consistency.py 2>&1 | tee /tmp/auto-participation-consistency.log
+          {
+            python scripts/apply_auto_participation_consistency.py
+            python scripts/extend_auto_participation_consistency.py
+          } 2>&1 | tee /tmp/auto-participation-consistency.log
           code=${PIPESTATUS[0]}
           set -e
           exit "$code"
@@ -61,7 +64,7 @@ jobs:
           cp /tmp/auto-participation-consistency.log /tmp/diagnostic.txt
           git reset --hard HEAD
           mkdir -p engineering
-          tail -n 200 /tmp/diagnostic.txt > engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
+          tail -n 260 /tmp/diagnostic.txt > engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
@@ -71,7 +74,7 @@ jobs:
 
       - name: Remove temporary repair files
         run: |
-          git rm -f --ignore-unmatch scripts/apply_auto_participation_consistency.py scripts/adjust_auto_participation_consistency_patch.py scripts/.auto-participation-consistency-trigger engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
+          git rm -f --ignore-unmatch scripts/apply_auto_participation_consistency.py scripts/adjust_auto_participation_consistency_patch.py scripts/extend_auto_participation_consistency.py scripts/.auto-participation-consistency-trigger engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
 
       - name: Validate focused contracts
         id: focused
@@ -80,11 +83,14 @@ jobs:
         run: |
           set +e
           {
-            python -m py_compile auto_participation_bot_sync.py auto_participation_recovery.py auto_participation_notifications.py
+            python -m py_compile monitor.py betboom_auto_participation.py auto_participation_worker.py auto_participation_bot_sync.py auto_participation_recovery.py auto_participation_owner_sync.py auto_participation_notifications.py betboom_account_participation.py xflarxx_account_participation.py tests/test_auto_participation_consistency.py
             python auto_participation_bot_sync.py --self-test
             python auto_participation_recovery.py --self-test
             python auto_participation_notifications.py
+            python betboom_account_participation.py --self-test
+            python xflarxx_account_participation.py --self-test
             python betboom_participation_browser.py
+            python -m pytest -q tests/test_auto_participation_consistency.py
             python -m pytest -q -k 'auto_participation or participation_browser'
           } 2>&1 | tee /tmp/auto-participation-focused.log
           code=${PIPESTATUS[0]}
@@ -98,13 +104,17 @@ jobs:
           cp /tmp/auto-participation-focused.log /tmp/diagnostic.txt
           git reset --hard HEAD
           mkdir -p engineering
-          tail -n 260 /tmp/diagnostic.txt > engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
+          tail -n 320 /tmp/diagnostic.txt > engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
           git commit -m 'Record auto participation focused validation diagnostic [skip ci]'
           git push origin HEAD:agent/auto-participation-consistency-20260725
           exit 1
+
+      - name: Validate production contracts
+        run: |
+          python -m pytest -q tests/test_production_stability_guardrails.py tests/test_current_contracts.py tests/test_button_matrix.py
 
       - name: Validate full repository
         run: python -m pytest -q
@@ -120,5 +130,5 @@ jobs:
             echo 'No consistency changes were produced' >&2
             exit 1
           fi
-          git commit -m 'Make auto participation outcomes event-consistent'
+          git commit -m 'Make auto participation delivery and outcomes consistent'
           git push origin HEAD:agent/auto-participation-consistency-20260725
