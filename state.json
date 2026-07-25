@@ -152,14 +152,6 @@
       "suppress_until": "2026-07-18T12:16:15.745000+00:00",
       "url": "https://betboom.ru/freestream/nix"
     },
-    "pomidor1": {
-      "alerted_at": "2026-07-22T16:09:34.098373+00:00",
-      "deadline": "2026-07-22T16:26:54.952000+00:00",
-      "identifier": "pomidor1",
-      "lifecycle_rule": "timer",
-      "suppress_until": "2026-07-22T16:26:54.952000+00:00",
-      "url": "https://betboom.ru/freestream/pomidor1"
-    },
     "shik5": {
       "alerted_at": "2026-07-18T16:13:40.649904+00:00",
       "deadline": "2026-07-18T16:41:36.165000+00:00",
@@ -338,30 +330,6 @@
     }
   },
   "active_wheels": {
-    "aunkereref": {
-      "action_id": 1037,
-      "button_token": "59f62d78fc97d7",
-      "deadline": "2026-07-25T15:07:52.172000+00:00",
-      "expires_at": "2026-07-25T17:07:09.451399+00:00",
-      "first_notified_at": "2026-07-25T15:07:09.451399+00:00",
-      "generation_id": "75aa3a7d7ada69b35a1e",
-      "identifier": "aunkereref",
-      "last_checked_at": "2026-07-25T15:07:09.451399+00:00",
-      "last_notification_at": "2026-07-25T15:07:09.451399+00:00",
-      "message_date": "2026-07-25T14:46:36+00:00",
-      "message_id": 7256,
-      "message_text": "HOTU VS ASTRALIS\nИГРА ЗА LAN\nПОЕХАЛИ!!!\ntwitch.tv/aunkere\nколесо для рефов !\nhttps://betboom.ru/freestream/aunkereref\nhttps://telegram.me/aunkeretg\nhttps://telegram.me/aunkeretg/7256\nhttp://twitch.tv/aunkere\nhttps://betboom.ru/freestream/aunkereref",
-      "message_url": "https://telegram.me/aunkeretg/7256",
-      "method": "активность и таймер подтверждены BetBoom",
-      "page_excerpt": "",
-      "participating": false,
-      "referral_restricted": true,
-      "server_start_at": "2026-07-25T14:47:52.172000+00:00",
-      "source": "aunkeretg",
-      "status": "preliminary",
-      "url": "https://betboom.ru/freestream/aunkereref",
-      "verification_status": "confirmed"
-    },
     "zonertg16": {
       "action_id": 701,
       "auto_participation_confirmed_at": "2026-07-25T09:05:17.937720+00:00",
@@ -378,9 +346,9 @@
       "first_notified_at": "2026-07-25T09:04:19.934269+00:00",
       "generation_id": "6b6a163030b5ef75219f",
       "identifier": "zonertg16",
-      "last_checked_at": "2026-07-25T15:06:49.201731+00:00",
+      "last_checked_at": "2026-07-25T15:07:39.413650+00:00",
       "last_notification_at": "2026-07-25T09:04:19.934269+00:00",
-      "last_verification_at": "2026-07-25T15:06:48.794367+00:00",
+      "last_verification_at": "2026-07-25T15:07:39.052864+00:00",
       "lifecycle_changed_at": "2026-07-25T09:10:18.398488+00:00",
       "lifecycle_state": "participating",
       "message_date": "2026-07-25T08:36:49+00:00",
@@ -5465,7 +5433,7 @@
       "wheel_key": "over"
     },
     "59f62d78fc97d7": {
-      "created_at": "2026-07-25T15:07:09.437985+00:00",
+      "created_at": "2026-07-25T15:07:35.762087+00:00",
       "identifier": "aunkereref",
       "message_date": "2026-07-25T14:46:36+00:00",
       "message_id": 7256,
@@ -5475,7 +5443,7 @@
       "page_excerpt": "",
       "post_key": "59f62d78fc97d75271e9f6a9870c66c4bfd23843b6569793d4622d5827f30c2f",
       "source": "aunkeretg",
-      "status": "preliminary",
+      "status": "final_reminder",
       "url": "https://betboom.ru/freestream/aunkereref",
       "wheel_key": "aunkereref"
     },
@@ -5825,16 +5793,16 @@
     "recovered_messages": 0,
     "recovered_sources": {}
   },
-  "last_heartbeat_at": "2026-07-25T09:04:23.232314+00:00",
+  "last_heartbeat_at": "2026-07-25T15:07:58.707821+00:00",
   "last_run_kind": "schedule",
   "last_run_summary": {
-    "activation_sent": 1,
+    "activation_sent": 0,
     "active_wheels": 1,
     "admin_actions": {
       "applied": 0,
       "changed": false,
       "failed": 0,
-      "loaded": 221,
+      "loaded": 228,
       "pending": 0
     },
     "callbacks": {
@@ -5844,7 +5812,7 @@
     },
     "checked_sources": 169,
     "duplicates_suppressed": 0,
-    "inactive_waiting": 0,
+    "inactive_waiting": 6,
     "initialized_now": 0,
     "notification_errors": 0,
     "pending_expired": 0,
@@ -5854,19 +5822,19 @@
     "reachable_sources": 169,
     "reminders": {
       "availability_notifications": 0,
-      "changed": false,
+      "changed": true,
       "draw_alerts": 0,
-      "final_reminders": 0,
+      "final_reminders": 1,
       "known_reminders": 0,
       "pending_total": 0,
       "recovered_duplicates_suppressed": 0,
       "recovered_initial_notifications_failed": 0,
       "recovered_initial_notifications_sent": 0,
       "removed": 0,
-      "tracked": 0,
+      "tracked": 2,
       "unknown_reminders": 0,
-      "verification_checked": 0,
-      "verification_confirmed": 0,
+      "verification_checked": 2,
+      "verification_confirmed": 2,
       "verification_deferred": 0,
       "verification_failed": 0,
       "verification_removed": 0
@@ -5878,8 +5846,8 @@
       "sent": false
     },
     "sources": 169,
-    "stale_skipped": 0,
-    "unconfirmed_waiting": 0,
+    "stale_skipped": 3,
+    "unconfirmed_waiting": 2,
     "unknown_timer_samples_added": 0
   },
   "last_source_inactivity_report_at": "2026-07-20T10:45:51.555304+00:00",
@@ -5945,6 +5913,42 @@
       ],
       "url": "https://betboom.ru/freestream/ADEKVAT02"
     },
+    "aunkereref": {
+      "action_id": 1037,
+      "availability_status": "available",
+      "button_token": "59f62d78fc97d7",
+      "completion_reason": "link_reuse_window_expired",
+      "deadline": "2026-07-25T15:07:52.172000+00:00",
+      "deadline_source": "api",
+      "event_id": "75aa3a7d7ada69b35a1e",
+      "expires_at": "2026-07-25T17:07:39.052864+00:00",
+      "final_reminder_sent_at": "2026-07-25T15:07:35.761969+00:00",
+      "first_notified_at": "2026-07-25T15:07:09.451399+00:00",
+      "generation_id": "75aa3a7d7ada69b35a1e",
+      "identifier": "aunkereref",
+      "known_reminder_sent_at": "2026-07-25T15:07:35.761969+00:00",
+      "last_checked_at": "2026-07-25T15:07:39.413650+00:00",
+      "last_notification_at": "2026-07-25T15:07:35.761969+00:00",
+      "last_verification_at": "2026-07-25T15:07:39.052864+00:00",
+      "lifecycle_changed_at": "2026-07-25T15:07:35.761969+00:00",
+      "lifecycle_state": "scheduled_draw",
+      "message_date": "2026-07-25T14:46:36+00:00",
+      "message_id": 7256,
+      "message_text": "HOTU VS ASTRALIS\nИГРА ЗА LAN\nПОЕХАЛИ!!!\ntwitch.tv/aunkere\nколесо для рефов !\nhttps://betboom.ru/freestream/aunkereref\nhttps://telegram.me/aunkeretg\nhttps://telegram.me/aunkeretg/7256\nhttp://twitch.tv/aunkere\nhttps://betboom.ru/freestream/aunkereref",
+      "message_url": "https://telegram.me/aunkeretg/7256",
+      "method": "состояние определяется пользователями BB V.G.",
+      "needs_manual_time": false,
+      "page_excerpt": "",
+      "page_status": "active",
+      "participating": false,
+      "referral_restricted": true,
+      "removed_at": "2026-07-25T15:07:52.172000+00:00",
+      "server_start_at": "2026-07-25T14:47:52.172000+00:00",
+      "source": "aunkeretg",
+      "status": "unknown",
+      "url": "https://betboom.ru/freestream/aunkereref",
+      "verification_status": "confirmed"
+    },
     "zonertg6": {
       "completion_reason": "deadline_reached",
       "deadline": "2026-07-15T20:48:46+00:00",
@@ -5972,6 +5976,7 @@
     "08b2a815ee3db585c4aae4cec734ae8aa357e37f164386a1d02f1fd5a4c0d6fe": "2026-07-25T02:07:40.615758+00:00",
     "08d55e1dbbeadf8d74fbfad7e9f294690fe342ebd37fa9ab7ce1a53f970936c6": "2026-07-20T02:08:24.918745+00:00",
     "0a7dbcabdcf36f8ecd98d5ee2aa810455b0cd989d24e72dc33981f4d3ab2886f": "2026-07-16T12:48:19.363854+00:00",
+    "0acc81476b316519135a9a757a38bf41c20c051f54dda5fffccd02f9e99e7b5e": "2026-07-25T15:07:58.668075+00:00",
     "0c64230533d620f22973579313718217f90dabac7fbeabe8becf46547c04bab9": "2026-07-12T18:26:16.728188+00:00",
     "0ec1113c05cfa51362288f6e1ed593f96d8bd90425429d66e824181ab267a25e": "2026-07-14T17:16:37.351836+00:00",
     "0ec618745909bcab5eee341588e4a6fc9de1698c07423f58b500099f6063996e": "2026-07-12T18:21:23.777395+00:00",
@@ -5998,6 +6003,7 @@
     "1c53c72123b3c90e6dca78e44121fb85576ac465218c642273f878e8a1fce27a": "2026-07-19T02:36:01.478917+00:00",
     "1c774d0c0c73a105fe4e6e9e59d4bc494c50e72b180f95f520a0681e232ae109": "2026-07-23T02:20:12.736955+00:00",
     "1c9782360c0840960b2e870d19cf28df349dbfdd9351836b7545c0beec9f0d09": "2026-07-14T17:37:10.097744+00:00",
+    "1caad967602e0690872f56fca859600ed7a686f2c11d55c8e0d61e316e097c7d": "2026-07-25T15:07:58.108355+00:00",
     "1e386ffd28b794e439bb5f1287cebe487a0cbb81581ebbda58a83cd1d46565c5": "2026-07-12T15:09:56.683803+00:00",
     "1e5709f7f6cd2025a94184aeb215b0ec51b728194d221fa13227f618900fb2b0": "2026-07-12T16:26:42.241145+00:00",
     "1eaab6cb41f445f58df115e67a9d4981839a4e90f642c878f3bfdeb831c6391f": "2026-07-15T10:51:33.022447+00:00",
@@ -6018,9 +6024,10 @@
     "2dfb1c4bb70cbefb8bb9c5f399144c79b8b4c2aae3159c140fac8dd9a0ab820d": "2026-07-12T18:21:22.495389+00:00",
     "2e6f7ae94c98de3088eebe520f3e71243fd7e1aca29b4c0592d87ba890e0a0e0": "2026-07-18T20:04:25.255419+00:00",
     "2f52fc4a44639bbb464c4ca1062cf5ad5096f8bbee6ff393eb58964b78fed703": "2026-07-12T17:14:34.959937+00:00",
+    "310c6170eac8aece1fba63801168c858fcd540f75409ae53c1e4d1b402d91eff": "2026-07-25T15:07:58.242219+00:00",
     "3168ed81d913642f11bc5512e5b5f0f858dd50f62bf60b52298aad608174dd09": "2026-07-20T01:01:05.680616+00:00",
     "31b6f832ef9a7936f0f42b3d244f67fe056122171dba41c0aa4fe0a6e4dfe7c6": "2026-07-15T14:58:34.803315+00:00",
-    "32d6a7f60b81507736f493adc917a24d66b0aae6b9da35ebc654a7e18bc14050": "2026-07-25T12:56:14.804180+00:00",
+    "32d6a7f60b81507736f493adc917a24d66b0aae6b9da35ebc654a7e18bc14050": "2026-07-25T15:07:57.862634+00:00",
     "3312ac63e796c7ce5c33e3973f02157311be9290f05abee93ea1b9cded405f14": "2026-07-20T03:32:50.211144+00:00",
     "337d5e32a531ec783b47cc1558196264e2cb6f1d253e04b675ab2f7d447d416a": "2026-07-18T18:22:09.018077+00:00",
     "368f3194050806b90009f9066c96ee020906036e08a45d56b4c92053fd206cea": "2026-07-12T19:22:25.149620+00:00",
@@ -6030,6 +6037,8 @@
     "3823baa6f69b979b60cc991c0663b9e4585d754949442c17783dfe19cd65658d": "2026-07-12T18:21:23.149847+00:00",
     "38b02c07dfcd1cb1b57475ce225822321aad84735454f6dfc12a33885eebcedc": "2026-07-14T18:27:13.956104+00:00",
     "38ecb8af297b2a1beb12a20efcc39489c982c632a4579e58b2bc87eb243362af": "2026-07-12T15:09:56.683820+00:00",
+    "39e1bb178c7ef5cc2febf6f69111d546d5d5efa4f5e0dd53b555afae6cd370c3": "2026-07-25T15:07:58.114498+00:00",
+    "3b28bc137745161976a703a7569f389820127bd39ef8948e32c58236e3891a60": "2026-07-25T15:07:58.114780+00:00",
     "3b6de4abe27bdd72a5f2e85fe73a3792492a28b3f69d91f2a411daa2ec39cb4c": "2026-07-12T15:09:47.544174+00:00",
     "3c239f1f5c095a8f13ccd8c4074cc6df61c61dbee386fa7b2f13d5d89fab7c07": "2026-07-14T14:00:49.115753+00:00",
     "3cad524e90793dbda5241798534d633033f30922f4a2953932afc35b82d69dbf": "2026-07-24T17:18:18.351641+00:00",
@@ -6037,6 +6046,7 @@
     "3d77a7f5fec3bdd2c14a5079048f1bc6e784d170552a866fd6606edc15132fa2": "2026-07-12T19:22:25.149620+00:00",
     "3ddbc93b73f7446d4a83187cbc999ca64961140faead7aad7a4b87329d59fc6f": "2026-07-14T12:59:56.774245+00:00",
     "3ddf196434ddc572d730100543a4202ad8cf7646260648c686852cd05c1a8abe": "2026-07-21T21:45:48.747433+00:00",
+    "3e1636e0d7896fc592a71fa8a942c1432fe958cfb54e8e382e367991bbb1ef20": "2026-07-25T15:07:58.544686+00:00",
     "3e94d0cd18a31a54b9acfdc99a0abef36cd2da7bd5a50fee6a3300a05b5f9efc": "2026-07-19T19:56:58.296897+00:00",
     "3f89b7e39c138832cec162a5fb86437856cb4533ac5b2bb2b52519c78b10bdbd": "2026-07-21T21:45:48.747792+00:00",
     "3fa237ebea84c75d45600bc50568920eea0f8d83553d4b06435f973ebd4e12d7": "2026-07-14T18:32:15.194369+00:00",
@@ -6067,6 +6077,7 @@
     "58ff2284b470bfbd26d63736eae2468711b2e32a309d0813028bea35429e61fd": "2026-07-12T15:09:46.050564+00:00",
     "59aaa540753bbb3fe02d95666dec82a7afed6deb428ce2436edbdf9214d1b876": "2026-07-19T22:53:48.220683+00:00",
     "59d72f2bad9172ca625aa0aede3657f0ad78ecbd64805af895dfed496dc0f27c": "2026-07-22T03:45:11.276602+00:00",
+    "59f62d78fc97d75271e9f6a9870c66c4bfd23843b6569793d4622d5827f30c2f": "2026-07-25T15:07:57.862800+00:00",
     "5a930cbc1fd16bcc81faa260d9d81a320c21d070a39b2caa59d14ed6c0b51db5": "2026-07-22T07:38:19.409318+00:00",
     "5c5d65f7f2e3ccbf3465e60a317065184b88a3e05951f80f17f1cd9d4a8967ef": "2026-07-19T01:41:51.394747+00:00",
     "5c80578ec9986363b8d1532cc5a27ee787c9f097aa59c3e5f283b297e0645d50": "2026-07-23T15:55:17.266644+00:00",
@@ -6088,6 +6099,7 @@
     "69f6f8d315c4174090cf751194d079fee5fd29b38b2bf932973d55f520cec4e1": "2026-07-21T21:45:48.747415+00:00",
     "6abfa80482c56225c61566a9750a923a1fd2728f07351eaf051bab00ce696671": "2026-07-12T19:22:25.149620+00:00",
     "6b00b172b98917b6fceefd189212aa8f3b2f80c8242450a536ef2600cd21a22b": "2026-07-20T00:00:08.674091+00:00",
+    "6f41ef8115a04c25a0ff4c0e080adc199a3e13036049f15906b586980436c847": "2026-07-25T15:07:58.413889+00:00",
     "7022b42822c37fd28f307f0b76ad4081c374b693a84bc0329342dd4ecc6a4c2e": "2026-07-14T15:21:24.287181+00:00",
     "70f3feed30450f481009a73cd5d3dca7023bff82a862280e7e45f845a808c86e": "2026-07-20T02:50:34.910019+00:00",
     "726bafad19f028b67b1de1b5942224667a72a146cf02ec3e52feaf575a349136": "2026-07-15T20:11:15.454842+00:00",
@@ -6103,6 +6115,7 @@
     "792c44b4d7ea1dddc563326556acee815ba645502d7b39e68ec97a0f6cd63c33": "2026-07-21T21:45:48.747399+00:00",
     "79fecd77f1ec0e6d8082765413edba53fa79be8b5920cf720dbf0e38c588a630": "2026-07-12T18:26:19.628034+00:00",
     "7a2d4eb58b48e0f1e620dab809f03843b2c7162695831c03a4a79e684176961b": "2026-07-12T18:26:20.897392+00:00",
+    "7a97766b271c84902552f65aad8b0c1f9fe0df66a80776191215a8dabd802875": "2026-07-25T15:07:58.242100+00:00",
     "7b1e4eeacb8c3b8a18ce17ddd255e6bb63ea2db9eb9770e74622d330bd442c66": "2026-07-12T15:09:58.068418+00:00",
     "7bab602703db41b8bd21bb622afe0c672292b34510de7770abcf2f5d68fd3846": "2026-07-23T02:20:12.746661+00:00",
     "7c0db4a6feeda434bed555b014e9a856a4100e6789887aea7ff339197f46dbd4": "2026-07-12T15:10:04.958832+00:00",
@@ -6205,6 +6218,7 @@
     "c76c303dc93e53d2ceaf12fac239b6cde7f01ac0c8f0e53dd0f179bce9d91bd7": "2026-07-15T11:18:42.831982+00:00",
     "c7ee61acadd04ca36b7f191cf5a4a45a89a1459c90cbe9a54b4269dc94df3032": "2026-07-19T22:25:40.314801+00:00",
     "c8919e6c420b80e4f50ce862eb439f1c2f48de563714d922c9a8fe8184dde027": "2026-07-23T20:23:32.529465+00:00",
+    "c9127c22fde023d2ce2d44bc4ec94a1106cd9fec62fcb36f6e9c249fd989f9ef": "2026-07-25T15:07:58.114481+00:00",
     "c9b4f7810d1d223e3a8568450036fc7cc31393788a25c6b90bf3ef72800606b7": "2026-07-17T20:34:27.007041+00:00",
     "c9c5731a0a08b9f2b16b735af6142caefbeb1ee7c4576006c2ca03b6fd101bc8": "2026-07-20T00:04:06.903124+00:00",
     "c9d16102e38a22c6d900fb4b12a9679f9e78ae18d472102e53014c61dca4d16a": "2026-07-22T03:45:11.286726+00:00",
@@ -6518,14 +6532,6 @@
       "suppress_until": "2026-07-13T18:26:19.234896+00:00",
       "url": "https://betboom.ru/freestream/pandafx5"
     },
-    "pomidor1": {
-      "alerted_at": "2026-07-22T16:09:34.098406+00:00",
-      "deadline": "2026-07-22T16:26:54.952000+00:00",
-      "identifier": "pomidor1",
-      "lifecycle_rule": "timer",
-      "suppress_until": "2026-07-22T16:26:54.952000+00:00",
-      "url": "https://betboom.ru/freestream/pomidor1"
-    },
     "shik3": {
       "alerted_at": "2026-07-12T18:26:19.628051+00:00",
       "deadline": "2026-07-09T20:17:31+00:00",
@@ -6836,7 +6842,7 @@
     "aunkereref": {
       "action_id": 1037,
       "generation_id": "75aa3a7d7ada69b35a1e",
-      "seen_at": "2026-07-25T15:07:09.451520+00:00",
+      "seen_at": "2026-07-25T15:07:39.052864+00:00",
       "server_start_at": "2026-07-25T14:47:52.172000+00:00",
       "state": "active"
     },
@@ -7302,7 +7308,7 @@
     "zonertg16": {
       "action_id": 701,
       "generation_id": "6b6a163030b5ef75219f",
-      "seen_at": "2026-07-25T15:06:48.794367+00:00",
+      "seen_at": "2026-07-25T15:07:39.052864+00:00",
       "server_start_at": "2026-07-25T08:36:46.419000+00:00",
       "state": "active"
     },
@@ -7358,9 +7364,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-25T15:07:09.437633+00:00",
+    "last_checked_at": "2026-07-25T15:07:58.667783+00:00",
     "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-25T15:07:09.437633+00:00",
+    "last_success_at": "2026-07-25T15:07:58.667783+00:00",
     "status": "ok"
   },
   "wheel_generation_observations": {
@@ -7402,6 +7408,18 @@
         "inactive": 54
       },
       "wheel_key": "little"
+    },
+    "0280614512efc0a187b742cb": {
+      "action_id": 1048,
+      "first_seen_at": "2026-07-25T15:07:58.544495+00:00",
+      "generation_id": "0280614512efc0a187b7",
+      "last_seen_at": "2026-07-25T15:07:58.544495+00:00",
+      "observations": 1,
+      "server_start_at": "2026-07-25T13:46:14.845000+00:00",
+      "statuses": {
+        "inactive": 1
+      },
+      "wheel_key": "ctom22"
     },
     "02d8b65d21f2849c3d5974b5": {
       "action_id": 983,
@@ -7684,6 +7702,18 @@
         "inactive": 4
       },
       "wheel_key": "helin"
+    },
+    "31ce9873d998c01881539753": {
+      "action_id": 1038,
+      "first_seen_at": "2026-07-25T15:07:58.413727+00:00",
+      "generation_id": "31ce9873d998c0188153",
+      "last_seen_at": "2026-07-25T15:07:58.413727+00:00",
+      "observations": 1,
+      "server_start_at": "2026-07-25T13:37:51.890000+00:00",
+      "statuses": {
+        "inactive": 1
+      },
+      "wheel_key": "pomidor1"
     },
     "3385cc03ed657edff57e04bc": {
       "action_id": 697,
@@ -8012,11 +8042,11 @@
       "action_id": 701,
       "first_seen_at": "2026-07-25T09:04:19.934448+00:00",
       "generation_id": "6b6a163030b5ef75219f",
-      "last_seen_at": "2026-07-25T15:06:48.794367+00:00",
-      "observations": 123,
+      "last_seen_at": "2026-07-25T15:07:39.052864+00:00",
+      "observations": 125,
       "server_start_at": "2026-07-25T08:36:46.419000+00:00",
       "statuses": {
-        "active": 123
+        "active": 125
       },
       "wheel_key": "zonertg16"
     },
@@ -8118,11 +8148,11 @@
       "action_id": 1037,
       "first_seen_at": "2026-07-25T15:07:09.451520+00:00",
       "generation_id": "75aa3a7d7ada69b35a1e",
-      "last_seen_at": "2026-07-25T15:07:09.451520+00:00",
-      "observations": 1,
+      "last_seen_at": "2026-07-25T15:07:39.052864+00:00",
+      "observations": 3,
       "server_start_at": "2026-07-25T14:47:52.172000+00:00",
       "statuses": {
-        "active": 1
+        "active": 3
       },
       "wheel_key": "aunkereref"
     },
@@ -8658,13 +8688,13 @@
       "action_id": 1033,
       "first_seen_at": "2026-07-25T11:58:57.033756+00:00",
       "generation_id": "c46da02f01d2d9005f2e",
-      "last_seen_at": "2026-07-25T13:00:24.160460+00:00",
-      "observations": 9,
+      "last_seen_at": "2026-07-25T15:07:58.108199+00:00",
+      "observations": 10,
       "server_start_at": "2026-07-25T11:56:57.936000+00:00",
       "statuses": {
         "active": 1,
         "closed": 2,
-        "inactive": 6
+        "inactive": 7
       },
       "wheel_key": "dayneez"
     },
@@ -8738,12 +8768,13 @@
       "action_id": 1036,
       "first_seen_at": "2026-07-25T12:49:56.793654+00:00",
       "generation_id": "d140734512cbf467da18",
-      "last_seen_at": "2026-07-25T15:06:48.794367+00:00",
-      "observations": 12,
+      "last_seen_at": "2026-07-25T15:07:57.862404+00:00",
+      "observations": 13,
       "server_start_at": "2026-07-25T12:44:28.789000+00:00",
       "statuses": {
         "active": 11,
-        "closed": 1
+        "closed": 1,
+        "inactive": 1
       },
       "wheel_key": "aunkere"
     },
@@ -8812,6 +8843,18 @@
         "inactive": 69
       },
       "wheel_key": "dayneez"
+    },
+    "da1e26d1ae688330819c2cbd": {
+      "action_id": 1043,
+      "first_seen_at": "2026-07-25T15:07:58.667832+00:00",
+      "generation_id": "da1e26d1ae688330819c",
+      "last_seen_at": "2026-07-25T15:07:58.667832+00:00",
+      "observations": 1,
+      "server_start_at": "2026-07-25T14:47:56.989000+00:00",
+      "statuses": {
+        "inactive": 1
+      },
+      "wheel_key": "pomidor2"
     },
     "da71fc0c38393dd4a2631fd1": {
       "action_id": 901,
@@ -8973,11 +9016,11 @@
       "action_id": 1034,
       "first_seen_at": "2026-07-25T11:05:33.354070+00:00",
       "generation_id": "f44f2c6676d986d49190",
-      "last_seen_at": "2026-07-25T13:00:24.407306+00:00",
-      "observations": 46,
+      "last_seen_at": "2026-07-25T15:07:58.241858+00:00",
+      "observations": 47,
       "server_start_at": "2026-07-25T10:24:08.490000+00:00",
       "statuses": {
-        "inactive": 46
+        "inactive": 47
       },
       "wheel_key": "chopper3"
     },
@@ -9232,24 +9275,6 @@
     }
   },
   "wheel_publications": {
-    "aunkereref": [
-      {
-        "has_future_availability": false,
-        "has_future_deadline": false,
-        "message_date": "2026-07-25T14:46:36+00:00",
-        "message_id": 7256,
-        "message_url": "https://telegram.me/aunkeretg/7256",
-        "source": "aunkeretg"
-      },
-      {
-        "has_future_availability": false,
-        "has_future_deadline": false,
-        "message_date": "2026-07-25T14:47:43+00:00",
-        "message_id": 4833,
-        "message_url": "https://telegram.me/aunkereEZ/4833",
-        "source": "aunkereEZ"
-      }
-    ],
     "bolt": [
       {
         "has_future_availability": false,
