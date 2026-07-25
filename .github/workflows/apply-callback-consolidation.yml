@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - agent/control-center-callback-consolidation-20260725
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: ${{ github.actor != 'github-actions[bot]' }}
+    if: ${{ github.actor != 'github-actions[bot]' && github.head_ref == 'agent/control-center-callback-consolidation-20260725' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
