@@ -22,6 +22,19 @@ STABILIZED_NOTIFICATION_KINDS = {
     "monitor_source_count",
     "rating_score_mismatch",
 }
+VOLATILE_NOTIFICATION_PREFIXES = (
+    "admin_panel_",
+    "monitor_",
+    "telegram_",
+)
+VOLATILE_NOTIFICATION_KINDS = {
+    "all_sources_unreachable",
+    "partial_source_failure",
+    "bot_api",
+}
+RECOVERY_STABILIZATION_MINUTES = max(
+    1, int(os.getenv("INCIDENT_RECOVERY_STABILIZATION_MINUTES", "10"))
+)
 
 
 def now_utc() -> datetime:
@@ -97,7 +110,16 @@ def normalize_finding(value: dict[str, Any]) -> dict[str, Any]:
 
 
 def requires_notification_stabilization(kind: object) -> bool:
-    return str(kind or "").strip() in STABILIZED_NOTIFICATION_KINDS
+    value = str(kind or "").strip()
+    return (
+        value in STABILIZED_NOTIFICATION_KINDS
+        or value in VOLATILE_NOTIFICATION_KINDS
+        or value.startswith(VOLATILE_NOTIFICATION_PREFIXES)
+    )
+
+
+def requires_recovery_stabilization(kind: object) -> bool:
+    return requires_notification_stabilization(kind)
 
 
 def reconcile(findings: Iterable[dict[str, Any]], *, scope: str) -> dict[str, Any]:
@@ -121,6 +143,8 @@ def reconcile(findings: Iterable[dict[str, Any]], *, scope: str) -> dict[str, An
         entry.setdefault("first_seen_at", current_time)
         entry["last_seen_at"] = current_time
         entry["occurrences"] = int(entry.get("occurrences", 0) or 0) + 1
+        entry.pop("recovery_candidate_since", None)
+        entry.pop("recovery_confirmation_pending", None)
         entry.pop("resolved_at", None)
         entry.pop("resolution_notification_pending", None)
         if not was_active:
@@ -182,6 +206,19 @@ def reconcile(findings: Iterable[dict[str, Any]], *, scope: str) -> dict[str, An
             continue
         if entry.get("scope") != scope or entry.get("status") != "active" or key in current_keys:
             continue
+        if requires_recovery_stabilization(entry.get("kind")):
+            candidate = parse_datetime(entry.get("recovery_candidate_since"))
+            if candidate is None:
+                entry["recovery_candidate_since"] = current_time
+                entry["recovery_confirmation_pending"] = True
+                changed = True
+                incidents[key] = entry
+                continue
+            if current - candidate < timedelta(minutes=RECOVERY_STABILIZATION_MINUTES):
+                incidents[key] = entry
+                continue
+        entry.pop("recovery_candidate_since", None)
+        entry.pop("recovery_confirmation_pending", None)
         entry["status"] = "resolved"
         entry["resolved_at"] = current_time
         entry["last_seen_at"] = current_time
@@ -308,7 +345,11 @@ def self_test() -> None:
     assert finding["key"].startswith("test:dns:")
     assert "единая сводка" in format_digest_message([finding], []).casefold()
     assert requires_notification_stabilization("monitor_source_count")
-    assert not requires_notification_stabilization("bot_api")
+    assert requires_notification_stabilization("bot_api")
+    assert requires_notification_stabilization("admin_panel_stale")
+    assert requires_notification_stabilization("telegram_timeout")
+    assert requires_recovery_stabilization("partial_source_failure")
+    assert not requires_notification_stabilization("static_configuration_error")
     print("incident_manager self-test passed")
 
 
