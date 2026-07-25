@@ -50,6 +50,9 @@ jobs:
       - name: Apply atomic dispatch patch
         run: python scripts/apply_atomic_auto_participation_dispatch.py
 
+      - name: Update regression expectations
+        run: python scripts/update_atomic_dispatch_regression_expectations.py
+
       - name: Remove temporary files before validation
         run: |
           git rm -f --ignore-unmatch \
@@ -59,6 +62,7 @@ jobs:
             scripts/fix_prepare_atomic_dispatch_quotes.py \
             scripts/fix_atomic_notification_quote_generation.py \
             scripts/fix_atomic_dispatch_payload_self_test.py \
+            scripts/update_atomic_dispatch_regression_expectations.py \
             scripts/auto_participation_dispatch_atomic_payload.txt \
             .github/workflows/apply-atomic-auto-participation-dispatch.yml \
             scripts/.atomic-dispatch-pr-trigger \
@@ -67,7 +71,7 @@ jobs:
             engineering/ATOMIC_DISPATCH_VALIDATION.txt
 
       - name: Compile changed modules
-        run: python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py
+        run: python -m py_compile monitor.py wheel_event_runtime.py auto_participation_dispatch.py tests/test_current_contracts.py tests/test_auto_participation_consistency.py tests/test_recurring_event_hotfix.py
 
       - name: Validate atomic dispatcher
         run: python auto_participation_dispatch.py --self-test
@@ -79,27 +83,10 @@ jobs:
         run: python personal_reminder_filter.py
 
       - name: Run focused pytest contracts
-        run: python -m pytest -q tests/test_current_contracts.py tests/test_production_stability_guardrails.py tests/test_telegram_start_state_safety.py
+        run: python -m pytest -q tests/test_auto_participation_consistency.py tests/test_recurring_event_hotfix.py tests/test_current_contracts.py tests/test_production_stability_guardrails.py tests/test_telegram_start_state_safety.py
 
-      - name: Run full repository tests and publish exact error
-        shell: bash
-        run: |
-          set +e
-          python -m pytest -q 2>&1 | tee /tmp/atomic-dispatch-full-pytest.log
-          code=${PIPESTATUS[0]}
-          set -e
-          if [[ "$code" -ne 0 ]]; then
-            cp /tmp/atomic-dispatch-full-pytest.log /tmp/atomic-dispatch-full-pytest-copy.log
-            git reset --hard HEAD
-            mkdir -p engineering
-            tail -n 320 /tmp/atomic-dispatch-full-pytest-copy.log > engineering/ATOMIC_DISPATCH_VALIDATION.txt
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add engineering/ATOMIC_DISPATCH_VALIDATION.txt
-            git commit -m 'Record atomic dispatch full pytest diagnostic [skip ci]'
-            git push origin HEAD:fix/atomic-auto-participation-dispatch-20260725
-            exit "$code"
-          fi
+      - name: Run full repository tests
+        run: python -m pytest -q
 
       - name: Commit clean verified change
         run: |
