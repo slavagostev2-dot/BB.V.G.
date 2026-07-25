@@ -52,7 +52,28 @@ jobs:
         run: python -m bbvg.bot.runtime --self-test
 
       - name: Validate v41 inherited callback behavior
-        run: python admin_panel_runtime_v41.py --self-test
+        id: v41
+        shell: bash
+        run: |
+          set +e
+          python admin_panel_runtime_v41.py --self-test > /tmp/bbvg-v41-callback.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/bbvg-v41-callback.log
+          if [[ $code -ne 0 ]]; then
+            cp /tmp/bbvg-v41-callback.log engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt
+          fi
+          exit $code
+
+      - name: Preserve exact v41 failure for repair
+        if: ${{ failure() && steps.v41.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add engineering/CALLBACK_CONSOLIDATION_DIAGNOSTIC.txt
+          git commit -m 'Record callback consolidation diagnostic [skip ci]'
+          git push origin HEAD:agent/control-center-callback-consolidation-20260725
 
       - name: Validate production entrypoint callback recovery
         run: python notification_button_recovery.py --self-test
