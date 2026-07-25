@@ -233,6 +233,7 @@ def run_second_account(
             "attempted_at": current.isoformat(),
             "retry_allowed": False,
             "multi_account_version": 1,
+            "artifact_url": result.artifact_url,
         }
 
         if result.success:

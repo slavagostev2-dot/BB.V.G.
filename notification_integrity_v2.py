@@ -169,21 +169,43 @@ def _file_lock(path: Path) -> Iterator[None]:
     lock_path = path.with_suffix(path.suffix + ".lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("a+", encoding="utf-8") as stream:
+        locked_with = ""
         try:
             import fcntl  # type: ignore[import-not-found]
 
             fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+            locked_with = "fcntl"
         except (ImportError, OSError):
-            pass
+            try:
+                import msvcrt  # type: ignore[import-not-found]
+
+                stream.seek(0, os.SEEK_END)
+                if stream.tell() == 0:
+                    stream.write("\0")
+                    stream.flush()
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+                locked_with = "msvcrt"
+            except (ImportError, OSError):
+                pass
         try:
             yield
         finally:
-            try:
-                import fcntl  # type: ignore[import-not-found]
+            if locked_with == "fcntl":
+                try:
+                    import fcntl  # type: ignore[import-not-found]
 
-                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
-            except (ImportError, OSError):
-                pass
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+                except (ImportError, OSError):
+                    pass
+            elif locked_with == "msvcrt":
+                try:
+                    import msvcrt  # type: ignore[import-not-found]
+
+                    stream.seek(0)
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+                except (ImportError, OSError):
+                    pass
 
 
 def save_state(value: dict[str, Any], path: Path | None = None) -> dict[str, Any]:

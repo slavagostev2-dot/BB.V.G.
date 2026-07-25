@@ -6,6 +6,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from bbvg.storage import event_id_from_entry, legacy_event_aliases
+
 
 _SUCCESS_RE = re.compile(
     r"(?:участие\s+(?:принято|подтверждено|зарегистрировано)|"
@@ -39,6 +41,7 @@ class ParticipationResult:
     success: bool
     status: str
     detail: str
+    artifact_url: str = ""
 
 
 def enabled() -> bool:
@@ -271,28 +274,9 @@ def ensure_default_account_registry(state: dict[str, Any]) -> bool:
 
 
 def _event_token(key: str, entry: dict[str, Any]) -> str:
-    """Use the BetBoom action identity before internal generation aliases."""
+    """Return the canonical generation identity shared by every component."""
 
-    normalized = str(key or entry.get("wheel_key") or entry.get("identifier") or "").casefold()
-    try:
-        action_id = int(entry.get("action_id") or 0)
-    except (TypeError, ValueError):
-        action_id = 0
-    server_start = str(entry.get("server_start_at") or "").strip()
-    if action_id > 0:
-        return f"{normalized}#action:{action_id}:{server_start}"
-
-    event_id = str(entry.get("event_id") or entry.get("generation_id") or "").strip()
-    if event_id:
-        return f"{normalized}#event:{event_id}"
-
-    first_seen = str(
-        entry.get("first_notified_at")
-        or entry.get("message_date")
-        or entry.get("created_at")
-        or ""
-    ).strip()
-    return f"{normalized}#seen:{first_seen}"
+    return event_id_from_entry(entry, wheel_key=key)
 
 
 def _record_account_key(token: str, record: dict[str, Any]) -> str:
@@ -363,7 +347,8 @@ def _record_matches_active_event(
     canonical = _event_token(key, entry)
     base = str(token).split("#account:", 1)[0]
     explicit = str(record.get("event_token") or "").split("#account:", 1)[0]
-    if canonical in {base, explicit}:
+    identities = {canonical, *legacy_event_aliases(entry, wheel_key=key)}
+    if identities.intersection({base, explicit}):
         return True
     legacy_id = str(entry.get("event_id") or entry.get("generation_id") or "").strip()
     if legacy_id and f"{key}#event:{legacy_id}" in {base, explicit}:
@@ -697,6 +682,7 @@ def process_new_wheel_events(
             "detail": result.detail[:300],
             "retry_allowed": False,
             "attempt_version": _PARTICIPATION_ATTEMPT_VERSION,
+            "artifact_url": result.artifact_url,
         }
         event_record = merge_event_record(events.get(token), event_record)
         events[token] = event_record

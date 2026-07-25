@@ -6,6 +6,41 @@
 
 ---
 
+## 2026-07-26 — единый durable lifecycle события
+
+Корневая причина пропусков `kolesaBB/250` и `kolesaBB/251` установлена по
+фактическому `main`: Telegram перенаправлял публичный listing в пространство
+сообщений другого канала, после чего курсор `kolesaBB` был ошибочно поднят до
+`71862`. Прямой recovery начинался с `71863` и уже никогда не мог проверить
+реальные сообщения `250` и `251`. Redirect больше не регистрируется как
+глобальный alias, чужие listing-ID не двигают курсор, а отравленный курсор
+восстанавливается от последнего прямо подтверждённого ID.
+
+Добавлен SQLite WAL event store с append-only переходами, канонической
+идентичностью `wheel_key + action_id + server_start_at`, транзакционным outbox,
+отдельными результатами аккаунтов и безопасным notification audit. Событие и
+задание автоучастия фиксируются одной транзакцией до внешнего Telegram send.
+Dispatcher больше не читает и не пишет `state.json` через GitHub и запускается
+сразу для конкретного события; GitHub-синхронизация ledger выполняется
+асинхронно в отдельную ветку `runtime-ledger`.
+
+Подтверждённый успех аккаунта стал монотонным, каждая попытка остаётся в
+истории, а ошибки browser-worker сохраняют screenshot, DOM и metadata.
+Reconciliation выполняется в каждом цикле Monitor и умеет восстановить
+искусственно пропущенную активную генерацию. Heartbeat Monitor и Control Center
+перенесён в `runtime-status`, а `deployment_manifest.json` блокирует
+несовместимые SHA. Добавлен cold-start probe production entrypoint.
+
+Абсолютная exactly-once доставка Telegram при падении строго между успешным
+`sendMessage` и checkpoint технически недостижима средствами Bot API: API не
+предоставляет историю исходящих сообщений. Реализованы durable dedupe, audit и
+retry; для математической exactly-once гарантии потребуется внешний
+идемпотентный Telegram gateway.
+
+**Backup перед изменением:**
+`backup/2026-07-26-before-durable-event-ledger` →
+`4442e20154a20b24f0931719a0e5f04c1a8cb146`.
+
 ## 2026-07-25 — прямой cursor-recovery для Telegram collector-каналов
 
 Устранён класс пропусков, при котором публичная страница `/s/channel` отвечала

@@ -135,13 +135,9 @@ def _record_action_id(record: Any) -> int | None:
 def generation_id(key: str, action_id: int | None, server_start_at: Any) -> str:
     """Stable identity for one authoritative BetBoom server start."""
 
-    start = _parse_datetime(server_start_at)
-    if action_id is None or start is None:
-        return ""
-    raw = "\x1f".join(
-        (str(key or "").casefold(), str(int(action_id)), start.astimezone(UTC).isoformat())
-    )
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:20]
+    from bbvg.storage import canonical_generation_id
+
+    return canonical_generation_id(key, action_id, server_start_at)
 
 
 def _observation_id(

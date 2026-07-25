@@ -229,6 +229,17 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Ensure isolated runtime status branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if ! gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/runtime-status" >/dev/null 2>&1; then
+            sha=$(gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')
+            gh api --method POST "/repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref='refs/heads/runtime-status' -f sha="$sha" >/dev/null
+          fi
+
       - name: Record panel status
         env:
           GH_TOKEN: ${{ github.token }}
@@ -257,6 +268,8 @@ jobs:
               "workflow_run_id": run_id,
               "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "head_sha": head_sha,
+              "compatibility_epoch": "durable-event-ledger-v1",
+              "event_ledger_schema_version": 2,
               "event": os.environ.get("GITHUB_EVENT_NAME", ""),
               "version": 41,
               "heartbeat_version": 1,
@@ -284,7 +297,7 @@ jobs:
           for attempt in 1 2 3; do
             current_sha=$(gh api \
               -H "Accept: application/vnd.github+json" \
-              "/repos/${GITHUB_REPOSITORY}/contents/admin_panel_status.json?ref=main" \
+              "/repos/${GITHUB_REPOSITORY}/contents/admin_panel_status.json?ref=runtime-status" \
               --jq '.sha' 2>/dev/null) || current_sha=""
             if [[ -z "$current_sha" ]]; then
               sleep 1
@@ -298,7 +311,7 @@ jobs:
               -f message='Update BB V.G. control center status [skip ci]' \
               -f content="$encoded" \
               -f sha="$current_sha" \
-              -f branch=main >/dev/null; then
+              -f branch=runtime-status >/dev/null; then
               exit 0
             fi
             sleep 1
@@ -316,6 +329,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_BRANCH: main
+          BBVG_RUNTIME_STATUS_BRANCH: runtime-status
           DISPLAY_TIMEZONE: Asia/Barnaul
           RUN_SECONDS: "16200"
           REQUEST_TIMEOUT_SECONDS: "20"

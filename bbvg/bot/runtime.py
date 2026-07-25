@@ -143,8 +143,21 @@ class TelegramPanelRuntime(
             return
         self._panel_heartbeat_busy = True
         try:
+            status_branch = (
+                os.getenv("BBVG_RUNTIME_STATUS_BRANCH", "runtime-status").strip()
+                or "runtime-status"
+            )
             for attempt in range(1, 4):
-                status = self.get_json_file("admin_panel_status.json", {})
+                try:
+                    status_text, _ = self.get_file(
+                        "admin_panel_status.json",
+                        branch=status_branch,
+                    )
+                    status = json.loads(status_text)
+                    if not isinstance(status, dict):
+                        status = {}
+                except Exception:
+                    status = {}
                 now_text = datetime.now(legacy.UTC).isoformat()
                 status.update(
                     {
@@ -164,6 +177,7 @@ class TelegramPanelRuntime(
                         json.dumps(status, ensure_ascii=False, indent=2, sort_keys=True)
                         + "\n",
                         "Update BB V.G. control center heartbeat [skip ci]",
+                        branch=status_branch,
                     )
                 except RuntimeError as exc:
                     if attempt < 3 and any(code in str(exc) for code in (" 409 ", " 422 ")):

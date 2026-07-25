@@ -64,9 +64,14 @@ jobs:
 
       - name: Check monitor heartbeat freshness
         id: heartbeat
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          gh api \
+            "/repos/${GITHUB_REPOSITORY}/contents/monitor_status.json?ref=runtime-status" \
+            --jq '.content' | base64 -d > monitor_status.json
           max_age_seconds=480
           heartbeat=$(jq -r '.last_process_heartbeat_at // .last_iteration_at // empty' monitor_status.json)
           run_id=$(jq -r '.workflow_run_id // .run_id // empty' monitor_status.json)
@@ -121,9 +126,14 @@ jobs:
 
       - name: Check Control Center heartbeat freshness
         id: panel_heartbeat
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          gh api \
+            "/repos/${GITHUB_REPOSITORY}/contents/admin_panel_status.json?ref=runtime-status" \
+            --jq '.content' | base64 -d > admin_panel_status.json
           max_age_seconds=900
           heartbeat=$(jq -r '.last_heartbeat_at // .started_at // empty' admin_panel_status.json)
           run_id=$(jq -r '.workflow_run_id // .run_id // empty' admin_panel_status.json)
@@ -184,6 +194,47 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+
+      - name: Load verified runtime heartbeats
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in monitor_status.json admin_panel_status.json; do
+            gh api \
+              "/repos/${GITHUB_REPOSITORY}/contents/${file}?ref=runtime-status" \
+              --jq '.content' | base64 -d > "$file"
+          done
+
+      - name: Publish unified deployment manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m bbvg.deployment_manifest --output deployment_manifest.json
+          for attempt in 1 2 3; do
+            current_sha=$(gh api \
+              "/repos/${GITHUB_REPOSITORY}/contents/deployment_manifest.json?ref=runtime-status" \
+              --jq '.sha' 2>/dev/null || true)
+            encoded=$(base64 -w0 deployment_manifest.json)
+            args=(
+              --method PUT
+              "/repos/${GITHUB_REPOSITORY}/contents/deployment_manifest.json"
+              -f message='Update deployment manifest [skip ci]'
+              -f content="$encoded"
+              -f branch=runtime-status
+            )
+            if [[ -n "$current_sha" ]]; then
+              args+=(-f sha="$current_sha")
+            fi
+            if gh api "${args[@]}" >/dev/null; then
+              break
+            fi
+            sleep "$attempt"
+          done
+          python -m bbvg.deployment_manifest --require-compatible
 
       - name: Install dependencies
         run: python -m pip install -r requirements.txt

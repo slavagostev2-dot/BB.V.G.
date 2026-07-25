@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import re
 import threading
 from datetime import datetime
@@ -145,12 +146,22 @@ def _completed_for_all(
         return False
     statuses = []
     for chat_id in visible_targets:
-        key = notification_router.delivery_key(
-            chat_id,
-            kind,
-            event_identity,
-            None if event_identity else url,
-        )
+        try:
+            key = notification_router.delivery_key(
+                chat_id,
+                kind,
+                event_identity,
+                None if event_identity else url,
+            )
+        except Exception:
+            # A missing audit key must never turn sent=0 into success. The
+            # fallback is only an opaque lookup token; production persistent
+            # delivery still requires BOT_STATE_KEY.
+            key = hashlib.sha256(
+                "\x1f".join(
+                    (chat_id, kind, event_identity, str(url or ""))
+                ).encode("utf-8")
+            ).hexdigest()
         statuses.append(str(status_reader(key) or "unknown"))
     return bool(statuses and all(status == "completed" for status in statuses))
 
@@ -198,9 +209,19 @@ def _validate_wheel_delivery(
         statuses: list[str] = []
         if callable(status_reader) and event_identity:
             for chat_id in visible_targets:
-                delivery_key = notification_router.delivery_key(
-                    chat_id, kind, event_identity, None
-                )
+                try:
+                    delivery_key = notification_router.delivery_key(
+                        chat_id,
+                        kind,
+                        event_identity,
+                        None,
+                    )
+                except Exception:
+                    delivery_key = hashlib.sha256(
+                        "\x1f".join(
+                            (chat_id, kind, event_identity, "")
+                        ).encode("utf-8")
+                    ).hexdigest()
                 statuses.append(str(status_reader(delivery_key) or "unknown"))
         detail = "Telegram подтвердил sent=0"
         if statuses:

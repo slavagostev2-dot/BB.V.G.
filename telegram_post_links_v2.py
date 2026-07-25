@@ -7,6 +7,7 @@ import re
 import sys
 from datetime import datetime
 from typing import Any, Callable
+from urllib.parse import urlsplit
 
 from bs4 import BeautifulSoup
 
@@ -61,10 +62,10 @@ def parse_public_channel_html(monitor_module: Any, username: str, page: str):
     result = []
     for source, message_id, segment in _post_segments(page or ""):
         observed_source = source or username
-        monitor_module.telegram_transport.register_source_alias(username, observed_source)
-        canonical_source = monitor_module.telegram_transport.canonical_source(
-            observed_source
-        )
+        # A public username may redirect to another configured channel. Alias
+        # registration is process-global, so registering that redirect would
+        # corrupt both collectors. Preserve the request namespace locally.
+        canonical_source = str(username or observed_source).strip().lstrip("@")
         fragment = BeautifulSoup(segment, "html.parser")
         parts: list[str] = []
 
@@ -158,6 +159,56 @@ def _message_identity(message: Any) -> tuple[str, int]:
     return source, message_id
 
 
+def _message_url_source(message: Any) -> str:
+    try:
+        path = urlsplit(str(getattr(message, "message_url", "") or "")).path
+    except ValueError:
+        return ""
+    parts = [part for part in path.split("/") if part]
+    return parts[0].casefold() if len(parts) >= 2 else ""
+
+
+def _known_direct_message_ids(state: dict[str, Any], source: str) -> set[int]:
+    """Return only IDs evidenced by a URL in the configured source namespace."""
+
+    normalized = str(source or "").strip().lstrip("@").casefold()
+    result: set[int] = set()
+
+    def collect(value: Any) -> None:
+        if isinstance(value, dict):
+            raw_source = str(value.get("source") or "").strip().lstrip("@").casefold()
+            url_source = ""
+            try:
+                path = urlsplit(str(value.get("message_url") or "")).path
+            except ValueError:
+                path = ""
+            parts = [part for part in path.split("/") if part]
+            if len(parts) >= 2:
+                url_source = parts[0].casefold()
+            if raw_source == normalized or url_source == normalized:
+                try:
+                    message_id = int(value.get("message_id") or 0)
+                except (TypeError, ValueError):
+                    message_id = 0
+                if message_id > 0 and (not url_source or url_source == normalized):
+                    result.add(message_id)
+            for nested in value.values():
+                if isinstance(nested, (dict, list)):
+                    collect(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                collect(nested)
+
+    for key in (
+        "wheel_publications",
+        "active_wheels",
+        "pending_posts",
+        "wheel_generation_observations",
+    ):
+        collect(state.get(key))
+    return result
+
+
 def _merge_messages(*pages: list[Any]) -> list[Any]:
     merged: dict[tuple[str, int], Any] = {}
     for page in pages:
@@ -197,9 +248,26 @@ def fetch_direct_public_post(
         allow_redirects=True,
     )
     response.raise_for_status()
-    for message in parse_public_channel_html(monitor_module, source, response.text):
+    parsed = parse_public_channel_html(monitor_module, source, response.text)
+    for message in parsed:
         if _message_identity(message)[1] == int(message_id):
             return message
+    # A Telegram username redirect may rewrite both data-post source and ID.
+    # The immutable URL requested above is authoritative. Embed pages contain
+    # one post; normalize that post back to the configured public namespace so
+    # a redirect can never poison the configured source cursor.
+    if len(parsed) == 1:
+        message = parsed[0]
+        return monitor_module.Message(
+            source=str(source).strip().lstrip("@"),
+            message_id=int(message_id),
+            date=message.date,
+            text=message.text,
+            message_url=monitor_module.telegram_transport.public_message_url(
+                source,
+                message_id,
+            ),
+        )
     return None
 
 
@@ -251,13 +319,36 @@ def recover_collector_message_gaps(
             for message in listed
             if _message_identity(message)[1] > 0
         }
-        page_max = max(listed_ids, default=0)
+        direct_namespace_ids = {
+            _message_identity(message)[1]
+            for message in listed
+            if _message_identity(message)[1] > 0
+            and _message_url_source(message) in {"", normalized}
+        }
+        page_max = max(direct_namespace_ids, default=0)
         record = cursor_rows.get(normalized)
         record = dict(record) if isinstance(record, dict) else {}
         try:
             stored_cursor = int(record.get("last_message_id", 0) or 0)
         except (TypeError, ValueError):
             stored_cursor = 0
+        known_direct_ids = _known_direct_message_ids(state, normalized)
+        known_direct_max = max(known_direct_ids, default=0)
+        redirected_listing = bool(listed_ids and not direct_namespace_ids)
+        if (
+            redirected_listing
+            and known_direct_max > 0
+            and stored_cursor > known_direct_max
+        ):
+            record["namespace_reset_from"] = stored_cursor
+            record["namespace_reset_to"] = known_direct_max
+            record["namespace_reset_at"] = monitor_module.now_utc().isoformat()
+            record["namespace_reset_reason"] = "redirected_listing_id_mismatch"
+            stored_cursor = known_direct_max
+            summary.setdefault("namespace_resets", {})[source] = {
+                "from": record["namespace_reset_from"],
+                "to": known_direct_max,
+            }
 
         probe_ids: list[int] = []
         if stored_cursor > 0 and page_max > stored_cursor:
@@ -289,11 +380,17 @@ def recover_collector_message_gaps(
             if message is not None:
                 recovered.append(message)
 
-        merged = _merge_messages(listed, recovered)
+        authoritative_listed = [
+            message
+            for message in listed
+            if _message_url_source(message) in {"", normalized}
+        ]
+        merged = _merge_messages(authoritative_listed, recovered)
         merged_ids = {
             _message_identity(message)[1]
             for message in merged
             if _message_identity(message)[1] > 0
+            and _message_url_source(message) in {"", normalized}
         }
         if merged:
             results[source] = merged
@@ -334,6 +431,8 @@ def recover_collector_message_gaps(
             record["last_page_message_id"] = page_max
         if page_max and stored_cursor and page_max < stored_cursor:
             record["last_stale_listing_at"] = monitor_module.now_utc().isoformat()
+        if redirected_listing:
+            record["last_redirected_listing_at"] = monitor_module.now_utc().isoformat()
         if recovered:
             record["last_gap_recovered_from"] = min(
                 _message_identity(message)[1] for message in recovered
@@ -344,6 +443,24 @@ def recover_collector_message_gaps(
         if record != before or normalized not in cursor_rows:
             cursor_rows[normalized] = record
             summary["changed"] = True
+        try:
+            store_factory = getattr(monitor_module, "event_store", None)
+            if callable(store_factory):
+                store_factory().update_source_cursor(
+                    normalized,
+                    listing_message_id=page_max,
+                    direct_message_id=highest,
+                    stale_listing=bool(
+                        redirected_listing
+                        or (page_max and stored_cursor and page_max < stored_cursor)
+                    ),
+                    recovered_count=len(recovered),
+                )
+        except Exception as exc:
+            print(
+                "WARNING durable source cursor checkpoint failed: "
+                f"@{source} {type(exc).__name__}: {exc}"
+            )
 
     state["last_collector_cursor_recovery"] = {
         "checked_collectors": summary["checked_collectors"],

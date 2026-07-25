@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 import betboom_auto_participation as auto
 
+UTC = timezone.utc
 
 CLICK_RE = re.compile(
     r"(?:принять\s+участие|участвовать|участвую)",
@@ -331,6 +336,61 @@ def _diagnostic_labels(page: Any) -> str:
     return " | ".join(labels)[:260]
 
 
+def _save_diagnostics(
+    page: Any,
+    url: str,
+    status: str,
+    detail: str,
+) -> str:
+    """Persist a screenshot, DOM and non-secret metadata for each failure."""
+
+    if page is None:
+        return ""
+    root = Path(
+        os.getenv(
+            "BBVG_BROWSER_ARTIFACT_DIR",
+            str(Path(__file__).resolve().parent / "runtime" / "browser_diagnostics"),
+        )
+    )
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+    digest = hashlib.sha256(
+        f"{url}\x1f{status}\x1f{stamp}".encode("utf-8")
+    ).hexdigest()[:12]
+    target = root / f"{stamp}-{digest}"
+    try:
+        target.mkdir(parents=True, exist_ok=False)
+        page.screenshot(path=str(target / "page.png"), full_page=True)
+        (target / "page.html").write_text(
+            str(page.content() or ""),
+            encoding="utf-8",
+        )
+        (target / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "captured_at": datetime.now(UTC).isoformat(),
+                    "url": url,
+                    "final_url": str(getattr(page, "url", "") or ""),
+                    "status": status,
+                    "detail": detail[:1000],
+                    "visible_controls": _diagnostic_labels(page),
+                    "frame_urls": [
+                        str(getattr(frame, "url", "") or "")
+                        for frame in _search_roots(page)
+                        if frame is not page
+                    ],
+                },
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    except Exception:
+        return ""
+    return str(target)
+
+
 def participate(url: str) -> auto.ParticipationResult:
     """Use the stored BetBoom browser session as a resilient participation fallback."""
 
@@ -341,6 +401,7 @@ def participate(url: str) -> auto.ParticipationResult:
     if storage_state is None:
         return auto.ParticipationResult(False, "not_configured", "сессия BetBoom не настроена")
 
+    page: Any = None
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -400,8 +461,19 @@ def participate(url: str) -> auto.ParticipationResult:
                     detail += "; подготовка: " + " | ".join(preparations)
                 if labels:
                     detail += f"; видимые действия: {labels}"
+                artifact = _save_diagnostics(
+                    page,
+                    url,
+                    "button_not_found",
+                    detail,
+                )
                 browser.close()
-                return auto.ParticipationResult(False, "button_not_found", detail[:300])
+                return auto.ParticipationResult(
+                    False,
+                    "button_not_found",
+                    detail[:300],
+                    artifact,
+                )
 
             for _ in range(8):
                 page.wait_for_timeout(500)
@@ -433,17 +505,26 @@ def participate(url: str) -> auto.ParticipationResult:
                     )[:300],
                 )
 
+            detail = (
+                f"participation control clicked ({location}), "
+                "but no exact post-click confirmation was found"
+            )
+            artifact = _save_diagnostics(page, url, "unconfirmed", detail)
             browser.close()
             return auto.ParticipationResult(
                 False,
                 "unconfirmed",
-                f"элемент участия нажат ({location}), но состояние после нажатия не распознано"[:300],
+                detail[:300],
+                artifact,
             )
     except Exception as exc:
+        detail = f"{type(exc).__name__}: {exc}"[:300]
+        artifact = _save_diagnostics(page, url, "browser_error", detail)
         return auto.ParticipationResult(
             False,
             "browser_error",
-            f"{type(exc).__name__}: {exc}"[:300],
+            detail,
+            artifact,
         )
 
 

@@ -8,6 +8,11 @@ on:
         required: false
         type: boolean
         default: false
+      event_payload:
+        description: "Canonical durable event JSON from the monitor outbox"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -133,6 +138,7 @@ jobs:
           BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
           BETBOOM_BROWSER_CHANNEL: chrome
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
+          BBVG_EVENT_PAYLOAD_JSON: ${{ inputs.event_payload }}
         run: python auto_participation_worker.py
 
       - name: Retry current active wheels immediately
@@ -192,6 +198,7 @@ jobs:
                   "success": bool(result.success),
                   "status": str(result.status),
                   "detail": str(result.detail)[:300],
+                  "artifact_url": result.artifact_url,
               })
 
           recovery._restore_runtime_state(state, active, attempts, now)
@@ -239,6 +246,14 @@ jobs:
         run: |
           test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
           python auto_participation_bot_sync.py --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
+
+      - name: Checkpoint fast outcomes in immutable event ledger
+        if: ${{ always() && steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BBVG_EVENT_PAYLOAD_JSON: ${{ inputs.event_payload }}
+        run: python event_ledger_checkpoint.py
 
       - name: Publish fast participation state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
@@ -330,6 +345,23 @@ jobs:
         run: |
           test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
           python auto_participation_bot_sync.py --recovery-result /tmp/bbvg-auto-participation-recovery.json
+
+      - name: Checkpoint final outcomes in immutable event ledger
+        if: ${{ always() && steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BBVG_EVENT_PAYLOAD_JSON: ${{ inputs.event_payload }}
+        run: python event_ledger_checkpoint.py
+
+      - name: Upload browser and event-ledger diagnostics
+        if: ${{ always() && steps.mode.outputs.probe != 'true' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bbvg-event-${{ github.run_id }}-${{ github.run_attempt }}
+          path: runtime/
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Persist participation state without losing concurrent monitor updates
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}

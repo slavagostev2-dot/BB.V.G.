@@ -166,11 +166,17 @@ class AdminBot:
             )
         return response
 
-    def get_file(self, path: str) -> tuple[str, str]:
+    def get_file(
+        self,
+        path: str,
+        *,
+        branch: str | None = None,
+    ) -> tuple[str, str]:
         encoded_path = quote(path, safe="/")
+        target_branch = str(branch or GITHUB_BRANCH)
         response = self.gh_request(
             "GET",
-            f"/repos/{GITHUB_REPOSITORY}/contents/{encoded_path}?ref={quote(GITHUB_BRANCH)}",
+            f"/repos/{GITHUB_REPOSITORY}/contents/{encoded_path}?ref={quote(target_branch)}",
         )
         data = response.json()
         content = base64.b64decode(data.get("content", "")).decode("utf-8")
@@ -185,13 +191,21 @@ class AdminBot:
             return default
         return value if isinstance(value, dict) else default
 
-    def update_file(self, path: str, content: str, message: str) -> None:
-        _, sha = self.get_file(path)
+    def update_file(
+        self,
+        path: str,
+        content: str,
+        message: str,
+        *,
+        branch: str | None = None,
+    ) -> None:
+        target_branch = str(branch or GITHUB_BRANCH)
+        _, sha = self.get_file(path, branch=target_branch)
         body = {
             "message": message,
             "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
             "sha": sha,
-            "branch": GITHUB_BRANCH,
+            "branch": target_branch,
         }
         self.gh_request(
             "PUT",

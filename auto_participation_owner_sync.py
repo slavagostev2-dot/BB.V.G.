@@ -7,6 +7,7 @@ from typing import Any
 
 import notification_integrity_v2
 import personal_wheel_voting
+from bbvg.storage import event_id_from_entry
 
 UTC = timezone.utc
 SYNC_INTERVAL_SECONDS = 20
@@ -31,20 +32,7 @@ def _event_token(
     item: dict[str, Any],
     wheel_key: str = "",
 ) -> str:
-    key = str(
-        wheel_key
-        or item.get("wheel_key")
-        or item.get("identifier")
-        or ""
-    ).casefold()
-    try:
-        action_id = int(item.get("action_id") or 0)
-    except (TypeError, ValueError):
-        action_id = 0
-    start = str(item.get("server_start_at") or "")
-    if action_id > 0:
-        return f"{key}#action:{action_id}:{start}"
-    return f"{key}#seen:{item.get('message_date') or ''}"
+    return event_id_from_entry(item, wheel_key=wheel_key)
 
 
 def pending_events(state: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
@@ -549,14 +537,14 @@ def self_test() -> None:
             "server_start_at": "2026-07-22T08:04:56.849000+00:00",
         },
         "zonertg13",
-    ) == "zonertg13#action:698:2026-07-22T08:04:56.849000+00:00"
+    ) == "evt:ce916a36d3a5131f3374"
     assert _event_token(
         {
             "wheel_key": "ctom11",
             "action_id": 958,
             "server_start_at": "2026-07-21T15:28:57.035000+00:00",
         }
-    ) == "ctom11#action:958:2026-07-21T15:28:57.035000+00:00"
+    ) == "evt:6a1e2e7b3df94976b1a9"
     print("auto participation authoritative owner sync self-test passed")
 
 

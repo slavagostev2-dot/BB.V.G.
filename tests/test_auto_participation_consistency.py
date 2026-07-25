@@ -23,7 +23,7 @@ def event() -> dict:
 
 def test_action_identity_wins_over_internal_event_id() -> None:
     assert auto._event_token("zonertg16", event()) == (
-        "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00"
+        "evt:6b6a163030b5ef75219f"
     )
 
 
@@ -47,7 +47,7 @@ def test_legacy_success_cannot_be_replaced_by_later_failure() -> None:
         },
     }
     assert auto.canonicalize_primary_event_aliases(state)
-    token = "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00"
+    token = "evt:6b6a163030b5ef75219f"
     record = state["auto_participation_events"][token]
     assert record["status"] == "participated"
     assert record["account_key"] == "vyacheslav_primary"
