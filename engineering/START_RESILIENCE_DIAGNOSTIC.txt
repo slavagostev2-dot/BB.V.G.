@@ -1,11 +1,11 @@
 Traceback (most recent call last):
   File "<frozen runpy>", line 198, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 170, in <module>
+  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 172, in <module>
     run_smoke()
-  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 160, in run_smoke
+  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 162, in run_smoke
     verify_start_profile_write_is_deferred()
-  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 65, in verify_start_profile_write_is_deferred
+  File "/home/runner/work/BB.V.G./BB.V.G./scripts/telegram_start_state_smoke.py", line 67, in verify_start_profile_write_is_deferred
     assert calls == [("menu", True)]
            ^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError
@@ -21,7 +21,7 @@ _____________________ test_telegram_start_and_state_smoke ______________________
 
 tests/test_telegram_start_state_safety.py:12: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-scripts/telegram_start_state_smoke.py:160: in run_smoke
+scripts/telegram_start_state_smoke.py:162: in run_smoke
     verify_start_profile_write_is_deferred()
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
@@ -43,6 +43,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
             }
         )
         panel.access_loaded = True
+        panel.load_access = lambda force=False: panel.access  # type: ignore[method-assign]
+        panel.role_for = lambda user_id: "owner"  # type: ignore[method-assign]
         queued: list[str] = []
         calls: list[tuple[str, Any]] = []
         panel.queue_access_save = lambda message: queued.append(str(message))  # type: ignore[method-assign]
@@ -53,11 +55,11 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                ^^^^^^^^^^^^^^^^^^^^^^^^^
 E       AssertionError
 
-scripts/telegram_start_state_smoke.py:65: AssertionError
+scripts/telegram_start_state_smoke.py:67: AssertionError
 ----------------------------- Captured stdout call -----------------------------
 ERROR Telegram message: BotStateIntegrityError: Bot private state authentication failed; key is wrong or data is damaged
 WARNING remove reply keyboard: HTTPError: 404 Client Error: Not Found for url: https://api.telegram.org/bottest-bot-token/sendMessage
 ERROR Telegram fallback response: HTTPError: 404 Client Error: Not Found for url: https://api.telegram.org/bottest-bot-token/sendMessage
 =========================== short test summary info ============================
 FAILED tests/test_telegram_start_state_safety.py::test_telegram_start_and_state_smoke - AssertionError
-1 failed, 27 passed in 1.24s
+1 failed, 27 passed in 0.88s
