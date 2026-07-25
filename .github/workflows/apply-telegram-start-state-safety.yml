@@ -44,11 +44,16 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
 
+      - name: Repair generator escaping
+        run: python scripts/fix_telegram_start_state_patch_escaping.py
+
       - name: Apply guarded Telegram state patch
         run: python scripts/apply_telegram_start_state_safety.py
 
       - name: Remove temporary automation before validation
-        run: git rm scripts/apply_telegram_start_state_safety.py .github/workflows/apply-telegram-start-state-safety.yml
+        run: |
+          git rm scripts/apply_telegram_start_state_safety.py scripts/fix_telegram_start_state_patch_escaping.py .github/workflows/apply-telegram-start-state-safety.yml scripts/.telegram-start-state-safety-trigger
+          git rm -f engineering/TELEGRAM_START_STATE_DIAGNOSTIC.txt || true
 
       - name: Validate start, state and full repository
         id: validation
