@@ -61,7 +61,21 @@ jobs:
       - name: Run full repository tests
         run: python -m pytest -q
 
+      - name: Export verified production files
+        uses: actions/upload-artifact@v4
+        with:
+          name: start-resilience-verified
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            admin_panel_v2.py
+            bbvg/bot/users.py
+            scripts/telegram_start_state_smoke.py
+            tests/test_telegram_start_state_safety.py
+            docs/PROJECT_CHANGELOG_RU.md
+
       - name: Commit verified production diff
+        continue-on-error: true
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
