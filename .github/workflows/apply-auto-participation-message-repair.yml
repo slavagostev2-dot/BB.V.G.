@@ -39,15 +39,35 @@ jobs:
       - name: Compile every active Python module
         run: python -m compileall -q -x '(^|/)(\.git|\.venv|state_api|docs)(/|$)' .
       - name: Validate outcome merge
-        run: python auto_participation_bot_sync.py --self-test
-      - name: Validate recovery monotonicity
-        run: python auto_participation_recovery.py --self-test
-      - name: Validate unified account notification
-        run: python auto_participation_notifications.py
-      - name: Validate BetBoom page recognition
-        run: python betboom_participation_browser.py
-      - name: Validate full repository
-        run: python -m pytest -q
+        id: merge_test
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          python auto_participation_bot_sync.py --self-test 2>&1 | tee /tmp/merge-test.log
+          code=${PIPESTATUS[0]}
+          set -e
+          exit "$code"
+      - name: Publish outcome merge diagnostic
+        if: ${{ steps.merge_test.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+          cp /tmp/merge-test.log /tmp/diagnostic.txt
+          git reset --hard HEAD
+          mkdir -p engineering
+          cat /tmp/diagnostic.txt > engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add engineering/AUTO_PARTICIPATION_CONSISTENCY_DIAGNOSTIC.txt
+          git commit -m 'Record auto participation merge diagnostic [skip ci]'
+          git push origin HEAD:agent/auto-participation-consistency-20260725
+          exit 1
+      - name: Validate remaining contracts
+        run: |
+          python auto_participation_recovery.py --self-test
+          python auto_participation_notifications.py
+          python betboom_participation_browser.py
+          python -m pytest -q
       - name: Commit repair
         run: |
           set -euo pipefail
