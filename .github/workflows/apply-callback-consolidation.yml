@@ -15,6 +15,12 @@ jobs:
     if: ${{ github.actor != 'github-actions[bot]' && github.head_ref == 'agent/control-center-callback-consolidation-20260725' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      BOT_TOKEN: test-bot-token
+      BOT_STATE_KEY: test-state-key
+      BOT_CHAT_ID: '1'
+      ADMIN_USER_ID: '1'
+      BBVG_TEST_MODE: '1'
     steps:
       - name: Checkout working branch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -36,19 +42,23 @@ jobs:
       - name: Apply atomic source patch
         run: python scripts/apply_callback_consolidation.py
 
-      - name: Validate callback ownership and compatibility
-        env:
-          BOT_TOKEN: test-bot-token
-          BOT_STATE_KEY: test-state-key
-          BOT_CHAT_ID: '1'
-          ADMIN_USER_ID: '1'
-          BBVG_TEST_MODE: '1'
-        run: |
-          python -m py_compile bbvg/bot/wheels.py admin_panel_runtime_v41.py notification_button_recovery.py
-          python -m bbvg.bot.wheels
-          python admin_panel_runtime_v41.py --self-test
-          python notification_button_recovery.py --self-test
-          python -m pytest -q tests/test_production_stability_guardrails.py tests/test_current_contracts.py
+      - name: Compile changed modules
+        run: python -m py_compile bbvg/bot/wheels.py admin_panel_runtime_v41.py notification_button_recovery.py
+
+      - name: Validate wheel callback owner
+        run: python -m bbvg.bot.wheels
+
+      - name: Validate v41 inherited callback behavior
+        run: python admin_panel_runtime_v41.py --self-test
+
+      - name: Validate production entrypoint callback recovery
+        run: python notification_button_recovery.py --self-test
+
+      - name: Validate architecture guard
+        run: python -m pytest -q tests/test_production_stability_guardrails.py
+
+      - name: Validate current contracts
+        run: python -m pytest -q tests/test_current_contracts.py
 
       - name: Commit consolidated implementation
         run: |
