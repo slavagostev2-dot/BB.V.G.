@@ -138,6 +138,8 @@ replace_once(
         }
     )
     panel.access_loaded = True
+    panel.load_access = lambda force=False: panel.access  # type: ignore[method-assign]
+    panel.role_for = lambda user_id: "owner"  # type: ignore[method-assign]
     queued: list[str] = []
     calls: list[tuple[str, Any]] = []
     panel.queue_access_save = lambda message: queued.append(str(message))  # type: ignore[method-assign]
