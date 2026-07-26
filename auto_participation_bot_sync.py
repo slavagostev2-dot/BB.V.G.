@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import copy
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import monitor
+import requests
 import wheel_publications_v2
 from bbvg.storage import event_id_from_entry
 
@@ -16,6 +19,10 @@ DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
 PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
 PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
 SUCCESS_STATUSES = {"participated", "already_participating", "already_marked_participating", "already_marked_in_bot"}
+GITHUB_API_VERSION = "2022-11-28"
+RUNTIME_STATE_BRANCH = "runtime-state"
+RUNTIME_PUBLISH_ATTEMPTS = 5
+RUNTIME_PUBLISH_TIMEOUT_SECONDS = 20
 
 _AUTO_PARTICIPATION_FIELDS = {
     "participating",
@@ -47,6 +54,99 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
     path.write_text(
         json.dumps(value, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
+    )
+
+
+def _github_headers(token: str) -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": GITHUB_API_VERSION,
+        "User-Agent": "BB-VG-auto-participation-state-sync",
+    }
+
+
+def publish_runtime_state(
+    local_path: Path,
+    *,
+    token: str,
+    repository: str,
+    branch: str = RUNTIME_STATE_BRANCH,
+    attempts: int = RUNTIME_PUBLISH_ATTEMPTS,
+) -> dict[str, Any]:
+    """CAS-merge auto-participation outcomes into Control Center state.
+
+    Only the fields owned by ``merge_auto_participation_state`` are copied
+    from the worker result.  Every conflict re-reads the current remote blob
+    and repeats the semantic merge, so a monitor checkpoint cannot be erased.
+    """
+
+    local = _load_json(local_path, {})
+    if not isinstance(local, dict):
+        raise RuntimeError(f"invalid local state: {local_path}")
+    if not token or not repository:
+        raise RuntimeError("GitHub credentials are required for runtime-state publish")
+
+    url = f"https://api.github.com/repos/{repository}/contents/state.json"
+    headers = _github_headers(token)
+    last_error = ""
+    for attempt in range(1, max(1, attempts) + 1):
+        response = requests.get(
+            url,
+            headers=headers,
+            params={"ref": branch},
+            timeout=RUNTIME_PUBLISH_TIMEOUT_SECONDS,
+        )
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"runtime_state_read_http_{response.status_code}:{response.text[:300]}"
+            )
+        payload = response.json()
+        sha = str(payload.get("sha") or "")
+        try:
+            remote = json.loads(
+                base64.b64decode(str(payload.get("content") or "")).decode("utf-8")
+            )
+        except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RuntimeError(
+                f"runtime_state_decode_failed:{type(exc).__name__}:{exc}"
+            ) from exc
+        merged = merge_auto_participation_state(remote, local)
+        if merged == remote:
+            return {
+                "branch": branch,
+                "attempt": attempt,
+                "changed": False,
+                "sha": sha,
+            }
+        encoded = base64.b64encode(
+            (json.dumps(merged, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        ).decode("ascii")
+        update = requests.put(
+            url,
+            headers=headers,
+            json={
+                "message": "Publish auto participation outcome [skip ci]",
+                "content": encoded,
+                "branch": branch,
+                "sha": sha,
+            },
+            timeout=RUNTIME_PUBLISH_TIMEOUT_SECONDS,
+        )
+        if update.status_code in {200, 201}:
+            result = update.json()
+            commit = result.get("commit") if isinstance(result, dict) else {}
+            return {
+                "branch": branch,
+                "attempt": attempt,
+                "changed": True,
+                "sha": str(commit.get("sha") or ""),
+            }
+        last_error = f"http_{update.status_code}:{update.text[:300]}"
+        if update.status_code not in {409, 422}:
+            break
+    raise RuntimeError(
+        f"runtime_state_publish_failed_after_{attempts}_attempts:{last_error}"
     )
 
 
@@ -616,6 +716,11 @@ def main() -> int:
     parser.add_argument("--merge-local", type=Path)
     parser.add_argument("--merge-remote", type=Path)
     parser.add_argument("--merge-output", type=Path)
+    parser.add_argument("--publish-runtime-state", type=Path)
+    parser.add_argument(
+        "--runtime-state-branch",
+        default=os.getenv("BBVG_RUNTIME_STATE_BRANCH", RUNTIME_STATE_BRANCH),
+    )
     args = parser.parse_args()
     if args.self_test:
         self_test()
@@ -633,6 +738,16 @@ def main() -> int:
                 ensure_ascii=False,
             )
         )
+        return 0
+    if args.publish_runtime_state:
+        result = publish_runtime_state(
+            args.publish_runtime_state,
+            token=os.getenv("GH_TOKEN", "").strip()
+            or os.getenv("GITHUB_TOKEN", "").strip(),
+            repository=os.getenv("GITHUB_REPOSITORY", "").strip(),
+            branch=str(args.runtime_state_branch or RUNTIME_STATE_BRANCH),
+        )
+        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
     result = queue_recovery_outcomes(Path(args.recovery_result))
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))

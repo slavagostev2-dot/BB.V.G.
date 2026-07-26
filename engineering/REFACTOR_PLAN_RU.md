@@ -7,6 +7,11 @@
 
 ## Выполнено 26 июля 2026 года — durable event architecture
 
+- production-dispatch использует branch/tag ref, а exact deployment SHA
+  остаётся только идентификатором выполняемого кода;
+- подтверждённые browser-results публикуются CAS-merge в `runtime-state`,
+  который читает Control Center, без runtime-коммитов в `main`;
+
 - введён единый `EventStore` и удалён GitHub `state.json` из синхронного пути
   dispatcher;
 - event, dispatch outbox и notification outbox создаются одной SQLite

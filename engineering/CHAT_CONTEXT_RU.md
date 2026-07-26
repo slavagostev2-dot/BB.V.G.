@@ -26,6 +26,9 @@
 ## Production
 
 - Источник истины — `main`.
+- Оперативное публичное состояние Monitor и browser-results хранится в
+  `runtime-state`; writers используют CAS с повторным чтением и семантическим
+  merge, а Control Center читает тот же authoritative snapshot.
 - Единственный Control Center запускается командой
   `python notification_button_recovery.py` на exact SHA из
   `control_center_release.txt`; validator и live-job используют один commit.

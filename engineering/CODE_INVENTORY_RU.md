@@ -62,7 +62,7 @@ compatibility API и запрещены preflight. В production сохраня�
 | Идемпотентность | `notification_integrity_v2.py`, `notification_remote_checkpoint.py`, `bot_notification_state.py` |
 | Идентичность Telegram-источника | `telegram_transport.py`, `personal_wheel_voting.py` |
 | Автоучастие | `auto_participation_worker.py`, `auto_participation_recovery.py`, `auto_participation_dispatch.py` |
-| Итоги | `auto_participation_bot_sync.py`, `auto_participation_owner_sync.py`, `auto_participation_notifications.py` |
+| Итоги | `auto_participation_bot_sync.py` (очередь результата и CAS-публикация в `runtime-state`), `auto_participation_owner_sync.py`, `auto_participation_notifications.py` |
 | Аккаунты | `betboom_account_participation.py`, `xflarxx_account_participation.py`, `xflarxx_runtime_integration.py` |
 | VK | `vk_wheel_notifications.py`, `vk_dynamic_subscribers.py`, `vk_start_welcome.py` |
 

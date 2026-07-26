@@ -257,37 +257,12 @@ jobs:
 
       - name: Publish fast participation state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp state.json /tmp/bbvg-auto-participation-fast-local-state.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git reset --hard origin/main
-            git show origin/main:state.json > /tmp/bbvg-auto-participation-fast-remote-state.json
-            python auto_participation_bot_sync.py \
-              --merge-local /tmp/bbvg-auto-participation-fast-local-state.json \
-              --merge-remote /tmp/bbvg-auto-participation-fast-remote-state.json \
-              --merge-output state.json
-
-            if git diff --quiet -- state.json; then
-              echo "Fast auto participation state already present in main"
-              exit 0
-            fi
-
-            git add state.json
-            git commit -m "Publish fast auto participation outcome [skip ci]"
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "Fast state push raced with another writer; retrying (${attempt}/5)"
-            sleep $((attempt * 2))
-          done
-          echo "Unable to publish fast auto participation state" >&2
-          exit 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BBVG_RUNTIME_STATE_BRANCH: runtime-state
+        run: >-
+          python auto_participation_bot_sync.py
+          --publish-runtime-state state.json
 
       - name: Recover fresh active wheels independently of monitor state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
@@ -365,34 +340,9 @@ jobs:
 
       - name: Persist participation state without losing concurrent monitor updates
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp state.json /tmp/bbvg-auto-participation-local-state.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git reset --hard origin/main
-            git show origin/main:state.json > /tmp/bbvg-auto-participation-remote-state.json
-            python auto_participation_bot_sync.py \
-              --merge-local /tmp/bbvg-auto-participation-local-state.json \
-              --merge-remote /tmp/bbvg-auto-participation-remote-state.json \
-              --merge-output state.json
-
-            if git diff --quiet -- state.json; then
-              echo "Auto participation state already present in main"
-              exit 0
-            fi
-
-            git add state.json
-            git commit -m "Update auto participation state [skip ci]"
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "State push raced with another writer; retrying merge (${attempt}/5)"
-            sleep $((attempt * 2))
-          done
-          echo "Unable to persist auto participation state after five merge attempts" >&2
-          exit 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BBVG_RUNTIME_STATE_BRANCH: runtime-state
+        run: >-
+          python auto_participation_bot_sync.py
+          --publish-runtime-state state.json
