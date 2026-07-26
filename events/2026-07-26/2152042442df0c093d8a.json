@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "2c33d2cb3e1c68965ffdefdf74d2a709a2dd2f05481a537ca7d2535dceef079b",
-      "confidence": 110,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции)",
-      "event_id": "evt:2152042442df0c093d8a",
-      "finished_at": "2026-07-26T13:50:34.787740+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-07-26T13:50:59.986579+00:00",
-      "started_at": "2026-07-26T13:50:34.787740+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "",
       "attempt_id": "04ffb8ea6181d639c1c2619af083c299aefecd6669daa87158538e76a8c904f1",
@@ -26,6 +12,20 @@
       "owner_id": "vyacheslav",
       "recorded_at": "2026-07-26T13:50:59.988610+00:00",
       "started_at": "2026-07-26T13:50:50.844674+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "2c33d2cb3e1c68965ffdefdf74d2a709a2dd2f05481a537ca7d2535dceef079b",
+      "confidence": 110,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции)",
+      "event_id": "evt:2152042442df0c093d8a",
+      "finished_at": "2026-07-26T13:50:34.787740+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-07-26T13:50:59.986579+00:00",
+      "started_at": "2026-07-26T13:50:34.787740+00:00",
       "status": "participated"
     },
     {
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-26T13:50:34.787740+00:00",
       "status": "participated",
-      "updated_at": "2026-07-26T13:50:59.986579+00:00"
+      "updated_at": "2026-07-26T13:51:30.484214+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-26T13:50:50.844674+00:00",
       "status": "participated",
-      "updated_at": "2026-07-26T13:50:59.988610+00:00"
+      "updated_at": "2026-07-26T13:51:30.485583+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-26T13:50:55.303139+00:00",
       "status": "participated",
-      "updated_at": "2026-07-26T13:50:59.990407+00:00"
+      "updated_at": "2026-07-26T13:51:30.486840+00:00"
     }
   ],
   "action_id": 1053,
@@ -119,58 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-07-26T13:50:59.977560+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:2c33d2cb3e1c68965ffdefdf74d2a709a2dd2f05481a537ca7d2535dceef079b",
+      "occurred_at": "2026-07-26T13:50:34.787740+00:00",
       "payload": {
-        "action_id": 1053,
-        "available_at": "",
-        "deadline": "2026-07-26T14:18:03.927000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2152042442df0c093d8a",
-        "expires_at": "2026-07-26T14:48:03.927000+00:00",
-        "generation_id": "2152042442df0c093d8a",
-        "identifier": "dayneez",
-        "message_text": "https://betboom.ru/freestream/dayneez\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/261",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-26T13:48:03.927000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-07-26T13:49:47+00:00",
-        "source_message_id": 261,
-        "source_message_url": "https://telegram.me/kolesaBB/261",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/dayneez",
-        "verification_status": "confirmed",
-        "wheel_key": "dayneez"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "c1bbce80f26cf01e55a963eb62f75a031e9c2b5c0103a9d29c0c17dea3431a4d"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-07-26T13:50:59.977560+00:00",
-      "payload": {
-        "action_id": 1053,
-        "available_at": "",
-        "deadline": "2026-07-26T14:18:03.927000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2152042442df0c093d8a",
-        "expires_at": "2026-07-26T14:48:03.927000+00:00",
-        "generation_id": "2152042442df0c093d8a",
-        "identifier": "dayneez",
-        "message_text": "https://betboom.ru/freestream/dayneez\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/261",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-26T13:48:03.927000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-07-26T13:49:47+00:00",
-        "source_message_id": 261,
-        "source_message_url": "https://telegram.me/kolesaBB/261",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/dayneez",
-        "verification_status": "confirmed",
-        "wheel_key": "dayneez"
-      },
-      "stage": "persisted",
-      "transition_id": "da0af7f54f656dcbb47b23327e395c7de06a4f73cbe23804b2d817d2e3f6c95b"
+      "stage": "account_result",
+      "transition_id": "2bcd7cfde2b7aad43f05f393fa76456848aec9fe445d6ace8727ad9201c349e0"
     },
     {
       "dedupe_key": "1053:2026-07-26T13:48:03.927000+00:00",
@@ -200,6 +161,48 @@
       "transition_id": "a0d2d0c21340595061504628c70df2ea5723eadf67be46f9aca3f0ce8db1b424"
     },
     {
+      "dedupe_key": "xflarxx:xflarxx_primary:5a6ada6707e6e3af86be467fa838843659bc1f910ea8ee0ae6a0b6b7744122f4",
+      "occurred_at": "2026-07-26T13:50:55.303139+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "a7cc27d8c5505f1af043204a2165c45dcc1d55a0e485bf530a68562b0c838e7d"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-07-26T13:50:59.977560+00:00",
+      "payload": {
+        "action_id": 1053,
+        "available_at": "",
+        "deadline": "2026-07-26T14:18:03.927000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2152042442df0c093d8a",
+        "expires_at": "2026-07-26T14:48:03.927000+00:00",
+        "generation_id": "2152042442df0c093d8a",
+        "identifier": "dayneez",
+        "message_text": "https://betboom.ru/freestream/dayneez\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/261",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-26T13:48:03.927000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-07-26T13:49:47+00:00",
+        "source_message_id": 261,
+        "source_message_url": "https://telegram.me/kolesaBB/261",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dayneez",
+        "verification_status": "confirmed",
+        "wheel_key": "dayneez"
+      },
+      "stage": "source_discovered",
+      "transition_id": "c1bbce80f26cf01e55a963eb62f75a031e9c2b5c0103a9d29c0c17dea3431a4d"
+    },
+    {
       "dedupe_key": "30204848895",
       "occurred_at": "2026-07-26T13:50:59.983638+00:00",
       "payload": {
@@ -208,21 +211,6 @@
       },
       "stage": "workflow_started",
       "transition_id": "cc15e31ec2d82b0ce9898e16f05df4741c7851d6435d491cd68118a4d5113941"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:2c33d2cb3e1c68965ffdefdf74d2a709a2dd2f05481a537ca7d2535dceef079b",
-      "occurred_at": "2026-07-26T13:50:34.787740+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "2bcd7cfde2b7aad43f05f393fa76456848aec9fe445d6ace8727ad9201c349e0"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:04ffb8ea6181d639c1c2619af083c299aefecd6669daa87158538e76a8c904f1",
@@ -240,22 +228,34 @@
       "transition_id": "d0677e8dc869f9c60d0a4535dbf60749e1be1d68606447e373e3bc03f2528b69"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:5a6ada6707e6e3af86be467fa838843659bc1f910ea8ee0ae6a0b6b7744122f4",
-      "occurred_at": "2026-07-26T13:50:55.303139+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-07-26T13:50:59.977560+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
+        "action_id": 1053,
+        "available_at": "",
+        "deadline": "2026-07-26T14:18:03.927000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2152042442df0c093d8a",
+        "expires_at": "2026-07-26T14:48:03.927000+00:00",
+        "generation_id": "2152042442df0c093d8a",
+        "identifier": "dayneez",
+        "message_text": "https://betboom.ru/freestream/dayneez\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/261",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-26T13:48:03.927000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-07-26T13:49:47+00:00",
+        "source_message_id": 261,
+        "source_message_url": "https://telegram.me/kolesaBB/261",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dayneez",
+        "verification_status": "confirmed",
+        "wheel_key": "dayneez"
       },
-      "stage": "account_result",
-      "transition_id": "a7cc27d8c5505f1af043204a2165c45dcc1d55a0e485bf530a68562b0c838e7d"
+      "stage": "persisted",
+      "transition_id": "da0af7f54f656dcbb47b23327e395c7de06a4f73cbe23804b2d817d2e3f6c95b"
     }
   ],
-  "updated_at": "2026-07-26T13:50:59.983638+00:00",
+  "updated_at": "2026-07-26T13:51:30.482584+00:00",
   "wheel_key": "dayneez",
   "workflow_started_at": "2026-07-26T13:50:59.983638+00:00"
 }
