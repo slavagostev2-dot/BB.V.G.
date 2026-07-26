@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
@@ -176,11 +177,33 @@ class PanelFoundationMixin:
         return result[:5]
 
     def intelligence_state(self) -> dict[str, Any]:
-        value = self.get_json_file(
-            INTELLIGENCE_PATH,
-            {"version": 1, "candidates": {}, "edges": {}, "runs": []},
-        )
-        return value if isinstance(value, dict) else {}
+        try:
+            text, _ = self.get_file(INTELLIGENCE_PATH)
+            value = json.loads(text)
+            if not isinstance(value, dict):
+                raise ValueError("intelligence state is not an object")
+            self._last_verified_intelligence_state = dict(value)
+            return value
+        except Exception as exc:
+            print(
+                "WARNING intelligence state refresh kept last verified value: "
+                f"{type(exc).__name__}: {exc}"
+            )
+            cached = getattr(self, "_last_verified_intelligence_state", None)
+            if isinstance(cached, dict):
+                return dict(cached)
+            try:
+                local_path = Path(__file__).resolve().parents[2] / INTELLIGENCE_PATH
+                value = json.loads(local_path.read_text(encoding="utf-8"))
+                if isinstance(value, dict):
+                    self._last_verified_intelligence_state = dict(value)
+                    return value
+            except Exception as local_exc:
+                print(
+                    "WARNING local intelligence fallback unavailable: "
+                    f"{type(local_exc).__name__}: {local_exc}"
+                )
+            return {"version": 1, "candidates": {}, "edges": {}, "runs": []}
 
     def intelligence_rows(self) -> list[dict[str, Any]]:
         state = self.intelligence_state()
