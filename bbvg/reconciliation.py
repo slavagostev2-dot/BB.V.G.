@@ -25,7 +25,14 @@ def _parse(value: Any) -> datetime | None:
 
 
 def state_generation_candidates(state: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return each historical generation, never only current active wheels."""
+    """Return each historical generation and identify only current active rows.
+
+    Historical observations intentionally remain in the candidate list for audit
+    repair, but only a row still present in ``active_wheels`` receives the
+    ``current_active`` marker and its live expiry/deadline window. This prevents
+    an old observation that once had an ``active`` status from being requeued for
+    browser participation on every process restart.
+    """
 
     observations = state.get("wheel_generation_observations")
     candidates: list[dict[str, Any]] = []
@@ -59,25 +66,36 @@ def state_generation_candidates(state: dict[str, Any]) -> list[dict[str, Any]]:
             except (TypeError, ValueError):
                 action = 0
             current_active = active_by_action.get((wheel, action))
-            if current_active and not _parse(item.get("server_start_at")):
-                first_seen = item.get("first_seen_at")
-                statuses = item.get("statuses")
+            observation_metadata = {
+                name: item.get(name)
+                for name in (
+                    "first_seen_at",
+                    "last_seen_at",
+                    "observations",
+                    "statuses",
+                )
+                if item.get(name) is not None
+            }
+            if current_active:
                 item.update(current_active)
-                item["first_seen_at"] = first_seen
-                item["statuses"] = statuses
-            statuses = item.get("statuses")
-            statuses = statuses if isinstance(statuses, dict) else {}
-            if int(statuses.get("active", 0) or 0) > 0:
-                item["status"] = "active_observed"
-            elif int(statuses.get("closed", 0) or 0) > 0:
-                item["status"] = "closed_observed"
+                item.update(observation_metadata)
+                item["status"] = "current_active"
             else:
-                item["status"] = "inactive_only"
+                statuses = item.get("statuses")
+                statuses = statuses if isinstance(statuses, dict) else {}
+                if int(statuses.get("active", 0) or 0) > 0:
+                    item["status"] = "active_observed"
+                elif int(statuses.get("closed", 0) or 0) > 0:
+                    item["status"] = "closed_observed"
+                else:
+                    item["status"] = "inactive_only"
             candidates.append(item)
     known = {event_id_from_entry(item) for item in candidates}
     for item in active_by_action.values():
         if event_id_from_entry(item) not in known:
-            candidates.append(item)
+            current = dict(item)
+            current["status"] = "current_active"
+            candidates.append(current)
     return sorted(
         candidates,
         key=lambda item: (
@@ -102,7 +120,12 @@ def reconcile_candidates(
     current: datetime | None = None,
     recovery_reason: str = "reconciliation",
 ) -> dict[str, int]:
-    """Idempotently repair missing canonical events and their dispatch outboxes."""
+    """Idempotently repair missing canonical events and current dispatch outboxes.
+
+    Every candidate is restored to the durable audit ledger. Automatic browser
+    participation and a notification outbox are recreated only when the candidate
+    has explicit current-active evidence and a concrete future deadline/expiry.
+    """
 
     now = (current or datetime.now(UTC)).astimezone(UTC)
     summary = {
@@ -123,11 +146,20 @@ def reconcile_candidates(
             exists = False
         else:
             exists = True
-        deadline = _parse(entry.get("deadline") or entry.get("expires_at"))
+        deadline = _parse(entry.get("deadline"))
+        window_end = deadline or _parse(entry.get("expires_at"))
         status = str(entry.get("status") or "").casefold()
         active = (
-            status in {"active", "preliminary", "available", "active_observed"}
-            and (deadline is None or deadline > now)
+            status
+            in {
+                "active",
+                "preliminary",
+                "available",
+                "active_observed",
+                "current_active",
+            }
+            and window_end is not None
+            and window_end > now
         )
         stored_id = store.prepare_event(
             entry,
