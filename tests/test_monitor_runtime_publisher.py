@@ -200,5 +200,6 @@ def test_monitor_workflow_uses_one_publisher_and_does_not_block_later_files() ->
     assert '--publish-monitor-runtime "$file"' in block
     assert "publish_failed=true" in block
     assert "continue" in block
-    assert block.index("publish_failed=true") < block.index("done")
-    assert block.index("done") < block.rindex("return 1")
+    publish_loop = block.split("            publish_failed=false", 1)[1]
+    assert publish_loop.index("publish_failed=true") < publish_loop.index("done")
+    assert publish_loop.index("done") < publish_loop.rindex("return 1")
