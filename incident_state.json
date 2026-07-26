@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -27,7 +27,7 @@
       "first_seen_at": "2026-07-15T23:43:26.915265+00:00",
       "key": "system_checks:admin_panel_stale:9278d429b1e1ee67",
       "kind": "admin_panel_stale",
-      "last_seen_at": "2026-07-25T18:07:33.190144+00:00",
+      "last_seen_at": "2026-07-26T09:50:51.753146+00:00",
       "lifecycle_started_at": "2026-07-25T12:48:32.267881+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-07-24T12:06:28.309429+00:00",
@@ -35,15 +35,15 @@
       "open_notification_pending": false,
       "open_notified_at": "2026-07-25T14:51:21.578848+00:00",
       "opened_sequence": 118,
-      "recovery_candidate_since": "2026-07-26T07:20:44.497195+00:00",
-      "recovery_confirmation_pending": true,
       "reopen_notification_suppressed_at": "2026-07-24T11:45:54.171496+00:00",
       "reopen_notification_suppressed_until": "2026-07-24T12:46:05.087440+00:00",
       "resolution_notification_expired_at": "2026-07-25T07:29:46.342994+00:00",
-      "resolved_sequence": 115,
+      "resolution_notification_pending": true,
+      "resolved_at": "2026-07-26T09:50:51.753146+00:00",
+      "resolved_sequence": 120,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Бот давно не принимает команды пользователей"
     },
@@ -318,17 +318,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-26T07:20:44.497195+00:00",
-  "last_reconcile_at": "2026-07-26T07:20:44.497195+00:00",
+  "last_change_at": "2026-07-26T09:50:51.753146+00:00",
+  "last_reconcile_at": "2026-07-26T09:50:51.753146+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 0,
     "new_notification_count": 0,
-    "recovery_notification_count": 0,
+    "recovery_notification_count": 1,
     "scope": "system_checks"
   },
-  "sequence": 119,
+  "sequence": 120,
   "status": "initializing",
-  "updated_at": "2026-07-26T07:20:44.497256+00:00",
+  "updated_at": "2026-07-26T09:50:51.753217+00:00",
   "version": 1
 }
