@@ -23,7 +23,6 @@ SUCCESS_STATUSES = {
     "participated",
     "already_participating",
     "already_marked_participating",
-    "already_marked_in_bot",
 }
 FAILURE_LABELS = {
     "button_not_found": "кнопка участия не найдена",

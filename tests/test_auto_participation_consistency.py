@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import auto_participation_notifications
 import auto_participation_owner_sync
@@ -189,4 +190,100 @@ def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:
         server_start_at=datetime(2026, 7, 25, 8, 36, 46, 419000, tzinfo=UTC),
     )
     assert calls == ["save", "dispatch", "send"]
+
+
+def _browser_monitor() -> SimpleNamespace:
+    def mark_participating(state: dict, context: dict) -> None:
+        state.setdefault("participating_wheels", {})[context["wheel_key"]] = dict(
+            context
+        )
+
+    return SimpleNamespace(
+        now_utc=lambda: datetime(2026, 7, 25, 8, 40, tzinfo=UTC),
+        parse_datetime=lambda _value: None,
+        WHEEL_VERIFICATION_FAILED="failed",
+        is_participating=lambda *_args: (_ for _ in ()).throw(
+            AssertionError("Telegram mark must not suppress BetBoom verification")
+        ),
+        mark_participating=mark_participating,
+    )
+
+
+def test_telegram_participation_mark_does_not_skip_betboom_check(
+    monkeypatch,
+) -> None:
+    item = event()
+    state = {
+        "auto_participation_event_mode_initialized_at": "2026-07-25T08:35:00+00:00",
+        "active_wheels": {"zonertg16": item},
+        "participating_wheels": {
+            "zonertg16": {
+                "participation_source": "telegram_personal_vote",
+                "marked_at": "2026-07-25T08:39:00+00:00",
+            }
+        },
+        "auto_participation_events": {},
+    }
+    calls: list[str] = []
+    monkeypatch.setattr(auto, "configured", lambda: True)
+    monkeypatch.setattr(
+        auto,
+        "participate",
+        lambda url: calls.append(url)
+        or auto.ParticipationResult(
+            True,
+            "already_participating",
+            "BetBoom already confirms participation",
+        ),
+    )
+
+    result = auto.process_new_wheel_events(state, _browser_monitor())
+
+    token = auto._event_token("zonertg16", item)
+    record = state["auto_participation_events"][token]
+    assert result["attempted"] == 1
+    assert result["succeeded"] == 1
+    assert calls == [item["url"]]
+    assert record["status"] == "already_participating"
+    assert record["confirmation_method"] == "betboom_preexisting"
+    assert record["participation_origin"] == "preexisting_verified"
+    assert item["auto_participation_origin"] == "preexisting_verified"
+
+
+def test_legacy_bot_only_success_is_rearmed_and_verified(monkeypatch) -> None:
+    item = event()
+    token = auto._event_token("zonertg16", item)
+    state = {
+        "auto_participation_event_mode_initialized_at": "2026-07-25T08:35:00+00:00",
+        "active_wheels": {"zonertg16": item},
+        "auto_participation_events": {
+            token: {
+                "wheel_key": "zonertg16",
+                "event_token": token,
+                "status": "already_marked_in_bot",
+                "recorded_at": "2026-07-25T08:39:00+00:00",
+            }
+        },
+    }
+    monkeypatch.setattr(auto, "configured", lambda: True)
+    monkeypatch.setattr(
+        auto,
+        "participate",
+        lambda _url: auto.ParticipationResult(
+            True,
+            "already_participating",
+            "BetBoom already confirms participation",
+        ),
+    )
+
+    result = auto.process_new_wheel_events(state, _browser_monitor())
+
+    assert result["attempted"] == 1
+    assert result["succeeded"] == 1
+    assert state["auto_participation_events"][token]["status"] == (
+        "already_participating"
+    )
+    assert item["auto_participation_rearm_reason"] == (
+        "bot_mark_requires_betboom_verification"
+    )
 

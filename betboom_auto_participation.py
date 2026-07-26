@@ -32,7 +32,6 @@ SUCCESS_STATUSES = {
     "participated",
     "already_participating",
     "already_marked_participating",
-    "already_marked_in_bot",
 }
 
 
@@ -444,11 +443,20 @@ def _mark_confirmed_participation(
     monitor.mark_participating(state, context)
     participant = state.setdefault("participating_wheels", {}).get(normalized)
     if isinstance(participant, dict):
-        participant["participation_source"] = "betboom_browser"
+        participant["participation_source"] = (
+            "betboom_preexisting"
+            if result.status == "already_participating"
+            else "betboom_browser"
+        )
         participant["participation_status"] = result.status
         participant["confirmed_at"] = current.isoformat()
     entry.pop("auto_participation_error", None)
     entry["auto_participation_confirmed_at"] = current.isoformat()
+    entry["auto_participation_origin"] = (
+        "preexisting_verified"
+        if result.status == "already_participating"
+        else "automatic"
+    )
 
 
 def _normalized_names(user_id: str, record: dict[str, Any]) -> set[str]:
@@ -581,6 +589,43 @@ def _rearm_legacy_button_not_found(
     return True, previous_notified, previous_notification_at
 
 
+def _rearm_unverified_bot_mark(
+    events: dict[str, Any],
+    token: str,
+    entry: dict[str, Any],
+    monitor: Any,
+    current: Any,
+) -> bool:
+    """Migrate a Telegram-only mark back to a real BetBoom check.
+
+    The bot button records user intent and rating input. It is not evidence that
+    the account participated on BetBoom. Older workers incorrectly treated
+    ``already_marked_in_bot`` as a successful account result and skipped the
+    browser, so eligible legacy records must be checked again.
+    """
+
+    previous = events.get(token)
+    if not isinstance(previous, dict):
+        return False
+    if str(previous.get("status") or "") != "already_marked_in_bot":
+        return False
+    if not _eligible_for_event_attempt(entry, monitor, current):
+        return False
+    events.pop(token, None)
+    for field in (
+        "auto_participation_status",
+        "auto_participation_checked_at",
+        "auto_participation_retry_allowed",
+        "auto_participation_error",
+    ):
+        entry.pop(field, None)
+    entry["auto_participation_rearmed_at"] = current.isoformat()
+    entry["auto_participation_rearm_reason"] = (
+        "bot_mark_requires_betboom_verification"
+    )
+    return True
+
+
 def process_new_wheel_events(
     state: dict[str, Any], monitor: Any
 ) -> dict[str, int | bool]:
@@ -631,38 +676,39 @@ def process_new_wheel_events(
         previous_notification_sent = False
         previous_notification_at = ""
         if token in events:
-            rearmed, previous_notification_sent, previous_notification_at = (
-                _rearm_legacy_button_not_found(
-                    events,
-                    token,
-                    entry,
-                    monitor,
-                    current,
-                )
+            bot_mark_rearmed = _rearm_unverified_bot_mark(
+                events,
+                token,
+                entry,
+                monitor,
+                current,
             )
-            if rearmed:
+            if bot_mark_rearmed:
+                rearmed = True
                 changed = True
                 print(
-                    "Rearmed button_not_found event for SPA-aware participation retry: "
-                    f"wheel={normalized} token={token}"
+                    "Rearmed unverified Telegram participation mark for "
+                    f"BetBoom verification: wheel={normalized} token={token}"
                 )
             else:
+                rearmed, previous_notification_sent, previous_notification_at = (
+                    _rearm_legacy_button_not_found(
+                        events,
+                        token,
+                        entry,
+                        monitor,
+                        current,
+                    )
+                )
+            if rearmed:
+                changed = True
+                if not bot_mark_rearmed:
+                    print(
+                        "Rearmed button_not_found event for SPA-aware "
+                        f"participation retry: wheel={normalized} token={token}"
+                    )
+            else:
                 continue
-
-        if monitor.is_participating(state, normalized):
-            events[token] = {
-                "wheel_key": normalized,
-                "event_token": token,
-                "account_key": PRIMARY_ACCOUNT_KEY,
-                "account_label": PRIMARY_ACCOUNT_LABEL,
-                "account_owner": PRIMARY_ACCOUNT_OWNER,
-                "account_order": PRIMARY_ACCOUNT_ORDER,
-                "status": "already_marked_in_bot",
-                "recorded_at": current.isoformat(),
-                "attempt_version": _PARTICIPATION_ATTEMPT_VERSION,
-            }
-            changed = True
-            continue
 
         if not _eligible_for_event_attempt(entry, monitor, current):
             continue
@@ -683,6 +729,20 @@ def process_new_wheel_events(
             "retry_allowed": False,
             "attempt_version": _PARTICIPATION_ATTEMPT_VERSION,
             "artifact_url": result.artifact_url,
+            "confirmation_method": (
+                "betboom_preexisting"
+                if result.status == "already_participating"
+                else "betboom_post_click"
+                if result.status == "participated"
+                else "betboom_unconfirmed"
+            ),
+            "participation_origin": (
+                "preexisting_verified"
+                if result.status == "already_participating"
+                else "automatic"
+                if result.status == "participated"
+                else "unverified"
+            ),
         }
         event_record = merge_event_record(events.get(token), event_record)
         events[token] = event_record

@@ -14,7 +14,11 @@ from bbvg.storage import event_id_from_entry
 ROOT = Path(__file__).resolve().parent
 PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
 PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
-SUCCESS_STATUSES = {"participated", "already_participating", "already_marked_participating", "already_marked_in_bot"}
+SUCCESS_STATUSES = {
+    "participated",
+    "already_participating",
+    "already_marked_participating",
+}
 
 
 def _json(path: Path, default: Any) -> Any:

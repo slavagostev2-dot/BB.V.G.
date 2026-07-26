@@ -434,6 +434,121 @@ def test_workflow_payload_materializes_only_the_dispatched_event() -> None:
     assert state["active_wheels"]["deko2"]["canonical_event_id"] == event_id
 
 
+def test_emergency_outcome_is_owner_scoped_and_deduplicated(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_id = "evt:0123456789abcdef0123"
+    state_path = tmp_path / "state.json"
+    state_path.write_text(
+        json.dumps(
+            {
+                "auto_participation_events": {
+                    event_id: {
+                        "event_token": event_id,
+                        "account_owner": "vyacheslav",
+                        "account_key": "vyacheslav_primary",
+                        "account_label": "Аккаунт 1",
+                        "status": "already_participating",
+                    },
+                    f"{event_id}#account:vyacheslav_secondary": {
+                        "event_token": event_id,
+                        "account_owner": "vyacheslav",
+                        "account_key": "vyacheslav_secondary",
+                        "account_label": "Аккаунт 2",
+                        "status": "participated",
+                    },
+                    f"{event_id}#account:xflarxx_primary": {
+                        "event_token": event_id,
+                        "account_owner": "xflarxx",
+                        "account_key": "xflarxx_primary",
+                        "account_label": "xFLARXx",
+                        "status": "participated",
+                    },
+                }
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    marker = tmp_path / "sent.json"
+    sent: list[dict[str, object]] = []
+    monkeypatch.setenv("BOT_CHAT_ID", "123")
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+    monkeypatch.setattr(
+        auto_participation_bot_sync.monitor,
+        "telegram_api",
+        lambda method, payload: (
+            sent.append({"method": method, **payload})
+            or {"ok": True, "result": {"message_id": 456}}
+        ),
+    )
+    payload = json.dumps(
+        {
+            "event_id": event_id,
+            "identifier": "CTOM23",
+            "url": "https://betboom.ru/freestream/CTOM23",
+        }
+    )
+
+    first = auto_participation_bot_sync.emergency_notify_event(
+        state_path,
+        payload,
+        marker_path=marker,
+    )
+    second = auto_participation_bot_sync.emergency_notify_event(
+        state_path,
+        payload,
+        marker_path=marker,
+    )
+
+    assert first["status"] == "sent"
+    assert first["message_id"] == 456
+    assert second == {"status": "duplicate_suppressed", "sent": False}
+    assert len(sent) == 1
+    assert sent[0]["chat_id"] == "123"
+    assert "Аккаунт 1" in str(sent[0]["text"])
+    assert "Аккаунт 2" in str(sent[0]["text"])
+    assert "xFLARXx" not in str(sent[0]["text"])
+
+
+def test_emergency_outcome_waits_for_every_owner_account(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_id = "evt:0123456789abcdef0123"
+    state_path = tmp_path / "state.json"
+    state_path.write_text(
+        json.dumps(
+            {
+                "auto_participation_events": {
+                    event_id: {
+                        "event_token": event_id,
+                        "account_owner": "vyacheslav",
+                        "account_key": "vyacheslav_primary",
+                        "status": "participated",
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        auto_participation_bot_sync.monitor,
+        "telegram_api",
+        lambda *_args, **_kwargs: pytest.fail("must not send an incomplete result"),
+    )
+
+    result = auto_participation_bot_sync.emergency_notify_event(
+        state_path,
+        json.dumps({"event_id": event_id, "identifier": "CTOM23"}),
+        marker_path=tmp_path / "sent.json",
+    )
+
+    assert result["status"] == "account_results_incomplete"
+    assert result["sent"] is False
+
+
 def test_browser_failure_writes_reproducible_artifacts(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
