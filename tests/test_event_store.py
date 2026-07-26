@@ -225,3 +225,73 @@ def test_accounts_and_notification_audit_are_isolated(tmp_path: Path) -> None:
     audit = (tmp_path / "notifications.jsonl").read_text(encoding="utf-8")
     assert '"recipient_scope":"owner-scope-a"' in audit
     assert "telegram" not in audit.casefold() or "telegram_message_id" in audit
+
+
+def test_legacy_result_context_creates_parent_event_before_account_result(
+    tmp_path: Path,
+) -> None:
+    store = _store(tmp_path)
+    historical = _event(
+        action_id=1051,
+        server_start_at="2026-07-25T16:45:58.846000+00:00",
+    )
+    historical.update(
+        {
+            "wheel_key": "dayneez",
+            "identifier": "dayneez",
+            "generation_id": "38413d764a435ea4520b",
+            "message_id": 256,
+            "message_date": "2026-07-25T16:47:00+00:00",
+        }
+    )
+    event_id = canonical_event_id(
+        "dayneez",
+        1051,
+        "2026-07-25T16:45:58.846000+00:00",
+    )
+    state = {
+        "active_wheels": {},
+        "wheel_generation_observations": {},
+        "auto_participation_events": {
+            event_id: {
+                "event_token": event_id,
+                "wheel_key": "dayneez",
+                "account_owner": "owner-a",
+                "account_key": "primary",
+                "account_label": "Основной",
+                "status": "participated",
+                "attempted_at": "2026-07-25T16:47:20+00:00",
+                "event_context": historical,
+            }
+        },
+    }
+
+    summary = store.import_legacy_state(state)
+
+    report = store.event_snapshot(event_id)
+    assert summary["orphan_account_results_skipped"] == 0
+    assert report["action_id"] == 1051
+    assert report["account_results"][0]["status"] == "participated"
+
+
+def test_legacy_orphan_result_cannot_abort_monitor_startup(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    state = {
+        "active_wheels": {},
+        "wheel_generation_observations": {},
+        "auto_participation_events": {
+            "evt:00000000000000000000": {
+                "event_token": "evt:00000000000000000000",
+                "wheel_key": "unknown-old-wheel",
+                "account_owner": "owner-a",
+                "account_key": "primary",
+                "account_label": "Основной",
+                "status": "button_not_found",
+            }
+        },
+    }
+
+    summary = store.import_legacy_state(state)
+
+    assert summary["account_results_imported"] == 0
+    assert summary["orphan_account_results_skipped"] == 1

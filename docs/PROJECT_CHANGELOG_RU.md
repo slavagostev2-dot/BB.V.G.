@@ -1,5 +1,14 @@
 # 2026-07-26 — CTOM23: ручное участие, poisoned cursor и потерянный итог
 
+- Первый production-запуск нового Monitor выявил ещё один разрыв legacy-миграции:
+  `auto_participation_events` уже содержал канонический результат
+  `evt:38413d764a435ea4520b`, но соответствующее старое колесо `dayneez` исчезло
+  из `active_wheels` и не находилось в `wheel_generation_observations`. При
+  импорте результат записывался без parent event и SQLite останавливал Monitor
+  по foreign key. Теперь `event_context` каждого browser-result импортируется
+  первым как каноническое событие, а древняя строка без какого-либо event context
+  учитывается как orphan и не может сорвать cold start. На копии production
+  state восстановлено 171 событие и 178 account-results, orphan-записей — 0.
 - Нули во вкладке «Аналитика», пустой список активных колёс, устаревшее время
   обхода и GitHub `403` имели общий источник: Control Center загружал семь
   GitHub-файлов каждые пять секунд и повторял синхронную загрузку в callback.

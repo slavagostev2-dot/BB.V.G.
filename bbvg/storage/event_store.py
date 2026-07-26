@@ -1659,6 +1659,7 @@ class EventStore:
         imported = 0
         aliases = 0
         results_imported = 0
+        orphan_results_skipped = 0
         active = state.get("active_wheels")
         active = active if isinstance(active, dict) else {}
         active_by_action: dict[tuple[str, int], dict[str, Any]] = {}
@@ -1697,6 +1698,27 @@ class EventStore:
                     entry["first_seen_at"] = first_seen
                     entry["statuses"] = statuses
                 candidates.append(entry)
+        legacy_results = state.get("auto_participation_events")
+        if isinstance(legacy_results, dict):
+            for raw in legacy_results.values():
+                if not isinstance(raw, dict):
+                    continue
+                context = raw.get("event_context")
+                if not isinstance(context, dict):
+                    continue
+                entry = dict(context)
+                wheel = str(
+                    entry.get("wheel_key")
+                    or raw.get("wheel_key")
+                    or entry.get("identifier")
+                    or ""
+                ).strip().casefold()
+                if not wheel:
+                    continue
+                entry["wheel_key"] = wheel
+                entry.setdefault("identifier", wheel)
+                entry.setdefault("status", "legacy_result_context")
+                candidates.append(entry)
         observed_ids = {
             event_id_from_entry(item)
             for item in candidates
@@ -1732,7 +1754,6 @@ class EventStore:
                     status="legacy_sent_unverified",
                     sent_at=notified_at,
                 )
-        legacy_results = state.get("auto_participation_events")
         if isinstance(legacy_results, dict):
             for raw_token, raw in legacy_results.items():
                 if not isinstance(raw, dict):
@@ -1790,6 +1811,13 @@ class EventStore:
                         attempt_count=max(1, attempt_count),
                         artifact_url=str(raw.get("artifact_url") or ""),
                     )
+                except sqlite3.IntegrityError:
+                    # Very old result-only rows may not carry enough generation
+                    # context to create their parent event. Preserve startup and
+                    # report the skipped orphan instead of losing all migration
+                    # progress through one foreign-key violation.
+                    orphan_results_skipped += 1
+                    continue
                 except (KeyError, ValueError):
                     continue
                 results_imported += 1
@@ -1797,6 +1825,7 @@ class EventStore:
             "events_imported": imported,
             "legacy_aliases": aliases,
             "account_results_imported": results_imported,
+            "orphan_account_results_skipped": orphan_results_skipped,
         }
 
     def day_report(self, day: str) -> list[dict[str, Any]]:
