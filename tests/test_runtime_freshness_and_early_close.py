@@ -7,6 +7,7 @@ from pathlib import Path
 import admin_bot
 import betboom_account_participation
 import monitor
+from bbvg.bot.foundation import PanelFoundationMixin
 from bbvg.bot.interface import PanelInterfaceRuntime
 
 
@@ -44,6 +45,65 @@ def test_control_center_reads_live_runtime_branches(monkeypatch) -> None:
 
     interface.get_file = fail  # type: ignore[method-assign]
     assert interface._monitor_status() == status
+    assert interface._monitor_status_from_cache is True
+
+
+def test_intelligence_state_keeps_nonzero_snapshot_on_github_failure() -> None:
+    panel = object.__new__(PanelFoundationMixin)
+    expected = {
+        "version": 1,
+        "last_run_summary": {
+            "sources_scanned": 170,
+            "references_found": 312,
+        },
+        "candidates": {},
+        "edges": {},
+        "runs": [],
+    }
+    panel.get_file = lambda path: (json.dumps(expected), "blob")  # type: ignore[method-assign]
+    assert panel.intelligence_state()["last_run_summary"]["sources_scanned"] == 170
+
+    def fail(*_args, **_kwargs):
+        raise RuntimeError("temporary GitHub failure")
+
+    panel.get_file = fail  # type: ignore[method-assign]
+    recovered = panel.intelligence_state()
+    assert recovered["last_run_summary"]["sources_scanned"] == 170
+    assert recovered["last_run_summary"]["references_found"] == 312
+
+
+def test_stale_monitor_heartbeat_is_not_described_as_stopped_scan() -> None:
+    panel = object.__new__(PanelInterfaceRuntime)
+    sent: list[str] = []
+    old = (datetime.now(UTC) - timedelta(minutes=37)).isoformat()
+    panel.snapshot = lambda force=False: type(  # type: ignore[method-assign]
+        "Snapshot",
+        (),
+        {"fast": ["one"], "nightly": [], "state": {}},
+    )()
+    panel._monitor_status = lambda: {  # type: ignore[method-assign]
+        "last_successful_iteration_at": old,
+        "checked_sources": 169,
+        "reachable_sources": 169,
+        "source_errors": 0,
+        "iteration": 83,
+        "last_iteration_duration_seconds": 29,
+    }
+    panel.load_source_registry = lambda: {"summary": {"total": 169}}  # type: ignore[method-assign]
+    panel.workflow_run = lambda workflow: {"status": "in_progress"}  # type: ignore[method-assign]
+    panel._collect_current_wheels = lambda: []  # type: ignore[method-assign]
+    panel.is_admin = lambda: False  # type: ignore[method-assign]
+    panel.with_nav = lambda rows=None: {"inline_keyboard": rows or []}  # type: ignore[method-assign]
+    panel.send = lambda text, **kwargs: sent.append(text)  # type: ignore[method-assign]
+
+    panel.show_status()
+
+    text = sent[-1]
+    assert "Monitor запущен; публикация свежей телеметрии задерживается" in text
+    assert "Последний подтверждённый обход" in text
+    assert "Номер подтверждённого цикла: <b>83</b>" in text
+    assert "Длительность полного обхода: <b>29 сек.</b>" in text
+    assert "Последняя проверка каналов" not in text
 
 
 def test_active_button_miss_is_retryable_until_page_closes() -> None:

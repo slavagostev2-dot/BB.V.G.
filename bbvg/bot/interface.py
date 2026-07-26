@@ -117,12 +117,14 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             if not isinstance(value, dict):
                 raise ValueError("monitor status is not an object")
             self._last_verified_monitor_status = dict(value)
+            self._monitor_status_from_cache = False
             return value
         except Exception as exc:
             print(
                 "WARNING monitor status refresh kept last verified value: "
                 f"{type(exc).__name__}: {exc}"
             )
+            self._monitor_status_from_cache = True
             cached = getattr(self, "_last_verified_monitor_status", {})
             return dict(cached) if isinstance(cached, dict) else {}
 
@@ -282,16 +284,47 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
         last = status.get("last_successful_iteration_at")
         fresh = self.parse_dt(last)
         working = bool(fresh and datetime.now(UTC) - fresh < timedelta(minutes=20))
+        run: dict[str, Any] = {}
+        if not working:
+            try:
+                run = self.workflow_run("monitor.yml")
+            except Exception:
+                run = {}
+        run_status = str(run.get("status") or "")
+        run_conclusion = str(run.get("conclusion") or "")
+        if working:
+            state_text = "🟢 каналы проверяются по расписанию"
+        elif run_status == "in_progress":
+            state_text = (
+                "🟡 Monitor запущен; публикация свежей телеметрии задерживается"
+            )
+        elif run_status in {"queued", "waiting", "pending"}:
+            state_text = "🟡 Monitor ожидает запуска"
+        elif run_status == "completed" and run_conclusion not in {"", "success"}:
+            state_text = "🔴 последний запуск Monitor завершился с ошибкой"
+        else:
+            state_text = "🟡 нет свежего подтверждения работы Monitor"
         lines = [
             "✅ <b>Проверка работы системы</b>",
             "",
-            f"Состояние: {'🟢 каналы проверяются по расписанию' if working else '🟡 данные проверки задерживаются'}",
-            f"Последняя проверка каналов: <b>{self.fmt_dt(last)}</b> ({self.age_text(last)})",
+            f"Состояние: {state_text}",
+            f"Последний подтверждённый обход: <b>{self.fmt_dt(last)}</b> ({self.age_text(last)})",
             "",
             f"Настроено каналов: <b>{configured}</b>",
             f"Проверено в последнем цикле: <b>{checked}</b>",
             f"Доступно: <b>{reachable}</b>",
         ]
+        iteration = int(status.get("iteration", 0) or 0)
+        duration = int(status.get("last_iteration_duration_seconds", 0) or 0)
+        if iteration:
+            lines.append(f"Номер подтверждённого цикла: <b>{iteration}</b>")
+        if duration:
+            lines.append(f"Длительность полного обхода: <b>{duration} сек.</b>")
+        if getattr(self, "_monitor_status_from_cache", False):
+            lines.append(
+                "ℹ️ Сейчас показан последний проверенный снимок: "
+                "GitHub временно не отдал более свежий."
+            )
         if errors:
             lines.append(f"Требуют внимания: <b>{errors}</b>")
         lines.append(f"Активных колёс: <b>{len(self._collect_current_wheels())}</b>")
