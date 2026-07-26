@@ -81,7 +81,8 @@ compatibility API и запрещены preflight. В production сохраня�
 
 Отслеживаемые JSON разделяются на:
 
-- authoritative runtime state (`state.json`, `source_stats.json`,
+- authoritative compatibility runtime state in branch `runtime-state`
+  (`state.json`, `source_stats.json`,
   `source_health.json`);
 - зашифрованное приватное состояние (`bot_private_state.enc.json`);
 - очередь и delivery ledger (`admin_action_queue.json`,
@@ -110,3 +111,4 @@ compatibility API и запрещены preflight. В production сохраня�
 
 Workflow с явной пометкой `archived` и Mini App archive guard сохраняются
 намеренно, но не имеют schedule и не входят в production-контур.
+
