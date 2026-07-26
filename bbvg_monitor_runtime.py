@@ -646,20 +646,14 @@ def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
     return revalidate_active_wheels(state, current)
 
 
-def _recovered_notification_state(entry: dict, current) -> str:
-    """Return send/defer/suppress for one recovered initial notification."""
+def _recovered_notification_expired(entry: dict, current) -> bool:
+    """Treat explicit event windows as authoritative for recovery delivery."""
 
     deadline = monitor.parse_datetime(entry.get("deadline"))
     if deadline is not None and deadline <= current:
-        return "suppress"
+        return True
     expires_at = monitor.parse_datetime(entry.get("expires_at"))
-    if expires_at is None or expires_at <= current:
-        return "suppress"
-    if str(entry.get("verification_status") or "") != str(
-        monitor.WHEEL_VERIFICATION_CONFIRMED
-    ):
-        return "defer"
-    return "send"
+    return expires_at is not None and expires_at <= current
 
 
 def _deliver_recovered_initial_notifications(
@@ -670,15 +664,12 @@ def _deliver_recovered_initial_notifications(
     current = current or monitor.now_utc()
     sent = 0
     failed = 0
-    deferred = 0
-    suppressed = 0
     changed = False
     mappings = monitor.load_identifier_sources()
     for key, entry in list(state.setdefault("active_wheels", {}).items()):
         if not isinstance(entry, dict) or not entry.get("recovered_initial_notification_pending_at"):
             continue
-        decision = _recovered_notification_state(entry, current)
-        if decision == "suppress":
+        if _recovered_notification_expired(entry, current):
             entry.pop("recovered_initial_notification_pending_at", None)
             entry.pop("recovered_initial_notification_reason", None)
             entry.pop("recovered_initial_notification_error", None)
@@ -686,11 +677,7 @@ def _deliver_recovered_initial_notifications(
             entry["recovered_initial_notification_suppression_reason"] = (
                 "recovered_event_window_expired_before_authoritative_delivery"
             )
-            suppressed += 1
             changed = True
-            continue
-        if decision == "defer":
-            deferred += 1
             continue
         message = monitor.active_entry_message(entry)
         url = str(entry.get("url") or "").strip()
@@ -722,13 +709,7 @@ def _deliver_recovered_initial_notifications(
         entry["recovered_initial_notification_sent_at"] = current.isoformat()
         sent += 1
         changed = True
-    return {
-        "sent": sent,
-        "failed": failed,
-        "deferred": deferred,
-        "suppressed": suppressed,
-        "changed": changed,
-    }
+    return {"sent": sent, "failed": failed, "changed": changed}
 
 
 def process_active_without_page_verdict(state: dict, stats: dict):
@@ -782,12 +763,6 @@ def process_active_without_page_verdict(state: dict, stats: dict):
     )
     result["recovered_initial_notifications_failed"] = int(
         recovered_notifications.get("failed", 0) or 0
-    )
-    result["recovered_initial_notifications_deferred"] = int(
-        recovered_notifications.get("deferred", 0) or 0
-    )
-    result["recovered_initial_notifications_suppressed"] = int(
-        recovered_notifications.get("suppressed", 0) or 0
     )
     result["pending_total"] = pending_total
     return result
