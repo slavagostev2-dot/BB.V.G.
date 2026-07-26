@@ -6,7 +6,7 @@ import copy
 import html
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +28,7 @@ GITHUB_API_VERSION = "2022-11-28"
 RUNTIME_STATE_BRANCH = "runtime-state"
 RUNTIME_PUBLISH_ATTEMPTS = 5
 RUNTIME_PUBLISH_TIMEOUT_SECONDS = 20
+MISSING_ACTIVE_UNTIMED_TTL = timedelta(hours=2)
 EMERGENCY_NOTIFICATION_MARKER = Path(
     "/tmp/bbvg-auto-participation-emergency-notified"
 )
@@ -229,6 +230,37 @@ def _active_event_is_newer(remote: Any, local: Any) -> bool:
     return _record_timestamp(local) > _record_timestamp(remote)
 
 
+def _worker_can_restore_missing_active(
+    record: Any,
+    *,
+    current: datetime | None = None,
+) -> bool:
+    """Allow a worker to add lifecycle state only for a demonstrably live event.
+
+    The Monitor owns deletion of closed wheels. A delayed browser worker may still
+    publish durable account outcomes, but it must not recreate an active card after
+    the Monitor removed that generation. A concrete deadline is authoritative; an
+    expired deadline can never be extended by a synthetic two-hour expiry.
+    """
+
+    if not isinstance(record, dict):
+        return False
+    now = current or datetime.now(UTC)
+    now = now.astimezone(UTC) if now.tzinfo else now.replace(tzinfo=UTC)
+    deadline = _parse_datetime(record.get("deadline"))
+    if deadline is not None:
+        return deadline > now
+    expires_at = _parse_datetime(record.get("expires_at"))
+    if expires_at is None or expires_at <= now:
+        return False
+    event_at = _parse_datetime(record.get("server_start_at"))
+    if event_at is None:
+        event_at = _parse_datetime(record.get("message_date"))
+    if event_at is None:
+        return False
+    return event_at >= now - MISSING_ACTIVE_UNTIMED_TTL
+
+
 def _suppress_delivered_recovery_pending(record: Any) -> bool:
     """Do not resurrect a recovery notification after it was already delivered."""
 
@@ -352,6 +384,8 @@ def _merge_record_collection(
 def merge_auto_participation_state(
     remote_state: dict[str, Any],
     local_state: dict[str, Any],
+    *,
+    current: datetime | None = None,
 ) -> dict[str, Any]:
     """Merge one workflow outcome into the latest monitor state.
 
@@ -363,6 +397,8 @@ def merge_auto_participation_state(
     remote = remote_state if isinstance(remote_state, dict) else {}
     local = local_state if isinstance(local_state, dict) else {}
     merged = copy.deepcopy(remote)
+    now = current or datetime.now(UTC)
+    now = now.astimezone(UTC) if now.tzinfo else now.replace(tzinfo=UTC)
 
     for collection_name in (
         "auto_participation_events",
@@ -386,20 +422,23 @@ def merge_auto_participation_state(
             key = str(raw_key).casefold()
             if not isinstance(raw_item, dict):
                 continue
-            current = active.get(key)
-            if not isinstance(current, dict):
-                active[key] = copy.deepcopy(raw_item)
+            current_item = active.get(key)
+            if not isinstance(current_item, dict):
+                if _worker_can_restore_missing_active(raw_item, current=now):
+                    active[key] = copy.deepcopy(raw_item)
                 continue
-            if _active_event_is_newer(current, raw_item):
-                updated = copy.deepcopy(current)
+            if _active_event_is_newer(current_item, raw_item):
+                if not _worker_can_restore_missing_active(raw_item, current=now):
+                    continue
+                updated = copy.deepcopy(current_item)
                 updated.update(copy.deepcopy(raw_item))
                 active[key] = updated
                 continue
-            updated = copy.deepcopy(current)
+            updated = copy.deepcopy(current_item)
             success_already_confirmed = bool(
-                current.get("participating")
-                or current.get("auto_participation_confirmed_at")
-                or str(current.get("auto_participation_status") or "").casefold() in SUCCESS_STATUSES
+                current_item.get("participating")
+                or current_item.get("auto_participation_confirmed_at")
+                or str(current_item.get("auto_participation_status") or "").casefold() in SUCCESS_STATUSES
             )
             incoming_success = bool(
                 raw_item.get("participating")
@@ -428,6 +467,8 @@ def merge_auto_participation_state(
         _suppress_delivered_recovery_pending(item)
     if active:
         merged["active_wheels"] = active
+    else:
+        merged.pop("active_wheels", None)
 
     for collection_name in ("button_contexts", "participating_wheels"):
         remote_rows = remote.get(collection_name)
@@ -750,6 +791,7 @@ def self_test() -> None:
                 "action_id": 989,
                 "server_start_at": "2026-07-22T18:26:05+00:00",
                 "message_date": "2026-07-22T18:27:00+00:00",
+                "deadline": "2026-07-22T19:30:00+00:00",
                 "participating": True,
             }
         }
@@ -757,9 +799,36 @@ def self_test() -> None:
     recurring_merged = merge_auto_participation_state(
         recurring_remote,
         recurring_local,
+        current=datetime(2026, 7, 22, 18, 40, tzinfo=UTC),
     )
     assert recurring_merged["active_wheels"]["zonertw5"]["action_id"] == 989
     assert recurring_merged["active_wheels"]["zonertw5"]["participating"] is True
+
+    stale_missing = {
+        "active_wheels": {
+            "over": {
+                "wheel_key": "over",
+                "action_id": 1052,
+                "server_start_at": "2026-07-26T11:55:26.955000+00:00",
+                "deadline": "2026-07-26T12:15:26.955000+00:00",
+                "expires_at": "2026-07-26T18:43:28.809501+00:00",
+                "participating": True,
+            }
+        },
+        "auto_participation_events": {
+            "evt:stale": {
+                "status": "participated",
+                "attempted_at": "2026-07-26T12:09:00+00:00",
+            }
+        },
+    }
+    stale_merged = merge_auto_participation_state(
+        {"active_wheels": {}},
+        stale_missing,
+        current=datetime(2026, 7, 26, 16, 45, tzinfo=UTC),
+    )
+    assert "over" not in stale_merged.get("active_wheels", {})
+    assert stale_merged["auto_participation_events"]["evt:stale"]["status"] == "participated"
 
     delivered_remote = {
         "active_wheels": {
