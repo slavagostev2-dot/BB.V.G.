@@ -1,6 +1,20 @@
 {
   "account_attempts": [
     {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260726T150630484458Z-9ef80adf9423",
+      "attempt_id": "2d4b674e8a81b1aab7bf9f2618ba7bd33111999ede6acbc735de19126335297d",
+      "confidence": 55,
+      "confirmation": "workflow_state",
+      "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
+      "event_id": "evt:b0adaa18defe14719bbb",
+      "finished_at": "2026-07-26T15:06:00.244544+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-07-26T15:07:01.897635+00:00",
+      "started_at": "2026-07-26T15:06:00.244544+00:00",
+      "status": "button_not_found"
+    },
+    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260726T150248012932Z-9f9eeb373647",
       "attempt_id": "34fa90c48efc727a89ad06e4716708891e2a2056dcd0f0e5361fbcff53a8a507",
@@ -103,17 +117,17 @@
     {
       "account_key": "vyacheslav_primary",
       "account_label": "Аккаунт 1",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260726T150512997544Z-dcf65948208f",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260726T150630484458Z-9ef80adf9423",
       "attempt_count": 1,
       "confidence": 55,
       "confirmation": "workflow_state",
       "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
       "event_id": "evt:b0adaa18defe14719bbb",
-      "finished_at": "2026-07-26T15:04:58.992174+00:00",
+      "finished_at": "2026-07-26T15:06:00.244544+00:00",
       "owner_id": "vyacheslav",
       "started_at": "2026-07-26T15:04:58.992174+00:00",
       "status": "button_not_found",
-      "updated_at": "2026-07-26T15:05:44.277669+00:00"
+      "updated_at": "2026-07-26T15:07:01.897635+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -128,7 +142,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-26T15:05:13.564690+00:00",
       "status": "button_not_found",
-      "updated_at": "2026-07-26T15:05:44.279311+00:00"
+      "updated_at": "2026-07-26T15:07:01.898941+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -143,7 +157,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-26T15:05:28.909170+00:00",
       "status": "button_not_found",
-      "updated_at": "2026-07-26T15:05:44.280913+00:00"
+      "updated_at": "2026-07-26T15:07:01.900231+00:00"
     }
   ],
   "action_id": 1039,
@@ -366,6 +380,21 @@
       "transition_id": "f2b367780ea6c405ac6bc79835620e3d26ce3304b6c8bfe899dd4dcb55d5c054"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:2d4b674e8a81b1aab7bf9f2618ba7bd33111999ede6acbc735de19126335297d",
+      "occurred_at": "2026-07-26T15:06:00.244544+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260726T150630484458Z-9ef80adf9423",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "button_not_found"
+      },
+      "stage": "account_result",
+      "transition_id": "fbc912c772d6405123bed47c7b833b96a31af59b2bfdd79ef809b3297d7fbf52"
+    },
+    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:ddb45b5a46c696d1ad9bfb6f8101e0c4a020572755b245283f26c5e14208671c",
       "occurred_at": "2026-07-26T15:04:58.992174+00:00",
       "payload": {
@@ -381,7 +410,7 @@
       "transition_id": "fe5c87a3ab52e139e32b05ff91f38403c451ed8c4e670e03ba30dcb34495624d"
     }
   ],
-  "updated_at": "2026-07-26T15:05:44.275538+00:00",
+  "updated_at": "2026-07-26T15:07:01.895851+00:00",
   "wheel_key": "helin",
   "workflow_started_at": "2026-07-26T15:03:03.298355+00:00"
 }
