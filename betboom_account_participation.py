@@ -24,18 +24,18 @@ ACCOUNT_ORDER = 20
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
 TRANSIENT_STATUSES = {
     "browser_error",
+    "button_not_found",
     "unconfirmed",
     "timeout",
     "navigation_timeout",
     "page_timeout",
 }
 TERMINAL_FAILURE_STATUSES = {
-    "button_not_found",
     "participation_closed",
     "not_eligible",
     "rejected",
 }
-RETRY_DELAY_MINUTES = 3
+RETRY_DELAY_MINUTES = 2
 MAX_COMPLETED_EVENTS = 500
 
 
@@ -549,3 +549,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

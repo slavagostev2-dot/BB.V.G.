@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import html
+import json
 import math
+import os
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import Any
@@ -106,9 +108,23 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
 
     def _monitor_status(self) -> dict[str, Any]:
         try:
-            return self.get_json_file("monitor_status.json", {})
-        except Exception:
-            return {}
+            branch = (
+                os.getenv("BBVG_RUNTIME_STATUS_BRANCH", "runtime-status").strip()
+                or "runtime-status"
+            )
+            text, _ = self.get_file("monitor_status.json", branch=branch)
+            value = json.loads(text)
+            if not isinstance(value, dict):
+                raise ValueError("monitor status is not an object")
+            self._last_verified_monitor_status = dict(value)
+            return value
+        except Exception as exc:
+            print(
+                "WARNING monitor status refresh kept last verified value: "
+                f"{type(exc).__name__}: {exc}"
+            )
+            cached = getattr(self, "_last_verified_monitor_status", {})
+            return dict(cached) if isinstance(cached, dict) else {}
 
     @staticmethod
     def _normalize_page(page: str) -> str:

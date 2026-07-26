@@ -183,8 +183,21 @@ class AdminBot:
         return content, str(data.get("sha") or "")
 
     def get_json_file(self, path: str, default: dict[str, Any]) -> dict[str, Any]:
+        runtime_state_files = {
+            "state.json",
+            "source_stats.json",
+            "source_health.json",
+            "unknown_timer_samples.json",
+            "ai_runtime_state.json",
+        }
+        branch = None
+        if path in runtime_state_files:
+            branch = (
+                os.getenv("BBVG_RUNTIME_STATE_BRANCH", "runtime-state").strip()
+                or "runtime-state"
+            )
         try:
-            text, _ = self.get_file(path)
+            text, _ = self.get_file(path, branch=branch)
             value = json.loads(text)
         except Exception as exc:
             print(f"WARNING read {path}: {type(exc).__name__}: {exc}")

@@ -22,7 +22,7 @@ import monitor_data as data_store
 import telegram_transport
 import wheel_publications_v2
 from bbvg import reconciliation
-from bbvg.storage import EventStore
+from bbvg.storage import EventStore, event_id_from_entry
 
 
 ROOT = Path(__file__).resolve().parent
@@ -1166,6 +1166,44 @@ def process_active_wheels(state: dict, stats: dict) -> dict[str, int | bool]:
                     if isinstance(participant, dict):
                         participant["expires_at"] = participation_expiry(deadline, current=current).isoformat()
                 if inspection.status == "inactive":
+                    event_id = event_id_from_entry(entry, wheel_key=key)
+                    closed_early = bool(
+                        deadline and current + timedelta(minutes=1) < deadline
+                    )
+                    try:
+                        event_store().record_transition(
+                            event_id,
+                            "wheel_closed",
+                            occurred_at=current,
+                            payload={
+                                "reason": "betboom_page_inactive",
+                                "closed_early": closed_early,
+                                "advertised_deadline": (
+                                    deadline.isoformat() if deadline else None
+                                ),
+                                "method": inspection.method[:300],
+                            },
+                            dedupe_key="active_page_revalidation",
+                        )
+                    except Exception as exc:
+                        entry["ledger_close_error"] = (
+                            f"{type(exc).__name__}: {exc}"[:300]
+                        )
+                    completed = dict(entry)
+                    completed["closed_at"] = current.isoformat()
+                    completed["close_reason"] = "betboom_page_inactive"
+                    completed["closed_early"] = closed_early
+                    completed["expires_at"] = (
+                        current + timedelta(hours=24)
+                    ).isoformat()
+                    state.setdefault("recently_completed_wheels", {})[key] = completed
+                    _finalize_closed_account_outcomes(
+                        state,
+                        key,
+                        entry,
+                        current=current,
+                        closed_early=closed_early,
+                    )
                     active.pop(key, None)
                     result["removed"] = int(result["removed"]) + 1
                     result["changed"] = True
@@ -1239,6 +1277,91 @@ def process_active_wheels(state: dict, stats: dict) -> dict[str, int | bool]:
                 result["unknown_reminders"] = int(result["unknown_reminders"]) + 1
                 result["changed"] = True
     return result
+
+
+def _finalize_closed_account_outcomes(
+    state: dict,
+    wheel_key_value: str,
+    entry: dict,
+    *,
+    current: datetime,
+    closed_early: bool,
+) -> int:
+    """Settle every enabled account when BetBoom closes an active generation.
+
+    A browser miss remains retryable while the page is active. Once the API/page
+    confirms closure, however, leaving that account without a terminal outcome
+    makes the Control Center wait forever and the user never receives step 3.
+    """
+
+    action_id = entry.get("action_id")
+    server_start_at = str(entry.get("server_start_at") or "").strip()
+    if action_id in (None, "") or not server_start_at:
+        return 0
+    base_token = (
+        f"{str(wheel_key_value).casefold()}#action:{action_id}:{server_start_at}"
+    )
+    registry = state.get("auto_participation_account_registry")
+    if not isinstance(registry, dict):
+        return 0
+    events = state.setdefault("auto_participation_events", {})
+    settled = 0
+    success_statuses = {
+        "participated",
+        "already_participating",
+        "already_marked_participating",
+        "already_marked_in_bot",
+    }
+    for account_key, raw_account in registry.items():
+        if not isinstance(raw_account, dict) or raw_account.get("enabled") is False:
+            continue
+        normalized_account = str(
+            raw_account.get("account_key") or account_key
+        ).strip()
+        if not normalized_account:
+            continue
+        token = (
+            base_token
+            if normalized_account == "vyacheslav_primary"
+            else f"{base_token}#account:{normalized_account}"
+        )
+        previous = events.get(token)
+        previous = dict(previous) if isinstance(previous, dict) else {}
+        if str(previous.get("status") or "").casefold() in success_statuses:
+            continue
+        previous.update(
+            {
+                "wheel_key": str(wheel_key_value).casefold(),
+                "event_token": base_token,
+                "account_key": normalized_account,
+                "account_label": str(
+                    raw_account.get("account_label") or normalized_account
+                ),
+                "account_owner": str(
+                    raw_account.get("account_owner") or "unknown"
+                ),
+                "account_order": int(raw_account.get("account_order", 999) or 999),
+                "status": "participation_closed",
+                "detail": (
+                    "BetBoom завершил колесо раньше указанного срока"
+                    if closed_early
+                    else "BetBoom подтвердил завершение колеса"
+                ),
+                "attempted_at": str(
+                    previous.get("attempted_at") or current.isoformat()
+                ),
+                "finished_at": current.isoformat(),
+                "retry_allowed": False,
+                "bot_failure_pending_at": current.isoformat(),
+                "bot_failure_sync_status": "waiting_for_control_center",
+                "bot_failure_sync_version": 1,
+                "bot_failure_status": "participation_closed",
+            }
+        )
+        events[token] = previous
+        settled += 1
+    return settled
+
 
 
 def register_button_context(

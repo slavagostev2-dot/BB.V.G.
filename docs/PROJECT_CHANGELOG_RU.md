@@ -1,3 +1,11 @@
+# 2026-07-26 — live runtime snapshot, active revalidation и terminal outcomes
+
+- Вкладка «Работа системы» читает heartbeat Monitor из `runtime-status` и сохраняет последний проверенный результат при временной ошибке.
+- Оперативные state/health/stats публикуются file-level CAS в `runtime-state`, а не коммитами detached Monitor в `main`.
+- При активном колесе production revalidation выполняется не реже раза в три минуты.
+- `button_not_found` остаётся retryable; при подтверждённом закрытии каждый аккаунт без success получает terminal `participation_closed`.
+- Добавлены regression-тесты live branches, verified cache, retry и досрочного закрытия.
+
 # BB V.G. — журнал значимых изменений проекта
 
 Этот документ читается после `AGENTS.md`. Он фиксирует изменения поведения, архитектуры, структуры, workflow, состояния и эксплуатации. Новые записи добавляются сверху.
