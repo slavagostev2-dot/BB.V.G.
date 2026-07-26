@@ -215,7 +215,6 @@ def test_monitor_runtime_state_isolated_and_active_interval_capped() -> None:
         encoding="utf-8"
     )
     assert "refs/heads/runtime-state" in workflow
-    assert "-f branch=runtime-state" in workflow
+    assert "--runtime-state-branch runtime-state" in workflow
     assert 'git push origin "HEAD:${GITHUB_REF_NAME:-main}"' not in workflow
     assert "value = min(value, 3)" in workflow
-
