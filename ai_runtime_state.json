@@ -1,7 +1,7 @@
 {
   "cache": {
     "7b603dee8eb1beb071d61a08e11a78d9641ef4d6899f511eb2ecab01250dfd67": {
-      "expires_at": 1785003753.1938238,
+      "expires_at": 1785051344.499756,
       "text": "{\n  \"summary\": \"Критическая ошибка: панель управления не обновляла статус более 80 минут.\",\n  \"impact\": \"Бот перестал принимать и обрабатывать команды пользователей, что делает систему неработоспособной.\",\n  \"recommended_action\": \"Проверить heartbeat Control Center и последний workflow панели.\",\n  \"confidence\": \"high\"\n}"
     }
   },
@@ -1467,10 +1467,20 @@
       "output_sha256": "bb7cba9c7da5f1c1fe6c7ad6e90c589860c0f54da7a8019baf4a839dbee29296",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1785050444.499756,
+      "feature": "health_inspector",
+      "id": "7ab31a794edd414da29d3e1f66a17b89",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "bb7cba9c7da5f1c1fe6c7ad6e90c589860c0f54da7a8019baf4a839dbee29296",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1785002853.1938238
+    1785050444.499756
   ],
   "version": 1
 }

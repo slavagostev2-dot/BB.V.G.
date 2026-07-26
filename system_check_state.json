@@ -1,9 +1,9 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 80,
-    "last_heartbeat_at": "2026-07-25T16:46:54.874177+00:00",
-    "started_at": "2026-07-25T16:31:41.046302+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-26T07:19:52.766998+00:00",
+    "started_at": "2026-07-26T07:19:50.283286+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,12 +13,12 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "04da478223ea4b5baa2dab95d9d43746",
+    "decision_id": "7ab31a794edd414da29d3e1f66a17b89",
     "finding_count": 1,
     "finding_kinds": [
       "admin_panel_stale"
     ],
-    "generated_at": "2026-07-25T18:07:33.945398+00:00",
+    "generated_at": "2026-07-26T07:20:45.194063+00:00",
     "impact": "Бот перестал принимать и обрабатывать команды пользователей, что делает систему неработоспособной.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -39,10 +39,10 @@
     "recorded_configured_sources": 170,
     "recorded_nightly_sources": 1,
     "recorded_primary_sources": 169,
-    "source_tier_last_run_at": "2026-07-25T16:29:23.097444+00:00",
+    "source_tier_last_run_at": "2026-07-26T00:15:45.049968+00:00",
     "source_tier_policy": "manual_nightly_only",
     "transport_accounted_sources": 170,
-    "transport_checked_at": "2026-07-25T16:29:26.475983+00:00",
+    "transport_checked_at": "2026-07-25T23:47:12.020174+00:00",
     "transport_domain": "telegram.me",
     "transport_status": "success"
   },
@@ -52,7 +52,7 @@
   },
   "check_matrix": {
     "automations": "ok",
-    "bot_panel": "failed",
+    "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
@@ -63,27 +63,27 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-25T18:07:31.889585+00:00",
+  "checked_at": "2026-07-26T07:20:43.183444+00:00",
   "discovery": {
     "active_size": 169,
-    "candidate_count": 516,
+    "candidate_count": 552,
     "catalog_size": 1,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-07-23T23:42:43.034857+00:00",
+    "discovery_last_run_at": "2026-07-25T23:46:50.133485+00:00",
     "domain": "telegram.me",
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-07-23T21:47:43.023869+00:00",
+    "intelligence_last_run_at": "2026-07-25T21:12:55.556880+00:00",
     "intelligence_summary": {
       "empty_sources": 0,
       "error_types": {},
       "errors": 0,
       "known_sources": 170,
-      "references_found": 304,
-      "relevant_candidates": 163,
+      "references_found": 312,
+      "relevant_candidates": 176,
       "sources_scanned": 170,
       "strong_candidates": 1,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 163,
+      "unique_candidates": 176,
       "verified_candidates": 150,
       "workers": 12
     }
@@ -101,25 +101,17 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "Последний живой сигнал был 80 минут назад.",
-      "kind": "admin_panel_stale",
-      "severity": "critical",
-      "subject": "",
-      "title": "Бот давно не принимает команды пользователей"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-25T16:46:54.874177+00:00",
+    "bot_panel_heartbeat": "2026-07-26T07:19:52.766998+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
     "reachable_sources": 169,
     "single_source": "system_check_state.json",
-    "status": "degraded",
+    "status": "ok",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
@@ -130,12 +122,12 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
+    "messages_attempted": 0,
     "opened": 0,
-    "resolved": 1
+    "resolved": 0
   },
   "incident_sequence": 119,
   "inventory": {
@@ -160,36 +152,36 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 169,
-    "checks_delta": 169,
-    "checks_total": 930438,
+    "checks_delta": 917932,
+    "checks_total": 917932,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "47dcdfa1c7e3cf3f178b5e3e7f30176b5a1fbf93",
-    "iteration": 91,
-    "last_iteration_at": "2026-07-25T18:02:40.757958+00:00",
+    "head_sha": "6e55815f64b01ffc2b6ca6fb3234c4f78b432858",
+    "iteration": 1,
+    "last_iteration_at": "2026-07-26T07:20:11.344051+00:00",
     "last_iteration_duration_seconds": 30,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-25T18:02:40.757958+00:00",
-    "last_successful_checks_total": 930438,
-    "last_successful_iteration_at": "2026-07-25T18:02:40.757958+00:00",
+    "last_process_heartbeat_at": "2026-07-26T07:20:11.344051+00:00",
+    "last_successful_checks_total": 917932,
+    "last_successful_iteration_at": "2026-07-26T07:20:11.344051+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "30165739942",
-    "run_started_at": "2026-07-25T16:30:11.669835+00:00",
+    "run_id": "30192587577",
+    "run_started_at": "2026-07-26T07:19:41.130856+00:00",
     "source_errors": 0,
-    "stats_counter_reset": false,
+    "stats_counter_reset": true,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "30165739942"
+    "workflow_run_id": "30192587577"
   },
-  "monitor_age_minutes": 4,
-  "monitor_effective_heartbeat_at": "2026-07-25T18:02:40.757958+00:00",
+  "monitor_age_minutes": 0,
+  "monitor_effective_heartbeat_at": "2026-07-26T07:20:11.344051+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 74,
+    "entry_count": 76,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -243,7 +235,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
