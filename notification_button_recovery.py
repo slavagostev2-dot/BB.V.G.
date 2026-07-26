@@ -16,7 +16,7 @@ from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
 
 
 FAST_SYNC_INTERVAL_SECONDS = 5
-FAST_CACHE_REFRESH_SECONDS = 5
+FAST_CACHE_REFRESH_SECONDS = 30
 _AUTO_OUTCOME_DELIVERY_KIND = "auto_participation_outcome"
 _outcome_delivery_context = threading.local()
 

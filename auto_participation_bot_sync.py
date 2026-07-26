@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import base64
 import copy
+import html
 import json
 import os
 from datetime import datetime, timezone
@@ -18,11 +19,18 @@ UTC = timezone.utc
 DEFAULT_RECOVERY_RESULT = Path("/tmp/bbvg-auto-participation-recovery.json")
 PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
 PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
-SUCCESS_STATUSES = {"participated", "already_participating", "already_marked_participating", "already_marked_in_bot"}
+SUCCESS_STATUSES = {
+    "participated",
+    "already_participating",
+    "already_marked_participating",
+}
 GITHUB_API_VERSION = "2022-11-28"
 RUNTIME_STATE_BRANCH = "runtime-state"
 RUNTIME_PUBLISH_ATTEMPTS = 5
 RUNTIME_PUBLISH_TIMEOUT_SECONDS = 20
+EMERGENCY_NOTIFICATION_MARKER = Path(
+    "/tmp/bbvg-auto-participation-emergency-notified"
+)
 
 _AUTO_PARTICIPATION_FIELDS = {
     "participating",
@@ -574,6 +582,135 @@ def queue_confirmed_participation(
     return queue_recovery_outcomes(recovery_result_path)
 
 
+def _record_event_id(token: str, record: dict[str, Any]) -> str:
+    for value in (
+        record.get("canonical_event_id"),
+        record.get("event_id"),
+        record.get("event_token"),
+        token,
+    ):
+        base = str(value or "").split("#account:", 1)[0].strip()
+        if base.startswith("evt:"):
+            return base
+    context = record.get("event_context")
+    if isinstance(context, dict):
+        return event_id_from_entry(context)
+    return ""
+
+
+def emergency_notify_event(
+    state_path: Path,
+    raw_event_payload: str,
+    *,
+    marker_path: Path = EMERGENCY_NOTIFICATION_MARKER,
+) -> dict[str, Any]:
+    """Deliver an owner-scoped fallback when runtime-state cannot be published.
+
+    GitHub is only the normal hand-off transport between the ephemeral browser
+    worker and Control Center. If that transport is rate-limited after the
+    browser results already exist, do not silently discard the user outcome.
+    This fallback is deliberately restricted to the configured admin chat and
+    to Vyacheslav's accounts; accounts owned by another user are never mixed
+    into the message.
+    """
+
+    if marker_path.exists():
+        return {"status": "duplicate_suppressed", "sent": False}
+    try:
+        payload = json.loads(str(raw_event_payload or ""))
+    except json.JSONDecodeError:
+        return {"status": "invalid_event_payload", "sent": False}
+    if not isinstance(payload, dict):
+        return {"status": "invalid_event_payload", "sent": False}
+    event_id = str(
+        payload.get("event_id") or event_id_from_entry(payload)
+    ).strip()
+    state = _load_json(state_path, {})
+    events = state.get("auto_participation_events")
+    if not event_id or not isinstance(events, dict):
+        return {"status": "event_results_missing", "sent": False}
+
+    owner_results: dict[str, dict[str, Any]] = {}
+    for token, raw in events.items():
+        if not isinstance(raw, dict) or _record_event_id(str(token), raw) != event_id:
+            continue
+        account_key = str(raw.get("account_key") or "").strip()
+        owner = str(raw.get("account_owner") or "").strip()
+        if owner and owner != "vyacheslav":
+            continue
+        if account_key not in {"vyacheslav_primary", "vyacheslav_secondary"}:
+            continue
+        owner_results[account_key] = raw
+    expected = {"vyacheslav_primary", "vyacheslav_secondary"}
+    if not expected.issubset(owner_results):
+        return {
+            "status": "account_results_incomplete",
+            "sent": False,
+            "accounts": sorted(owner_results),
+        }
+
+    identifier = str(
+        payload.get("identifier") or payload.get("wheel_key") or "wheel"
+    ).strip()
+    lines = [
+        "⚠️ <b>Резервный итог автоучастия</b>",
+        "",
+        f"Колесо: <code>{html.escape(identifier)}</code>",
+        "GitHub временно не принял checkpoint, поэтому итог отправлен напрямую:",
+    ]
+    for key in ("vyacheslav_primary", "vyacheslav_secondary"):
+        record = owner_results[key]
+        label = html.escape(str(record.get("account_label") or key))
+        status = str(record.get("status") or "unknown").casefold()
+        if status == "participated":
+            outcome = "✅ участие принято автоматически"
+        elif status in {"already_participating", "already_marked_participating"}:
+            outcome = "✅ участие уже было принято и подтверждено BetBoom"
+        else:
+            detail = html.escape(
+                str(record.get("detail") or record.get("error_text") or status)[:160]
+            )
+            outcome = f"❌ участие не подтверждено: {detail}"
+        lines.append(f"• {label}: {outcome}")
+    lines.extend(("", f"Event ID: <code>{html.escape(event_id)}</code>"))
+    request: dict[str, Any] = {
+        "chat_id": os.environ["BOT_CHAT_ID"],
+        "text": "\n".join(lines),
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+    url = str(payload.get("url") or "").strip()
+    if url:
+        request["reply_markup"] = {
+            "inline_keyboard": [[{"text": "🎡 Открыть колесо", "url": url}]]
+        }
+    response = monitor.telegram_api("sendMessage", request)
+    message_id = (
+        response.get("result", {}).get("message_id")
+        if isinstance(response, dict)
+        and isinstance(response.get("result"), dict)
+        else None
+    )
+    marker_path.write_text(
+        json.dumps(
+            {
+                "event_id": event_id,
+                "message_id": message_id,
+                "sent_at": datetime.now(UTC).isoformat(),
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "status": "sent",
+        "sent": True,
+        "event_id": event_id,
+        "message_id": message_id,
+    }
+
+
 def self_test() -> None:
     success = {
         "wheel_key": "lent",
@@ -717,6 +854,12 @@ def main() -> int:
     parser.add_argument("--merge-remote", type=Path)
     parser.add_argument("--merge-output", type=Path)
     parser.add_argument("--publish-runtime-state", type=Path)
+    parser.add_argument("--emergency-notify-event", type=Path)
+    parser.add_argument(
+        "--emergency-notification-marker",
+        type=Path,
+        default=EMERGENCY_NOTIFICATION_MARKER,
+    )
     parser.add_argument(
         "--runtime-state-branch",
         default=os.getenv("BBVG_RUNTIME_STATE_BRANCH", RUNTIME_STATE_BRANCH),
@@ -749,6 +892,14 @@ def main() -> int:
         )
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
+    if args.emergency_notify_event:
+        result = emergency_notify_event(
+            args.emergency_notify_event,
+            os.getenv("BBVG_EVENT_PAYLOAD_JSON", ""),
+            marker_path=args.emergency_notification_marker,
+        )
+        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+        return 0 if bool(result.get("sent")) else 1
     result = queue_recovery_outcomes(Path(args.recovery_result))
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0

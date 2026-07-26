@@ -257,6 +257,7 @@ jobs:
 
       - name: Publish fast participation state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
@@ -340,9 +341,21 @@ jobs:
 
       - name: Persist participation state without losing concurrent monitor updates
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
+        id: final_runtime_publish
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
         run: >-
           python auto_participation_bot_sync.py
           --publish-runtime-state state.json
+
+      - name: Deliver owner-scoped emergency outcome after GitHub checkpoint failure
+        if: ${{ always() && steps.mode.outputs.probe != 'true' && steps.final_runtime_publish.outcome == 'failure' }}
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          BBVG_EVENT_PAYLOAD_JSON: ${{ inputs.event_payload }}
+        run: >-
+          python auto_participation_bot_sync.py
+          --emergency-notify-event state.json

@@ -1310,7 +1310,6 @@ def _finalize_closed_account_outcomes(
         "participated",
         "already_participating",
         "already_marked_participating",
-        "already_marked_in_bot",
     }
     for account_key, raw_account in registry.items():
         if not isinstance(raw_account, dict) or raw_account.get("enabled") is False:

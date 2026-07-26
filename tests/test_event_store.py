@@ -4,7 +4,13 @@ import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from bbvg.storage import EventStore, canonical_event_id, event_id_from_entry
+from bbvg.storage import (
+    EventStore,
+    canonical_event_id,
+    event_id_from_entry,
+    status_confidence,
+)
+from bbvg.storage.event_store import SUCCESS_STATUSES
 
 
 def _store(tmp_path: Path) -> EventStore:
@@ -169,6 +175,15 @@ def test_confirmed_success_is_monotonic_per_account(tmp_path: Path) -> None:
     assert result["status"] == "participated"
     assert result["attempt_count"] == 1
     assert len(_rows(store.path, "SELECT * FROM account_attempts")) == 2
+
+
+def test_telegram_only_mark_is_not_a_confirmed_account_success() -> None:
+    assert "already_marked_in_bot" not in SUCCESS_STATUSES
+    assert "already_participating" in SUCCESS_STATUSES
+    assert status_confidence("already_marked_in_bot", "") < status_confidence(
+        "participated",
+        "betboom_post_click",
+    )
 
 
 def test_accounts_and_notification_audit_are_isolated(tmp_path: Path) -> None:

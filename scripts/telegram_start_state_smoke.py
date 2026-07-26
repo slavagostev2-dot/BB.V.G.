@@ -66,9 +66,16 @@ def verify_failed_refresh_keeps_verified_snapshot() -> None:
     )
     panel.snapshot_value = existing
 
-    def fail_read(path: str) -> str:
+    def fail_read(
+        path: str,
+        *,
+        branch: str | None = None,
+        revision: str | None = None,
+    ) -> str:
+        del branch, revision
         raise RuntimeError(f"simulated read failure: {path}")
 
+    panel._branch_head_sha = lambda _branch: "a" * 40  # type: ignore[method-assign]
     panel._direct_get_file = fail_read  # type: ignore[method-assign]
     refreshed = panel.refresh_snapshot()
     assert refreshed is existing
@@ -79,9 +86,16 @@ def verify_failed_refresh_keeps_verified_snapshot() -> None:
 def verify_initial_failure_is_not_zero_state() -> None:
     panel = TelegramPanelRuntimeV41()
 
-    def fail_read(path: str) -> str:
+    def fail_read(
+        path: str,
+        *,
+        branch: str | None = None,
+        revision: str | None = None,
+    ) -> str:
+        del branch, revision
         raise RuntimeError(f"simulated read failure: {path}")
 
+    panel._branch_head_sha = lambda _branch: "a" * 40  # type: ignore[method-assign]
     panel._direct_get_file = fail_read  # type: ignore[method-assign]
     try:
         panel.refresh_snapshot()
@@ -101,7 +115,10 @@ def verify_populated_snapshot_remains_populated() -> None:
         "public_sources.txt": "source\n",
         "source_catalog.txt": "reserve\n",
     }
-    panel._direct_get_file = lambda path: values[path]  # type: ignore[method-assign]
+    panel._branch_head_sha = lambda _branch: "a" * 40  # type: ignore[method-assign]
+    panel._direct_get_file = (  # type: ignore[method-assign]
+        lambda path, *, branch=None, revision=None: values[path]
+    )
     snap = panel.refresh_snapshot()
     assert len(snap.fast) == 1
     assert len(snap.nightly) == 1

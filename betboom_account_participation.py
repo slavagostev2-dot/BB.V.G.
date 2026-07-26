@@ -513,7 +513,7 @@ def self_test() -> None:
         "action_id": 42,
         "server_start_at": "2026-07-22T12:00:00+00:00",
     }
-    assert _base_event_token(item) == "wheel#action:42:2026-07-22T12:00:00+00:00"
+    assert _base_event_token(item).startswith("evt:")
     assert _account_event_token(item).endswith("#account:vyacheslav_secondary")
     assert not _should_attempt(
         {"status": "participated"}, datetime(2026, 7, 22, tzinfo=UTC)

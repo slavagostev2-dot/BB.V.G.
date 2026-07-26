@@ -19,8 +19,8 @@ DEFAULT_BUSY_TIMEOUT_MS = 15_000
 SUCCESS_STATUSES = {
     "participated",
     "already_participated",
+    "already_participating",
     "already_marked_participating",
-    "already_marked_in_bot",
 }
 TERMINAL_FAILURE_STATUSES = {
     "button_not_found",
@@ -38,6 +38,7 @@ TRANSIENT_FAILURE_STATUSES = {
     "unknown",
     "workflow_dispatch_failed",
     "workflow_dispatch_timeout",
+    "already_marked_in_bot",
 }
 
 

@@ -300,6 +300,7 @@ def recover_collector_message_gaps(
         "recovered_messages": 0,
         "recovered_sources": {},
         "listing_failures_recovered": 0,
+        "namespace_resets": {},
         "changed": False,
     }
     fetch_one = direct_fetcher or (
@@ -335,20 +336,60 @@ def recover_collector_message_gaps(
         known_direct_ids = _known_direct_message_ids(state, normalized)
         known_direct_max = max(known_direct_ids, default=0)
         redirected_listing = bool(listed_ids and not direct_namespace_ids)
+        namespace_reset = False
+
+        def reset_namespace_cursor(reason: str) -> None:
+            nonlocal stored_cursor, namespace_reset
+            record["namespace_reset_from"] = stored_cursor
+            record["namespace_reset_to"] = known_direct_max
+            record["namespace_reset_at"] = monitor_module.now_utc().isoformat()
+            record["namespace_reset_reason"] = reason
+            stored_cursor = known_direct_max
+            namespace_reset = True
+            summary["namespace_resets"][source] = {
+                "from": record["namespace_reset_from"],
+                "to": known_direct_max,
+                "reason": reason,
+            }
+
         if (
             redirected_listing
             and known_direct_max > 0
             and stored_cursor > known_direct_max
         ):
-            record["namespace_reset_from"] = stored_cursor
-            record["namespace_reset_to"] = known_direct_max
-            record["namespace_reset_at"] = monitor_module.now_utc().isoformat()
-            record["namespace_reset_reason"] = "redirected_listing_id_mismatch"
-            stored_cursor = known_direct_max
-            summary.setdefault("namespace_resets", {})[source] = {
-                "from": record["namespace_reset_from"],
-                "to": known_direct_max,
-            }
+            reset_namespace_cursor("redirected_listing_id_mismatch")
+        elif known_direct_max > 0 and stored_cursor > known_direct_max:
+            # A collector listing may time out while its persisted cursor still
+            # belongs to a Telegram username that the collector once redirected
+            # to. Validate that suspicious cursor through the immutable post URL
+            # before using it as the base for future probes. Without this check a
+            # poisoned cursor such as kolesaBB=71862 makes the recovery probe an
+            # unrelated namespace forever and skips real posts 250, 251, ...
+            validation_completed = False
+            try:
+                stored_message = fetch_one(source, stored_cursor)
+                validation_completed = True
+            except Exception as exc:
+                stored_message = None
+                print(
+                    "WARNING collector stored cursor validation failed: "
+                    f"@{source}/{stored_cursor} {type(exc).__name__}: {exc}"
+                )
+            stored_identity = (
+                _message_identity(stored_message)
+                if stored_message is not None
+                else ("", 0)
+            )
+            stored_source = (
+                _message_url_source(stored_message)
+                if stored_message is not None
+                else ""
+            )
+            if validation_completed and (
+                stored_identity[1] != stored_cursor
+                or stored_source not in {"", normalized}
+            ):
+                reset_namespace_cursor("invalid_direct_cursor")
 
         probe_ids: list[int] = []
         if stored_cursor > 0 and page_max > stored_cursor:
@@ -359,15 +400,21 @@ def recover_collector_message_gaps(
                         break
         future_base = max(stored_cursor, page_max)
         if future_base > 0:
+            future_probe_limit = (
+                COLLECTOR_GAP_SCAN_LIMIT
+                if namespace_reset
+                else COLLECTOR_DIRECT_PROBE_LIMIT
+            )
             probe_ids.extend(
                 range(
                     future_base + 1,
-                    future_base + COLLECTOR_DIRECT_PROBE_LIMIT + 1,
+                    future_base + future_probe_limit + 1,
                 )
             )
         probe_ids = list(dict.fromkeys(probe_ids))
 
         recovered: list[Any] = []
+        consecutive_missing = 0
         for candidate in probe_ids:
             try:
                 message = fetch_one(source, candidate)
@@ -379,6 +426,11 @@ def recover_collector_message_gaps(
                 break
             if message is not None:
                 recovered.append(message)
+                consecutive_missing = 0
+            elif namespace_reset and candidate > future_base:
+                consecutive_missing += 1
+                if consecutive_missing >= 3:
+                    break
 
         authoritative_listed = [
             message
@@ -467,6 +519,7 @@ def recover_collector_message_gaps(
         "recovered_messages": summary["recovered_messages"],
         "recovered_sources": summary["recovered_sources"],
         "listing_failures_recovered": summary["listing_failures_recovered"],
+        "namespace_resets": summary["namespace_resets"],
     }
     return summary
 
