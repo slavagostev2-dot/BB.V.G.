@@ -494,7 +494,294 @@ class AdminBot:
                 f"   @{html.escape(source)}"
             )
             row: list[dict[str, str]] = []
-            if entry…3606 tokens truncated…      lines.append("• новых сильных кандидатов пока нет")
+            if entry.get("url"):
+                row.append({"text": f"🎡 {identifier[:18]}", "url": str(entry["url"])})
+            if key.casefold() not in participating_keys:
+                row.append({"text": "✅ Участвую", "callback_data": f"wheel:part:{key}"})
+            if row:
+                keyboard.append(row)
+            keyboard.append(
+                [
+                    {"text": "🔄 Проверить", "callback_data": f"wheel:check:{key}"},
+                    {"text": "🗑 Убрать", "callback_data": f"wheel:removeask:{key}"},
+                ]
+            )
+        keyboard.append([{"text": "🔄 Обновить список", "callback_data": "page:active"}])
+        self.send("\n".join(lines), reply_markup={"inline_keyboard": keyboard})
+
+    @staticmethod
+    def remaining(deadline: datetime | None) -> str:
+        if not deadline:
+            return "не определено"
+        delta = deadline.astimezone(UTC) - datetime.now(UTC)
+        seconds = int(delta.total_seconds())
+        if seconds <= 0:
+            return "время вышло"
+        hours, rem = divmod(seconds, 3600)
+        minutes = rem // 60
+        if hours:
+            return f"{hours} ч. {minutes} мин."
+        return f"{max(1, minutes)} мин."
+
+    def source_sets(self, snap: Snapshot) -> dict[str, list[str]]:
+        health = snap.health.get("sources", {})
+        quarantined = sorted(
+            [
+                name
+                for name, entry in health.items()
+                if isinstance(entry, dict) and entry.get("status") == "quarantined"
+            ],
+            key=str.casefold,
+        )
+        inactive: list[str] = []
+        now = datetime.now(UTC)
+        stats_sources = snap.stats.get("sources", {})
+        for source in snap.fast:
+            entry = stats_sources.get(source, {})
+            if not isinstance(entry, dict):
+                continue
+            reference = self.parse_dt(entry.get("last_wheel_post_at")) or self.parse_dt(
+                entry.get("first_checked_at")
+            )
+            if reference and now - reference >= timedelta(days=SOURCE_INACTIVITY_DAYS):
+                inactive.append(source)
+        return {
+            "fast": snap.fast,
+            "nightly": snap.nightly,
+            "quarantine": quarantined,
+            "inactive": sorted(inactive, key=str.casefold),
+        }
+
+    def show_sources(self) -> None:
+        snap = self.snapshot(force=True)
+        groups = self.source_sets(snap)
+        text = (
+            "📡 <b>Источники</b>\n\n"
+            f"FAST: {len(groups['fast'])}\n"
+            f"NIGHTLY: {len(groups['nightly'])}\n"
+            f"В карантине: {len(groups['quarantine'])}\n"
+            f"Без колёс {SOURCE_INACTIVITY_DAYS}+ дней: {len(groups['inactive'])}\n\n"
+            "Выберите список или добавьте источник."
+        )
+        self.send(
+            text,
+            reply_markup={
+                "inline_keyboard": [
+                    [
+                        {"text": f"⚡ FAST ({len(groups['fast'])})", "callback_data": "sl:fast:0"},
+                        {"text": f"🌙 NIGHTLY ({len(groups['nightly'])})", "callback_data": "sl:nightly:0"},
+                    ],
+                    [
+                        {"text": f"🟡 Карантин ({len(groups['quarantine'])})", "callback_data": "sl:quarantine:0"},
+                        {"text": f"📭 7+ дней ({len(groups['inactive'])})", "callback_data": "sl:inactive:0"},
+                    ],
+                    [{"text": "➕ Добавить источник", "callback_data": "source:add"}],
+                ]
+            },
+        )
+
+    def show_source_list(self, group: str, page: int = 0) -> None:
+        snap = self.snapshot(force=True)
+        groups = self.source_sets(snap)
+        rows = groups.get(group, [])
+        per_page = 10
+        page = max(0, min(page, max(0, (len(rows) - 1) // per_page)))
+        part = rows[page * per_page : (page + 1) * per_page]
+        title = {
+            "fast": "FAST",
+            "nightly": "NIGHTLY",
+            "quarantine": "Карантин",
+            "inactive": f"Без колёс {SOURCE_INACTIVITY_DAYS}+ дней",
+        }.get(group, group)
+        lines = [f"📡 <b>{html.escape(title)}</b>", ""]
+        keyboard: list[list[dict[str, str]]] = []
+        stats_sources = snap.stats.get("sources", {})
+        for source in part:
+            entry = stats_sources.get(source, {})
+            wheels = self.counter(entry, "wheel_posts")
+            lines.append(f"• @{html.escape(source)} — колёс: {wheels}")
+            keyboard.append(
+                [{"text": f"@{source}", "callback_data": f"sd:{source}"}]
+            )
+        if not part:
+            lines.append("Список пуст.")
+        nav: list[dict[str, str]] = []
+        if page > 0:
+            nav.append({"text": "◀️", "callback_data": f"sl:{group}:{page - 1}"})
+        if (page + 1) * per_page < len(rows):
+            nav.append({"text": "▶️", "callback_data": f"sl:{group}:{page + 1}"})
+        if nav:
+            keyboard.append(nav)
+        keyboard.append([{"text": "↩️ Источники", "callback_data": "page:sources"}])
+        self.send("\n".join(lines), reply_markup={"inline_keyboard": keyboard})
+
+    def show_source_detail(self, source: str) -> None:
+        source = self.safe_source(source)
+        snap = self.snapshot(force=True)
+        stats = self.merged_source_stats(snap).get(source, {})
+        health = snap.health.get("sources", {}).get(source, {})
+        discovery = snap.discovery.get("sources", {}).get(source, {})
+        mode = "FAST" if source.casefold() in {x.casefold() for x in snap.fast} else (
+            "NIGHTLY" if source.casefold() in {x.casefold() for x in snap.nightly} else "не настроен"
+        )
+        status = str(health.get("status") or discovery.get("status") or "нет данных")
+        wheels = self.counter(stats, "wheel_posts") or self.counter(discovery, "wheel_links_found")
+        score = int(stats.get("quality_score", 0) or 0)
+        text = (
+            f"📡 <b>@{html.escape(source)}</b>\n\n"
+            f"Режим: <b>{html.escape(mode)}</b>\n"
+            f"Статус: {html.escape(status)}\n"
+            f"Проверок: {self.counter(stats, 'checks')}\n"
+            f"Постов с колёсами: {wheels}\n"
+            f"Очки рейтинга: {score}\n"
+            f"Последнее колесо: {self.fmt_dt(stats.get('last_wheel_post_at') or discovery.get('latest_wheel_at'))}\n"
+            f"Последняя проверка: {self.fmt_dt(health.get('last_checked_at') or discovery.get('checked_at'))}\n"
+        )
+        keyboard: list[list[dict[str, str]]] = [
+            [{"text": "Открыть Telegram", "url": f"https://telegram.me/{source}"}],
+        ]
+        move_row: list[dict[str, str]] = []
+        if mode != "FAST":
+            move_row.append({"text": "⚡ В FAST", "callback_data": f"source:move:fast:{source}"})
+        if mode != "NIGHTLY":
+            move_row.append({"text": "🌙 В NIGHTLY", "callback_data": f"source:move:nightly:{source}"})
+        if move_row:
+            keyboard.append(move_row)
+        if status == "quarantined":
+            keyboard.append(
+                [{"text": "🟢 Снять карантин", "callback_data": f"source:clearq:{source}"}]
+            )
+        keyboard.append(
+            [{"text": "🗑 Удалить", "callback_data": f"source:removeask:{source}"}]
+        )
+        keyboard.append([{"text": "↩️ Источники", "callback_data": "page:sources"}])
+        self.send(text, reply_markup={"inline_keyboard": keyboard})
+
+    def show_ranking(self) -> None:
+        snap = self.snapshot(force=True)
+        rows: list[tuple[str, int]] = []
+        for source, entry in self.merged_source_stats(snap).items():
+            score = int(entry.get("quality_score", 0) or 0)
+            if score:
+                rows.append((source, score))
+        rows.sort(key=lambda item: (-item[1], item[0].casefold()))
+        lines = ["🏆 <b>Рейтинг каналов</b>", ""]
+        medals = ["🥇", "🥈", "🥉"]
+        for index, (source, score) in enumerate(rows[:15], 1):
+            mark = medals[index - 1] if index <= 3 else f"{index}."
+            lines.append(
+                f"{mark} <b>@{html.escape(source)}</b> — <b>{score} оч.</b>"
+            )
+        if not rows:
+            lines.append("Рейтинг появится после решения администратора по колесу.")
+        self.send(
+            "\n".join(lines),
+            reply_markup={
+                "inline_keyboard": [[{"text": "🔄 Обновить", "callback_data": "page:ranking"}]]
+            },
+        )
+
+    def show_reports(self) -> None:
+        self.send(
+            "📅 <b>Отчёты</b>\n\nВыберите период или специальный отчёт.",
+            reply_markup={
+                "inline_keyboard": [
+                    [
+                        {"text": "Сегодня", "callback_data": "report:1"},
+                        {"text": "7 дней", "callback_data": "report:7"},
+                        {"text": "30 дней", "callback_data": "report:30"},
+                    ],
+                    [{"text": "📭 Неактивные каналы", "callback_data": "report:inactive"}],
+                    [{"text": "⚠️ Ошибки и карантин", "callback_data": "report:errors"}],
+                    [{"text": "📨 Отправить ежедневный отчёт", "callback_data": "control:daily"}],
+                ]
+            },
+        )
+
+    def show_period_report(self, days: int) -> None:
+        snap = self.snapshot(force=True)
+        totals = self.period_totals(snap.stats, days)
+        today = datetime.now(DISPLAY_TZ).date()
+        allowed = {(today - timedelta(days=i)).isoformat() for i in range(days)}
+        merged: dict[str, int] = {}
+        for day, entry in snap.stats.get("daily", {}).items():
+            if day not in allowed or not isinstance(entry, dict):
+                continue
+            for source, source_entry in entry.get("sources", {}).items():
+                merged[source] = merged.get(source, 0) + self.counter(source_entry, "wheel_posts")
+        source_rows = sorted(merged.items(), key=lambda item: (-item[1], item[0].casefold()))
+        top = [f"• @{html.escape(source)} — {count}" for source, count in source_rows[:5] if count]
+        if not top:
+            top = ["• данных пока нет"]
+        text = (
+            f"📅 <b>Отчёт за {days} дн.</b>\n\n"
+            f"Проверок: {totals.get('checks', 0)}\n"
+            f"Постов с колёсами: {totals.get('wheel_posts', 0)}\n"
+            f"Уведомлений: {totals.get('preliminary_sent', 0)}\n"
+            f"Активаций: {totals.get('activation_sent', 0)}\n"
+            f"Повторов подавлено: {totals.get('duplicates_suppressed', 0)}\n"
+            f"Ошибок: {totals.get('errors', 0)}\n\n"
+            "<b>Лучшие источники периода</b>\n" + "\n".join(top)
+        )
+        self.send(text)
+
+    def show_inactive_report(self) -> None:
+        snap = self.snapshot(force=True)
+        rows = self.source_sets(snap)["inactive"]
+        stats = snap.stats.get("sources", {})
+        lines = [f"📭 <b>Без колёс {SOURCE_INACTIVITY_DAYS}+ дней: {len(rows)}</b>", ""]
+        for source in rows[:40]:
+            entry = stats.get(source, {})
+            last = entry.get("last_wheel_post_at") or entry.get("first_checked_at")
+            lines.append(f"• @{html.escape(source)} — {self.fmt_dt(last)}")
+        if not rows:
+            lines.append("Таких каналов сейчас нет.")
+        self.send("\n".join(lines))
+
+    def show_errors_report(self) -> None:
+        snap = self.snapshot(force=True)
+        rows: list[tuple[str, dict[str, Any]]] = []
+        for source, entry in snap.health.get("sources", {}).items():
+            if isinstance(entry, dict) and entry.get("status") != "ok":
+                rows.append((source, entry))
+        rows.sort(key=lambda item: (item[1].get("status") != "quarantined", item[0].casefold()))
+        lines = [f"⚠️ <b>Проблемные источники: {len(rows)}</b>", ""]
+        for source, entry in rows[:35]:
+            reason = str(entry.get("last_error") or entry.get("status") or "ошибка")
+            lines.append(f"• @{html.escape(source)} — {html.escape(reason[:90])}")
+        if not rows:
+            lines.append("Проблемных источников нет.")
+        self.send("\n".join(lines))
+
+    def show_discovery(self) -> None:
+        snap = self.snapshot(force=True)
+        discovery_sources = snap.discovery.get("sources", {})
+        candidates: list[tuple[str, int, Any]] = []
+        fast_set = {x.casefold() for x in snap.fast}
+        for source, entry in discovery_sources.items():
+            if not isinstance(entry, dict) or source.casefold() in fast_set:
+                continue
+            found = self.counter(entry, "wheel_links_found")
+            candidates.append((source, found, entry.get("latest_wheel_at")))
+        candidates.sort(key=lambda item: (-item[1], str(item[2] or ""), item[0].casefold()))
+        lines = ["🔎 <b>Поиск новых источников</b>", ""]
+        lines.append(f"Последний ночной запуск: {self.fmt_dt(snap.discovery.get('last_run_at'))}")
+        lines.append(f"Источников в ночном каталоге: {len(snap.nightly)}")
+        lines.append(f"Ошибок последнего поиска: {self.counter(snap.discovery, 'error_count')}")
+        lines.append("")
+        lines.append("<b>Кандидаты с найденными колёсами</b>")
+        shown = 0
+        for source, found, latest in candidates:
+            if found <= 0:
+                continue
+            shown += 1
+            lines.append(
+                f"• @{html.escape(source)} — ссылок {found}, последнее {self.fmt_dt(latest)}"
+            )
+            if shown >= 10:
+                break
+        if not shown:
+            lines.append("• новых сильных кандидатов пока нет")
         self.send(
             "\n".join(lines),
             reply_markup={
@@ -904,4 +1191,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
