@@ -315,7 +315,13 @@ def _wake_durable_dispatcher(
     state: dict[str, Any],
     monitor_module: Any,
 ) -> bool:
-    """Wake the local outbox worker and return without waiting for GitHub."""
+    """Drain the local outbox and make the dispatch result observable.
+
+    The event and outbox are already durable before this function is called.
+    Waiting for the small dispatcher process prevents a short-lived monitor
+    process from losing the wake-up and, crucially, keeps GitHub errors in the
+    monitor log instead of discarding stdout/stderr.
+    """
 
     if not state.get("auto_participation_event_mode_initialized_at"):
         return False
@@ -372,14 +378,18 @@ def _wake_durable_dispatcher(
         return True
 
     try:
-        process = subprocess.Popen(
-            [sys.executable, "auto_participation_dispatch.py"],
+        command = [sys.executable, "auto_participation_dispatch.py"]
+        for token, _ in candidates:
+            command.extend(("--event-id", token))
+        process = subprocess.run(
+            command,
             cwd=str(monitor_module.STATE_PATH.parent),
             env=os.environ.copy(),
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            start_new_session=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
         )
     except Exception as exc:
         for token, _ in candidates:
@@ -394,14 +404,26 @@ def _wake_durable_dispatcher(
         )
         return True
 
+    stdout = str(process.stdout or "").strip()
+    stderr = str(process.stderr or "").strip()
+    dispatch_ok = process.returncode == 0
     for token, _ in candidates:
-        dispatched[token]["status"] = "local_outbox_dispatcher_started"
-        dispatched[token]["dispatcher_started_at"] = current.isoformat()
-        dispatched[token]["dispatcher_pid"] = int(process.pid)
+        dispatched[token]["status"] = (
+            "workflow_dispatch_accepted"
+            if dispatch_ok
+            else "local_outbox_retry_scheduled"
+        )
+        dispatched[token]["dispatcher_finished_at"] = monitor_module.now_utc().isoformat()
+        dispatched[token]["dispatcher_returncode"] = int(process.returncode)
+        if stdout:
+            dispatched[token]["dispatcher_output"] = stdout[-500:]
+        if stderr:
+            dispatched[token]["dispatch_error"] = stderr[-500:]
     monitor_module.save_state(state)
     print(
-        "Woke durable auto participation dispatcher: "
-        f"events={len(candidates)} pid={process.pid}"
+        "Durable auto participation dispatcher finished: "
+        f"events={len(candidates)} returncode={process.returncode} "
+        f"output={stdout[-300:] or stderr[-300:] or 'empty'}"
     )
     return True
 

@@ -1488,6 +1488,7 @@ class EventStore:
         self,
         kinds: set[str] | None = None,
         *,
+        event_ids: set[str] | None = None,
         limit: int = 20,
         lease_seconds: int = 300,
     ) -> list[dict[str, Any]]:
@@ -1506,6 +1507,10 @@ class EventStore:
                 placeholders = ",".join("?" for _ in kinds)
                 where += f" AND kind IN ({placeholders})"
                 params.extend(sorted(kinds))
+            if event_ids:
+                placeholders = ",".join("?" for _ in event_ids)
+                where += f" AND event_id IN ({placeholders})"
+                params.extend(sorted(event_ids))
             params.append(max(1, int(limit)))
             rows = db.execute(
                 f"""

@@ -1,3 +1,26 @@
+# 2026-07-26 — устранён разрыв «карточка есть, автоучастия/итога нет»
+
+- Инцидент `@overdrivebet/570`, колесо `over`, воспроизвёл две независимые
+  архитектурные ошибки. Monitor передавал в GitHub `workflow_dispatch.ref`
+  значение `BBVG_DEPLOYMENT_SHA`; endpoint принимает ветку или тег, поэтому
+  запуск отклонялся. Ошибка была невидима, так как detached-процесс отправлял
+  stdout/stderr в `DEVNULL`.
+- Dispatcher теперь использует только явный `BBVG_AUTO_PARTICIPATION_REF` либо
+  `GITHUB_BRANCH` (`main` по умолчанию), дожидается результата запуска и
+  сохраняет return code и диагностический вывод в dispatch state. Wake-up
+  передаёт канонический event ID, поэтому новый event не ждёт старую очередь.
+- Browser workflow больше не пишет результаты автоучастия в `main`. Оба
+  промежуточных checkpoint публикуются в authoritative `runtime-state`,
+  откуда их читает живой Control Center.
+- Публикация результата использует file-level compare-and-swap: при `409/422`
+  заново читает текущий blob, семантически объединяет только owned-поля
+  автоучастия и повторяет запись. Новые данные Monitor при этом сохраняются.
+- Добавлены regression-тесты недопустимого SHA-ref, наблюдаемого отказа
+  dispatcher и CAS-конфликта с сохранением чужих полей.
+- Перед изменением создан backup
+  `backup/before-over-auto-dispatch-repair-20260726` от
+  `79a15d56368d3f24e75a63e314faa9b82d748fbd`.
+
 # 2026-07-26 — статус Monitor отделён от задержки телеметрии
 
 - «Работа системы» показывает время последнего подтверждённого обхода, номер и
@@ -1505,6 +1528,8 @@ findings `0`.
 
 - активное событие и dispatch-outbox теперь фиксируются до внешней Telegram-доставки;
 - notification claim/checkpoint больше не может оставить карточку без события автоучастия;
-- `auto_participation_dispatch.py` публикует объединённый `state.json` через file-level compare-and-swap Contents API вместо `git pull --rebase` в рабочем каталоге Monitor;
+- `auto_participation_dispatch.py` отправляет каноническое событие из durable
+  outbox и не пишет `state.json`; `auto_participation_bot_sync.py` публикует
+  результат через file-level compare-and-swap Contents API в `runtime-state`;
 - конфликт изменения `state.json` повторяется с объединением последнего monitor-state, а изменения других файлов в `main` не мешают dispatch;
 - добавлен regression-контракт для повторно используемого URL: карточка не может появиться раньше устойчивого event/outbox.

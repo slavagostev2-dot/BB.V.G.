@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -12,6 +13,23 @@ from bbvg.storage import EventStore
 
 WORKFLOW_FILE = "auto-participation.yml"
 TIMEOUT_SECONDS = 20
+
+
+def dispatch_ref_from_environment() -> str:
+    """Return a workflow_dispatch-compatible branch or tag.
+
+    ``BBVG_DEPLOYMENT_SHA`` and ``GITHUB_SHA`` describe the code currently
+    running, but GitHub's workflow dispatch endpoint does not accept an
+    arbitrary commit SHA as ``ref``.  Production dispatches therefore use the
+    explicit workflow ref (or the configured branch) while the workflow itself
+    continues to validate and check out its exact release SHA.
+    """
+
+    return (
+        os.getenv("BBVG_AUTO_PARTICIPATION_REF", "").strip()
+        or os.getenv("GITHUB_BRANCH", "").strip()
+        or "main"
+    )
 
 
 def _github_headers(token: str) -> dict[str, str]:
@@ -95,10 +113,15 @@ def dispatch_pending(
     token: str,
     repository: str,
     branch: str,
+    event_ids: set[str] | None = None,
     limit: int = 20,
 ) -> dict[str, int]:
     summary = {"claimed": 0, "dispatched": 0, "retry": 0}
-    claimed = store.claim_outbox({"auto_participation"}, limit=limit)
+    claimed = store.claim_outbox(
+        {"auto_participation"},
+        event_ids=event_ids,
+        limit=limit,
+    )
     summary["claimed"] = len(claimed)
     for row in claimed:
         outbox_id = str(row["outbox_id"])
@@ -157,14 +180,12 @@ def dispatch_pending(
 def main() -> int:
     """Drain the durable queue without reading or writing GitHub state.json."""
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--event-id", action="append", default=[])
+    args = parser.parse_args()
     token = os.getenv("GITHUB_TOKEN", "").strip()
     repository = os.getenv("GITHUB_REPOSITORY", "").strip()
-    branch = (
-        os.getenv("BBVG_DEPLOYMENT_SHA", "").strip()
-        or os.getenv("GITHUB_SHA", "").strip()
-        or os.getenv("GITHUB_BRANCH", "main").strip()
-        or "main"
-    )
+    branch = dispatch_ref_from_environment()
     store = EventStore()
     if not token or not repository:
         print(
@@ -182,6 +203,8 @@ def main() -> int:
         token=token,
         repository=repository,
         branch=branch,
+        event_ids={str(value) for value in args.event_id if str(value).strip()}
+        or None,
     )
     print(json.dumps(summary, sort_keys=True))
     return 1 if summary["retry"] else 0
@@ -193,7 +216,9 @@ def self_test() -> None:
     assert "git " + "push" not in source
     assert "_push_state_" + "before_dispatch" not in source
     assert '"event_payload"' in source
-    assert 'os.getenv("GITHUB_SHA"' in source
+    assert 'os.getenv("BBVG_AUTO_PARTICIPATION_REF"' in source
+    assert 'os.getenv("BBVG_DEPLOYMENT_SHA"' not in source
+    assert 'os.getenv("GITHUB_SHA"' not in source
     print("durable outbox auto participation dispatcher self-test passed")
 
 

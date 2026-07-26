@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import sqlite3
 from datetime import datetime, timezone
@@ -9,8 +10,10 @@ from types import SimpleNamespace
 import pytest
 
 import auto_participation_dispatch
+import auto_participation_bot_sync
 import betboom_participation_browser
 import monitor
+import personal_reminder_filter
 from bbvg.storage import EventStore
 from bbvg.storage.event_payload import materialize_event_payload
 
@@ -201,6 +204,203 @@ def test_github_failure_leaves_dispatch_in_retry_queue(
     assert pending_auto == 1
     assert row is not None and row[0] == "retry"
     assert "http_403" in row[1]
+
+
+def test_dispatch_ref_never_uses_runtime_commit_sha(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("BBVG_DEPLOYMENT_SHA", "9" * 40)
+    monkeypatch.setenv("GITHUB_SHA", "8" * 40)
+    monkeypatch.setenv("GITHUB_BRANCH", "main")
+    assert auto_participation_dispatch.dispatch_ref_from_environment() == "main"
+
+    monkeypatch.setenv("BBVG_AUTO_PARTICIPATION_REF", "production")
+    assert (
+        auto_participation_dispatch.dispatch_ref_from_environment()
+        == "production"
+    )
+
+
+def test_dispatch_can_claim_only_the_newly_notified_event(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = _store(tmp_path)
+    first = store.prepare_event(_entry(), enqueue_notification=False)
+    second_entry = _entry() | {
+        "wheel_key": "over",
+        "identifier": "over",
+        "url": "https://betboom.ru/freestream/over",
+        "action_id": 1052,
+        "server_start_at": "2026-07-26T11:55:26.955+00:00",
+    }
+    second = store.prepare_event(second_entry, enqueue_notification=False)
+
+    class Response:
+        status_code = 204
+        text = ""
+
+    monkeypatch.setattr(
+        auto_participation_dispatch,
+        "_dispatch_with_recovery",
+        lambda *args, **kwargs: (Response(), False, ""),
+    )
+    summary = auto_participation_dispatch.dispatch_pending(
+        store,
+        token="token",
+        repository="owner/repo",
+        branch="main",
+        event_ids={second},
+    )
+
+    assert summary == {"claimed": 1, "dispatched": 1, "retry": 0}
+    db = sqlite3.connect(store.path)
+    try:
+        statuses = dict(
+            db.execute(
+                "SELECT event_id, status FROM outbox WHERE kind='auto_participation'"
+            ).fetchall()
+        )
+    finally:
+        db.close()
+    assert statuses[first] == "pending"
+    assert statuses[second] == "completed"
+
+
+def test_dispatch_wake_waits_and_keeps_failure_observable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 7, 26, 11, 56, tzinfo=UTC)
+    saved: list[dict[str, object]] = []
+    module = SimpleNamespace(
+        STATE_PATH=tmp_path / "state.json",
+        now_utc=lambda: now,
+        parse_datetime=lambda value: None,
+        save_state=lambda state: saved.append(json.loads(json.dumps(state))),
+    )
+    state: dict[str, object] = {
+        "auto_participation_event_mode_initialized_at": now.isoformat(),
+        "active_wheels": {"over": _entry() | {"wheel_key": "over"}},
+    }
+    monkeypatch.setenv("GITHUB_TOKEN", "token")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+    monkeypatch.setattr(
+        personal_reminder_filter.betboom_auto_participation,
+        "_event_token",
+        lambda key, entry: "evt:over",
+    )
+    monkeypatch.setattr(
+        personal_reminder_filter.betboom_auto_participation,
+        "_eligible_for_event_attempt",
+        lambda entry, monitor_module, current: True,
+    )
+    calls: list[list[str]] = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        assert kwargs["capture_output"] is True
+        assert kwargs["timeout"] == 60
+        return SimpleNamespace(
+            returncode=1,
+            stdout='{"claimed":1,"dispatched":0,"retry":1}',
+            stderr="",
+        )
+
+    monkeypatch.setattr(personal_reminder_filter.subprocess, "run", run)
+
+    assert personal_reminder_filter._wake_durable_dispatcher(state, module)
+    assert calls == [
+        [
+            personal_reminder_filter.sys.executable,
+            "auto_participation_dispatch.py",
+            "--event-id",
+            "evt:over",
+        ]
+    ]
+    dispatch = state["auto_participation_dispatch_events"]["evt:over"]
+    assert dispatch["status"] == "local_outbox_retry_scheduled"
+    assert dispatch["dispatcher_returncode"] == 1
+    assert '"retry":1' in dispatch["dispatcher_output"]
+    assert len(saved) == 2
+
+
+def test_runtime_state_publish_retries_cas_and_semantically_merges(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    local_path = tmp_path / "state.json"
+    local_path.write_text(
+        json.dumps(
+            {
+                "auto_participation_events": {
+                    "evt:over": {
+                        "wheel_key": "over",
+                        "status": "participated",
+                        "bot_success_pending_at": "2026-07-26T12:09:30+00:00",
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    remote = {
+        "monitor_field": "preserve",
+        "auto_participation_events": {},
+    }
+
+    class Response:
+        def __init__(self, status_code: int, payload: dict, text: str = ""):
+            self.status_code = status_code
+            self._payload = payload
+            self.text = text
+
+        def json(self):
+            return self._payload
+
+    reads = 0
+    writes: list[dict] = []
+
+    def get(*args, **kwargs):
+        nonlocal reads
+        reads += 1
+        return Response(
+            200,
+            {
+                "sha": f"remote-{reads}",
+                "content": base64.b64encode(
+                    json.dumps(remote).encode("utf-8")
+                ).decode("ascii"),
+            },
+        )
+
+    def put(*args, **kwargs):
+        writes.append(kwargs["json"])
+        if len(writes) == 1:
+            return Response(409, {}, "conflict")
+        return Response(200, {"commit": {"sha": "published"}})
+
+    monkeypatch.setattr(auto_participation_bot_sync.requests, "get", get)
+    monkeypatch.setattr(auto_participation_bot_sync.requests, "put", put)
+
+    result = auto_participation_bot_sync.publish_runtime_state(
+        local_path,
+        token="token",
+        repository="owner/repo",
+    )
+
+    assert result == {
+        "branch": "runtime-state",
+        "attempt": 2,
+        "changed": True,
+        "sha": "published",
+    }
+    assert reads == 2
+    merged = json.loads(base64.b64decode(writes[-1]["content"]))
+    assert merged["monitor_field"] == "preserve"
+    assert merged["auto_participation_events"]["evt:over"]["status"] == "participated"
+    assert writes[-1]["branch"] == "runtime-state"
+    assert writes[-1]["sha"] == "remote-2"
 
 
 def test_workflow_payload_materializes_only_the_dispatched_event() -> None:
