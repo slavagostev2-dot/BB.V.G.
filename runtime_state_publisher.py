@@ -13,6 +13,10 @@ import requests
 
 import auto_participation_bot_sync
 from bbvg.storage import event_id_from_entry
+from runtime_outbox_reconciliation import (
+    reconcile_runtime_outbox,
+    refresh_functional_health,
+)
 
 GITHUB_API_VERSION = "2022-11-28"
 RUNTIME_STATE_BRANCH = "runtime-state"
@@ -353,6 +357,16 @@ def main() -> int:
         return 0
     if not args.publish_monitor_runtime:
         parser.error("--publish-monitor-runtime is required")
+
+    outbox_reconciliation: dict[str, int] = {}
+    if args.publish_monitor_runtime.name in {"state.json", "source_health.json"}:
+        state_path = args.publish_monitor_runtime.parent / "state.json"
+        if state_path.is_file():
+            outbox_reconciliation = reconcile_runtime_outbox(state_path)
+            refresh_functional_health(
+                args.publish_monitor_runtime.parent / "source_health.json"
+            )
+
     result = publish_monitor_runtime(
         args.publish_monitor_runtime,
         token=os.getenv("GH_TOKEN", "").strip()
@@ -360,6 +374,8 @@ def main() -> int:
         repository=os.getenv("GITHUB_REPOSITORY", "").strip(),
         branch=str(args.runtime_state_branch or RUNTIME_STATE_BRANCH),
     )
+    if outbox_reconciliation:
+        result["outbox_reconciliation"] = outbox_reconciliation
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0
 
