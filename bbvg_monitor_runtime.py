@@ -714,10 +714,7 @@ def _deliver_recovered_initial_notifications(
 
 def process_active_without_page_verdict(state: dict, stats: dict):
     current = monitor.now_utc()
-    recovered_notifications = _deliver_recovered_initial_notifications(
-        state,
-        current=current,
-    )
+    recovered_notifications = _deliver_recovered_initial_notifications(state)
     verification = revalidate_active_wheels(state, current)
     changed = bool(verification.get("changed")) or bool(
         recovered_notifications.get("changed")
