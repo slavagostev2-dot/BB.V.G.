@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import html
 import json
 import os
@@ -281,17 +280,39 @@ class TelegramPanelV2(RuntimeAdminBot):
         return False
 
     # ---------- Fast snapshot cache ----------
-    def _direct_get_file(self, path: str) -> str:
-        encoded = quote(path, safe="/")
+    def _branch_head_sha(self, branch: str) -> str:
+        encoded_branch = quote(str(branch), safe="")
         response = requests.get(
-            f"{legacy.GH_API}/repos/{legacy.GITHUB_REPOSITORY}/contents/{encoded}",
-            params={"ref": legacy.GITHUB_BRANCH},
+            f"{legacy.GH_API}/repos/{legacy.GITHUB_REPOSITORY}/git/ref/heads/{encoded_branch}",
             headers=self.gh_headers(),
             timeout=legacy.REQUEST_TIMEOUT + 15,
         )
         response.raise_for_status()
-        data = response.json()
-        return base64.b64decode(data.get("content", "")).decode("utf-8")
+        data = response.json() if response.content else {}
+        sha = str((data.get("object") or {}).get("sha") or "").strip()
+        if not re.fullmatch(r"[0-9a-fA-F]{40}", sha):
+            raise ValueError(f"GitHub returned no commit SHA for {branch}")
+        return sha
+
+    def _direct_get_file(
+        self,
+        path: str,
+        *,
+        branch: str | None = None,
+        revision: str | None = None,
+    ) -> str:
+        selected_branch = str(branch or legacy.GITHUB_BRANCH)
+        selected_revision = str(revision or selected_branch)
+        repository = quote(legacy.GITHUB_REPOSITORY, safe="/")
+        encoded_revision = quote(selected_revision, safe="")
+        encoded_path = quote(path, safe="/")
+        response = requests.get(
+            f"https://raw.githubusercontent.com/{repository}/{encoded_revision}/{encoded_path}",
+            headers=self.gh_headers(),
+            timeout=legacy.REQUEST_TIMEOUT + 15,
+        )
+        response.raise_for_status()
+        return response.text
 
     @staticmethod
     def _json_text(text: str, default: dict[str, Any]) -> dict[str, Any]:
@@ -302,19 +323,42 @@ class TelegramPanelV2(RuntimeAdminBot):
         return value if isinstance(value, dict) else default
 
     def refresh_snapshot(self) -> Snapshot:
+        runtime_branch = (
+            os.getenv("BBVG_RUNTIME_STATE_BRANCH", "runtime-state").strip()
+            or "runtime-state"
+        )
         files = {
-            "state": "state.json",
-            "stats": "source_stats.json",
-            "health": "source_health.json",
-            "discovery": "discovery_state.json",
-            "unknown": "unknown_timer_samples.json",
-            "fast": "public_sources.txt",
-            "nightly": "source_catalog.txt",
+            "state": ("state.json", runtime_branch),
+            "stats": ("source_stats.json", runtime_branch),
+            "health": ("source_health.json", runtime_branch),
+            "discovery": ("discovery_state.json", runtime_branch),
+            "unknown": ("unknown_timer_samples.json", runtime_branch),
+            "fast": ("public_sources.txt", legacy.GITHUB_BRANCH),
+            "nightly": ("source_catalog.txt", legacy.GITHUB_BRANCH),
         }
         values: dict[str, str] = {}
         failures: dict[str, str] = {}
+        revisions: dict[str, str] = {}
+        for branch in sorted({branch for _path, branch in files.values()}):
+            try:
+                revisions[branch] = self._branch_head_sha(branch)
+            except Exception as exc:
+                # Raw branch URLs remain a useful fallback during an API rate-limit
+                # incident. Components are still parsed and merged independently.
+                print(
+                    f"WARNING snapshot branch {branch}: "
+                    f"{type(exc).__name__}: {exc}; using branch URL"
+                )
         with ThreadPoolExecutor(max_workers=len(files)) as pool:
-            futures = {pool.submit(self._direct_get_file, path): key for key, path in files.items()}
+            futures = {
+                pool.submit(
+                    self._direct_get_file,
+                    path,
+                    branch=branch,
+                    revision=revisions.get(branch),
+                ): key
+                for key, (path, branch) in files.items()
+            }
             for future in as_completed(futures):
                 key = futures[future]
                 try:
@@ -351,17 +395,53 @@ class TelegramPanelV2(RuntimeAdminBot):
         critical_failures = sorted(critical.intersection(failures))
         with self.snapshot_lock:
             current = self.snapshot_value
-        if failures and current is not None:
+        if failures and current is not None and len(failures) == len(files):
             print(
                 "WARNING snapshot refresh kept the last verified snapshot; failures="
                 + ",".join(sorted(failures))
             )
             return current
         if critical_failures:
-            raise SnapshotUnavailableError(
-                "Не удалось загрузить обязательные данные мониторинга: "
-                + ", ".join(critical_failures)
+            if current is None:
+                raise SnapshotUnavailableError(
+                    "Не удалось загрузить обязательные данные мониторинга: "
+                    + ", ".join(critical_failures)
+                )
+
+        current_components = {
+            "state": current.state if current is not None else None,
+            "stats": current.stats if current is not None else None,
+            "health": current.health if current is not None else None,
+            "discovery": current.discovery if current is not None else None,
+            "unknown": current.unknown if current is not None else None,
+        }
+        for key, fallback in current_components.items():
+            incoming = parsed.get(key)
+            if fallback is None:
+                continue
+            if key in failures or incoming is None:
+                parsed[key] = fallback
+                continue
+            if not incoming and fallback:
+                parsed[key] = fallback
+                failures[key] = "empty_snapshot_rejected"
+
+        if failures and current is not None:
+            print(
+                "WARNING snapshot refresh merged last verified components; failures="
+                + ",".join(sorted(failures))
             )
+
+        fast = (
+            self.parse_list(values.get("fast", ""))
+            if "fast" not in failures
+            else list(current.fast if current is not None else [])
+        )
+        nightly = (
+            self.parse_list(values.get("nightly", ""))
+            if "nightly" not in failures
+            else list(current.nightly if current is not None else [])
+        )
 
         snap = Snapshot(
             state=parsed.get("state", json_defaults["state"]),
@@ -369,8 +449,8 @@ class TelegramPanelV2(RuntimeAdminBot):
             health=parsed.get("health", json_defaults["health"]),
             discovery=parsed.get("discovery", json_defaults["discovery"]),
             unknown=parsed.get("unknown", json_defaults["unknown"]),
-            fast=self.parse_list(values.get("fast", "")),
-            nightly=self.parse_list(values.get("nightly", "")),
+            fast=fast,
+            nightly=nightly,
         )
         with self.snapshot_lock:
             self.snapshot_value = snap
@@ -381,9 +461,9 @@ class TelegramPanelV2(RuntimeAdminBot):
         with self.snapshot_lock:
             current = self.snapshot_value
             age = time.monotonic() - self.snapshot_updated_at
-        if force or current is None:
+        if current is None:
             return self.refresh_snapshot()
-        if age >= CACHE_REFRESH_SECONDS:
+        if force or age >= CACHE_REFRESH_SECONDS:
             self.refresh_requested.set()
         return current
 
@@ -1244,8 +1324,8 @@ class TelegramPanelV2(RuntimeAdminBot):
                 self.open_page(page)
             elif data.startswith("refresh:"):
                 page = data.split(":", 1)[1]
-                self.answer(query_id, "Обновляю")
-                self.refresh_snapshot()
+                self.answer(query_id, "Обновление запрошено")
+                self.refresh_requested.set()
                 self.render_page(page)
             elif data.startswith("source_list:"):
                 _, group, page_no = data.split(":", 2)
