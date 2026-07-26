@@ -646,13 +646,38 @@ def retry_unverified_wheels(state: dict, current=None) -> dict[str, int | bool]:
     return revalidate_active_wheels(state, current)
 
 
-def _deliver_recovered_initial_notifications(state: dict) -> dict[str, int | bool]:
+def _recovered_notification_expired(entry: dict, current) -> bool:
+    """Treat explicit event windows as authoritative for recovery delivery."""
+
+    deadline = monitor.parse_datetime(entry.get("deadline"))
+    if deadline is not None and deadline <= current:
+        return True
+    expires_at = monitor.parse_datetime(entry.get("expires_at"))
+    return expires_at is not None and expires_at <= current
+
+
+def _deliver_recovered_initial_notifications(
+    state: dict,
+    *,
+    current=None,
+) -> dict[str, int | bool]:
+    current = current or monitor.now_utc()
     sent = 0
     failed = 0
     changed = False
     mappings = monitor.load_identifier_sources()
     for key, entry in list(state.setdefault("active_wheels", {}).items()):
         if not isinstance(entry, dict) or not entry.get("recovered_initial_notification_pending_at"):
+            continue
+        if _recovered_notification_expired(entry, current):
+            entry.pop("recovered_initial_notification_pending_at", None)
+            entry.pop("recovered_initial_notification_reason", None)
+            entry.pop("recovered_initial_notification_error", None)
+            entry["recovered_initial_notification_suppressed_at"] = current.isoformat()
+            entry["recovered_initial_notification_suppression_reason"] = (
+                "recovered_event_window_expired_before_authoritative_delivery"
+            )
+            changed = True
             continue
         message = monitor.active_entry_message(entry)
         url = str(entry.get("url") or "").strip()
@@ -679,8 +704,9 @@ def _deliver_recovered_initial_notifications(state: dict) -> dict[str, int | boo
             changed = True
             continue
         entry.pop("recovered_initial_notification_pending_at", None)
+        entry.pop("recovered_initial_notification_reason", None)
         entry.pop("recovered_initial_notification_error", None)
-        entry["recovered_initial_notification_sent_at"] = monitor.now_utc().isoformat()
+        entry["recovered_initial_notification_sent_at"] = current.isoformat()
         sent += 1
         changed = True
     return {"sent": sent, "failed": failed, "changed": changed}
