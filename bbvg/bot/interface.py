@@ -459,7 +459,481 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             if mode != "Ночное наблюдение":
                 move.append(
                     {
-                        "text": "🌙 В ночное …5077 tokens truncated…ist(
+                        "text": "🌙 В ночное наблюдение",
+                        "callback_data": f"source:move:nightly:{source}",
+                    }
+                )
+            if move:
+                rows.append(move)
+            if raw_status == "quarantined":
+                rows.append(
+                    [
+                        {
+                            "text": "▶️ Возобновить проверки",
+                            "callback_data": f"source:clearq:{source}",
+                        }
+                    ]
+                )
+            rows.append(
+                [
+                    {
+                        "text": "🗑 Удалить",
+                        "callback_data": f"source:removeask:{source}",
+                    }
+                ]
+            )
+        self.send(text, reply_markup=self.with_nav(rows))
+
+    def show_active(self) -> None:
+        items = self._collect_current_wheels()
+        snap = self.snapshot()
+        participating = {
+            str(key).casefold()
+            for key, entry in snap.state.get("participating_wheels", {}).items()
+            if isinstance(entry, dict)
+        }
+        if not items:
+            self.send(
+                "🔥 <b>Действующих колёс сейчас нет.</b>",
+                reply_markup=self.with_nav(
+                    [
+                        [
+                            {
+                                "text": "🔄 Обновить список",
+                                "callback_data": "refresh:active",
+                            }
+                        ]
+                    ]
+                ),
+            )
+            return
+
+        lines = [f"🔥 <b>Действующие колёса: {len(items)}</b>", ""]
+        buttons: list[list[dict[str, str]]] = []
+        for index, item in enumerate(items[:25], 1):
+            identifier = str(item.get("identifier") or item.get("_key") or "колесо")
+            key = str(item.get("_key") or identifier)
+            source = str(item.get("source") or "неизвестно")
+            deadline = self.parse_dt(item.get("deadline"))
+            participates = (
+                identifier.casefold() in participating or key.casefold() in participating
+            )
+            lines.extend(
+                [
+                    f"<b>{index}. <code>{html.escape(identifier)}</code></b>",
+                    f"⏳ {html.escape(self.remaining(deadline) if deadline else 'время не определено')}",
+                    f"📡 @{html.escape(source)}",
+                    "✅ Участие отмечено" if participates else "❌ Участие не отмечено",
+                    "",
+                ]
+            )
+            row: list[dict[str, str]] = []
+            url = str(item.get("url") or "")
+            if url:
+                row.append({"text": "🎡 Открыть колесо", "url": url})
+            if not participates:
+                row.append(
+                    {"text": "✅ Я участвую", "callback_data": f"wheel:part:{key}"}
+                )
+            if row:
+                buttons.append(row)
+            if self.is_admin():
+                buttons.append(
+                    [
+                        {
+                            "text": "🗑 Убрать из списка",
+                            "callback_data": f"wheel:removeask:{key}",
+                        }
+                    ]
+                )
+        buttons.append(
+            [{"text": "🔄 Обновить список", "callback_data": "refresh:active"}]
+        )
+        self.send("\n".join(lines).rstrip(), reply_markup=self.with_nav(buttons))
+
+    def bulk_intelligence_rows(
+        self, category: str
+    ) -> tuple[list[dict[str, Any]], int]:
+        rows = self.filtered_intelligence_rows(category)
+        public_rows = [row for row in rows if row.get("public") is True]
+        return public_rows, max(0, len(rows) - len(public_rows))
+
+    def show_intelligence(self) -> None:
+        if not self.is_admin():
+            self.send(
+                "Этот раздел доступен администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        state = self.intelligence_state()
+        summary = (
+            state.get("last_run_summary")
+            if isinstance(state.get("last_run_summary"), dict)
+            else {}
+        )
+        rows = self.intelligence_rows()
+        new_rows = [
+            row
+            for row in rows
+            if row.get("decision") == "new"
+            and self.intelligence_row_is_relevant(row)
+        ]
+        wheel_rows = [
+            row
+            for row in new_rows
+            if int(row.get("wheel_links_found", 0) or 0) > 0
+        ]
+        try:
+            run = self.workflow_run("source-intelligence.yml")
+        except Exception:
+            run = {}
+        status = str(run.get("status") or "")
+        conclusion = str(run.get("conclusion") or "")
+        if status == "in_progress":
+            state_text = "🔵 разведка выполняется"
+        elif status in {"queued", "waiting", "pending"}:
+            state_text = "🟡 ожидает запуска"
+        elif status == "completed" and conclusion == "success":
+            state_text = "🟢 последний запуск завершён"
+        elif conclusion:
+            state_text = "🔴 последний запуск завершился с ошибкой"
+        else:
+            state_text = "⚪ ещё не запускалась"
+        text = (
+            "🛰️ <b>Разведка новых источников</b>\n\n"
+            f"Состояние: {state_text}\n"
+            f"Последний запуск: {self.fmt_dt(state.get('last_run_at'))}\n\n"
+            f"Просканировано каналов: "
+            f"<b>{int(summary.get('sources_scanned', 0) or 0)}</b>\n"
+            f"Новых кандидатов: <b>{len(new_rows)}</b>\n"
+            f"С найденными колёсами: <b>{len(wheel_rows)}</b>\n\n"
+            "Разведка учитывает только тематические ссылки и упоминания внутри "
+            "известных источников. Боты и обычные нетематические упоминания "
+            "отбрасываются; подтверждённые кандидаты сначала идут в ночную "
+            "проверку."
+        )
+        buttons = [
+            [{
+                "text": f"🆕 Новые находки ({len(new_rows)})",
+                "callback_data": "intel:list:new:0",
+            }],
+            [{
+                "text": f"🎡 С колёсами ({len(wheel_rows)})",
+                "callback_data": "intel:list:wheels:0",
+            }],
+            [{
+                "text": "▶️ Запустить разведку",
+                "callback_data": "control:intelligence",
+            }],
+            [{
+                "text": "🔄 Обновить состояние",
+                "callback_data": "page:intelligence",
+            }],
+        ]
+        self.send(text, reply_markup=self.with_nav(buttons))
+
+    def show_intelligence_list(self, category: str, page: int = 0) -> None:
+        if not self.is_admin():
+            self.send(
+                "Этот раздел доступен администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        rows = self.filtered_intelligence_rows(category)
+        max_page = max(0, (len(rows) - 1) // INTELLIGENCE_PER_PAGE)
+        page = max(0, min(page, max_page))
+        part = rows[
+            page * INTELLIGENCE_PER_PAGE : (page + 1) * INTELLIGENCE_PER_PAGE
+        ]
+        titles = {
+            "new": "Новые источники из Telegram-сети",
+            "wheels": "Новые источники с найденными колёсами",
+            "ignored": "Игнорируемые находки",
+            "all": "Все результаты разведки",
+        }
+        lines = [
+            f"🛰️ <b>{html.escape(titles.get(category, 'Результаты разведки'))}</b>",
+            f"Страница {page + 1} из {max_page + 1}",
+            "",
+        ]
+        buttons: list[list[dict[str, str]]] = []
+        for item in part:
+            source = str(item.get("source") or "")
+            score = int(item.get("score", 0) or 0)
+            wheels = int(item.get("wheel_links_found", 0) or 0)
+            refs = (
+                len(item.get("discovered_from", []))
+                if isinstance(item.get("discovered_from"), list)
+                else 0
+            )
+            lines.extend(
+                [
+                    f"<b>@{html.escape(source)}</b>",
+                    f"{self.intelligence_label(score, wheels)} · оценка {score}/100",
+                    f"Связей: {refs} · упоминаний: "
+                    f"{int(item.get('mention_count', 0) or 0)} · колёс: {wheels}",
+                    "",
+                ]
+            )
+            buttons.append(
+                [
+                    {
+                        "text": f"@{source[:25]} · {score}",
+                        "callback_data": f"intel:detail:{source}",
+                    }
+                ]
+            )
+        if not part:
+            lines.append("Список пуст.")
+
+        nav: list[dict[str, str]] = []
+        if page > 0:
+            nav.append(
+                {
+                    "text": "◀️",
+                    "callback_data": f"intel:list:{category}:{page - 1}",
+                }
+            )
+        if page < max_page:
+            nav.append(
+                {
+                    "text": "▶️",
+                    "callback_data": f"intel:list:{category}:{page + 1}",
+                }
+            )
+        if nav:
+            buttons.append(nav)
+
+        bulk_rows, skipped = self.bulk_intelligence_rows(category)
+        if category in {"new", "wheels"} and bulk_rows:
+            buttons.extend(
+                [
+                    [
+                        {
+                            "text": f"⚡ Все в основные ({len(bulk_rows)})",
+                            "callback_data": f"intel:bulkask:fast:{category}",
+                        }
+                    ],
+                    [
+                        {
+                            "text": f"🌙 Все в ночное наблюдение ({len(bulk_rows)})",
+                            "callback_data": f"intel:bulkask:nightly:{category}",
+                        }
+                    ],
+                ]
+            )
+            if skipped:
+                lines.append(
+                    f"\nНе подтверждены как публичные и не войдут в групповое "
+                    f"действие: {skipped}."
+                )
+        self.send("\n".join(lines).rstrip(), reply_markup=self.with_nav(buttons))
+
+    def show_intelligence_detail(self, source: str) -> None:
+        if not self.is_admin():
+            self.send(
+                "Этот раздел доступен администраторам.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        source = self.safe_source(source)
+        item = next(
+            (
+                row
+                for row in self.intelligence_rows()
+                if str(row.get("source") or "").casefold() == source.casefold()
+            ),
+            None,
+        )
+        if item is None:
+            self.send(
+                "Результат разведки больше не найден.",
+                reply_markup=self.with_nav(),
+            )
+            return
+        score = int(item.get("score", 0) or 0)
+        wheels = int(item.get("wheel_links_found", 0) or 0)
+        discovered_from = (
+            item.get("discovered_from", [])
+            if isinstance(item.get("discovered_from"), list)
+            else []
+        )
+        signals = sorted(
+            {
+                str(value)
+                for field in (
+                    item.get("context_signals", []),
+                    item.get("candidate_signals", []),
+                    item.get("username_signals", []),
+                )
+                if isinstance(field, list)
+                for value in field
+                if str(value)
+            }
+        )
+        lines = [
+            f"🛰️ <b>@{html.escape(source)}</b>",
+            "",
+            f"Оценка: <b>{score}/100</b> — {self.intelligence_label(score, wheels)}",
+            f"Публичный канал: {'✅ да' if item.get('public') else '❌ не подтверждён'}",
+            f"Найдено упоминаний: {int(item.get('mention_count', 0) or 0)}",
+            f"Найдено колёс: {wheels}",
+            f"Просмотрено сообщений при проверке: "
+            f"{int(item.get('messages_checked', 0) or 0)}",
+            f"Последнее найденное колесо: {self.fmt_dt(item.get('latest_wheel_at'))}",
+            f"Последняя проверка: {self.fmt_dt(item.get('last_verified_at'))}",
+            "Тематические признаки: "
+            + (", ".join(html.escape(value) for value in signals) if signals else "не сохранены"),
+            "",
+            "<b>Откуда найден</b>",
+        ]
+        lines.extend(f"• @{html.escape(str(name))}" for name in discovered_from[:12])
+        if not discovered_from:
+            lines.append("• источник связи не сохранён")
+        samples = (
+            item.get("sample_wheels", [])
+            if isinstance(item.get("sample_wheels"), list)
+            else []
+        )
+        if samples:
+            lines.extend(["", "<b>Примеры колёс</b>"])
+            for sample in samples[:5]:
+                if not isinstance(sample, dict):
+                    continue
+                identifier = html.escape(str(sample.get("identifier") or "колесо"))
+                lines.append(
+                    f"• <code>{identifier}</code> — "
+                    f"{self.fmt_dt(sample.get('published_at'))}"
+                )
+        buttons: list[list[dict[str, str]]] = [
+            [{"text": "📨 Открыть канал", "url": f"https://telegram.me/{source}"}]
+        ]
+        if item.get("decision") != "known":
+            buttons.extend(
+                [
+                    [{
+                        "text": "⚡ В основную проверку",
+                        "callback_data": f"intel:mode:fast:{source}",
+                    }],
+                    [{
+                        "text": "🌙 В ночное наблюдение",
+                        "callback_data": f"intel:mode:nightly:{source}",
+                    }],
+                ]
+            )
+        if item.get("decision") == "ignored":
+            buttons.append([{
+                "text": "↩️ Вернуть в ночное наблюдение",
+                "callback_data": f"intel:restore:{source}",
+            }])
+        elif item.get("decision") != "known":
+            buttons.append([{
+                "text": "🙈 Игнорировать",
+                "callback_data": f"intel:ignoreask:{source}",
+            }])
+        buttons.append(
+            [{"text": "🛰️ К результатам", "callback_data": "page:intelligence"}]
+        )
+        self.send("\n".join(lines), reply_markup=self.with_nav(buttons))
+
+    def set_candidate_mode(self, source: str, mode: str) -> str:
+        if not self.is_admin():
+            raise PermissionError("Недостаточно прав")
+        source = self.safe_source(source)
+        available, detail = self.verify_public_source(source)
+        if not available:
+            raise ValueError(detail)
+        moderation = self.load_moderation()
+        moderation["ignored"].pop(source.casefold(), None)
+        self.save_moderation(
+            moderation,
+            f"Approve @{source} discovery candidate via Telegram [skip ci]",
+        )
+        self.set_source_mode(source, mode)
+        if mode == "nightly":
+            return (
+                f"@{source} добавлен в ночную проверку. "
+                "Первая проверка пройдёт по ночному расписанию."
+            )
+        return f"@{source} добавлен в основную проверку."
+
+    def ignore_candidate(self, source: str) -> str:
+        if not self.is_admin():
+            raise PermissionError("Недостаточно прав")
+        source = self.safe_source(source)
+        self.set_source_mode(source, "remove")
+        moderation = self.load_moderation()
+        moderation["ignored"][source.casefold()] = {
+            "source": source,
+            "ignored_at": datetime.now(UTC).isoformat(),
+            "ignored_by": "admin",
+        }
+        self.save_moderation(
+            moderation,
+            f"Ignore @{source} discovery candidate via Telegram [skip ci]",
+        )
+        return f"@{source} исключён из поиска и скрыт из очереди."
+
+    def restore_candidate(self, source: str) -> str:
+        if not self.is_admin():
+            raise PermissionError("Недостаточно прав")
+        source = self.safe_source(source)
+        moderation = self.load_moderation()
+        moderation["ignored"].pop(source.casefold(), None)
+        self.save_moderation(
+            moderation,
+            f"Restore @{source} discovery candidate via Telegram [skip ci]",
+        )
+        self.set_source_mode(source, "nightly")
+        return (
+            f"@{source} возвращён в ночную проверку. "
+            "Следующая проверка пройдёт по ночному расписанию."
+        )
+
+    @staticmethod
+    def _write_source_list(header: str, values: list[str]) -> str:
+        result: list[str] = []
+        seen: set[str] = set()
+        for raw in values:
+            value = str(raw).strip().lstrip("@")
+            key = value.casefold()
+            if value and key not in seen:
+                result.append(value)
+                seen.add(key)
+        return header.rstrip() + "\n\n" + "\n".join(result) + "\n"
+
+    def bulk_set_intelligence_mode(self, category: str, mode: str) -> tuple[int, int]:
+        if not self.is_admin():
+            raise PermissionError("Недостаточно прав")
+        if mode not in {"fast", "nightly"}:
+            raise ValueError("Неизвестный режим")
+        rows, skipped = self.bulk_intelligence_rows(category)
+        targets = [
+            str(row.get("source") or "").strip().lstrip("@") for row in rows
+        ]
+        targets = [value for value in targets if value]
+        if not targets:
+            return 0, skipped
+
+        fast_text, _ = self.get_file("public_sources.txt")
+        nightly_text, _ = self.get_file("source_catalog.txt")
+        fast = self.parse_list(fast_text)
+        nightly = self.parse_list(nightly_text)
+        target_keys = {value.casefold() for value in targets}
+        fast = [value for value in fast if value.casefold() not in target_keys]
+        nightly = [value for value in nightly if value.casefold() not in target_keys]
+        if mode == "fast":
+            fast.extend(targets)
+        else:
+            nightly.extend(targets)
+
+        fast_new = self._write_source_list(
+            "# Основной мониторинг: отобранные тематические источники в 7-дневном наблюдении.\n"
+            "# Проверяется с интервалом, выбранным в настройках Telegram-панели.\n"
+            "# Перенос в ночную проверку выполняется только администратором.",
+            fast,
+        )
+        nightly_new = self._write_source_list(
             "# Ночное наблюдение: источники, вручную одобренные администратором.\n"
             "# Автоматическое пополнение отключено; активное колесо переносит источник в основной режим.",
             nightly,
@@ -908,4 +1382,3 @@ def self_test() -> None:
 
 if __name__ == "__main__":
     self_test()
-
