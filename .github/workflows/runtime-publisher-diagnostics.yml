@@ -15,7 +15,7 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       BOT_TOKEN: test-bot-token
       BOT_STATE_KEY: test-state-key
@@ -52,10 +52,25 @@ jobs:
       - name: Full pytest first failure
         continue-on-error: true
         run: python -m pytest -q --maxfail=1 --junitxml=full-pytest.xml
+      - name: Exact critical-core coverage
+        continue-on-error: true
+        run: |
+          python -m pytest \
+            --cov=notification_router \
+            --cov=notification_integrity_v2 \
+            --cov=wheel_publications_v2 \
+            --cov=rating_policy \
+            --cov-report=term-missing \
+            --cov-report=xml:critical-coverage.xml \
+            --cov-fail-under=80 \
+            --junitxml=coverage-pytest.xml
       - name: Upload diagnostic report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: runtime-publisher-pytest
-          path: full-pytest.xml
+          path: |
+            full-pytest.xml
+            coverage-pytest.xml
+            critical-coverage.xml
           if-no-files-found: error
