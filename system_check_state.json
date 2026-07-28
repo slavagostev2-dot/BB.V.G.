@@ -1,8 +1,8 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 0,
   "admin_panel": {
     "age_minutes": 4,
-    "last_heartbeat_at": "2026-07-28T22:35:11.391828+00:00",
+    "last_heartbeat_at": "2026-07-28T23:40:40.540982+00:00",
     "started_at": "2026-07-28T20:39:14.175979+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,23 +13,21 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 0,
-    "decision_id": "22b42e4e92b24863bf37648ff5725453",
-    "finding_count": 1,
-    "finding_kinds": [
-      "partial_source_failure"
-    ],
-    "generated_at": "2026-07-28T22:39:25.174640+00:00",
-    "impact": "Возможна задержка или пропуск обновлений от одного из подключенных источников.",
+    "decision_id": "12fd64c2811544ccb698c6931ff0dcc2",
+    "finding_count": 0,
+    "finding_kinds": [],
+    "generated_at": "2026-07-28T23:44:48.915462+00:00",
+    "impact": "Отсутствует. Система полностью работоспособна и стабильна.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "recommended_action": "Вмешательство не требуется, продолжать штатный мониторинг.",
     "requires_human_attention": false,
-    "severity": "warning",
-    "summary": "Система функционирует, но зафиксирована частичная недоступность Telegram-источников (1 из 169).",
+    "severity": "ok",
+    "summary": "Система BB V.G. функционирует в штатном режиме, все 169 источников доступны, ошибок не зафиксировано.",
     "used_fallback": false,
     "version": 1,
-    "warning_count": 1
+    "warning_count": 0
   },
   "automation_state": {
     "expected_nightly_sources": 1,
@@ -63,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-28T22:39:23.030539+00:00",
+  "checked_at": "2026-07-28T23:44:47.170223+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 567,
@@ -104,8 +102,8 @@
   "finding_count": 0,
   "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-28T22:35:11.391828+00:00",
+    "active_incidents": 0,
+    "bot_panel_heartbeat": "2026-07-28T23:40:40.540982+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
@@ -122,14 +120,14 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
+    "messages_attempted": 1,
     "opened": 0,
-    "resolved": 0
+    "resolved": 1
   },
-  "incident_sequence": 121,
+  "incident_sequence": 122,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -153,17 +151,17 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 169,
-    "checks_total": 1406849,
+    "checks_total": 1416989,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "f52666f1cf5868b783e246db53a0817811185d3a",
-    "iteration": 111,
-    "last_iteration_at": "2026-07-28T22:36:58.198196+00:00",
-    "last_iteration_duration_seconds": 33,
+    "iteration": 171,
+    "last_iteration_at": "2026-07-28T23:43:40.072983+00:00",
+    "last_iteration_duration_seconds": 32,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-28T22:36:58.198196+00:00",
-    "last_successful_checks_total": 1406849,
-    "last_successful_iteration_at": "2026-07-28T22:36:58.198196+00:00",
+    "last_process_heartbeat_at": "2026-07-28T23:43:40.072983+00:00",
+    "last_successful_checks_total": 1416989,
+    "last_successful_iteration_at": "2026-07-28T23:43:40.072983+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
@@ -176,8 +174,8 @@
     "version": 3,
     "workflow_run_id": "30396801556"
   },
-  "monitor_age_minutes": 2,
-  "monitor_effective_heartbeat_at": "2026-07-28T22:36:58.198196+00:00",
+  "monitor_age_minutes": 1,
+  "monitor_effective_heartbeat_at": "2026-07-28T23:43:40.072983+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,

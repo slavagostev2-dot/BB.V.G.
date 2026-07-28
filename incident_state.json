@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -211,18 +211,20 @@
       "first_seen_at": "2026-07-28T17:49:10.339837+00:00",
       "key": "system_checks:partial_source_failure:692ffeeac57aa78f",
       "kind": "partial_source_failure",
-      "last_seen_at": "2026-07-28T21:36:03.898036+00:00",
+      "last_seen_at": "2026-07-28T23:44:48.156001+00:00",
       "lifecycle_started_at": "2026-07-28T17:49:10.339837+00:00",
       "metadata": {},
       "occurrences": 4,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-28T18:59:41.942309+00:00",
       "opened_sequence": 121,
-      "recovery_candidate_since": "2026-07-28T22:39:24.273607+00:00",
-      "recovery_confirmation_pending": true,
+      "resolution_notification_pending": false,
+      "resolution_notified_at": "2026-07-28T23:44:49.252518+00:00",
+      "resolved_at": "2026-07-28T23:44:48.156001+00:00",
+      "resolved_sequence": 122,
       "scope": "system_checks",
       "severity": "warning",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Часть Telegram-источников недоступна"
     },
@@ -338,17 +340,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-28T22:39:24.273607+00:00",
-  "last_reconcile_at": "2026-07-28T22:39:24.273607+00:00",
+  "last_change_at": "2026-07-28T23:44:48.156001+00:00",
+  "last_reconcile_at": "2026-07-28T23:44:48.156001+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 0,
     "new_notification_count": 0,
-    "recovery_notification_count": 0,
+    "recovery_notification_count": 1,
     "scope": "system_checks"
   },
-  "sequence": 121,
+  "sequence": 122,
   "status": "initializing",
-  "updated_at": "2026-07-28T22:39:24.273666+00:00",
+  "updated_at": "2026-07-28T23:44:49.252550+00:00",
   "version": 1
 }
