@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-28T15:59:07.542992+00:00",
       "status": "participated",
-      "updated_at": "2026-07-28T15:59:39.824640+00:00"
+      "updated_at": "2026-07-28T16:01:14.423857+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-28T15:59:25.005144+00:00",
       "status": "participated",
-      "updated_at": "2026-07-28T15:59:39.826038+00:00"
+      "updated_at": "2026-07-28T16:01:14.425028+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-28T15:59:34.620139+00:00",
       "status": "participated",
-      "updated_at": "2026-07-28T15:59:39.827369+00:00"
+      "updated_at": "2026-07-28T16:01:14.426354+00:00"
     }
   ],
   "action_id": 1106,
@@ -146,6 +146,21 @@
       "transition_id": "16f71b99914952073156c7d371d0fc7eee93c50a32c593c86462b7606c563ad5"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:3c1c37b59c990102b0ee792f2f1d17dc57f7a9bf41193e03f3d5eaf44de93652",
+      "occurred_at": "2026-07-28T15:59:07.542992+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "384fad43c758a191d05839e228c7536bdaaea5de15cb752420bd45d3abc304da"
+    },
+    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-07-28T15:59:39.818847+00:00",
       "payload": {
@@ -171,6 +186,21 @@
       },
       "stage": "persisted",
       "transition_id": "3e9fa9e6645c15078134e69611cfb4870c7d0d8032b99b530727a1f77833b3cd"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:bad5cd05d6e2b3b9a6e5d40b0adb6af78f98d25731030155efda8746099ffd23",
+      "occurred_at": "2026-07-28T15:59:25.005144+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "4afbc612af7692091ebd6cf21b4ba63f18a25ea0bf7bb4690b2420a71afe327d"
     },
     {
       "dedupe_key": "1106:2026-07-28T15:54:21.674000+00:00",
@@ -210,36 +240,6 @@
       "transition_id": "8496ef2ba7552b5abc6c104d88cc94a1abee0ed768776b15cdb3ec5cb167281e"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:3c1c37b59c990102b0ee792f2f1d17dc57f7a9bf41193e03f3d5eaf44de93652",
-      "occurred_at": "2026-07-28T15:59:07.542992+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "384fad43c758a191d05839e228c7536bdaaea5de15cb752420bd45d3abc304da"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:bad5cd05d6e2b3b9a6e5d40b0adb6af78f98d25731030155efda8746099ffd23",
-      "occurred_at": "2026-07-28T15:59:25.005144+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "4afbc612af7692091ebd6cf21b4ba63f18a25ea0bf7bb4690b2420a71afe327d"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:e4b065ee9e030df3cbe4df9187025b989de986a1fc72115b4a7c4b22167d2992",
       "occurred_at": "2026-07-28T15:59:34.620139+00:00",
       "payload": {
@@ -255,7 +255,7 @@
       "transition_id": "9645a141515d022049ea604d1c2209a98ab36ed2e0a8362b67897c85d6c548b5"
     }
   ],
-  "updated_at": "2026-07-28T15:59:39.822659+00:00",
+  "updated_at": "2026-07-28T16:01:14.422188+00:00",
   "wheel_key": "zonertw7",
   "workflow_started_at": "2026-07-28T15:59:39.822659+00:00"
 }
