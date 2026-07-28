@@ -1,7 +1,7 @@
 {
   "cache": {
     "3173d0964989346b6d4a2f7aac128ac0b46265d6584e1be15a20c373ce699082": {
-      "expires_at": 1785271035.2577171,
+      "expires_at": 1785275463.9012024,
       "text": "{\n  \"summary\": \"Система функционирует с частичной потерей данных: 1 из 169 Telegram-источников недоступен.\",\n  \"impact\": \"Возможна задержка или отсутствие обновлений от одного конкретного источника, остальные каналы работают штатно.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации для выявления проблемного источника.\",\n  \"confidence\": \"high\"\n}"
     }
   },
@@ -1667,10 +1667,20 @@
       "output_sha256": "eb48247f2d4788d51797edde425ab5f2d634f2f581bcc59288c95234f39f3f3b",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1785274563.9012024,
+      "feature": "health_inspector",
+      "id": "5dfdf773838a46679b7a6d359767ad36",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "eb48247f2d4788d51797edde425ab5f2d634f2f581bcc59288c95234f39f3f3b",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1785270135.2577171
+    1785274563.9012024
   ],
   "version": 1
 }
