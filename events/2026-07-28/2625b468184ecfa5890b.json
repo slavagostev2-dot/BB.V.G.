@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "e4fb3f3e87759bc543bb7ed404f4cd749c18b7b9a07c68b9f5aa46de961d4287",
-      "confidence": 110,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции)",
-      "event_id": "evt:2625b468184ecfa5890b",
-      "finished_at": "2026-07-28T13:47:48.827254+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-07-28T13:48:24.447187+00:00",
-      "started_at": "2026-07-28T13:47:48.827254+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "",
       "attempt_id": "205c1f37c4a4aff6e0dcf792f4a14569f8f5cd582fdc566fa2fff986b2ad6aef",
@@ -41,6 +27,20 @@
       "recorded_at": "2026-07-28T13:48:24.449435+00:00",
       "started_at": "2026-07-28T13:48:17.632675+00:00",
       "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "e4fb3f3e87759bc543bb7ed404f4cd749c18b7b9a07c68b9f5aa46de961d4287",
+      "confidence": 110,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции)",
+      "event_id": "evt:2625b468184ecfa5890b",
+      "finished_at": "2026-07-28T13:47:48.827254+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-07-28T13:48:24.447187+00:00",
+      "started_at": "2026-07-28T13:47:48.827254+00:00",
+      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-28T13:47:48.827254+00:00",
       "status": "participated",
-      "updated_at": "2026-07-28T13:48:24.447187+00:00"
+      "updated_at": "2026-07-28T13:48:38.855031+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-28T13:48:08.293347+00:00",
       "status": "participated",
-      "updated_at": "2026-07-28T13:48:24.448352+00:00"
+      "updated_at": "2026-07-28T13:48:38.856172+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-28T13:48:17.632675+00:00",
       "status": "participated",
-      "updated_at": "2026-07-28T13:48:24.449435+00:00"
+      "updated_at": "2026-07-28T13:48:38.857218+00:00"
     }
   ],
   "action_id": 1085,
@@ -119,58 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-07-28T13:48:24.442112+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:205c1f37c4a4aff6e0dcf792f4a14569f8f5cd582fdc566fa2fff986b2ad6aef",
+      "occurred_at": "2026-07-28T13:48:08.293347+00:00",
       "payload": {
-        "action_id": 1085,
-        "available_at": "",
-        "deadline": "2026-07-28T13:55:26.246000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2625b468184ecfa5890b",
-        "expires_at": "2026-07-28T14:25:26.246000+00:00",
-        "generation_id": "2625b468184ecfa5890b",
-        "identifier": "vovapain",
-        "message_text": "https://betboom.ru/freestream/vovapain\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/272",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-28T13:45:26.246000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-07-28T13:46:45+00:00",
-        "source_message_id": 272,
-        "source_message_url": "https://telegram.me/kolesaBB/272",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/vovapain",
-        "verification_status": "confirmed",
-        "wheel_key": "vovapain"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "7da7591b32ddd980af784f97dbb328310f3017eb9148a6739190c512fc20898c"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-07-28T13:48:24.442112+00:00",
-      "payload": {
-        "action_id": 1085,
-        "available_at": "",
-        "deadline": "2026-07-28T13:55:26.246000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2625b468184ecfa5890b",
-        "expires_at": "2026-07-28T14:25:26.246000+00:00",
-        "generation_id": "2625b468184ecfa5890b",
-        "identifier": "vovapain",
-        "message_text": "https://betboom.ru/freestream/vovapain\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/272",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-28T13:45:26.246000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-07-28T13:46:45+00:00",
-        "source_message_id": 272,
-        "source_message_url": "https://telegram.me/kolesaBB/272",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/vovapain",
-        "verification_status": "confirmed",
-        "wheel_key": "vovapain"
-      },
-      "stage": "persisted",
-      "transition_id": "5894d73aa1cb1003a4416854af32b8d06d6fa7185856f7cfbb811168bf608c45"
+      "stage": "account_result",
+      "transition_id": "39e3c4f760c00d8c99d1ae006077b087b9ec32b794059f01f6836f173a4c6412"
     },
     {
       "dedupe_key": "1085:2026-07-28T13:45:26.246000+00:00",
@@ -200,14 +161,58 @@
       "transition_id": "457e97322a36c72e68caf18381d39ec6044adc176323b5fb5bb8574ab3f4e621"
     },
     {
-      "dedupe_key": "30365136000",
-      "occurred_at": "2026-07-28T13:48:24.445478+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-07-28T13:48:24.442112+00:00",
       "payload": {
-        "workflow_run_id": "30365136000",
-        "workflow_sha": "1ee42b267746462b509817644f87c326d44b41c2"
+        "action_id": 1085,
+        "available_at": "",
+        "deadline": "2026-07-28T13:55:26.246000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2625b468184ecfa5890b",
+        "expires_at": "2026-07-28T14:25:26.246000+00:00",
+        "generation_id": "2625b468184ecfa5890b",
+        "identifier": "vovapain",
+        "message_text": "https://betboom.ru/freestream/vovapain\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/272",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-28T13:45:26.246000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-07-28T13:46:45+00:00",
+        "source_message_id": 272,
+        "source_message_url": "https://telegram.me/kolesaBB/272",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/vovapain",
+        "verification_status": "confirmed",
+        "wheel_key": "vovapain"
       },
-      "stage": "workflow_started",
-      "transition_id": "d1b810b0e5c24eae67d5ef06c62c60c210c8d58e34110aad4a8f28820e203d6b"
+      "stage": "persisted",
+      "transition_id": "5894d73aa1cb1003a4416854af32b8d06d6fa7185856f7cfbb811168bf608c45"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-07-28T13:48:24.442112+00:00",
+      "payload": {
+        "action_id": 1085,
+        "available_at": "",
+        "deadline": "2026-07-28T13:55:26.246000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2625b468184ecfa5890b",
+        "expires_at": "2026-07-28T14:25:26.246000+00:00",
+        "generation_id": "2625b468184ecfa5890b",
+        "identifier": "vovapain",
+        "message_text": "https://betboom.ru/freestream/vovapain\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/272",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-28T13:45:26.246000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-07-28T13:46:45+00:00",
+        "source_message_id": 272,
+        "source_message_url": "https://telegram.me/kolesaBB/272",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/vovapain",
+        "verification_status": "confirmed",
+        "wheel_key": "vovapain"
+      },
+      "stage": "source_discovered",
+      "transition_id": "7da7591b32ddd980af784f97dbb328310f3017eb9148a6739190c512fc20898c"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:e4fb3f3e87759bc543bb7ed404f4cd749c18b7b9a07c68b9f5aa46de961d4287",
@@ -225,19 +230,14 @@
       "transition_id": "c1de270fed67c76db29d6d715ad6997ecc83ceb7f7f39f1949b6ed6f08e2849e"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:205c1f37c4a4aff6e0dcf792f4a14569f8f5cd582fdc566fa2fff986b2ad6aef",
-      "occurred_at": "2026-07-28T13:48:08.293347+00:00",
+      "dedupe_key": "30365136000",
+      "occurred_at": "2026-07-28T13:48:24.445478+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
+        "workflow_run_id": "30365136000",
+        "workflow_sha": "1ee42b267746462b509817644f87c326d44b41c2"
       },
-      "stage": "account_result",
-      "transition_id": "39e3c4f760c00d8c99d1ae006077b087b9ec32b794059f01f6836f173a4c6412"
+      "stage": "workflow_started",
+      "transition_id": "d1b810b0e5c24eae67d5ef06c62c60c210c8d58e34110aad4a8f28820e203d6b"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:d6c3decd78a79a94b2eee2c3995c17da4be6d745f5d16d56ea17199ee54d6214",
@@ -255,7 +255,7 @@
       "transition_id": "de6dd51447044ae148380256cccd9ad5eef7b696a7600ae3bf429cccf725338e"
     }
   ],
-  "updated_at": "2026-07-28T13:48:24.445478+00:00",
+  "updated_at": "2026-07-28T13:48:38.853604+00:00",
   "wheel_key": "vovapain",
   "workflow_started_at": "2026-07-28T13:48:24.445478+00:00"
 }
