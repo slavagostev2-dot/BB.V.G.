@@ -1,5 +1,5 @@
 {
-  "active_count": 0,
+  "active_count": 1,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -206,6 +206,24 @@
       "subject": "",
       "title": "Основной монитор давно не обновлялся"
     },
+    "system_checks:partial_source_failure:692ffeeac57aa78f": {
+      "detail": "Доступно 168 из 169. Проблемные: см. source_health.json.",
+      "first_seen_at": "2026-07-28T17:49:10.339837+00:00",
+      "key": "system_checks:partial_source_failure:692ffeeac57aa78f",
+      "kind": "partial_source_failure",
+      "last_seen_at": "2026-07-28T17:49:10.339837+00:00",
+      "lifecycle_started_at": "2026-07-28T17:49:10.339837+00:00",
+      "metadata": {},
+      "notification_stabilizing_until": "2026-07-28T17:54:10.339837+00:00",
+      "occurrences": 1,
+      "open_notification_pending": false,
+      "opened_sequence": 121,
+      "scope": "system_checks",
+      "severity": "warning",
+      "status": "active",
+      "subject": "",
+      "title": "Часть Telegram-источников недоступна"
+    },
     "system_checks:rating_score_mismatch:07dc22560f33b233": {
       "detail": "Количество несовпадений: 1.",
       "first_seen_at": "2026-07-23T19:34:37.482070+00:00",
@@ -318,17 +336,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-26T11:47:48.860392+00:00",
-  "last_reconcile_at": "2026-07-28T14:30:57.873593+00:00",
+  "last_change_at": "2026-07-28T17:49:10.339837+00:00",
+  "last_reconcile_at": "2026-07-28T17:49:10.339837+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 0,
+    "active": 1,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 120,
+  "sequence": 121,
   "status": "initializing",
-  "updated_at": "2026-07-28T14:30:57.873653+00:00",
+  "updated_at": "2026-07-28T17:49:10.339945+00:00",
   "version": 1
 }
