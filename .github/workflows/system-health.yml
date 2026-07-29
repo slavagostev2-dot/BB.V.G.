@@ -195,17 +195,53 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Load verified runtime heartbeats
+      - name: Load authoritative runtime snapshots
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+
+          load_snapshot() {
+            local branch="$1"
+            local file="$2"
+            local temporary="${file}.runtime.tmp"
+            for attempt in 1 2 3; do
+              if gh api \
+                "/repos/${GITHUB_REPOSITORY}/contents/${file}?ref=${branch}" \
+                --jq '.content' | base64 -d > "$temporary"; then
+                mv "$temporary" "$file"
+                return 0
+              fi
+              rm -f "$temporary"
+              sleep "$attempt"
+            done
+            echo "Unable to load authoritative ${file} from ${branch}." >&2
+            return 1
+          }
+
           for file in monitor_status.json admin_panel_status.json; do
-            gh api \
-              "/repos/${GITHUB_REPOSITORY}/contents/${file}?ref=runtime-status" \
-              --jq '.content' | base64 -d > "$file"
+            load_snapshot runtime-status "$file"
           done
+          for file in state.json source_stats.json source_health.json; do
+            load_snapshot runtime-state "$file"
+          done
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for name in (
+              "monitor_status.json",
+              "admin_panel_status.json",
+              "state.json",
+              "source_stats.json",
+              "source_health.json",
+          ):
+              value = json.loads(Path(name).read_text(encoding="utf-8"))
+              assert isinstance(value, dict), f"{name} must contain a JSON object"
+          print("Authoritative runtime-status and runtime-state snapshots loaded")
+          PY
 
       - name: Publish unified deployment manifest
         env:
