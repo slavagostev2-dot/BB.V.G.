@@ -1,9 +1,9 @@
 {
   "active_incidents": 0,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-07-28T23:40:40.540982+00:00",
-    "started_at": "2026-07-28T20:39:14.175979+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-07-29T01:11:27.937258+00:00",
+    "started_at": "2026-07-29T01:11:23.878711+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,18 +13,18 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 0,
-    "decision_id": "12fd64c2811544ccb698c6931ff0dcc2",
+    "decision_id": "899a6d4672b54d889f28a60ce7e4e64e",
     "finding_count": 0,
     "finding_kinds": [],
-    "generated_at": "2026-07-28T23:44:48.915462+00:00",
-    "impact": "Отсутствует. Система полностью работоспособна и стабильна.",
+    "generated_at": "2026-07-29T01:12:03.928752+00:00",
+    "impact": "Отсутствует. Система работает в нормальном режиме, данные поступают без задержек.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Вмешательство не требуется, продолжать штатный мониторинг.",
+    "recommended_action": "Вмешательство не требуется. Продолжать штатный мониторинг.",
     "requires_human_attention": false,
     "severity": "ok",
-    "summary": "Система BB V.G. функционирует в штатном режиме, все 169 источников доступны, ошибок не зафиксировано.",
+    "summary": "Система BB V.G. функционирует штатно, все 169 источников доступны, ошибок не зафиксировано.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -61,7 +61,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-28T23:44:47.170223+00:00",
+  "checked_at": "2026-07-29T01:12:01.845415+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 567,
@@ -103,7 +103,7 @@
   "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 0,
-    "bot_panel_heartbeat": "2026-07-28T23:40:40.540982+00:00",
+    "bot_panel_heartbeat": "2026-07-29T01:11:27.937258+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
@@ -120,12 +120,12 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
+    "messages_attempted": 0,
     "opened": 0,
-    "resolved": 1
+    "resolved": 0
   },
   "incident_sequence": 122,
   "inventory": {
@@ -151,17 +151,17 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 169,
-    "checks_total": 1416989,
+    "checks_total": 1429664,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "f52666f1cf5868b783e246db53a0817811185d3a",
-    "iteration": 171,
-    "last_iteration_at": "2026-07-28T23:43:40.072983+00:00",
-    "last_iteration_duration_seconds": 32,
+    "iteration": 246,
+    "last_iteration_at": "2026-07-29T01:07:06.641955+00:00",
+    "last_iteration_duration_seconds": 30,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-28T23:43:40.072983+00:00",
-    "last_successful_checks_total": 1416989,
-    "last_successful_iteration_at": "2026-07-28T23:43:40.072983+00:00",
+    "last_process_heartbeat_at": "2026-07-29T01:07:06.641955+00:00",
+    "last_successful_checks_total": 1429664,
+    "last_successful_iteration_at": "2026-07-29T01:07:06.641955+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
@@ -174,8 +174,8 @@
     "version": 3,
     "workflow_run_id": "30396801556"
   },
-  "monitor_age_minutes": 1,
-  "monitor_effective_heartbeat_at": "2026-07-28T23:43:40.072983+00:00",
+  "monitor_age_minutes": 4,
+  "monitor_effective_heartbeat_at": "2026-07-29T01:07:06.641955+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
