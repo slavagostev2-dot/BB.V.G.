@@ -211,19 +211,19 @@
       "first_seen_at": "2026-07-28T17:49:10.339837+00:00",
       "key": "system_checks:partial_source_failure:692ffeeac57aa78f",
       "kind": "partial_source_failure",
-      "last_seen_at": "2026-07-29T22:16:24.127367+00:00",
+      "last_seen_at": "2026-07-29T23:30:17.991121+00:00",
       "lifecycle_started_at": "2026-07-29T17:52:35.669105+00:00",
       "metadata": {},
       "occurrences": 9,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-29T18:46:29.207570+00:00",
       "opened_sequence": 123,
-      "recovery_candidate_since": "2026-07-29T23:17:56.271543+00:00",
-      "recovery_confirmation_pending": true,
-      "resolved_sequence": 122,
+      "resolution_notification_pending": true,
+      "resolved_at": "2026-07-29T23:30:17.991121+00:00",
+      "resolved_sequence": 125,
       "scope": "system_checks",
       "severity": "warning",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Часть Telegram-источников недоступна"
     },
@@ -293,6 +293,23 @@
       "subject": "",
       "title": "Не задан ночной inventory источников"
     },
+    "system_checks:source_timeout:f081b8f47c1e1805": {
+      "detail": "telegram.me не ответил за отведённое время",
+      "first_seen_at": "2026-07-29T23:30:17.991121+00:00",
+      "key": "system_checks:source_timeout:f081b8f47c1e1805",
+      "kind": "source_timeout",
+      "last_seen_at": "2026-07-29T23:30:17.991121+00:00",
+      "lifecycle_started_at": "2026-07-29T23:30:17.991121+00:00",
+      "metadata": {},
+      "occurrences": 1,
+      "open_notification_pending": true,
+      "opened_sequence": 124,
+      "scope": "system_checks",
+      "severity": "warning",
+      "status": "active",
+      "subject": "ct0mislove",
+      "title": "Источник @ct0mislove не проверяется"
+    },
     "system_checks:source_transport_smoke:581b534aecd3e81e": {
       "detail": "status=success; domain=telegram.me; primary=167/168; nightly=1/1; accounted=168/169; missing=0.",
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
@@ -339,17 +356,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-29T23:17:56.271543+00:00",
-  "last_reconcile_at": "2026-07-29T23:17:56.271543+00:00",
+  "last_change_at": "2026-07-29T23:30:17.991121+00:00",
+  "last_reconcile_at": "2026-07-29T23:30:17.991121+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
     "active": 1,
-    "new_notification_count": 0,
-    "recovery_notification_count": 0,
+    "new_notification_count": 1,
+    "recovery_notification_count": 1,
     "scope": "system_checks"
   },
-  "sequence": 123,
+  "sequence": 125,
   "status": "initializing",
-  "updated_at": "2026-07-29T23:17:56.271616+00:00",
+  "updated_at": "2026-07-29T23:30:17.991227+00:00",
   "version": 1
 }

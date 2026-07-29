@@ -1,35 +1,17 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-07-29T23:15:44.013454+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-07-29T23:25:48.689701+00:00",
     "started_at": "2026-07-29T19:19:00.948103+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
-    "cached": false,
-    "confidence": 0.0,
-    "critical_count": 0,
-    "decision_id": "4f822596df324015b07d4bb86e2fc088",
-    "finding_count": 1,
-    "finding_kinds": [
-      "partial_source_failure"
-    ],
-    "generated_at": "2026-07-29T23:17:57.181216+00:00",
-    "impact": "Возможна задержка или неполное поступление данных из 3 недоступных источников, что может привести к пропускам в мониторинге.",
-    "mode": "ai",
-    "model": "gemini-3.1-flash-lite",
-    "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации, а также изучить файл source_health.json для идентификации проблемных узлов.",
-    "requires_human_attention": false,
-    "severity": "warning",
-    "summary": "Система функционирует, но зафиксирована частичная недоступность Telegram-источников (166 из 169 активны).",
-    "used_fallback": false,
-    "version": 1,
-    "warning_count": 1
+    "ai_status": "deployment_grace",
+    "mode": "suppressed",
+    "reason": "system-health started from a code push"
   },
   "automation_state": {
     "expected_nightly_sources": 1,
@@ -59,11 +41,11 @@
     "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
-    "source_health": "ok",
+    "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-29T23:17:55.366497+00:00",
+  "checked_at": "2026-07-29T23:30:17.124491+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 588,
@@ -101,35 +83,45 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 0,
-  "findings": [],
+  "finding_count": 1,
+  "findings": [
+    {
+      "detail": "telegram.me не ответил за отведённое время",
+      "kind": "source_timeout",
+      "severity": "warning",
+      "subject": "ct0mislove",
+      "title": "Источник @ct0mislove не проверяется"
+    }
+  ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-29T23:15:44.013454+00:00",
+    "bot_panel_heartbeat": "2026-07-29T23:25:48.689701+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
     "reachable_sources": 169,
     "single_source": "system_check_state.json",
-    "status": "ok",
+    "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-25T16:45:56.923853+00:00",
-      "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-      "last_success_at": "2026-07-25T16:45:56.923853+00:00",
+      "last_checked_at": "2026-07-29T22:36:03.959769+00:00",
+      "last_failure_at": "2026-07-26T17:14:14.771413+00:00",
+      "last_success_at": "2026-07-29T22:36:03.959769+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "suppressed",
+    "health_inspector_status": "deployment_grace",
     "messages_attempted": 0,
-    "opened": 0,
-    "resolved": 0
+    "opened": 1,
+    "resolved": 1,
+    "suppressed": true,
+    "suppressed_reason": "code_update_push_grace"
   },
-  "incident_sequence": 123,
+  "incident_sequence": 125,
   "inventory": {
     "configured": 169,
     "configured_total": 170,
@@ -153,17 +145,17 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 169,
-    "checks_total": 1631957,
+    "checks_total": 1633647,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "f52666f1cf5868b783e246db53a0817811185d3a",
-    "iteration": 275,
-    "last_iteration_at": "2026-07-29T23:14:25.802363+00:00",
+    "iteration": 285,
+    "last_iteration_at": "2026-07-29T23:25:19.749375+00:00",
     "last_iteration_duration_seconds": 25,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-29T23:14:25.802363+00:00",
-    "last_successful_checks_total": 1631957,
-    "last_successful_iteration_at": "2026-07-29T23:14:25.802363+00:00",
+    "last_process_heartbeat_at": "2026-07-29T23:25:19.749375+00:00",
+    "last_successful_checks_total": 1633647,
+    "last_successful_iteration_at": "2026-07-29T23:25:19.749375+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
@@ -176,8 +168,8 @@
     "version": 3,
     "workflow_run_id": "30477682668"
   },
-  "monitor_age_minutes": 3,
-  "monitor_effective_heartbeat_at": "2026-07-29T23:14:25.802363+00:00",
+  "monitor_age_minutes": 4,
+  "monitor_effective_heartbeat_at": "2026-07-29T23:25:19.749375+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -209,33 +201,43 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 176,
+    "personal_vote_records": 215,
     "policy": "personal_votes_v1",
     "rated_sources": 35,
     "score_mismatches": [],
-    "valid_personal_votes": 176
+    "valid_personal_votes": 215
   },
   "source_health_summary": {
     "configured_records": 170,
     "missing_sources": [],
     "nightly_pending_first_check": [],
-    "problem_details": [],
-    "problem_sources": [],
+    "problem_details": [
+      {
+        "failure_code": "timeout",
+        "reason": "telegram.me не ответил за отведённое время",
+        "source": "ct0mislove",
+        "status": "error"
+      }
+    ],
+    "problem_sources": [
+      "ct0mislove"
+    ],
     "records": 170,
     "required_primary_records": 169,
     "statuses": {
-      "ok": 170
+      "error": 1,
+      "ok": 169
     },
     "transport_failure_types": {
       "dns": 0,
       "empty_or_html": 0,
       "http": 0,
       "other": 0,
-      "timeout": 0,
+      "timeout": 1,
       "tls": 0
     }
   },
-  "status": "ok",
+  "status": "degraded",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
@@ -247,9 +249,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-25T16:45:56.923853+00:00",
-    "last_failure_at": "2026-07-20T14:02:03.366327+00:00",
-    "last_success_at": "2026-07-25T16:45:56.923853+00:00",
+    "last_checked_at": "2026-07-29T22:36:03.959769+00:00",
+    "last_failure_at": "2026-07-26T17:14:14.771413+00:00",
+    "last_success_at": "2026-07-29T22:36:03.959769+00:00",
     "status": "ok"
   }
 }
