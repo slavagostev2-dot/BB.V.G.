@@ -1,19 +1,21 @@
 {
   "accounted_sources": 170,
-  "checked_at": "2026-07-29T21:17:44.268108+00:00",
+  "checked_at": "2026-07-30T21:39:03.366400+00:00",
   "configured_sources": 170,
   "domain": "telegram.me",
-  "duration_seconds": 10.866,
+  "duration_seconds": 14.831,
   "empty_sources": 0,
-  "error_sources": 0,
-  "errors": {},
+  "error_sources": 1,
+  "errors": {
+    "aterionlegends": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)"
+  },
   "expected_sources": 66,
-  "message_count": 2973,
+  "message_count": 2963,
   "missing_sources": [],
   "nightly_sources": 1,
   "operational_sources": 170,
   "primary_sources": 169,
-  "reachable_sources": 170,
+  "reachable_sources": 169,
   "status": "success",
   "version": 1
 }
