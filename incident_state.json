@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -218,7 +218,8 @@
       "open_notification_pending": false,
       "open_notified_at": "2026-07-29T18:46:29.207570+00:00",
       "opened_sequence": 123,
-      "resolution_notification_pending": true,
+      "resolution_notification_expired_at": "2026-07-30T00:14:46.994991+00:00",
+      "resolution_notification_pending": false,
       "resolved_at": "2026-07-29T23:30:17.991121+00:00",
       "resolved_sequence": 125,
       "scope": "system_checks",
@@ -298,15 +299,19 @@
       "first_seen_at": "2026-07-29T23:30:17.991121+00:00",
       "key": "system_checks:source_timeout:f081b8f47c1e1805",
       "kind": "source_timeout",
-      "last_seen_at": "2026-07-29T23:30:17.991121+00:00",
+      "last_seen_at": "2026-07-30T00:14:46.994991+00:00",
       "lifecycle_started_at": "2026-07-29T23:30:17.991121+00:00",
       "metadata": {},
+      "notification_skipped_because_resolved_before_delivery": "2026-07-30T00:14:46.994991+00:00",
       "occurrences": 1,
-      "open_notification_pending": true,
+      "open_notification_pending": false,
       "opened_sequence": 124,
+      "resolution_notification_pending": false,
+      "resolved_at": "2026-07-30T00:14:46.994991+00:00",
+      "resolved_sequence": 126,
       "scope": "system_checks",
       "severity": "warning",
-      "status": "active",
+      "status": "resolved",
       "subject": "ct0mislove",
       "title": "Источник @ct0mislove не проверяется"
     },
@@ -356,17 +361,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-29T23:30:17.991121+00:00",
-  "last_reconcile_at": "2026-07-29T23:30:17.991121+00:00",
+  "last_change_at": "2026-07-30T00:14:46.994991+00:00",
+  "last_reconcile_at": "2026-07-30T00:14:46.994991+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
-    "new_notification_count": 1,
-    "recovery_notification_count": 1,
+    "active": 0,
+    "new_notification_count": 0,
+    "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 125,
+  "sequence": 126,
   "status": "initializing",
-  "updated_at": "2026-07-29T23:30:17.991227+00:00",
+  "updated_at": "2026-07-30T00:14:46.995073+00:00",
   "version": 1
 }
