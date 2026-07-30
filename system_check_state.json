@@ -1,9 +1,9 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-07-30T16:51:34.525442+00:00",
-    "started_at": "2026-07-30T13:08:28.316699+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-07-30T18:20:46.721492+00:00",
+    "started_at": "2026-07-30T17:40:21.988192+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,12 +13,12 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "32cccf5e2af54f0da9cc49186fba81ee",
+    "decision_id": "3273fa3737bb4a2c91d53234d49fd8fa",
     "finding_count": 1,
     "finding_kinds": [
       "rating_score_mismatch"
     ],
-    "generated_at": "2026-07-30T16:54:21.959631+00:00",
+    "generated_at": "2026-07-30T18:25:31.216090+00:00",
     "impact": "Данные о рейтингах недостоверны, что может привести к некорректной работе алгоритмов принятия решений.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -63,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-07-30T16:54:19.870704+00:00",
+  "checked_at": "2026-07-30T18:25:29.092137+00:00",
   "discovery": {
     "active_size": 169,
     "candidate_count": 588,
@@ -113,7 +113,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-07-30T16:51:34.525442+00:00",
+    "bot_panel_heartbeat": "2026-07-30T18:20:46.721492+00:00",
     "checked_sources": 169,
     "configured_sources": 170,
     "domain": "telegram.me",
@@ -123,18 +123,18 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-07-30T16:53:16.488362+00:00",
+      "last_checked_at": "2026-07-30T18:24:53.856761+00:00",
       "last_failure_at": "2026-07-26T17:14:14.771413+00:00",
-      "last_success_at": "2026-07-30T16:53:16.488362+00:00",
+      "last_success_at": "2026-07-30T18:24:53.856761+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 1,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 127,
@@ -161,17 +161,17 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 169,
-    "checks_total": 1788620,
+    "checks_total": 1801802,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "f52666f1cf5868b783e246db53a0817811185d3a",
-    "iteration": 41,
-    "last_iteration_at": "2026-07-30T16:52:11.404597+00:00",
-    "last_iteration_duration_seconds": 26,
+    "iteration": 119,
+    "last_iteration_at": "2026-07-30T18:22:38.516694+00:00",
+    "last_iteration_duration_seconds": 28,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-30T16:52:11.404597+00:00",
-    "last_successful_checks_total": 1788620,
-    "last_successful_iteration_at": "2026-07-30T16:52:11.404597+00:00",
+    "last_process_heartbeat_at": "2026-07-30T18:22:38.516694+00:00",
+    "last_successful_checks_total": 1801802,
+    "last_successful_iteration_at": "2026-07-30T18:22:38.516694+00:00",
     "pending_wheels": 1,
     "reachable_sources": 169,
     "restart_recommended": false,
@@ -185,11 +185,11 @@
     "workflow_run_id": "30552468492"
   },
   "monitor_age_minutes": 2,
-  "monitor_effective_heartbeat_at": "2026-07-30T16:52:11.404597+00:00",
+  "monitor_effective_heartbeat_at": "2026-07-30T18:22:38.516694+00:00",
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 119,
+    "entry_count": 112,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -217,13 +217,13 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 237,
+    "personal_vote_records": 239,
     "policy": "personal_votes_v1",
     "rated_sources": 36,
     "score_mismatches": [
       "gshikaryan"
     ],
-    "valid_personal_votes": 237
+    "valid_personal_votes": 239
   },
   "source_health_summary": {
     "configured_records": 170,
@@ -257,9 +257,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-07-30T16:53:16.488362+00:00",
+    "last_checked_at": "2026-07-30T18:24:53.856761+00:00",
     "last_failure_at": "2026-07-26T17:14:14.771413+00:00",
-    "last_success_at": "2026-07-30T16:53:16.488362+00:00",
+    "last_success_at": "2026-07-30T18:24:53.856761+00:00",
     "status": "ok"
   }
 }
