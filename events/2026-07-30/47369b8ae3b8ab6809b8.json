@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "",
-      "attempt_id": "333b4ed3263f1792d562311699655568e5779d00ccec6659817b2cb975f494b5",
-      "confidence": 110,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции); подготовка: main:Окей",
-      "event_id": "evt:47369b8ae3b8ab6809b8",
-      "finished_at": "2026-07-30T13:01:13.082097+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-07-30T13:01:30.301087+00:00",
-      "started_at": "2026-07-30T13:01:13.082097+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "",
       "attempt_id": "17e0d61601281c4c8950e576828c2626c571ca326e3a1d75b504ff4ed1faf630",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-07-30T13:01:30.302526+00:00",
       "started_at": "2026-07-30T13:01:19.631714+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "",
+      "attempt_id": "333b4ed3263f1792d562311699655568e5779d00ccec6659817b2cb975f494b5",
+      "confidence": 110,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции); подготовка: main:Окей",
+      "event_id": "evt:47369b8ae3b8ab6809b8",
+      "finished_at": "2026-07-30T13:01:13.082097+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-07-30T13:01:30.301087+00:00",
+      "started_at": "2026-07-30T13:01:13.082097+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-30T13:00:51.846808+00:00",
       "status": "participated",
-      "updated_at": "2026-07-30T13:01:30.299617+00:00"
+      "updated_at": "2026-07-30T13:03:21.793057+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-30T13:01:13.082097+00:00",
       "status": "participated",
-      "updated_at": "2026-07-30T13:01:30.301087+00:00"
+      "updated_at": "2026-07-30T13:03:21.794346+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-30T13:01:19.631714+00:00",
       "status": "participated",
-      "updated_at": "2026-07-30T13:01:30.302526+00:00"
+      "updated_at": "2026-07-30T13:03:21.795492+00:00"
     }
   ],
   "action_id": 1121,
@@ -119,58 +119,19 @@
   "status": "active",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-07-30T13:01:30.292993+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:333b4ed3263f1792d562311699655568e5779d00ccec6659817b2cb975f494b5",
+      "occurred_at": "2026-07-30T13:01:13.082097+00:00",
       "payload": {
-        "action_id": 1121,
-        "available_at": "",
-        "deadline": "2026-07-30T13:17:19+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:47369b8ae3b8ab6809b8",
-        "expires_at": "2026-07-30T13:47:19+00:00",
-        "generation_id": "47369b8ae3b8ab6809b8",
-        "identifier": "kekw",
-        "message_text": "ЧЕТВЕРТЬ ФИНАЛ БЛАСТА СПИРИТ ВПЕРЕД\ntwitch.tv/shadowkekw\nКолесико для всех:\nhttps://betboom.ru/freestream/kekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6176\nhttp://twitch.tv/shadowkekw\nhttps://betboom.ru/freestream/kekw",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-30T12:57:19+00:00",
-        "source": "shadowkekw",
-        "source_message_date": "2026-07-30T12:45:41+00:00",
-        "source_message_id": 6176,
-        "source_message_url": "https://telegram.me/shadowkekw/6176",
-        "status": "active",
-        "url": "https://betboom.ru/freestream/kekw",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "79c95dd78d7fbacb722cc71f3d4010de7e9873f842cbeef00984f7441eae89a3"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-07-30T13:01:30.292993+00:00",
-      "payload": {
-        "action_id": 1121,
-        "available_at": "",
-        "deadline": "2026-07-30T13:17:19+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:47369b8ae3b8ab6809b8",
-        "expires_at": "2026-07-30T13:47:19+00:00",
-        "generation_id": "47369b8ae3b8ab6809b8",
-        "identifier": "kekw",
-        "message_text": "ЧЕТВЕРТЬ ФИНАЛ БЛАСТА СПИРИТ ВПЕРЕД\ntwitch.tv/shadowkekw\nКолесико для всех:\nhttps://betboom.ru/freestream/kekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6176\nhttp://twitch.tv/shadowkekw\nhttps://betboom.ru/freestream/kekw",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-30T12:57:19+00:00",
-        "source": "shadowkekw",
-        "source_message_date": "2026-07-30T12:45:41+00:00",
-        "source_message_id": 6176,
-        "source_message_url": "https://telegram.me/shadowkekw/6176",
-        "status": "active",
-        "url": "https://betboom.ru/freestream/kekw",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw"
-      },
-      "stage": "persisted",
-      "transition_id": "b8f91670f36e3a95ca38ce69f0141007e1697bf7c3e895774a8192f84f16f983"
+      "stage": "account_result",
+      "transition_id": "2c438ba8f6712d23f9e1918b982e3611aca16b11656a9f8207c1c1ab2a128379"
     },
     {
       "dedupe_key": "1121:2026-07-30T12:57:19+00:00",
@@ -200,14 +161,31 @@
       "transition_id": "6b9940a385644556f93e8b01d32073310a280420d588bee5a4ef2806bb37eba8"
     },
     {
-      "dedupe_key": "30544939714",
-      "occurred_at": "2026-07-30T13:01:30.297502+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-07-30T13:01:30.292993+00:00",
       "payload": {
-        "workflow_run_id": "30544939714",
-        "workflow_sha": "5d3ca6cdf07d2a956868d1c14ac0830f551ffde8"
+        "action_id": 1121,
+        "available_at": "",
+        "deadline": "2026-07-30T13:17:19+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:47369b8ae3b8ab6809b8",
+        "expires_at": "2026-07-30T13:47:19+00:00",
+        "generation_id": "47369b8ae3b8ab6809b8",
+        "identifier": "kekw",
+        "message_text": "ЧЕТВЕРТЬ ФИНАЛ БЛАСТА СПИРИТ ВПЕРЕД\ntwitch.tv/shadowkekw\nКолесико для всех:\nhttps://betboom.ru/freestream/kekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6176\nhttp://twitch.tv/shadowkekw\nhttps://betboom.ru/freestream/kekw",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-30T12:57:19+00:00",
+        "source": "shadowkekw",
+        "source_message_date": "2026-07-30T12:45:41+00:00",
+        "source_message_id": 6176,
+        "source_message_url": "https://telegram.me/shadowkekw/6176",
+        "status": "active",
+        "url": "https://betboom.ru/freestream/kekw",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw"
       },
-      "stage": "workflow_started",
-      "transition_id": "db216b835b543084363c63cee7821174e747ee90d4c4102e64e9414a5f3355b4"
+      "stage": "source_discovered",
+      "transition_id": "79c95dd78d7fbacb722cc71f3d4010de7e9873f842cbeef00984f7441eae89a3"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:01c211c324bee9f0f90584fc54f5b99ebacc223186e7b8feab6424b449f67424",
@@ -225,19 +203,31 @@
       "transition_id": "8ea45098cddab1d83adfc5cde8ae561e96adbba93dbbb912b671eadf546eebe9"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:333b4ed3263f1792d562311699655568e5779d00ccec6659817b2cb975f494b5",
-      "occurred_at": "2026-07-30T13:01:13.082097+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-07-30T13:01:30.292993+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
+        "action_id": 1121,
+        "available_at": "",
+        "deadline": "2026-07-30T13:17:19+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:47369b8ae3b8ab6809b8",
+        "expires_at": "2026-07-30T13:47:19+00:00",
+        "generation_id": "47369b8ae3b8ab6809b8",
+        "identifier": "kekw",
+        "message_text": "ЧЕТВЕРТЬ ФИНАЛ БЛАСТА СПИРИТ ВПЕРЕД\ntwitch.tv/shadowkekw\nКолесико для всех:\nhttps://betboom.ru/freestream/kekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6176\nhttp://twitch.tv/shadowkekw\nhttps://betboom.ru/freestream/kekw",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-30T12:57:19+00:00",
+        "source": "shadowkekw",
+        "source_message_date": "2026-07-30T12:45:41+00:00",
+        "source_message_id": 6176,
+        "source_message_url": "https://telegram.me/shadowkekw/6176",
+        "status": "active",
+        "url": "https://betboom.ru/freestream/kekw",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw"
       },
-      "stage": "account_result",
-      "transition_id": "2c438ba8f6712d23f9e1918b982e3611aca16b11656a9f8207c1c1ab2a128379"
+      "stage": "persisted",
+      "transition_id": "b8f91670f36e3a95ca38ce69f0141007e1697bf7c3e895774a8192f84f16f983"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:17e0d61601281c4c8950e576828c2626c571ca326e3a1d75b504ff4ed1faf630",
@@ -253,9 +243,19 @@
       },
       "stage": "account_result",
       "transition_id": "ba2a3a633c36edceb2ac110d7e1db1cf6de972af8cac5804d9987946619c1930"
+    },
+    {
+      "dedupe_key": "30544939714",
+      "occurred_at": "2026-07-30T13:01:30.297502+00:00",
+      "payload": {
+        "workflow_run_id": "30544939714",
+        "workflow_sha": "5d3ca6cdf07d2a956868d1c14ac0830f551ffde8"
+      },
+      "stage": "workflow_started",
+      "transition_id": "db216b835b543084363c63cee7821174e747ee90d4c4102e64e9414a5f3355b4"
     }
   ],
-  "updated_at": "2026-07-30T13:01:30.297502+00:00",
+  "updated_at": "2026-07-30T13:03:21.791428+00:00",
   "wheel_key": "kekw",
   "workflow_started_at": "2026-07-30T13:01:30.297502+00:00"
 }
