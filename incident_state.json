@@ -1,5 +1,5 @@
 {
-  "active_count": 0,
+  "active_count": 1,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -233,19 +233,17 @@
       "first_seen_at": "2026-07-23T19:34:37.482070+00:00",
       "key": "system_checks:rating_score_mismatch:07dc22560f33b233",
       "kind": "rating_score_mismatch",
-      "last_seen_at": "2026-07-23T20:00:09.173011+00:00",
+      "last_seen_at": "2026-07-30T15:20:10.463915+00:00",
+      "lifecycle_started_at": "2026-07-30T15:20:10.463915+00:00",
       "metadata": {},
-      "occurrences": 10,
+      "notification_stabilizing_until": "2026-07-30T15:25:10.463915+00:00",
+      "occurrences": 11,
       "open_notification_pending": false,
-      "open_notified_at": "2026-07-23T19:35:18.047931+00:00",
-      "opened_sequence": 99,
-      "resolution_notification_pending": false,
-      "resolution_notified_at": "2026-07-23T20:00:10.349788+00:00",
-      "resolved_at": "2026-07-23T20:00:09.173011+00:00",
+      "opened_sequence": 127,
       "resolved_sequence": 102,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "resolved",
+      "status": "active",
       "subject": "",
       "title": "Рейтинг источников не совпадает с личными голосами"
     },
@@ -361,17 +359,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-30T00:14:46.994991+00:00",
-  "last_reconcile_at": "2026-07-30T12:56:44.884622+00:00",
+  "last_change_at": "2026-07-30T15:20:10.463915+00:00",
+  "last_reconcile_at": "2026-07-30T15:20:10.463915+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 0,
+    "active": 1,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 126,
+  "sequence": 127,
   "status": "initializing",
-  "updated_at": "2026-07-30T12:56:44.884684+00:00",
+  "updated_at": "2026-07-30T15:20:10.464010+00:00",
   "version": 1
 }
