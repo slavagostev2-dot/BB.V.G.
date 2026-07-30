@@ -1,17 +1,17 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
+      "account_key": "xflarxx_primary",
       "artifact_url": "",
-      "attempt_id": "80982c25f838d2ba97b0829da7edae01565053e5e5a3679f3e493af37c3ae77a",
+      "attempt_id": "0a6ae21af33289c38be6e06d7b04802b00e716a3956c7688c845f0f6bf8bcd03",
       "confidence": 110,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции)",
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции); подготовка: main:Окей",
       "event_id": "evt:3562245ab8cfa6115e17",
-      "finished_at": "2026-07-30T15:03:22.769270+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-07-30T15:03:38.733909+00:00",
-      "started_at": "2026-07-30T15:03:22.769270+00:00",
+      "finished_at": "2026-07-30T15:03:34.202707+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-07-30T15:03:38.735880+00:00",
+      "started_at": "2026-07-30T15:03:34.202707+00:00",
       "status": "participated"
     },
     {
@@ -29,17 +29,17 @@
       "status": "participated"
     },
     {
-      "account_key": "xflarxx_primary",
+      "account_key": "vyacheslav_primary",
       "artifact_url": "",
-      "attempt_id": "0a6ae21af33289c38be6e06d7b04802b00e716a3956c7688c845f0f6bf8bcd03",
+      "attempt_id": "80982c25f838d2ba97b0829da7edae01565053e5e5a3679f3e493af37c3ae77a",
       "confidence": 110,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции); подготовка: main:Окей",
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; post_click_layout:main:Об акции)",
       "event_id": "evt:3562245ab8cfa6115e17",
-      "finished_at": "2026-07-30T15:03:34.202707+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-07-30T15:03:38.735880+00:00",
-      "started_at": "2026-07-30T15:03:34.202707+00:00",
+      "finished_at": "2026-07-30T15:03:22.769270+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-07-30T15:03:38.733909+00:00",
+      "started_at": "2026-07-30T15:03:22.769270+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-30T15:03:22.769270+00:00",
       "status": "participated",
-      "updated_at": "2026-07-30T15:03:38.733909+00:00"
+      "updated_at": "2026-07-30T15:05:13.922931+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-30T15:03:30.183356+00:00",
       "status": "participated",
-      "updated_at": "2026-07-30T15:03:38.734924+00:00"
+      "updated_at": "2026-07-30T15:05:13.923869+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-30T15:03:34.202707+00:00",
       "status": "participated",
-      "updated_at": "2026-07-30T15:03:38.735880+00:00"
+      "updated_at": "2026-07-30T15:05:13.924774+00:00"
     }
   ],
   "action_id": 1067,
@@ -119,31 +119,14 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-07-30T15:03:38.728219+00:00",
+      "dedupe_key": "30554644625",
+      "occurred_at": "2026-07-30T15:03:38.732019+00:00",
       "payload": {
-        "action_id": 1067,
-        "available_at": "",
-        "deadline": "2026-07-30T15:30:34.118000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:3562245ab8cfa6115e17",
-        "expires_at": "2026-07-30T16:00:34.118000+00:00",
-        "generation_id": "3562245ab8cfa6115e17",
-        "identifier": "shik5",
-        "message_text": "😍\nКолесо фрибетов от BETBOOM уже ждет вас!\nУ вас есть 30 минут, чтобы забрать свои бонусы.\nhttps://betboom.ru/freestream/shik5\n😍\n😍\n😍\n😍\n😍\n@GShikaryan\nhttps://telegram.me/GShikaryan\nhttps://telegram.me/GShikaryan/6109\nhttps://betboom.ru/freestream/shik5\nhttps://betboom.ru/freestream/shik6",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-30T15:00:34.118000+00:00",
-        "source": "gshikaryan",
-        "source_message_date": "2026-07-30T15:00:01+00:00",
-        "source_message_id": 6109,
-        "source_message_url": "https://telegram.me/GShikaryan/6109",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/shik5",
-        "verification_status": "confirmed",
-        "wheel_key": "shik5"
+        "workflow_run_id": "30554644625",
+        "workflow_sha": "44628b123cdff3c64fa631fb768282f205dbca30"
       },
-      "stage": "source_discovered",
-      "transition_id": "eddf24bf7c96dc4bbf9433f5018f11a5c0244ff9c8192fc3f5eaedfb91216d89"
+      "stage": "workflow_started",
+      "transition_id": "18e0fee3bbb6759ac81c2f461f18cf536dc978ec67888129129a2a2f697ce125"
     },
     {
       "dedupe_key": "durable-event",
@@ -173,6 +156,36 @@
       "transition_id": "224e2598d469a0414bc6f78ca4aa14b00f11f47d1935d9b60c0678d9083e7c90"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:78416b62dbc931d74983360ad6aa6f99993e4ae315b850147de558943fd24a62",
+      "occurred_at": "2026-07-30T15:03:30.183356+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "29ef57f015580504ddd25ff211777f3c0900678d84a1028401c8511746d2e40e"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:80982c25f838d2ba97b0829da7edae01565053e5e5a3679f3e493af37c3ae77a",
+      "occurred_at": "2026-07-30T15:03:22.769270+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "7ce3b1b6e799c4367a42a1999a007440265f218f6ed2ce01fbaaa0988a10be61"
+    },
+    {
       "dedupe_key": "1067:2026-07-30T15:00:34.118000+00:00",
       "occurred_at": "2026-07-30T15:03:38.728219+00:00",
       "payload": {
@@ -200,46 +213,6 @@
       "transition_id": "8614c59c1834a01329d3d4137ef050cc70765f862d015e9f8f182e1ae7b40e9a"
     },
     {
-      "dedupe_key": "30554644625",
-      "occurred_at": "2026-07-30T15:03:38.732019+00:00",
-      "payload": {
-        "workflow_run_id": "30554644625",
-        "workflow_sha": "44628b123cdff3c64fa631fb768282f205dbca30"
-      },
-      "stage": "workflow_started",
-      "transition_id": "18e0fee3bbb6759ac81c2f461f18cf536dc978ec67888129129a2a2f697ce125"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:80982c25f838d2ba97b0829da7edae01565053e5e5a3679f3e493af37c3ae77a",
-      "occurred_at": "2026-07-30T15:03:22.769270+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "7ce3b1b6e799c4367a42a1999a007440265f218f6ed2ce01fbaaa0988a10be61"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:78416b62dbc931d74983360ad6aa6f99993e4ae315b850147de558943fd24a62",
-      "occurred_at": "2026-07-30T15:03:30.183356+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "29ef57f015580504ddd25ff211777f3c0900678d84a1028401c8511746d2e40e"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:0a6ae21af33289c38be6e06d7b04802b00e716a3956c7688c845f0f6bf8bcd03",
       "occurred_at": "2026-07-30T15:03:34.202707+00:00",
       "payload": {
@@ -253,9 +226,36 @@
       },
       "stage": "account_result",
       "transition_id": "91a3dc7cb8f9725de814a2214cbc77aba2b57de671b7f1e378e403a108c8a6c8"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-07-30T15:03:38.728219+00:00",
+      "payload": {
+        "action_id": 1067,
+        "available_at": "",
+        "deadline": "2026-07-30T15:30:34.118000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:3562245ab8cfa6115e17",
+        "expires_at": "2026-07-30T16:00:34.118000+00:00",
+        "generation_id": "3562245ab8cfa6115e17",
+        "identifier": "shik5",
+        "message_text": "😍\nКолесо фрибетов от BETBOOM уже ждет вас!\nУ вас есть 30 минут, чтобы забрать свои бонусы.\nhttps://betboom.ru/freestream/shik5\n😍\n😍\n😍\n😍\n😍\n@GShikaryan\nhttps://telegram.me/GShikaryan\nhttps://telegram.me/GShikaryan/6109\nhttps://betboom.ru/freestream/shik5\nhttps://betboom.ru/freestream/shik6",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-30T15:00:34.118000+00:00",
+        "source": "gshikaryan",
+        "source_message_date": "2026-07-30T15:00:01+00:00",
+        "source_message_id": 6109,
+        "source_message_url": "https://telegram.me/GShikaryan/6109",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/shik5",
+        "verification_status": "confirmed",
+        "wheel_key": "shik5"
+      },
+      "stage": "source_discovered",
+      "transition_id": "eddf24bf7c96dc4bbf9433f5018f11a5c0244ff9c8192fc3f5eaedfb91216d89"
     }
   ],
-  "updated_at": "2026-07-30T15:03:38.732019+00:00",
+  "updated_at": "2026-07-30T15:05:13.921340+00:00",
   "wheel_key": "shik5",
   "workflow_started_at": "2026-07-30T15:03:38.732019+00:00"
 }
