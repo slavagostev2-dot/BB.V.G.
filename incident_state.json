@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 2,
   "incidents": {
     "system_checks:admin_panel_not_running:3e312a33e5d944e2": {
       "detail": "Текущее состояние: validation_failed.",
@@ -233,10 +233,10 @@
       "first_seen_at": "2026-07-23T19:34:37.482070+00:00",
       "key": "system_checks:rating_score_mismatch:07dc22560f33b233",
       "kind": "rating_score_mismatch",
-      "last_seen_at": "2026-07-30T21:20:33.612905+00:00",
+      "last_seen_at": "2026-07-30T22:31:38.306459+00:00",
       "lifecycle_started_at": "2026-07-30T15:20:10.463915+00:00",
       "metadata": {},
-      "occurrences": 15,
+      "occurrences": 16,
       "open_notification_pending": false,
       "open_notified_at": "2026-07-30T16:54:22.274316+00:00",
       "opened_sequence": 127,
@@ -314,26 +314,24 @@
       "title": "Источник @ct0mislove не проверяется"
     },
     "system_checks:source_transport_smoke:581b534aecd3e81e": {
-      "detail": "status=success; domain=telegram.me; primary=167/168; nightly=1/1; accounted=168/169; missing=0.",
+      "detail": "status=success; domain=telegram.me; primary=169/169; nightly=1/1; accounted=170/170; missing=0.",
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
       "kind": "source_transport_smoke",
-      "last_seen_at": "2026-07-21T16:27:55.169210+00:00",
+      "last_seen_at": "2026-07-30T22:31:38.306459+00:00",
+      "lifecycle_started_at": "2026-07-30T22:31:38.306459+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-07-18T15:33:42.673967+00:00",
-      "occurrences": 43,
+      "occurrences": 44,
       "open_notification_pending": false,
-      "open_notified_at": "2026-07-21T16:05:32.067840+00:00",
-      "opened_sequence": 86,
+      "open_notified_at": "2026-07-30T22:31:39.714308+00:00",
+      "opened_sequence": 128,
       "reopen_notification_suppressed_at": "2026-07-18T15:32:04.735808+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
-      "resolution_notification_pending": false,
-      "resolution_notified_at": "2026-07-21T16:27:56.987583+00:00",
-      "resolved_at": "2026-07-21T16:27:55.169210+00:00",
       "resolved_sequence": 89,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "resolved",
+      "status": "active",
       "subject": "",
       "title": "Транспортная проверка текущего inventory не подтверждена"
     },
@@ -359,17 +357,17 @@
       "title": "Давно не выполнялась полная проверка 66 источников"
     }
   },
-  "last_change_at": "2026-07-30T16:54:21.094370+00:00",
-  "last_reconcile_at": "2026-07-30T21:20:33.612905+00:00",
+  "last_change_at": "2026-07-30T22:31:38.306459+00:00",
+  "last_reconcile_at": "2026-07-30T22:31:38.306459+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
-    "new_notification_count": 0,
+    "active": 2,
+    "new_notification_count": 1,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 127,
+  "sequence": 128,
   "status": "initializing",
-  "updated_at": "2026-07-30T21:20:33.613020+00:00",
+  "updated_at": "2026-07-30T22:31:39.714340+00:00",
   "version": 1
 }
