@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T140917749973Z-e2059734f3d3",
-      "attempt_id": "a0c0e88643627194854ca0c181514deb52724c06bc2501ac258ded5f55a1e413",
-      "confidence": 55,
-      "confirmation": "workflow_state",
-      "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
-      "event_id": "evt:5f4a4197580ad4a4c881",
-      "finished_at": "2026-07-30T14:09:03.949051+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-07-30T14:09:47.767573+00:00",
-      "started_at": "2026-07-30T14:09:03.949051+00:00",
-      "status": "button_not_found"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T140932207372Z-525e85fa18c2",
       "attempt_id": "20ef4c287d612ff58a251d637437b80959d6f3061176d8ff55692602b8175e9a",
@@ -41,23 +27,51 @@
       "recorded_at": "2026-07-30T14:09:47.770069+00:00",
       "started_at": "2026-07-30T14:09:32.712148+00:00",
       "status": "button_not_found"
-    }
-  ],
-  "account_results": [
+    },
     {
       "account_key": "vyacheslav_primary",
-      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T141023562111Z-6d71a8aa96a8",
+      "attempt_id": "9b7cd85507c1e16f7e3d510a35f066fa97962e1ba84bddfc45ea266fad9649d0",
+      "confidence": 55,
+      "confirmation": "workflow_state",
+      "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
+      "event_id": "evt:5f4a4197580ad4a4c881",
+      "finished_at": "2026-07-30T14:10:07.476246+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-07-30T14:11:07.502861+00:00",
+      "started_at": "2026-07-30T14:10:07.476246+00:00",
+      "status": "button_not_found"
+    },
+    {
+      "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T140917749973Z-e2059734f3d3",
-      "attempt_count": 1,
+      "attempt_id": "a0c0e88643627194854ca0c181514deb52724c06bc2501ac258ded5f55a1e413",
       "confidence": 55,
       "confirmation": "workflow_state",
       "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
       "event_id": "evt:5f4a4197580ad4a4c881",
       "finished_at": "2026-07-30T14:09:03.949051+00:00",
       "owner_id": "vyacheslav",
+      "recorded_at": "2026-07-30T14:09:47.767573+00:00",
+      "started_at": "2026-07-30T14:09:03.949051+00:00",
+      "status": "button_not_found"
+    }
+  ],
+  "account_results": [
+    {
+      "account_key": "vyacheslav_primary",
+      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T141023562111Z-6d71a8aa96a8",
+      "attempt_count": 1,
+      "confidence": 55,
+      "confirmation": "workflow_state",
+      "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции",
+      "event_id": "evt:5f4a4197580ad4a4c881",
+      "finished_at": "2026-07-30T14:10:07.476246+00:00",
+      "owner_id": "vyacheslav",
       "started_at": "2026-07-30T14:09:03.949051+00:00",
       "status": "button_not_found",
-      "updated_at": "2026-07-30T14:09:47.767573+00:00"
+      "updated_at": "2026-07-30T14:11:07.502861+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +86,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-30T14:09:18.246897+00:00",
       "status": "button_not_found",
-      "updated_at": "2026-07-30T14:09:47.768814+00:00"
+      "updated_at": "2026-07-30T14:11:07.504106+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +101,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-30T14:09:32.712148+00:00",
       "status": "button_not_found",
-      "updated_at": "2026-07-30T14:09:47.770069+00:00"
+      "updated_at": "2026-07-30T14:11:07.505416+00:00"
     }
   ],
   "action_id": 1120,
@@ -119,31 +133,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-07-30T14:09:47.761733+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:7a1a82846951ddda6e4690c6605942291e6e5b144046edb4fdcdafe2bf9fb51c",
+      "occurred_at": "2026-07-30T14:09:32.712148+00:00",
       "payload": {
-        "action_id": 1120,
-        "available_at": "",
-        "deadline": "2026-07-30T14:41:00.926000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:5f4a4197580ad4a4c881",
-        "expires_at": "2026-07-30T15:11:00.926000+00:00",
-        "generation_id": "5f4a4197580ad4a4c881",
-        "identifier": "chopper3",
-        "message_text": "https://betboom.ru/freestream/chopper3\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/284",
-        "referral_restricted": false,
-        "server_start_at": "2026-07-30T14:01:00.926000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-07-30T14:06:22+00:00",
-        "source_message_id": 284,
-        "source_message_url": "https://telegram.me/kolesaBB/284",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/chopper3",
-        "verification_status": "confirmed",
-        "wheel_key": "chopper3"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T140947081780Z-4f281f2130b9",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "button_not_found"
       },
-      "stage": "source_discovered",
-      "transition_id": "593c4826ea34bb46fb28e9434a307a9bf33af7a1efbf800f72e6300e330b769d"
+      "stage": "account_result",
+      "transition_id": "1fcda2ffe5aa7ee57ba504f49a93c388b5784d20668b325f83d0f64185f65366"
     },
     {
       "dedupe_key": "durable-event",
@@ -173,7 +175,22 @@
       "transition_id": "23974456999b57e36c342dcb3b517f21b0962d15abf35da14c85bfd33df9b304"
     },
     {
-      "dedupe_key": "1120:2026-07-30T14:01:00.926000+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:9b7cd85507c1e16f7e3d510a35f066fa97962e1ba84bddfc45ea266fad9649d0",
+      "occurred_at": "2026-07-30T14:10:07.476246+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T141023562111Z-6d71a8aa96a8",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "button_not_found"
+      },
+      "stage": "account_result",
+      "transition_id": "55fc312743d778d9d1a53cc12c2d9895907e3c3a648238fd4df5bded61cb107b"
+    },
+    {
+      "dedupe_key": "workflow_payload",
       "occurred_at": "2026-07-30T14:09:47.761733+00:00",
       "payload": {
         "action_id": 1120,
@@ -196,8 +213,8 @@
         "verification_status": "confirmed",
         "wheel_key": "chopper3"
       },
-      "stage": "api_confirmed",
-      "transition_id": "b7a2965750e67e3f5cf694b9aeb495001ebdca0812120fc75a63137398c34329"
+      "stage": "source_discovered",
+      "transition_id": "593c4826ea34bb46fb28e9434a307a9bf33af7a1efbf800f72e6300e330b769d"
     },
     {
       "dedupe_key": "30550167154",
@@ -225,6 +242,33 @@
       "transition_id": "b0f03ab84a4a78fa2f60fdb801c2b96f0b128f684e8279df64ecb447185e418f"
     },
     {
+      "dedupe_key": "1120:2026-07-30T14:01:00.926000+00:00",
+      "occurred_at": "2026-07-30T14:09:47.761733+00:00",
+      "payload": {
+        "action_id": 1120,
+        "available_at": "",
+        "deadline": "2026-07-30T14:41:00.926000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:5f4a4197580ad4a4c881",
+        "expires_at": "2026-07-30T15:11:00.926000+00:00",
+        "generation_id": "5f4a4197580ad4a4c881",
+        "identifier": "chopper3",
+        "message_text": "https://betboom.ru/freestream/chopper3\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/284",
+        "referral_restricted": false,
+        "server_start_at": "2026-07-30T14:01:00.926000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-07-30T14:06:22+00:00",
+        "source_message_id": 284,
+        "source_message_url": "https://telegram.me/kolesaBB/284",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/chopper3",
+        "verification_status": "confirmed",
+        "wheel_key": "chopper3"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "b7a2965750e67e3f5cf694b9aeb495001ebdca0812120fc75a63137398c34329"
+    },
+    {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:20ef4c287d612ff58a251d637437b80959d6f3061176d8ff55692602b8175e9a",
       "occurred_at": "2026-07-30T14:09:18.246897+00:00",
       "payload": {
@@ -238,24 +282,9 @@
       },
       "stage": "account_result",
       "transition_id": "e67d122fba64f0badcde81662d2de104d2ce74dca3b6947b3d415d2cfa6eae55"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:7a1a82846951ddda6e4690c6605942291e6e5b144046edb4fdcdafe2bf9fb51c",
-      "occurred_at": "2026-07-30T14:09:32.712148+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260730T140947081780Z-4f281f2130b9",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "button_not_found"
-      },
-      "stage": "account_result",
-      "transition_id": "1fcda2ffe5aa7ee57ba504f49a93c388b5784d20668b325f83d0f64185f65366"
     }
   ],
-  "updated_at": "2026-07-30T14:09:47.765572+00:00",
+  "updated_at": "2026-07-30T14:11:07.501203+00:00",
   "wheel_key": "chopper3",
   "workflow_started_at": "2026-07-30T14:09:47.765572+00:00"
 }
