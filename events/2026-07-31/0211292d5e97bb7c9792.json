@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-31T12:42:16.927675+00:00",
       "status": "participated",
-      "updated_at": "2026-07-31T12:42:38.175500+00:00"
+      "updated_at": "2026-07-31T12:43:38.459829+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-07-31T12:42:29.265861+00:00",
       "status": "participated",
-      "updated_at": "2026-07-31T12:42:38.176981+00:00"
+      "updated_at": "2026-07-31T12:43:38.460978+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-07-31T12:42:33.645515+00:00",
       "status": "participated",
-      "updated_at": "2026-07-31T12:42:38.178349+00:00"
+      "updated_at": "2026-07-31T12:43:38.462189+00:00"
     }
   ],
   "action_id": 1140,
@@ -146,6 +146,16 @@
       "transition_id": "0aca0a4f72731e286d4b61c9014a293f89266002822f0a7e348da5107c77ea5a"
     },
     {
+      "dedupe_key": "30631532453",
+      "occurred_at": "2026-07-31T12:42:38.173195+00:00",
+      "payload": {
+        "workflow_run_id": "30631532453",
+        "workflow_sha": "67b7493daa23979fa2cafb0f95fe5b8de4b438a9"
+      },
+      "stage": "workflow_started",
+      "transition_id": "103beadf7f8a07a4706605cb98b77d6201c2963b83fde0385c6c98d8eab71799"
+    },
+    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-07-31T12:42:38.168932+00:00",
       "payload": {
@@ -171,6 +181,21 @@
       },
       "stage": "persisted",
       "transition_id": "52376f7f9d664f6da17a4a2928f60bece83b4f7649845d8b463292629d925737"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:e9683d2a00c19564866db16a7d90d137b9ef2fc7e24b28ebd56bd4d0dabd78c8",
+      "occurred_at": "2026-07-31T12:42:29.265861+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "7c530a40ca0be9c552174f443e3d9d2f362390edaddb902ec2ece299218d823f"
     },
     {
       "dedupe_key": "1140:2026-07-31T12:39:27.190000+00:00",
@@ -200,16 +225,6 @@
       "transition_id": "98e4298bbe29f808eb17110e68f4f2fe9669a13b704110c4ed84fa46f9a8b666"
     },
     {
-      "dedupe_key": "30631532453",
-      "occurred_at": "2026-07-31T12:42:38.173195+00:00",
-      "payload": {
-        "workflow_run_id": "30631532453",
-        "workflow_sha": "67b7493daa23979fa2cafb0f95fe5b8de4b438a9"
-      },
-      "stage": "workflow_started",
-      "transition_id": "103beadf7f8a07a4706605cb98b77d6201c2963b83fde0385c6c98d8eab71799"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:664cca06ecc33f1af860b7e52ae48a580c1b2f7ec01004609d23fc564fe77b0d",
       "occurred_at": "2026-07-31T12:42:16.927675+00:00",
       "payload": {
@@ -223,21 +238,6 @@
       },
       "stage": "account_result",
       "transition_id": "9c2fc9f0141cf01c51fff301aa56636e0f751bb1d2de8989d13c94486f6bad6f"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:e9683d2a00c19564866db16a7d90d137b9ef2fc7e24b28ebd56bd4d0dabd78c8",
-      "occurred_at": "2026-07-31T12:42:29.265861+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "7c530a40ca0be9c552174f443e3d9d2f362390edaddb902ec2ece299218d823f"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:fdacc678703245c6c03e3cc125279c039e01e88185a2e514608126ffe9f65428",
@@ -255,7 +255,7 @@
       "transition_id": "e00cd8aa87382fc3cccf6ac596cbd5d72ea3cc8faf9fd4901b7a1c1364760101"
     }
   ],
-  "updated_at": "2026-07-31T12:42:38.173195+00:00",
+  "updated_at": "2026-07-31T12:43:38.458117+00:00",
   "wheel_key": "kekw",
   "workflow_started_at": "2026-07-31T12:42:38.173195+00:00"
 }
