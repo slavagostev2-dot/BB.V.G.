@@ -38,6 +38,9 @@
 - Control Center создаёт смену-преемника только после успешного завершения.
   Отмена, вытеснение или ошибка не запускают recovery из завершающегося run;
   почасовой schedule страхует разрыв без каскада взаимных отмен.
+- Validation и live-job смены используют shallow checkout exact release SHA.
+  Полная история постоянно растущих runtime-коммитов не загружается перед
+  запуском единственного Telegram `getUpdates` consumer.
 - Временный GitHub API `403 rate limit` при стартовой записи heartbeat не
   блокирует Telegram consumer: запуск использует проверенную локальную
   encrypted-копию exact release SHA, а удалённый heartbeat повторяется после

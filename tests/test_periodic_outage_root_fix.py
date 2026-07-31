@@ -28,6 +28,21 @@ def test_control_plane_does_not_treat_heartbeat_commits_as_deployments() -> None
     assert 'cron: "37 * * * *"' not in admin
 
 
+def test_control_center_handoff_does_not_clone_full_runtime_history() -> None:
+    admin = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
+    validation_checkout = admin.split("      - name: Checkout repository", 1)[1].split(
+        "      - name: Resolve exact release SHA", 1
+    )[0]
+    live_checkout = admin.split(
+        "      - name: Checkout validated repository", 1
+    )[1].split("      - name: Set up Python", 1)[0]
+
+    assert "fetch-depth: 1" in validation_checkout
+    assert "fetch-depth: 1" in live_checkout
+    assert "fetch-depth: 0" not in admin
+    assert 'git fetch --no-tags --depth=1 origin "$release_sha"' in admin
+
+
 def test_volatile_incident_needs_confirmed_open_and_recovery() -> None:
     original_path = incident_manager.STATE_PATH
     original_now = incident_manager.now_utc
