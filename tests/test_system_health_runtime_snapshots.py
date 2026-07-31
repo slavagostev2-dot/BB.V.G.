@@ -30,3 +30,11 @@ def test_system_health_does_not_diagnose_from_stale_main_source_health() -> None
     )
     assert runtime_state_loop in workflow
     assert "Authoritative runtime-status and runtime-state snapshots loaded" in workflow
+
+
+def test_optional_ai_provider_cannot_block_deterministic_health() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "deterministic health diagnostics" in workflow
+    assert 'assert config.provider in {"gemini", "openai"}' not in workflow
+    assert "assert config.provider_configured()" not in workflow

@@ -129,7 +129,20 @@ def deliver_pending_notifications_with_ai(
         and entry.get("status") == "active"
         and entry.get("scope") == legacy.SCOPE
     ]
-    insight = ai_health_inspector.inspect(details, active_findings)
+    try:
+        insight = ai_health_inspector.inspect(details, active_findings)
+    except Exception as exc:
+        rules = ai_health_inspector.rules_assessment(details, active_findings)
+        insight = {
+            "version": 1,
+            "generated_at": legacy.now_utc().isoformat(),
+            "mode": "rules",
+            "ai_status": "inspector_error",
+            "used_fallback": True,
+            "error_type": type(exc).__name__,
+            "confidence": 1.0,
+            **rules,
+        }
     details["ai_health_inspector"] = insight
     delivery["health_inspector_mode"] = insight.get("mode")
     delivery["health_inspector_status"] = insight.get("ai_status")
@@ -270,6 +283,26 @@ def self_test() -> None:
 
     assert legacy.check_inventory is check_inventory_allow_empty_nightly
     assert legacy.deliver_pending_notifications is deliver_pending_notifications_with_ai
+
+    original_inspect = ai_health_inspector.inspect
+    try:
+        def broken_inspector(*args, **kwargs):
+            del args, kwargs
+            raise RuntimeError("test inspector failure")
+
+        ai_health_inspector.inspect = broken_inspector
+        fallback_details: dict[str, Any] = {}
+        deliver_pending_notifications_with_ai(
+            {"incidents": {}},
+            fallback_details,
+        )
+    finally:
+        ai_health_inspector.inspect = original_inspect
+
+    assert fallback_details["ai_health_inspector"]["mode"] == "rules"
+    assert fallback_details["ai_health_inspector"]["ai_status"] == "inspector_error"
+    assert fallback_details["incident_delivery"]["messages_attempted"] == 0
+
     ai_health_inspector.self_test()
     current.self_test()
     print("BB V.G. primary-only inventory, deployment grace and stable health delivery self-test passed")

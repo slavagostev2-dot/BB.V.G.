@@ -322,10 +322,17 @@ jobs:
           python - <<'PY'
           from bbvg.ai_core import AIConfig
           config = AIConfig.from_env()
-          assert config.provider in {"gemini", "openai"}, "Unsupported BBVG_AI_PROVIDER"
-          assert config.model, "BBVG_AI_MODEL is empty"
-          assert config.provider_configured(), "Selected AI provider key is missing"
-          print(f"AI provider configured: {config.provider}/{config.model}")
+          if (
+              config.provider in {"gemini", "openai"}
+              and config.model
+              and config.provider_configured()
+          ):
+              print(f"AI provider configured: {config.provider}/{config.model}")
+          else:
+              print(
+                  "AI provider is unavailable; deterministic health diagnostics "
+                  "will continue with the built-in rules fallback."
+              )
           PY
 
       - name: Run centralized bot checks
