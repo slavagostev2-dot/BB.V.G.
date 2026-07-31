@@ -247,6 +247,9 @@ def _settled_event_groups(
         )
     }
     groups: dict[str, dict[str, tuple[str, dict[str, Any], bool]]] = {}
+    observed_groups: dict[
+        str, dict[str, tuple[str, dict[str, Any], bool]]
+    ] = {}
     for raw_token, raw_record in events.items():
         if not isinstance(raw_record, dict):
             continue
@@ -260,19 +263,35 @@ def _settled_event_groups(
         raw_record.setdefault("account_owner", OWNER_SCOPE)
         raw_record.setdefault("account_order", order)
         is_success = _success(raw_record)
-        if not is_success and token not in approved_failures:
-            continue
         base_token = _canonical_event_token(state, token, raw_record)
         if not base_token:
             continue
         incoming = (token, raw_record, is_success)
+        observed = observed_groups.setdefault(base_token, {}).get(account_key)
+        observed_groups[base_token][account_key] = _prefer_outcome(
+            observed, incoming
+        )
+        if not is_success and token not in approved_failures:
+            continue
         current = groups.setdefault(base_token, {}).get(account_key)
         groups[base_token][account_key] = _prefer_outcome(current, incoming)
-    return {
+    settled = {
         token: accounts
         for token, accounts in groups.items()
         if expected_keys.issubset(accounts)
     }
+    for token, accounts in observed_groups.items():
+        if not expected_keys.issubset(accounts):
+            continue
+        if not any(success for _raw, _record, success in accounts.values()):
+            continue
+        item, _active_matches = _event_item(state, token, accounts)
+        if (
+            isinstance(item, dict)
+            and wheel_publications_v2.entry_is_referral_restricted(item)
+        ):
+            settled[token] = accounts
+    return settled
 
 
 def _notification_enabled(owner: dict[str, Any]) -> bool:
@@ -288,10 +307,30 @@ def _should_send_notification(owner: dict[str, Any], item: dict[str, Any]) -> bo
     )
 
 
-def _processed(record: Any) -> bool:
-    return isinstance(record, dict) and bool(
-        record.get("completed_at") or record.get("notified_at")
-    )
+def _should_send_event_result(
+    owner: dict[str, Any],
+    item: dict[str, Any],
+    accounts: dict[str, tuple[str, dict[str, Any], bool]],
+) -> bool:
+    """Keep referral discovery silent unless an owner account really joined."""
+
+    if not _notification_enabled(owner):
+        return False
+    if not wheel_publications_v2.entry_is_referral_restricted(item):
+        return True
+    return any(success for _token, _record, success in accounts.values())
+
+
+def _processed(record: Any, *, allow_referral_upgrade: bool = False) -> bool:
+    if not isinstance(record, dict):
+        return False
+    if (
+        allow_referral_upgrade
+        and not record.get("notified_at")
+        and record.get("notification_policy") == "referral_suppressed"
+    ):
+        return False
+    return bool(record.get("completed_at") or record.get("notified_at"))
 
 
 def _should_finalize(
@@ -299,10 +338,20 @@ def _should_finalize(
     failure_record: Any,
     *,
     all_success: bool,
+    allow_referral_upgrade: bool = False,
 ) -> bool:
-    if _processed(success_record):
+    if _processed(
+        success_record,
+        allow_referral_upgrade=allow_referral_upgrade,
+    ):
         return False
-    if _processed(failure_record) and not all_success:
+    if (
+        _processed(
+            failure_record,
+            allow_referral_upgrade=allow_referral_upgrade,
+        )
+        and not all_success
+    ):
         return False
     return True
 
@@ -335,6 +384,7 @@ def _result_message(
     identifier = html.escape(str(item.get("identifier") or key))
     all_success = all(value[2] for value in accounts.values())
     any_success = any(value[2] for value in accounts.values())
+    referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
     lines: list[str] = []
     ordered = sorted(
         accounts.items(),
@@ -354,19 +404,31 @@ def _result_message(
             lines.append(
                 f"✅ {escaped_label} — {html.escape(_success_description(record))}"
             )
+        elif str(
+            record.get("bot_failure_status") or record.get("status") or ""
+        ).casefold() not in FAILURE_LABELS:
+            lines.append(
+                f"⏳ {escaped_label} — участие пока не подтверждено"
+            )
         else:
             lines.append(
                 f"❌ {escaped_label} — {html.escape(_failure_reason(record))}"
             )
-    title = (
-        "✅ <b>Участие принято</b>"
-        if all_success
-        else "⚠️ <b>Автоучастие выполнено не полностью</b>"
-        if any_success
-        else "⚠️ <b>Участие не принято</b>"
-    )
+    if referral_restricted and any_success:
+        title = "🎡 <b>Реферальное колесо — участие доступно</b>"
+    else:
+        title = (
+            "✅ <b>Участие принято</b>"
+            if all_success
+            else "⚠️ <b>Автоучастие выполнено не полностью</b>"
+            if any_success
+            else "⚠️ <b>Участие не принято</b>"
+        )
+    source = str(item.get("source") or "").strip().lstrip("@")
+    source_line = f"Источник: @{html.escape(source)}\n" if source else ""
     return (
         f"{title}\n\n"
+        f"{source_line}"
         f"Колесо: <code>{identifier}</code>\n"
         + "\n".join(lines),
         _navigation(),
@@ -416,17 +478,19 @@ def sync_once(panel: Any) -> dict[str, int]:
             continue
         event_key = personal_wheel_voting.wheel_event_key(key, item)
         all_success = all(value[2] for value in accounts.values())
+        any_success = any(value[2] for value in accounts.values())
+        referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
+        allow_referral_upgrade = referral_restricted and any_success
         if not _should_finalize(
             success_records.get(event_key),
             failure_records.get(event_key),
             all_success=all_success,
+            allow_referral_upgrade=allow_referral_upgrade,
         ):
             continue
 
-        any_success = any(value[2] for value in accounts.values())
-        referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
         notifications_enabled = _notification_enabled(owner)
-        should_send = _should_send_notification(owner, item)
+        should_send = _should_send_event_result(owner, item, accounts)
         now_text = datetime.now(UTC).isoformat()
         account_payload = {
             account_key: {
@@ -461,7 +525,9 @@ def sync_once(panel: Any) -> dict[str, int]:
                 "notified_at": now_text if should_send else "",
                 "notification_sent": should_send,
                 "notification_policy": (
-                    "sent"
+                    "referral_participation_sent"
+                    if should_send and referral_restricted
+                    else "sent"
                     if should_send
                     else "disabled"
                     if not notifications_enabled
@@ -731,6 +797,28 @@ def self_test() -> None:
     assert not _should_send_notification(
         {"notification_preferences": {}},
         {"message_text": "Колесо для рефов"},
+    )
+    assert _should_send_event_result(
+        {"notification_preferences": {}},
+        {"message_text": "Колесо для рефов"},
+        groups[base],
+    )
+    assert not _should_send_event_result(
+        {"notification_preferences": {}},
+        {"message_text": "Колесо для рефов"},
+        {
+            key: (token, record, False)
+            for key, (token, record, _success_value) in groups[base].items()
+        },
+    )
+    assert _should_finalize(
+        {},
+        {
+            "completed_at": "2026-07-22T12:02:00+00:00",
+            "notification_policy": "referral_suppressed",
+        },
+        all_success=False,
+        allow_referral_upgrade=True,
     )
     assert wheel_publications_v2.entry_is_referral_restricted(
         {"message_text": "Колесо для рефов"}

@@ -155,6 +155,82 @@ def test_owner_registry_waits_for_all_enabled_owner_accounts() -> None:
     assert "xFLARXx" not in text
 
 
+def test_referral_success_on_one_account_sends_one_honest_owner_result() -> None:
+    base = "evt:1393d78ddd6274d3103d"
+    item = {
+        "wheel_key": "kekw2",
+        "identifier": "kekw2",
+        "source": "shadowkekw",
+        "event_id": "1393d78ddd6274d3103d",
+        "message_text": "Колесико для рефов",
+        "referral_restricted": True,
+    }
+    state = {
+        "active_wheels": {"kekw2": item},
+        "auto_participation_events": {
+            base: {
+                "wheel_key": "kekw2",
+                "event_token": base,
+                "event_context": item,
+                "account_key": "vyacheslav_primary",
+                "account_label": "Аккаунт 1",
+                "status": "unconfirmed",
+                "bot_failure_status": "unconfirmed",
+                "bot_failure_pending_at": "2026-07-30T15:00:00+00:00",
+            },
+            base + "#account:vyacheslav_secondary": {
+                "wheel_key": "kekw2",
+                "event_token": base,
+                "account_key": "vyacheslav_secondary",
+                "account_label": "Аккаунт 2",
+                "status": "participated",
+                "bot_success_pending_at": "2026-07-30T15:00:10+00:00",
+            },
+        },
+    }
+    groups = auto_participation_notifications._settled_event_groups(
+        state,
+        now=datetime(2026, 7, 30, 15, 5, tzinfo=UTC),
+    )
+    assert len(groups) == 1
+    accounts = next(iter(groups.values()))
+    assert auto_participation_notifications._should_send_event_result(
+        {"notification_preferences": {}},
+        item,
+        accounts,
+    )
+    text, _ = auto_participation_notifications._result_message(
+        "kekw2",
+        item,
+        accounts,
+    )
+    assert "Реферальное колесо — участие доступно" in text
+    assert "Источник: @shadowkekw" in text
+    assert "⏳ Аккаунт 1 — участие пока не подтверждено" in text
+    assert "✅ Аккаунт 2 — участие подтверждено BetBoom" in text
+    assert "❌ Аккаунт 1" not in text
+    assert "no exact post-click confirmation" not in text
+
+    assert auto_participation_notifications._should_finalize(
+        {},
+        {
+            "completed_at": "2026-07-30T15:06:00+00:00",
+            "notification_sent": False,
+            "notification_policy": "referral_suppressed",
+        },
+        all_success=False,
+        allow_referral_upgrade=True,
+    )
+    assert not auto_participation_notifications._should_send_event_result(
+        {"notification_preferences": {}},
+        item,
+        {
+            key: (token, record, False)
+            for key, (token, record, _success) in accounts.items()
+        },
+    )
+
+
 def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:
     calls: list[str] = []
     monkeypatch.setattr(monitor, "send_message", lambda *args, **kwargs: calls.append("send") or {"ok": True})
