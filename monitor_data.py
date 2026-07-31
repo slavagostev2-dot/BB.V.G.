@@ -19,6 +19,16 @@ SOURCE_STATS_PATH = ROOT / "source_stats.json"
 UNKNOWN_TIMER_PATH = ROOT / "unknown_timer_samples.json"
 PUBLIC_SOURCES_PATH = ROOT / "public_sources.txt"
 NIGHTLY_SOURCES_PATH = ROOT / "source_catalog.txt"
+CORRELATED_TRANSPORT_QUARANTINE_MIN_SOURCES = 3
+CORRELATED_TRANSPORT_QUARANTINE_WINDOW_MINUTES = 10
+TRANSIENT_TRANSPORT_FAILURE_CODES = {
+    "timeout",
+    "network_error",
+    "dns_error",
+    "rate_limited",
+    "telegram_server_error",
+    "tls_error",
+}
 
 # Every tracked JSON file has one declared owner and one operational role.  The
 # contract deliberately includes frozen Mini App files and package.json so a
@@ -494,8 +504,35 @@ def source_due_for_check(data: dict[str, Any], username: str, at: datetime | Non
     entry = data.get("sources", {}).get(username, {})
     if not isinstance(entry, dict) or entry.get("status") != "quarantined":
         return True
+    if username in correlated_transport_quarantine_sources(data):
+        return True
     next_check = parse_datetime(entry.get("next_recheck_at"))
     return next_check is None or at >= next_check
+
+
+def correlated_transport_quarantine_sources(data: dict[str, Any]) -> set[str]:
+    """Return transient quarantines created together by one transport wave."""
+
+    sources = data.get("sources") if isinstance(data.get("sources"), dict) else {}
+    rows: list[tuple[datetime, str]] = []
+    for source, entry in sources.items():
+        if not isinstance(entry, dict) or entry.get("status") != "quarantined":
+            continue
+        if str(entry.get("failure_code") or "") not in TRANSIENT_TRANSPORT_FAILURE_CODES:
+            continue
+        quarantined_at = parse_datetime(entry.get("quarantined_at"))
+        if quarantined_at is not None:
+            rows.append((quarantined_at, str(source)))
+    rows.sort()
+    correlated: set[str] = set()
+    left = 0
+    window = timedelta(minutes=CORRELATED_TRANSPORT_QUARANTINE_WINDOW_MINUTES)
+    for right, (current, _) in enumerate(rows):
+        while current - rows[left][0] > window:
+            left += 1
+        if right - left + 1 >= CORRELATED_TRANSPORT_QUARANTINE_MIN_SOURCES:
+            correlated.update(source for _, source in rows[left : right + 1])
+    return correlated
 
 
 def record_source_success(

@@ -183,12 +183,15 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
                 incident_manager.STATE_PATH,
             )
             original_now = system_checks.now_utc
+            original_incident_now = incident_manager.now_utc
+            incident_now = [fixed]
             try:
                 system_checks.PUBLIC_SOURCES_PATH = public
                 system_checks.NIGHTLY_SOURCES_PATH = nightly
                 system_checks.SOURCE_TRANSPORT_STATE_PATH = transport
                 incident_manager.STATE_PATH = incidents
                 system_checks.now_utc = lambda: fixed
+                incident_manager.now_utc = lambda: incident_now[0]
                 transport.write_text(json.dumps({
                     "status": "success", "domain": "telegram.me",
                     "checked_at": (fixed - timedelta(hours=40)).isoformat(),
@@ -224,6 +227,21 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
                     if row["kind"].startswith("source_transport_")
                 ]
                 self.assertTrue(transport_rows)
+                self.assertTrue(
+                    all(
+                        row["status"] == "active"
+                        and row["recovery_confirmation_pending"] is True
+                        for row in transport_rows
+                    )
+                )
+                incident_now[0] += timedelta(minutes=11)
+                state = incident_manager.reconcile(
+                    recovered, scope=system_checks.SCOPE
+                )
+                transport_rows = [
+                    row for row in state["incidents"].values()
+                    if row["kind"].startswith("source_transport_")
+                ]
                 self.assertTrue(all(row["status"] == "resolved" for row in transport_rows))
             finally:
                 (
@@ -232,6 +250,93 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
                     system_checks.SOURCE_TRANSPORT_STATE_PATH,
                     incident_manager.STATE_PATH,
                 ) = original_paths
+                system_checks.now_utc = original_now
+                incident_manager.now_utc = original_incident_now
+
+    def test_newer_full_monitor_run_confirms_recovered_primary_transport_error(self) -> None:
+        fixed = datetime(2026, 7, 31, 1, 50, tzinfo=timezone.utc)
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            public = root / "public_sources.txt"
+            nightly = root / "source_catalog.txt"
+            transport = root / "source_transport_state.json"
+            tier = root / "source_tier_state.json"
+            public.write_text("alpha\nbeta\n", encoding="utf-8")
+            nightly.write_text("gamma\n", encoding="utf-8")
+            tier.write_text(json.dumps({
+                "policy": "manual_nightly_only",
+                "last_run_at": (fixed - timedelta(hours=1)).isoformat(),
+            }), encoding="utf-8")
+            transport.write_text(json.dumps({
+                "status": "success",
+                "domain": "telegram.me",
+                "checked_at": (fixed - timedelta(hours=1)).isoformat(),
+                "configured_sources": 3,
+                "primary_sources": 2,
+                "nightly_sources": 1,
+                "accounted_sources": 3,
+                "reachable_sources": 2,
+                "error_sources": 1,
+                "errors": {"alpha": "ReadTimeout"},
+                "missing_sources": [],
+            }), encoding="utf-8")
+            original = (
+                system_checks.PUBLIC_SOURCES_PATH,
+                system_checks.NIGHTLY_SOURCES_PATH,
+                system_checks.SOURCE_TRANSPORT_STATE_PATH,
+                system_checks.SOURCE_TIER_STATE_PATH,
+            )
+            original_now = system_checks.now_utc
+            try:
+                system_checks.PUBLIC_SOURCES_PATH = public
+                system_checks.NIGHTLY_SOURCES_PATH = nightly
+                system_checks.SOURCE_TRANSPORT_STATE_PATH = transport
+                system_checks.SOURCE_TIER_STATE_PATH = tier
+                system_checks.now_utc = lambda: fixed
+                details = {
+                    "monitor": {
+                        "status": "running",
+                        "last_successful_iteration_at": fixed.isoformat(),
+                        "checked_sources": 2,
+                        "reachable_sources": 2,
+                        "source_errors": 0,
+                    }
+                }
+                findings: list[dict] = []
+                system_checks.check_automation_state(details, findings)
+                self.assertTrue(
+                    details["automation_state"][
+                        "transport_recovered_by_newer_monitor"
+                    ]
+                )
+                self.assertFalse(
+                    any(row["kind"] == "source_transport_smoke" for row in findings)
+                )
+
+                payload = json.loads(transport.read_text(encoding="utf-8"))
+                payload["status"] = "degraded"
+                payload["errors"] = {"gamma": "ReadTimeout"}
+                transport.write_text(json.dumps(payload), encoding="utf-8")
+                nightly_findings: list[dict] = []
+                system_checks.check_automation_state(
+                    {"monitor": details["monitor"]},
+                    nightly_findings,
+                )
+                self.assertTrue(
+                    any(
+                        row["kind"] == "source_transport_smoke"
+                        and "errors=1" in row["detail"]
+                        and "reachable=2/3" in row["detail"]
+                        for row in nightly_findings
+                    )
+                )
+            finally:
+                (
+                    system_checks.PUBLIC_SOURCES_PATH,
+                    system_checks.NIGHTLY_SOURCES_PATH,
+                    system_checks.SOURCE_TRANSPORT_STATE_PATH,
+                    system_checks.SOURCE_TIER_STATE_PATH,
+                ) = original
                 system_checks.now_utc = original_now
 
     def test_every_admin_command_is_queue_idempotent(self) -> None:

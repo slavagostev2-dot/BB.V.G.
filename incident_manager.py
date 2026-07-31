@@ -25,12 +25,14 @@ STABILIZED_NOTIFICATION_KINDS = {
 VOLATILE_NOTIFICATION_PREFIXES = (
     "admin_panel_",
     "monitor_",
+    "source_",
     "telegram_",
 )
 VOLATILE_NOTIFICATION_KINDS = {
     "all_sources_unreachable",
     "partial_source_failure",
     "bot_api",
+    "sources_quarantined",
 }
 RECOVERY_STABILIZATION_MINUTES = max(
     1, int(os.getenv("INCIDENT_RECOVERY_STABILIZATION_MINUTES", "10"))
