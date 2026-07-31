@@ -192,11 +192,14 @@ def check_rating_consistency_additive(
                     expected[key] = expected.get(key, 0) + points
         mismatch_title = "Рейтинг источников не совпадает с решениями администратора"
 
-    actual = {
-        str(source).casefold(): max(0, int(entry.get("quality_score", 0) or 0))
-        for source, entry in stats.get("sources", {}).items()
-        if isinstance(entry, dict) and entry.get("quality_score") is not None
-    }
+    actual: dict[str, int] = {}
+    for source, entry in stats.get("sources", {}).items():
+        if not isinstance(entry, dict) or entry.get("quality_score") is None:
+            continue
+        key = str(source).casefold()
+        actual[key] = actual.get(key, 0) + max(
+            0, int(entry.get("quality_score", 0) or 0)
+        )
     mismatches = sorted(
         key
         for key in set(expected) | set(actual)
@@ -338,6 +341,51 @@ def self_test() -> None:
             assert mismatch_findings[0]["title"] == (
                 "Рейтинг источников не совпадает с личными голосами"
             )
+
+            personal_stats["sources"] = {
+                "GShikaryan": {"quality_score": 5},
+                "gshikaryan": {"quality_score": 6},
+            }
+            personal_stats["personal_wheel_votes"] = {
+                "owner": {
+                    "wheel_key": "wheel-a",
+                    "event_key": "wheel-a#action:1",
+                    "actor": personal_wheel_voting.actor_vote_token(
+                        "owner", secret="self-test-secret"
+                    ),
+                    "role": "owner",
+                    "weight": 5,
+                    "sources": ["GShikaryan"],
+                },
+                "admin": {
+                    "wheel_key": "wheel-a",
+                    "event_key": "wheel-a#action:1",
+                    "actor": personal_wheel_voting.actor_vote_token(
+                        "admin", secret="self-test-secret"
+                    ),
+                    "role": "admin",
+                    "weight": 5,
+                    "sources": ["gshikaryan"],
+                },
+                "user": {
+                    "wheel_key": "wheel-a",
+                    "event_key": "wheel-a#action:1",
+                    "actor": personal_wheel_voting.actor_vote_token(
+                        "user", secret="self-test-secret"
+                    ),
+                    "role": "user",
+                    "weight": 1,
+                    "sources": ["gshikaryan"],
+                },
+            }
+            legacy.SOURCE_STATS_PATH.write_text(
+                json.dumps(personal_stats), encoding="utf-8"
+            )
+            case_details: dict[str, Any] = {}
+            case_findings: list[dict[str, Any]] = []
+            check_rating_consistency_additive(case_details, case_findings)
+            assert not case_findings
+            assert case_details["rating_consistency"]["score_mismatches"] == []
 
             legacy_stats = {
                 "admin_wheel_decisions": {
