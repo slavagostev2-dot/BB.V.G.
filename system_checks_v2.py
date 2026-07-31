@@ -32,7 +32,22 @@ def check_miniapp_archived(details: dict[str, Any], findings: list[dict[str, Any
 def check_notification_routing_private(
     details: dict[str, Any], findings: list[dict[str, Any]]
 ) -> None:
-    config, exists = notification_router.load_config()
+    try:
+        config, exists = notification_router.load_config()
+    except bot_private_state.BotStateError as exc:
+        details["notification_routing"] = {
+            "status": "failed",
+            "error_type": type(exc).__name__,
+        }
+        findings.append(
+            legacy.finding(
+                "notification_routing",
+                "Не читается защищённая конфигурация уведомлений",
+                "Диагностика маршрутизации продолжена без раскрытия приватного состояния.",
+                severity="critical",
+            )
+        )
+        return
     admin_targets = notification_router.recipients(config, exists, "admin")
     user_targets = notification_router.recipients(config, exists, "user")
     admin_kinds = {
@@ -272,6 +287,24 @@ def self_test() -> None:
     assert routing["wheel_with_error_word_kind"] == "wheels"
     assert routing_details["notification_integrity"]["status"] == "ok"
     assert not routing_findings
+
+    original_load_config = notification_router.load_config
+    try:
+        def unreadable_config():
+            raise bot_private_state.BotStateKeyError("test key is unavailable")
+
+        notification_router.load_config = unreadable_config
+        private_details: dict[str, Any] = {}
+        private_findings: list[dict[str, Any]] = []
+        check_notification_routing_private(private_details, private_findings)
+    finally:
+        notification_router.load_config = original_load_config
+
+    assert private_details["notification_routing"] == {
+        "status": "failed",
+        "error_type": "BotStateKeyError",
+    }
+    assert [item["kind"] for item in private_findings] == ["notification_routing"]
 
     original_stats_path = legacy.SOURCE_STATS_PATH
     original_runtime_path = legacy.RUNTIME_STATE_PATH
