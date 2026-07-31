@@ -174,6 +174,9 @@ def test_control_center_runs_the_exact_validated_release() -> None:
     )
     assert "release_sha: ${{ steps.release.outputs.release_sha }}" in admin
     assert "ref: ${{ needs.validate-control-center.outputs.release_sha }}" in admin
+    assert 'git fetch --no-tags --depth=1 origin "$release_sha"' in admin
+    assert admin.count("fetch-depth: 1") == 2
+    assert "fetch-depth: 0" not in admin
     assert admin.count('      - "control_center_release.txt"') == 1
     assert "git checkout -B main origin/main" not in validator
     assert "git push origin HEAD:main" not in validator

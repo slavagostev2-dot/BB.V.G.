@@ -1,3 +1,22 @@
+# 2026-07-31 — смена Control Center не загружает полную runtime-историю
+
+- Production run `30630189884` штатно завершил Telegram consumer в
+  `16:51:28 UTC`, а смена `30648831613` запустила новый consumer только в
+  `16:58:50 UTC`: подтверждённый разрыв составил 7 минут 22 секунды.
+- Причиной был полный `fetch-depth: 0` checkout в validation и повторно в
+  live-job перед запуском единственного `getUpdates` consumer. История `main`
+  постоянно растёт из-за эксплуатационных checkpoint-коммитов.
+- Оба checkout переведены на depth 1. Validator читает release-marker из
+  shallow `main` и отдельно загружает только указанный exact release SHA;
+  live-job получает тот же exact SHA без полной истории.
+- Regression-контракт запрещает возвращать full-history checkout в
+  `admin-bot.yml`, сохраняя прежние single-consumer, exact-SHA и self-dispatch
+  правила.
+
+**Backup перед изменением:**
+`backup/before-control-center-handoff-20260731` →
+`828aed7214492b7bc72df4853e7794d9ef8efff5`.
+
 # 2026-07-31 — health-сводка не застывает из-за вспомогательных контуров
 
 - Опциональный AI-инспектор больше не блокирует детерминированную диагностику,
