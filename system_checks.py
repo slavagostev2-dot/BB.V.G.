@@ -762,8 +762,35 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
     recorded_nightly = int(transport.get("nightly_sources", 0) or 0)
     recorded_total = int(transport.get("accounted_sources", 0) or 0)
     configured_total = int(transport.get("configured_sources", 0) or 0)
+    recorded_reachable = int(transport.get("reachable_sources", 0) or 0)
+    transport_error_count = int(transport.get("error_sources", 0) or 0)
+    transport_errors = transport.get("errors")
+    transport_errors = transport_errors if isinstance(transport_errors, dict) else {}
+    transport_error_sources = {
+        str(source).casefold() for source in transport_errors
+    }
     missing = transport.get("missing_sources")
     missing = missing if isinstance(missing, list) else []
+    monitor_summary = details.get("monitor")
+    monitor_summary = monitor_summary if isinstance(monitor_summary, dict) else {}
+    monitor_at = parse_datetime(
+        monitor_summary.get("last_successful_iteration_at")
+        or monitor_summary.get("last_iteration_at")
+        or monitor_summary.get("last_process_heartbeat_at")
+    )
+    primary_keys = {source.casefold() for source in inventory["primary_operational"]}
+    monitor_confirms_transport_recovery = bool(
+        transport_error_count
+        and transport_errors
+        and transport_error_sources <= primary_keys
+        and transport_at is not None
+        and monitor_at is not None
+        and monitor_at > transport_at
+        and str(monitor_summary.get("status") or "") == "running"
+        and int(monitor_summary.get("checked_sources", 0) or 0) == expected_primary
+        and int(monitor_summary.get("reachable_sources", 0) or 0) == expected_primary
+        and int(monitor_summary.get("source_errors", 0) or 0) == 0
+    )
     details["automation_state"] = {
         "source_tier_policy": tier.get("policy") if isinstance(tier, dict) else None,
         "source_tier_last_run_at": tier.get("last_run_at") if isinstance(tier, dict) else None,
@@ -771,6 +798,9 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
         "transport_checked_at": transport.get("checked_at") if isinstance(transport, dict) else None,
         "transport_domain": transport.get("domain") if isinstance(transport, dict) else None,
         "transport_accounted_sources": recorded_total,
+        "transport_reachable_sources": recorded_reachable,
+        "transport_error_sources": sorted(transport_errors, key=str.casefold),
+        "transport_recovered_by_newer_monitor": monitor_confirms_transport_recovery,
         "expected_primary_sources": expected_primary,
         "expected_nightly_sources": expected_nightly,
         "expected_total_sources": expected_total,
@@ -793,14 +823,14 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
             "Нет свежего запуска за последние 36 часов.",
         ))
     transport_matches_inventory = (
-        transport.get("status") == "success"
+        transport.get("status") in {"success", "degraded"}
         and transport.get("domain") == telegram_transport.PRIMARY_DOMAIN
         and recorded_primary == expected_primary
         and recorded_nightly == expected_nightly
         and configured_total == expected_total
         and recorded_total == expected_total
         and not missing
-        and int(transport.get("error_sources", 0) or 0) == 0
+        and (transport_error_count == 0 or monitor_confirms_transport_recovery)
     )
     if not transport_matches_inventory:
         findings.append(finding(
@@ -810,7 +840,9 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
                 f"status={transport.get('status')}; domain={transport.get('domain')}; "
                 f"primary={recorded_primary}/{expected_primary}; "
                 f"nightly={recorded_nightly}/{expected_nightly}; "
-                f"accounted={recorded_total}/{expected_total}; missing={len(missing)}."
+                f"accounted={recorded_total}/{expected_total}; "
+                f"reachable={recorded_reachable}/{expected_total}; "
+                f"errors={transport_error_count}; missing={len(missing)}."
             ),
             severity="critical",
         ))

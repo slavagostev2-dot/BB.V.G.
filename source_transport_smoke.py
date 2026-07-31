@@ -15,6 +15,18 @@ EXPECTED = 66
 UTC = timezone.utc
 
 
+def transport_status(
+    source_count: int,
+    accounted_count: int,
+    missing: list[str],
+    errors: dict[str, str],
+) -> str:
+    complete = accounted_count == source_count and not missing
+    if not complete:
+        return "failure"
+    return "success" if not errors else "degraded"
+
+
 def main() -> int:
     monitor = runtime.monitor
     primary = monitor.read_list(ROOT / "public_sources.txt")
@@ -47,9 +59,10 @@ def main() -> int:
         source: detail[:700]
         for source, detail in errors.items()
     }
+    status = transport_status(len(sources), len(accounted), missing, transport_errors)
     payload = {
         "version": 1,
-        "status": "success" if len(accounted) == len(sources) and not missing else "failure",
+        "status": status,
         "checked_at": checked_at,
         "domain": telegram_transport.PRIMARY_DOMAIN,
         "expected_sources": EXPECTED,

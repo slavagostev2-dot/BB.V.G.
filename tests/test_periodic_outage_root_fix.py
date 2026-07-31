@@ -5,6 +5,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import incident_manager
+import monitor_data
+import source_transport_smoke
+import telegram_transport
 
 
 UTC = timezone.utc
@@ -65,6 +68,99 @@ def test_volatile_incident_needs_confirmed_open_and_recovery() -> None:
     finally:
         incident_manager.STATE_PATH = original_path
         incident_manager.now_utc = original_now  # type: ignore[assignment]
+
+
+def test_source_transport_incidents_also_need_confirmation() -> None:
+    original_path = incident_manager.STATE_PATH
+    original_now = incident_manager.now_utc
+    current = [datetime(2026, 7, 31, 1, 0, tzinfo=UTC)]
+    finding = {
+        "kind": "source_timeout",
+        "subject": "shadowkekw",
+        "title": "Источник @shadowkekw не проверяется",
+        "detail": "telegram.me не ответил за отведённое время",
+        "severity": "critical",
+    }
+    try:
+        with TemporaryDirectory() as temporary:
+            incident_manager.STATE_PATH = Path(temporary) / "incident_state.json"
+            incident_manager.now_utc = lambda: current[0]  # type: ignore[assignment]
+            state = incident_manager.reconcile([finding], scope="test")
+            assert incident_manager.pending_open(state) == []
+
+            current[0] += timedelta(minutes=2)
+            state = incident_manager.reconcile([], scope="test")
+            assert incident_manager.pending_open(state) == []
+            entry = next(iter(state["incidents"].values()))
+            assert entry["status"] == "active"
+            assert entry["recovery_confirmation_pending"] is True
+    finally:
+        incident_manager.STATE_PATH = original_path
+        incident_manager.now_utc = original_now  # type: ignore[assignment]
+
+
+def test_correlated_timeouts_retry_only_failed_subset_and_recover() -> None:
+    sources = [f"source{index}" for index in range(10)]
+    failed = set(sources[:8])
+    calls: list[list[str]] = []
+
+    def fetch(batch: list[str]):
+        calls.append(list(batch))
+        if len(calls) == 1:
+            return (
+                {source: [source] for source in batch if source not in failed},
+                {source: "ReadTimeout: timed out" for source in batch if source in failed},
+                [],
+            )
+        return ({source: [source] for source in batch}, {}, [])
+
+    results, errors, empty = telegram_transport.fetch_with_transport_recovery(
+        fetch,
+        sources,
+        attempts=2,
+        sleep=lambda _: None,
+    )
+    assert calls == [sources, sources[:8]]
+    assert set(results) == set(sources)
+    assert errors == {}
+    assert empty == []
+
+
+def test_correlated_transient_quarantine_is_due_immediately() -> None:
+    base = datetime(2026, 7, 31, 0, 47, tzinfo=UTC)
+    health = {"sources": {}}
+    for index in range(8):
+        stamp = base + timedelta(seconds=index * 30)
+        health["sources"][f"source{index}"] = {
+            "status": "quarantined",
+            "failure_code": "timeout",
+            "quarantined_at": stamp.isoformat(),
+            "next_recheck_at": (stamp + timedelta(hours=6)).isoformat(),
+        }
+    health["sources"]["isolated"] = {
+        "status": "quarantined",
+        "failure_code": "timeout",
+        "quarantined_at": (base - timedelta(hours=2)).isoformat(),
+        "next_recheck_at": (base + timedelta(hours=4)).isoformat(),
+    }
+
+    assert monitor_data.source_due_for_check(
+        health, "source0", at=base + timedelta(minutes=5)
+    )
+    assert not monitor_data.source_due_for_check(
+        health, "isolated", at=base + timedelta(minutes=5)
+    )
+
+
+def test_transport_snapshot_with_errors_is_not_labeled_success() -> None:
+    assert source_transport_smoke.transport_status(170, 170, [], {}) == "success"
+    assert (
+        source_transport_smoke.transport_status(
+            170, 170, [], {"aterionlegends": "ReadTimeout"}
+        )
+        == "degraded"
+    )
+    assert source_transport_smoke.transport_status(170, 169, ["missing"], {}) == "failure"
 
 
 def test_current_panel_keeps_last_verified_snapshot() -> None:

@@ -22,6 +22,9 @@ OUTAGE_PREFIX = "GLOBAL_TRANSPORT_OUTAGE:"
 # short systemic outage into a 20+ minute monitor stall. Keep only one additional
 # whole-batch retry; the next regular monitor cycle is the next recovery attempt.
 BATCH_ATTEMPTS = max(1, min(2, int(os.getenv("TRANSPORT_BATCH_ATTEMPTS", "2"))))
+CORRELATED_OUTAGE_MIN_SOURCES = max(
+    3, int(os.getenv("TELEGRAM_CORRELATED_OUTAGE_MIN_SOURCES", "3"))
+)
 BACKOFF_SECONDS = (5, 15, 30, 60)
 DNS_CACHE_SECONDS = max(60, int(os.getenv("TELEGRAM_DNS_CACHE_SECONDS", "1800")))
 DNS_FAILURE_CACHE_SECONDS = max(
@@ -302,6 +305,49 @@ def is_systemic_transport_outage(
     return all(is_transient_transport_error(errors.get(source, "")) for source in sources)
 
 
+def correlated_transient_sources(errors: dict[str, str]) -> set[str]:
+    transient = {
+        source
+        for source, detail in errors.items()
+        if is_transient_transport_error(detail)
+    }
+    if len(transient) < CORRELATED_OUTAGE_MIN_SOURCES:
+        return set()
+    return transient
+
+
+def fetch_with_transport_recovery(
+    fetch_all: Callable,
+    sources: list[str],
+    *,
+    attempts: int | None = None,
+    sleep: Callable[[float], None] = time.sleep,
+) -> tuple[dict[str, Any], dict[str, str], list[str]]:
+    """Retry only transiently failed sources and merge their recovered results."""
+
+    total_attempts = max(1, attempts if attempts is not None else BATCH_ATTEMPTS)
+    results, errors, empty = fetch_all(sources)
+    empty_set = set(empty)
+    for attempt in range(1, total_attempts):
+        retry_sources = [
+            source
+            for source in sources
+            if source in errors and is_transient_transport_error(errors[source])
+        ]
+        if not retry_sources:
+            break
+        sleep(BACKOFF_SECONDS[min(attempt - 1, len(BACKOFF_SECONDS) - 1)])
+        retry_results, retry_errors, retry_empty = fetch_all(retry_sources)
+        for source in retry_sources:
+            results.pop(source, None)
+            errors.pop(source, None)
+            empty_set.discard(source)
+        results.update(retry_results)
+        errors.update(retry_errors)
+        empty_set.update(retry_empty)
+    return results, errors, sorted(empty_set, key=str.casefold)
+
+
 def outage_active() -> bool:
     return bool(_outage_sources)
 
@@ -388,20 +434,27 @@ def install(monitor_module: Any) -> None:
         global _outage_sources, _outage_detail
         _outage_sources = set()
         _outage_detail = ""
-        last_result = ({}, {}, [])
-        for attempt in range(1, BATCH_ATTEMPTS + 1):
-            last_result = original_fetch_all(sources)
-            results, errors, empty = last_result
-            if not is_systemic_transport_outage(sources, results, errors, empty):
-                return last_result
-            if attempt < BATCH_ATTEMPTS:
-                time.sleep(BACKOFF_SECONDS[min(attempt - 1, len(BACKOFF_SECONDS) - 1)])
-        results, errors, empty = last_result
-        _outage_sources = {source.casefold() for source in sources}
+        results, errors, empty = fetch_with_transport_recovery(
+            original_fetch_all,
+            sources,
+        )
+        correlated = correlated_transient_sources(errors)
+        if not correlated:
+            return results, errors, empty
+        _outage_sources = {source.casefold() for source in correlated}
         _outage_detail = next(iter(errors.values()), "temporary Telegram transport failure")
-        return results, {
-            source: f"{OUTAGE_PREFIX} {detail}" for source, detail in errors.items()
-        }, empty
+        return (
+            results,
+            {
+                source: (
+                    f"{OUTAGE_PREFIX} {detail}"
+                    if source in correlated
+                    else detail
+                )
+                for source, detail in errors.items()
+            },
+            empty,
+        )
 
     def resilient_record_problem(
         data: dict[str, Any],
@@ -421,6 +474,16 @@ def install(monitor_module: Any) -> None:
             entry["last_transport_outage_at"] = at.isoformat()
             entry["last_transport_error"] = str(error)[len(OUTAGE_PREFIX):].strip()[:500]
             entry["transport_outages"] = int(entry.get("transport_outages", 0) or 0) + 1
+            if entry.get("last_success_at"):
+                entry["status"] = "ok"
+                entry["consecutive_errors"] = 0
+                entry["consecutive_empty"] = 0
+                entry.pop("first_unavailable_at", None)
+                entry.pop("last_error", None)
+                entry.pop("failure_code", None)
+                entry.pop("failure_reason", None)
+                entry.pop("quarantined_at", None)
+                entry.pop("next_recheck_at", None)
             return False
         return original_record_problem(data, username, kind, error, at)
 
