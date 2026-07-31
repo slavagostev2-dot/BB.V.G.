@@ -9,9 +9,14 @@
 - Оба checkout переведены на depth 1. Validator читает release-marker из
   shallow `main` и отдельно загружает только указанный exact release SHA;
   live-job получает тот же exact SHA без полной истории.
+- Первый выпуск также подтвердил второго владельца замены: release-marker
+  напрямую запускал `admin-bot.yml`, а завершившийся `validate-current.yml`
+  повторно dispatch'ил тот же workflow и отменял уже запущенный consumer.
+  Дублирующий Control Center dispatch удалён из `validate-current.yml`;
+  release-marker остаётся единственным владельцем плановой замены.
 - Regression-контракт запрещает возвращать full-history checkout в
-  `admin-bot.yml`, сохраняя прежние single-consumer, exact-SHA и self-dispatch
-  правила.
+  `admin-bot.yml` и второй release-dispatch, сохраняя прежние single-consumer,
+  exact-SHA и self-dispatch правила.
 
 **Backup перед изменением:**
 `backup/before-control-center-handoff-20260731` →

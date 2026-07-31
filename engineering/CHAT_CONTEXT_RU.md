@@ -38,6 +38,9 @@
 - Control Center создаёт смену-преемника только после успешного завершения.
   Отмена, вытеснение или ошибка не запускают recovery из завершающегося run;
   почасовой schedule страхует разрыв без каскада взаимных отмен.
+- Плановая замена Control Center принадлежит только изменению
+  `control_center_release.txt` в `admin-bot.yml`; `validate-current.yml` не
+  запускает второй дублирующий Control Center после того же push.
 - Validation и live-job смены используют shallow checkout exact release SHA.
   Полная история постоянно растущих runtime-коммитов не загружается перед
   запуском единственного Telegram `getUpdates` consumer.

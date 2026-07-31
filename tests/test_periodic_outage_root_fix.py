@@ -43,6 +43,17 @@ def test_control_center_handoff_does_not_clone_full_runtime_history() -> None:
     assert 'git fetch --no-tags --depth=1 origin "$release_sha"' in admin
 
 
+def test_control_center_release_has_one_planned_replacement_owner() -> None:
+    admin = Path(".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
+    current_validation = Path(".github/workflows/validate-current.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert '      - "control_center_release.txt"' in admin
+    assert "gh workflow run admin-bot.yml" not in current_validation
+    assert "Start validated continuous monitor" in current_validation
+
+
 def test_volatile_incident_needs_confirmed_open_and_recovery() -> None:
     original_path = incident_manager.STATE_PATH
     original_now = incident_manager.now_utc
