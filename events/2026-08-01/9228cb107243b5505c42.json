@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-01T11:21:48.526781+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-01T11:22:12.229865+00:00"
+      "updated_at": "2026-08-01T11:23:25.553995+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-01T11:21:58.047643+00:00",
       "status": "participated",
-      "updated_at": "2026-08-01T11:22:12.231443+00:00"
+      "updated_at": "2026-08-01T11:23:25.555455+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-01T11:22:02.310589+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-01T11:22:12.232723+00:00"
+      "updated_at": "2026-08-01T11:23:25.556623+00:00"
     }
   ],
   "action_id": 1156,
@@ -119,62 +119,34 @@
   "status": "active",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-01T11:22:12.223979+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:fb1efa8c4ec9cf6e6b499f18af3484944b9e85d87a5b122cbf9e402f84648de3",
+      "occurred_at": "2026-08-01T11:22:02.310589+00:00",
       "payload": {
-        "action_id": 1156,
-        "available_at": "",
-        "deadline": "2026-08-01T11:39:30.763000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:9228cb107243b5505c42",
-        "expires_at": "2026-08-01T12:09:30.763000+00:00",
-        "generation_id": "9228cb107243b5505c42",
-        "identifier": "kekw2",
-        "message_text": "ШИЗИМ ЗА СПИРИТ!!! Ваня строго поставил 1 миллион на фейз!\nКолесо для всех:\nhttps://betboom.ru/freestream/kekw2\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6179\nhttps://betboom.ru/freestream/kekw2\nhttp://twitch.tv/shadowkekw",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-01T11:19:30.763000+00:00",
-        "source": "shadowkekw",
-        "source_message_date": "2026-08-01T10:06:23+00:00",
-        "source_message_id": 6179,
-        "source_message_url": "https://telegram.me/shadowkekw/6179",
-        "status": "active",
-        "url": "https://betboom.ru/freestream/kekw2",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw2",
-        "wheel_type": ""
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260801T112211527497Z-e82078517b82",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
       },
-      "stage": "source_discovered",
-      "transition_id": "9d9dd44c7fde7dbcec4ccee6b2802f485651463e55e49a71b36a707a6362c2f6"
+      "stage": "account_result",
+      "transition_id": "0ec407fadd43d85d9f010001aad88eb26aa54efd90062c9f6f9cac36d0688ea5"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-01T11:22:12.223979+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:bdd669be99f04415cd38f332923d302f7fd1bca78c6558a430b75eed2201d5b4",
+      "occurred_at": "2026-08-01T11:21:58.047643+00:00",
       "payload": {
-        "action_id": 1156,
-        "available_at": "",
-        "deadline": "2026-08-01T11:39:30.763000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:9228cb107243b5505c42",
-        "expires_at": "2026-08-01T12:09:30.763000+00:00",
-        "generation_id": "9228cb107243b5505c42",
-        "identifier": "kekw2",
-        "message_text": "ШИЗИМ ЗА СПИРИТ!!! Ваня строго поставил 1 миллион на фейз!\nКолесо для всех:\nhttps://betboom.ru/freestream/kekw2\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6179\nhttps://betboom.ru/freestream/kekw2\nhttp://twitch.tv/shadowkekw",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-01T11:19:30.763000+00:00",
-        "source": "shadowkekw",
-        "source_message_date": "2026-08-01T10:06:23+00:00",
-        "source_message_id": 6179,
-        "source_message_url": "https://telegram.me/shadowkekw/6179",
-        "status": "active",
-        "url": "https://betboom.ru/freestream/kekw2",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw2",
-        "wheel_type": ""
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "persisted",
-      "transition_id": "87db6ca25e009d03e58e8026b80dafebc182fb81236e0dca7ddc6fa579f2e4e0"
+      "stage": "account_result",
+      "transition_id": "121d35f300e07dd40453f6739f17adf26cc31e0cbaa296dad7662a871040df63"
     },
     {
       "dedupe_key": "1156:2026-08-01T11:19:30.763000+00:00",
@@ -216,6 +188,64 @@
       "transition_id": "86eec0e41466422df0b6d33e3ca303e452ad4498d3822663db8261c4c17d8861"
     },
     {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-01T11:22:12.223979+00:00",
+      "payload": {
+        "action_id": 1156,
+        "available_at": "",
+        "deadline": "2026-08-01T11:39:30.763000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:9228cb107243b5505c42",
+        "expires_at": "2026-08-01T12:09:30.763000+00:00",
+        "generation_id": "9228cb107243b5505c42",
+        "identifier": "kekw2",
+        "message_text": "ШИЗИМ ЗА СПИРИТ!!! Ваня строго поставил 1 миллион на фейз!\nКолесо для всех:\nhttps://betboom.ru/freestream/kekw2\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6179\nhttps://betboom.ru/freestream/kekw2\nhttp://twitch.tv/shadowkekw",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-01T11:19:30.763000+00:00",
+        "source": "shadowkekw",
+        "source_message_date": "2026-08-01T10:06:23+00:00",
+        "source_message_id": 6179,
+        "source_message_url": "https://telegram.me/shadowkekw/6179",
+        "status": "active",
+        "url": "https://betboom.ru/freestream/kekw2",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw2",
+        "wheel_type": ""
+      },
+      "stage": "persisted",
+      "transition_id": "87db6ca25e009d03e58e8026b80dafebc182fb81236e0dca7ddc6fa579f2e4e0"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-01T11:22:12.223979+00:00",
+      "payload": {
+        "action_id": 1156,
+        "available_at": "",
+        "deadline": "2026-08-01T11:39:30.763000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:9228cb107243b5505c42",
+        "expires_at": "2026-08-01T12:09:30.763000+00:00",
+        "generation_id": "9228cb107243b5505c42",
+        "identifier": "kekw2",
+        "message_text": "ШИЗИМ ЗА СПИРИТ!!! Ваня строго поставил 1 миллион на фейз!\nКолесо для всех:\nhttps://betboom.ru/freestream/kekw2\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://telegram.me/shadowkekw/6179\nhttps://betboom.ru/freestream/kekw2\nhttp://twitch.tv/shadowkekw",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-01T11:19:30.763000+00:00",
+        "source": "shadowkekw",
+        "source_message_date": "2026-08-01T10:06:23+00:00",
+        "source_message_id": 6179,
+        "source_message_url": "https://telegram.me/shadowkekw/6179",
+        "status": "active",
+        "url": "https://betboom.ru/freestream/kekw2",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw2",
+        "wheel_type": ""
+      },
+      "stage": "source_discovered",
+      "transition_id": "9d9dd44c7fde7dbcec4ccee6b2802f485651463e55e49a71b36a707a6362c2f6"
+    },
+    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:53ff77ad6fc4ba608f2203232b24bf44fd8d987f0a82ccc3f969ced878d10fab",
       "occurred_at": "2026-08-01T11:21:48.526781+00:00",
       "payload": {
@@ -229,39 +259,9 @@
       },
       "stage": "account_result",
       "transition_id": "eafc7b531308b92a9a20edf41ecbf86ad3bbabe883cea8dd2e0b5adea9913ea8"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:bdd669be99f04415cd38f332923d302f7fd1bca78c6558a430b75eed2201d5b4",
-      "occurred_at": "2026-08-01T11:21:58.047643+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "121d35f300e07dd40453f6739f17adf26cc31e0cbaa296dad7662a871040df63"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:fb1efa8c4ec9cf6e6b499f18af3484944b9e85d87a5b122cbf9e402f84648de3",
-      "occurred_at": "2026-08-01T11:22:02.310589+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260801T112211527497Z-e82078517b82",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "0ec407fadd43d85d9f010001aad88eb26aa54efd90062c9f6f9cac36d0688ea5"
     }
   ],
-  "updated_at": "2026-08-01T11:22:12.227966+00:00",
+  "updated_at": "2026-08-01T11:23:25.552326+00:00",
   "wheel_key": "kekw2",
   "workflow_started_at": "2026-08-01T11:22:12.227966+00:00"
 }
