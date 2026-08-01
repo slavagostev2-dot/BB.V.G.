@@ -1,0 +1,73 @@
+{
+  "schema": "bbvg-change-backup-manifest-v1",
+  "backup_id": "2026-08-01-referral-classification-pre-release",
+  "created_at": "2026-08-01T03:58:51Z",
+  "reason": "Exact PR candidate checkpoint after all required CI runs passed and before merge or release-marker change.",
+  "change_set": "p0-referral-account-aware-notifications",
+  "repository": "slavagostev2-dot/BB.V.G.",
+  "candidate_sha": "a5d5e0280353808d77fbb5217496d1a9fd5be46f",
+  "candidate_tree": "a62a5c9d08271f810fd938db9d6bb6ee64801d94",
+  "main_sha_at_checkpoint": "78ce37682df4bf8e496f4701aa160b894d08059b",
+  "production_sha": "084227e96762c752ac71036f79f57e7181be9724",
+  "release_marker": "084227e96762c752ac71036f79f57e7181be9724",
+  "refs": {
+    "code": "safety/backup-2026-08-01-referral-classification-pre-release-code@a5d5e0280353808d77fbb5217496d1a9fd5be46f",
+    "runtime_state": "safety/backup-2026-08-01-referral-classification-pre-release-state@692272c1546dee315dead1912960a784b5157cb5",
+    "runtime_status": "safety/backup-2026-08-01-referral-classification-pre-release-status@ed3ced60dcc0f410ad72f37d331a314c7e6e5656",
+    "runtime_ledger": "safety/backup-2026-08-01-referral-classification-pre-release-ledger@cc23d0688b910e961941a3076762211bf68bf28a"
+  },
+  "saved_state": [
+    "Exact green PR source, workflow, test and documentation tree.",
+    "Encrypted protected-state envelope; no decrypted or personal data is included in metadata.",
+    "Runtime state including notification delivery state, claims, recovery, incident and system-check exports.",
+    "Monitor, Control Center and deployment status exports.",
+    "Ledger with 57 event JSON files, including kekw2 generation 1393d78ddd6274d3103d."
+  ],
+  "tree_listing_sha256": {
+    "code": "86d78e300d39322730a55e2a2b9dae3c99cc3508a058825445a44e8b3c05f1e8",
+    "runtime_state": "780a50e0a7c1f217757617d4d4a8bfd7282892d35431bae6e7e7ab487983f307",
+    "runtime_status": "746e9f88dd519ea2ad3612bad4af523f93295ea2753fa3ef01a1e38911db7d1c",
+    "runtime_ledger": "b4ca4803184a30e9274a171252a9afe0632dfbe2746ec78e5e281a7ea2baf9d0"
+  },
+  "critical_file_sha256": {
+    "code:control_center_release.txt": "e1474e689b7c47c83deb856bf087f15a4db166747172c5821df1d270b7605293",
+    "code:bot_private_state.enc.json": "a219557d501d4a927e1eb135da1fa6e483116773532fa582ab5c98da5fcc0b14",
+    "runtime_state:state.json": "be728b4e9c9b4b3474da325ae557082d66b3f948f94ba2e9611fae6f3abb3521",
+    "runtime_state:notification_delivery_state.json": "a36035f3121629678fdeb6484661dfc08dab4adac20396be00653260e8ed12b8",
+    "runtime_state:admin_action_queue.json": "862ddc00907c809d7b7f6da01c5b149672654ba363e3695b8e2f3f5c423f1b06",
+    "runtime_state:incident_state.json": "212a903fd5e1b1f907e26d3f90292759885d6942ff0ca22e6f8cd843fa007048",
+    "runtime_state:system_check_state.json": "a7e367ebc6544f668ab4b03ebfdb3d9bffbb9c2baaaae9291213c5d53e892e6c",
+    "runtime_status:admin_panel_status.json": "f02cc0a235a61220df095b492870ca0724482496919ad75161e50481234b94ea",
+    "runtime_status:monitor_status.json": "11de9f2ddfc55ecf78c24e71b0c7f93f81fb85081bb6d38b931116ab916994e2",
+    "runtime_status:deployment_manifest.json": "d97ae8fc6f7a8e48f43fb7296eaaa0e72baa040c54f8d4020c8363e965e6698f",
+    "runtime_ledger:events/2026-07-30/1393d78ddd6274d3103d.json": "2e419ca448df07c7c8b83629373342c7458d6a655bfc1963d2beb6eeaa943832"
+  },
+  "validation": {
+    "local_full_pytest": "352 passed",
+    "production_acceptance": "all sections passed",
+    "preflight": "passed; 170 approved sources (169 primary, 1 nightly)",
+    "security_audit_current": "passed",
+    "workflow_yaml": "29 files parsed successfully",
+    "ci": {
+      "30682734172": "success",
+      "30682734164": "success",
+      "30682734163": "success",
+      "30682734160": "success",
+      "30682734158": "success"
+    }
+  },
+  "restore": {
+    "instructions": [
+      "Fetch all four exact safety refs and verify their commit IDs and tree-listing SHA-256 values.",
+      "Restore each scope into a separate isolated directory and validate all listed critical checksums.",
+      "Compile candidate Python owners and run account/referral/reconciliation/delivery tests.",
+      "Run the protected-state backup workflow with BOT_STATE_KEY before release acceptance.",
+      "If rolling back after release, restore the baseline production code and marker, then verify Monitor, Control Center, one getUpdates owner, notifications, claims, recovery and ledger."
+    ],
+    "isolated_smoke_checked_at": "2026-08-01T03:58:51Z",
+    "isolated_smoke_result": "passed; four archives, JSON, tree and critical checksums, compilation and 59 restored-tree tests",
+    "full_protected_state_restore": "not_run_without_production_key"
+  },
+  "rollback_role": "Exact green pre-release candidate; production rollback remains the verified baseline set until this candidate is deployed and accepted.",
+  "retention_note": "Commit IDs are content-addressed; safety refs preserve older backup refs and avoid destructive backup/* rotation."
+}
