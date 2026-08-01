@@ -1,0 +1,67 @@
+{
+  "schema": "bbvg-change-backup-manifest-v1",
+  "backup_id": "2026-08-01-referral-classification-pre-marker",
+  "created_at": "2026-08-01T04:05:03Z",
+  "reason": "Fresh checkpoint immediately before creating the separate release-marker change.",
+  "change_set": "p0-referral-account-aware-notifications-release-marker",
+  "repository": "slavagostev2-dot/BB.V.G.",
+  "main_sha": "1389665b2eb6ffea425b9be6b91269084dca7fe4",
+  "main_tree": "abdc3cab17f09d362b387b8c1572dfeb37d1df14",
+  "release_target_sha": "1a762d500976e1c9c04d5454f577c94dcea22a47",
+  "release_target_tree": "58901c3f2517815e507adb9760e07ae7d260542f",
+  "production_sha": "084227e96762c752ac71036f79f57e7181be9724",
+  "release_marker": "084227e96762c752ac71036f79f57e7181be9724",
+  "refs": {
+    "main": "safety/backup-2026-08-01-referral-classification-pre-marker-main@1389665b2eb6ffea425b9be6b91269084dca7fe4",
+    "release_target": "safety/backup-2026-08-01-referral-classification-pre-marker-release-target@1a762d500976e1c9c04d5454f577c94dcea22a47",
+    "runtime_state": "safety/backup-2026-08-01-referral-classification-pre-marker-state@a7a8458b3f8cd5b9ab501149c24182070ba2f332",
+    "runtime_status": "safety/backup-2026-08-01-referral-classification-pre-marker-status@8d33b77d3b738b3460133722ca6f3e963aa9a46a",
+    "runtime_ledger": "safety/backup-2026-08-01-referral-classification-pre-marker-ledger@cc23d0688b910e961941a3076762211bf68bf28a"
+  },
+  "saved_state": [
+    "Exact main immediately before marker change.",
+    "Exact verified release target and its encrypted protected-state envelope.",
+    "Runtime state, notification queue and claims, recovery and incident exports.",
+    "Live Monitor and Control Center status exports.",
+    "Ledger with 57 event JSON files."
+  ],
+  "tree_listing_sha256": {
+    "main": "812f6faced2484a9af852bbbd604e1db105c0057d23ce760bd32e6e7b06870b4",
+    "release_target": "1840af6033845412c60264ee54b074f18e3276679da61feea3062c9eae41719c",
+    "runtime_state": "9e8a6787e0e7083d213a0cf5c35468b59809d12c501d14efce45d6e5279982b3",
+    "runtime_status": "96ad1bfac645f4d9105f3df49228f7fd479d74bd329996b104f66849bf16398e",
+    "runtime_ledger": "b4ca4803184a30e9274a171252a9afe0632dfbe2746ec78e5e281a7ea2baf9d0"
+  },
+  "critical_file_sha256": {
+    "main:control_center_release.txt": "e1474e689b7c47c83deb856bf087f15a4db166747172c5821df1d270b7605293",
+    "release_target:control_center_release.txt": "e1474e689b7c47c83deb856bf087f15a4db166747172c5821df1d270b7605293",
+    "release_target:bot_private_state.enc.json": "a219557d501d4a927e1eb135da1fa6e483116773532fa582ab5c98da5fcc0b14",
+    "runtime_state:state.json": "8eec81ae7b14b7dd8a3c89bfc752defe342cdb0706da45cc875723b8d896ec57",
+    "runtime_state:notification_delivery_state.json": "a36035f3121629678fdeb6484661dfc08dab4adac20396be00653260e8ed12b8",
+    "runtime_state:admin_action_queue.json": "862ddc00907c809d7b7f6da01c5b149672654ba363e3695b8e2f3f5c423f1b06",
+    "runtime_status:admin_panel_status.json": "06e0a52687a6ae14096e2416761278a7b8f1e8e94219e7af1b11c8ddaf877a95",
+    "runtime_status:monitor_status.json": "915b5278678279d2f7a33bb5f980355124ad609a3d0c17882319a86199cc838b",
+    "runtime_ledger:kekw2": "2e419ca448df07c7c8b83629373342c7458d6a655bfc1963d2beb6eeaa943832"
+  },
+  "validation": {
+    "exact_merge_full_pytest": "352 passed",
+    "production_acceptance": "all sections passed",
+    "preflight": "passed; 170 approved sources (169 primary, 1 nightly)",
+    "security_audit_current": "passed",
+    "pre_release_ci": "five required runs succeeded"
+  },
+  "restore": {
+    "instructions": [
+      "Fetch the five exact safety refs and verify commit IDs and tree-listing SHA-256 values.",
+      "Restore each scope to an isolated directory and validate critical checksums and JSON.",
+      "Compile the release target and run account/referral/reconciliation/delivery tests.",
+      "To abort the release, leave or restore control_center_release.txt at 084227e96762c752ac71036f79f57e7181be9724; do not roll runtime data backward.",
+      "After any marker rollback verify exact deployed SHA, both heartbeats, single getUpdates owner, notifications, claims, recovery and ledger."
+    ],
+    "isolated_smoke_checked_at": "2026-08-01T04:05:03Z",
+    "isolated_smoke_result": "passed; five archives, marker values, JSON, compilation and 59 restored-tree tests",
+    "full_protected_state_restore": "not_run_without_production_key"
+  },
+  "rollback_role": "Immediate pre-marker rollback point. Runtime data must not be rolled backward during a code-only rollback.",
+  "retention_note": "Commit IDs are content-addressed; safety refs preserve older backup refs and avoid destructive backup/* rotation."
+}
