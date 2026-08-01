@@ -13,9 +13,16 @@ from typing import Any, Iterator
 
 
 UTC = timezone.utc
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 DEFAULT_BUSY_TIMEOUT_MS = 15_000
 
+ACCOUNT_RESULT_STATUSES = {
+    "participated",
+    "referral_ineligible",
+    "unconfirmed",
+    "expired",
+    "technical_error",
+}
 SUCCESS_STATUSES = {
     "participated",
     "already_participated",
@@ -23,10 +30,8 @@ SUCCESS_STATUSES = {
     "already_marked_participating",
 }
 TERMINAL_FAILURE_STATUSES = {
-    "button_not_found",
-    "participation_unavailable",
-    "wheel_closed",
-    "inactive",
+    "referral_ineligible",
+    "expired",
 }
 TRANSIENT_FAILURE_STATUSES = {
     "browser_error",
@@ -34,12 +39,84 @@ TRANSIENT_FAILURE_STATUSES = {
     "network_error",
     "timeout",
     "transport_error",
+    "technical_error",
     "unconfirmed",
     "unknown",
     "workflow_dispatch_failed",
     "workflow_dispatch_timeout",
     "already_marked_in_bot",
 }
+TECHNICAL_ERROR_ALIASES = {
+    "browser_error",
+    "dependency_missing",
+    "dispatch_error",
+    "invalid_url",
+    "navigation_timeout",
+    "network_error",
+    "not_configured",
+    "page_timeout",
+    "timeout",
+    "transport_error",
+    "workflow_dispatch_failed",
+    "workflow_dispatch_timeout",
+}
+EXPIRED_ALIASES = {
+    "expired",
+    "finished",
+    "inactive",
+    "participation_closed",
+    "wheel_closed",
+}
+
+
+def _explicit_referral_ineligible_proof(value: str) -> bool:
+    return "referral_ineligible_exact_text:" in value.casefold()
+
+
+def _explicit_expired_proof(value: str) -> bool:
+    proof = value.casefold()
+    return any(
+        marker in proof
+        for marker in (
+            "expired_exact_",
+            "page_status:expired",
+            "page_status:finished",
+            "page_status:closed",
+            "api_expired",
+            "api_closed",
+        )
+    )
+
+
+def canonical_account_status(
+    status: Any,
+    confirmation: Any = "",
+    error_text: Any = "",
+) -> str:
+    """Return the public account outcome without inventing eligibility evidence."""
+
+    normalized = str(status or "").strip().casefold()
+    proof = "\n".join(
+        value
+        for value in (
+            str(confirmation or "").strip(),
+            str(error_text or "").strip(),
+        )
+        if value
+    )
+    if normalized in SUCCESS_STATUSES:
+        return "participated"
+    if normalized == "referral_ineligible":
+        return (
+            "referral_ineligible"
+            if _explicit_referral_ineligible_proof(proof)
+            else "unconfirmed"
+        )
+    if normalized in EXPIRED_ALIASES:
+        return "expired" if _explicit_expired_proof(proof) else "unconfirmed"
+    if normalized == "technical_error" or normalized in TECHNICAL_ERROR_ALIASES:
+        return "technical_error" if proof else "unconfirmed"
+    return "unconfirmed"
 
 
 def _now() -> datetime:
@@ -178,16 +255,26 @@ def legacy_event_aliases(
     return result
 
 
-def status_confidence(status: Any, confirmation: Any = "") -> int:
-    normalized = str(status or "").strip().casefold()
-    proof = str(confirmation or "").strip().casefold()
-    if normalized in SUCCESS_STATUSES:
+def status_confidence(
+    status: Any,
+    confirmation: Any = "",
+    error_text: Any = "",
+) -> int:
+    normalized = canonical_account_status(status, confirmation, error_text)
+    proof = "\n".join(
+        (str(confirmation or ""), str(error_text or ""))
+    ).strip().casefold()
+    if normalized == "participated":
         if any(marker in proof for marker in ("exact", "api", "text", "confirmed")):
             return 120
         return 110
-    if normalized in TERMINAL_FAILURE_STATUSES:
-        return 70 if any(marker in proof for marker in ("api", "exact")) else 55
-    if normalized in TRANSIENT_FAILURE_STATUSES:
+    if normalized == "referral_ineligible":
+        return 100
+    if normalized == "expired":
+        return 90
+    if normalized == "technical_error":
+        return 30
+    if normalized == "unconfirmed":
         return 20
     if normalized in {"scheduled", "started", "running", "pending"}:
         return 10
@@ -517,6 +604,36 @@ class EventStore:
             ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(event_id, kind, scope) DO UPDATE SET
                 payload=excluded.payload,
+                status=CASE
+                    WHEN outbox.status IN ('suppressed_referral', 'not_requested')
+                      AND excluded.status='pending'
+                    THEN 'pending'
+                    ELSE outbox.status
+                END,
+                available_at=CASE
+                    WHEN outbox.status IN ('suppressed_referral', 'not_requested')
+                      AND excluded.status='pending'
+                    THEN excluded.available_at
+                    ELSE outbox.available_at
+                END,
+                claim_token=CASE
+                    WHEN outbox.status IN ('suppressed_referral', 'not_requested')
+                      AND excluded.status='pending'
+                    THEN NULL
+                    ELSE outbox.claim_token
+                END,
+                claimed_at=CASE
+                    WHEN outbox.status IN ('suppressed_referral', 'not_requested')
+                      AND excluded.status='pending'
+                    THEN NULL
+                    ELSE outbox.claimed_at
+                END,
+                claim_expires_at=CASE
+                    WHEN outbox.status IN ('suppressed_referral', 'not_requested')
+                      AND excluded.status='pending'
+                    THEN NULL
+                    ELSE outbox.claim_expires_at
+                END,
                 updated_at=excluded.updated_at
             """,
             (
@@ -934,6 +1051,10 @@ class EventStore:
         detected = canonical_start_at(detected_at) or current
         message_date = canonical_start_at(entry.get("message_date"))
         referral = bool(entry.get("referral_restricted"))
+        wheel_type = str(entry.get("wheel_type") or "").strip().casefold()
+        referral_evidence = str(
+            entry.get("referral_classification_evidence") or ""
+        ).strip()
         verification = str(entry.get("verification_status") or "")
         status = str(entry.get("status") or "discovered")
         payload = {
@@ -955,6 +1076,8 @@ class EventStore:
             "verification_status": verification,
             "status": status,
             "referral_restricted": referral,
+            "wheel_type": wheel_type,
+            "referral_classification_evidence": referral_evidence,
             "discovery_reason": discovery_reason,
         }
         appended: list[dict[str, Any]] = []
@@ -1133,9 +1256,7 @@ class EventStore:
                 payload,
                 current,
                 status=(
-                    "suppressed_referral"
-                    if referral or not enqueue_notification
-                    else "pending"
+                    "pending" if enqueue_notification else "not_requested"
                 ),
             )
             self._enqueue_ledger_sync(db, event_id, current)
@@ -1211,10 +1332,19 @@ class EventStore:
         resolved = self.resolve_event_id(event_id)
         if not owner_id or not account_key or not account_label:
             raise ValueError("owner_id, account_key and account_label are required")
+        raw_status = str(status or "").strip().casefold()
+        status = canonical_account_status(raw_status, confirmation, error_text)
+        if status != raw_status:
+            original_confirmation = str(confirmation or "").strip()
+            confirmation = (
+                f"raw_status:{raw_status}; {original_confirmation}"
+                if original_confirmation
+                else f"raw_status:{raw_status}"
+            )[:1000]
         current = _iso()
         started = canonical_start_at(started_at)
         finished = canonical_start_at(finished_at) or current
-        confidence = status_confidence(status, confirmation)
+        confidence = status_confidence(status, confirmation, error_text)
         attempt_id = hashlib.sha256(
             "\x1f".join(
                 (

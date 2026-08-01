@@ -1,0 +1,69 @@
+{
+  "schema": "bbvg-change-backup-manifest-v1",
+  "backup_id": "2026-08-01-referral-classification-post-tests",
+  "created_at": "2026-08-01T03:38:54Z",
+  "reason": "Verified candidate checkpoint after implementation and tests, before PR CI and release.",
+  "change_set": "p0-referral-account-aware-notifications",
+  "repository": "slavagostev2-dot/BB.V.G.",
+  "candidate_sha": "32eaaba4dde9e28bf99ffe5f5738a5f7ba5ce50f",
+  "candidate_tree": "fa3bbd5e6729418f552c9717498a3f8ab82a7e34",
+  "main_sha_at_checkpoint": "78ce37682df4bf8e496f4701aa160b894d08059b",
+  "production_sha": "084227e96762c752ac71036f79f57e7181be9724",
+  "release_marker": "084227e96762c752ac71036f79f57e7181be9724",
+  "refs": {
+    "code": "safety/backup-2026-08-01-referral-classification-post-tests-code@32eaaba4dde9e28bf99ffe5f5738a5f7ba5ce50f",
+    "runtime_state": "safety/backup-2026-08-01-referral-classification-post-tests-state@a19d2753e64bb5e0bc799ae8f2bf58268cf34994",
+    "runtime_status": "safety/backup-2026-08-01-referral-classification-post-tests-status@63689add947b80dab66d0e4eb5514eadc8d877b2",
+    "runtime_ledger": "safety/backup-2026-08-01-referral-classification-post-tests-ledger@cc23d0688b910e961941a3076762211bf68bf28a"
+  },
+  "saved_state": [
+    "Exact candidate source, workflow, test and documentation tree.",
+    "Encrypted protected-state envelope; no decrypted or personal data is included in metadata.",
+    "Fresh runtime state with notification delivery state, claims, recovery, incident and system-check exports.",
+    "Fresh Monitor, Control Center and deployment status exports.",
+    "Immutable ledger with 57 event JSON files, including kekw2 generation 1393d78ddd6274d3103d."
+  ],
+  "tree_listing_sha256": {
+    "code": "6469f50de7f0ff7d0f142954e7b8daaa6a5993263d3b8c439e8667c5b3106f15",
+    "runtime_state": "a8e5e9c74ecb382592993a94d85115b451ef82de0b216f60dff06365aad1bff9",
+    "runtime_status": "2a20269efd38274d94ddfbbd75991333733455e6a93fa9612c99cb5cc2dba555",
+    "runtime_ledger": "b4ca4803184a30e9274a171252a9afe0632dfbe2746ec78e5e281a7ea2baf9d0"
+  },
+  "critical_file_sha256": {
+    "code:control_center_release.txt": "e1474e689b7c47c83deb856bf087f15a4db166747172c5821df1d270b7605293",
+    "code:bot_private_state.enc.json": "a219557d501d4a927e1eb135da1fa6e483116773532fa582ab5c98da5fcc0b14",
+    "runtime_state:state.json": "300e248c76ce14ffa4fb2b26a4d1b7bed8ba5792f012f9fa574fb1881a086fcb",
+    "runtime_state:notification_delivery_state.json": "a36035f3121629678fdeb6484661dfc08dab4adac20396be00653260e8ed12b8",
+    "runtime_state:admin_action_queue.json": "862ddc00907c809d7b7f6da01c5b149672654ba363e3695b8e2f3f5c423f1b06",
+    "runtime_state:incident_state.json": "212a903fd5e1b1f907e26d3f90292759885d6942ff0ca22e6f8cd843fa007048",
+    "runtime_state:system_check_state.json": "a7e367ebc6544f668ab4b03ebfdb3d9bffbb9c2baaaae9291213c5d53e892e6c",
+    "runtime_status:admin_panel_status.json": "29ad62867abbec5210fd93b381dc4f7f98ca8e53806ecae41b7f87af66078e30",
+    "runtime_status:monitor_status.json": "9b2f57ad6b980430f21d0b3c43b25b0c123037a5688d71743412c6da8d445a0a",
+    "runtime_status:deployment_manifest.json": "d97ae8fc6f7a8e48f43fb7296eaaa0e72baa040c54f8d4020c8363e965e6698f",
+    "runtime_ledger:events/2026-07-30/1393d78ddd6274d3103d.json": "2e419ca448df07c7c8b83629373342c7458d6a655bfc1963d2beb6eeaa943832"
+  },
+  "validation": {
+    "python_compile": "passed",
+    "targeted_tests": "63 passed",
+    "full_pytest": "352 passed",
+    "production_acceptance": "all sections passed",
+    "preflight": "passed; 170 approved sources (169 primary, 1 nightly)",
+    "security_audit_current": "passed",
+    "guardrail_actions_runtime_tests": "57 passed",
+    "workflow_yaml": "29 files parsed successfully"
+  },
+  "restore": {
+    "instructions": [
+      "Fetch all four exact safety refs and verify commit and tree-listing SHA-256 values.",
+      "Restore each scope into a separate isolated directory and validate all listed critical checksums.",
+      "Compile candidate Python owners and run targeted account/referral/reconciliation/delivery tests.",
+      "Run the protected-state backup workflow with BOT_STATE_KEY before release acceptance.",
+      "If rolling back after release, restore the baseline production code/marker and verify Monitor, Control Center, one getUpdates owner, notifications, claims, recovery and ledger."
+    ],
+    "isolated_smoke_checked_at": "2026-08-01T03:40:00Z",
+    "isolated_smoke_result": "passed; JSON, compilation, checksums and 49 restored-tree tests",
+    "full_protected_state_restore": "not_run_without_production_key"
+  },
+  "rollback_role": "Pre-release candidate recovery point; production rollback remains the verified baseline set until this candidate is deployed and accepted.",
+  "retention_note": "Safety refs preserve all older backup refs and avoid destructive backup/* rotation."
+}

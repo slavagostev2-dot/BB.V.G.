@@ -962,6 +962,10 @@ def remember_active_wheel(
             "participating": is_participating(state, key),
         }
     )
+    entry["wheel_type"] = wheel_publications_v2.referral_classification(entry)
+    entry["referral_classification_evidence"] = (
+        wheel_publications_v2.referral_classification_evidence(entry)
+    )
     if deadline:
         entry["deadline"] = deadline.isoformat()
     else:
@@ -1784,7 +1788,7 @@ def dispatch_notified_wheel_event(state: dict, link: str) -> bool:
     event_id = event_store().prepare_event(
         entry,
         detected_at=entry.get("first_notified_at") or now_utc(),
-        enqueue_notification=not bool(entry.get("referral_restricted")),
+        enqueue_notification=True,
         discovery_reason="monitor_notification",
     )
     entry["canonical_event_id"] = event_id
@@ -1879,7 +1883,7 @@ def notify_new_link(
         if verification_status == WHEEL_VERIFICATION_FAILED
         else ""
     )
-    referral_notice = wheel_publications_v2.referral_restriction_notice(message.text)
+    referral_notice = wheel_publications_v2.referral_classification_notice(message.text)
     referral_line = f"{referral_notice}\n" if referral_notice else ""
 
     # The event and its dispatch outbox must exist before the external Telegram
@@ -1954,7 +1958,7 @@ def notify_activation(
         if verification_status == WHEEL_VERIFICATION_FAILED
         else ""
     )
-    referral_notice = wheel_publications_v2.referral_restriction_notice(message.text)
+    referral_notice = wheel_publications_v2.referral_classification_notice(message.text)
     referral_line = f"{referral_notice}\n" if referral_notice else ""
 
     if state is not None:

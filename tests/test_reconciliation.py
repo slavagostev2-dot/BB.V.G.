@@ -107,6 +107,43 @@ def test_historical_active_observation_does_not_requeue_participation(
     assert report_day(store, "2026-07-24")[0]["dispatch_queued"] is False
 
 
+def test_reconciliation_requeues_referral_first_notification(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    candidate = {
+        "wheel_key": "ref-wheel",
+        "identifier": "ref-wheel",
+        "url": "https://betboom.ru/freestream/ref-wheel",
+        "source": "collector",
+        "message_id": 88,
+        "message_date": "2026-07-25T12:00:00+00:00",
+        "action_id": 9002,
+        "server_start_at": "2026-07-25T12:00:05+00:00",
+        "deadline": "2026-07-25T13:00:00+00:00",
+        "status": "active",
+        "verification_status": "confirmed",
+        "referral_restricted": True,
+        "wheel_type": "referral",
+    }
+
+    reconcile_candidates(
+        store,
+        [candidate],
+        current=datetime(2026, 7, 25, 12, 5, tzinfo=UTC),
+    )
+
+    db = sqlite3.connect(store.path)
+    try:
+        pending = {
+            row[0]
+            for row in db.execute(
+                "SELECT kind FROM outbox WHERE status='pending'"
+            ).fetchall()
+        }
+    finally:
+        db.close()
+    assert {"auto_participation", "new_wheel_notification"} <= pending
+
+
 def test_current_active_window_is_merged_into_generation_observation(
     tmp_path: Path,
 ) -> None:

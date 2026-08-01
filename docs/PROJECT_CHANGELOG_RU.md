@@ -1,3 +1,31 @@
+# 2026-08-01 — кандидат восстановления реферальных колёс
+
+- Аудит production-state и immutable ledger установил точное событие:
+  `kekw2`, generation `1393d78ddd6274d3103d`, `@shadowkekw/6176`.
+  Публикация явно содержит «Колесико для рефов»; Account 2 имеет подтверждённый
+  `participated`, а Account 1 и `xFLARXx` — только `unconfirmed`. Явного ответа
+  BetBoom о непригодности этих двух аккаунтов в сохранённом состоянии нет.
+- Удалено intentional suppression первичной referral-карточки в Telegram.
+  EventStore и reconciliation ставят её в тот же durable outbox, что обычное
+  колесо; `sent=0` больше не принимается как корректное referral-молчание.
+- Добавлена отдельная классификация `normal`, `referral` и
+  `suspected_referral`. Слабый referral-hint отображается как
+  «Предположительно реферальное колесо» и не превращается в account-level отказ.
+- Публичный account outcome ограничен значениями `participated`,
+  `referral_ineligible`, `unconfirmed`, `expired`, `technical_error`.
+  `referral_ineligible` принимается только вместе с exact-text доказательством
+  BetBoom; подтверждённый `participated` остаётся монотонным.
+- Итоговый owner-report формируется по трём production-аккаунтам независимо.
+  Referral Telegram-доставка не меняет прежнюю политику VK: referral и
+  suspected-referral в VK не отправляются.
+- Это запись о проверяемом кандидате. Production SHA и release-marker будут
+  добавлены только после зелёного CI и production acceptance.
+
+**Недеструктивные точки до изменения:**
+`safety/backup-2026-08-01-referral-classification-baseline` и отдельный набор
+`safety/backup-2026-08-01-referral-classification-pre-format-*`; manifests —
+`engineering/backups/2026-08-01-referral-classification-*.manifest`.
+
 # 2026-07-31 — смена Control Center не загружает полную runtime-историю
 
 - Production run `30630189884` штатно завершил Telegram consumer в

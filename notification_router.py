@@ -354,26 +354,9 @@ def referral_wheel_notification(
     url: str | None,
     reply_markup: dict | None,
 ) -> bool:
-    """Return whether a user-facing wheel notification must stay silent."""
+    """Compatibility hook: referral wheels are never intentionally silenced."""
 
-    if kind != "wheels":
-        return False
-
-    import wheel_publications_v2
-
-    if wheel_publications_v2.is_referral_restricted(text):
-        return True
-
-    key = wheel_key_from_message(text, url, reply_markup)
-    if not key:
-        return False
-    try:
-        state = monitor_module.load_state()
-    except Exception:
-        return False
-    active = state.get("active_wheels") if isinstance(state, dict) else None
-    entry = active.get(key) if isinstance(active, dict) else None
-    return wheel_publications_v2.entry_is_referral_restricted(entry)
+    return False
 
 
 def hidden_for_chat(config: dict[str, Any], chat_id: str, wheel_key: str) -> bool:
@@ -468,22 +451,6 @@ def install(monitor_module: Any) -> None:
         config, exists = load_config()
         category = classify(text)
         kind = notification_kind(text)
-        if referral_wheel_notification(
-            monitor_module,
-            kind,
-            text,
-            url,
-            reply_markup,
-        ):
-            return {
-                "ok": True,
-                "result": {
-                    "suppressed": True,
-                    "reason": "referral_wheel_notifications_disabled",
-                    "category": category,
-                    "kind": kind,
-                },
-            }
         targets = recipients(config, exists, kind)
         if not targets:
             print(f"Notification has no recipients: {kind}")
@@ -623,7 +590,7 @@ def self_test() -> None:
         "https://betboom.ru/freestream/example",
         None,
     ) == "wheel:wheels:example:detected"
-    assert referral_wheel_notification(
+    assert not referral_wheel_notification(
         type("Monitor", (), {"load_state": staticmethod(lambda: {})}),
         "wheels",
         "🎡 Обнаружено колесо BetBoom\nКолесо только для рефералов",

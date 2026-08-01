@@ -29,8 +29,10 @@ TRANSIENT_STATUSES = {
     "timeout",
     "navigation_timeout",
     "page_timeout",
+    "technical_error",
 }
 TERMINAL_FAILURE_STATUSES = {
+    "referral_ineligible",
     "participation_closed",
     "not_eligible",
     "rejected",

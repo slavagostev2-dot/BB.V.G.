@@ -6,6 +6,7 @@ from pathlib import Path
 
 from bbvg.storage import (
     EventStore,
+    canonical_account_status,
     canonical_event_id,
     event_id_from_entry,
     status_confidence,
@@ -102,6 +103,34 @@ def test_concurrent_prepare_does_not_lose_or_duplicate_dispatch(
     ) == 1
 
 
+def test_existing_referral_suppression_is_requeued_once(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    entry = {
+        **_event(),
+        "referral_restricted": True,
+        "wheel_type": "referral",
+    }
+    event_id = store.prepare_event(entry, enqueue_notification=False)
+    db = sqlite3.connect(store.path)
+    try:
+        db.execute(
+            "UPDATE outbox SET status='suppressed_referral' "
+            "WHERE event_id=? AND kind='new_wheel_notification'",
+            (event_id,),
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    assert store.prepare_event(entry, enqueue_notification=True) == event_id
+    assert store.prepare_event(entry, enqueue_notification=True) == event_id
+    rows = _rows(
+        store.path,
+        "SELECT status FROM outbox WHERE kind='new_wheel_notification'",
+    )
+    assert [row["status"] for row in rows] == ["pending"]
+
+
 def test_provisional_identity_is_promoted_without_duplicate_event(
     tmp_path: Path,
 ) -> None:
@@ -175,6 +204,95 @@ def test_confirmed_success_is_monotonic_per_account(tmp_path: Path) -> None:
     assert result["status"] == "participated"
     assert result["attempt_count"] == 1
     assert len(_rows(store.path, "SELECT * FROM account_attempts")) == 2
+
+
+def test_referral_ineligible_requires_exact_betboom_evidence(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    event_id = store.prepare_event(_event())
+
+    assert store.record_account_result(
+        event_id,
+        owner_id="owner-a",
+        account_key="primary",
+        account_label="Основной",
+        status="referral_ineligible",
+        confirmation="post_is_referral",
+        error_text="button not found",
+    )
+    result = store.event_snapshot(event_id)["account_results"][0]
+    assert result["status"] == "unconfirmed"
+
+    assert store.record_account_result(
+        event_id,
+        owner_id="owner-a",
+        account_key="primary",
+        account_label="Основной",
+        status="referral_ineligible",
+        confirmation=(
+            "referral_ineligible_exact_text:main:"
+            "Ваш аккаунт не является рефералом"
+        ),
+        attempt_count=2,
+    )
+    result = store.event_snapshot(event_id)["account_results"][0]
+    assert result["status"] == "referral_ineligible"
+    assert result["confidence"] == 100
+
+
+def test_participated_cannot_be_downgraded_by_any_public_outcome(
+    tmp_path: Path,
+) -> None:
+    store = _store(tmp_path)
+    event_id = store.prepare_event(_event())
+    store.record_account_result(
+        event_id,
+        owner_id="owner-a",
+        account_key="primary",
+        account_label="Основной",
+        status="participated",
+        confirmation="exact_success_text",
+    )
+
+    for attempt, (status, confirmation, error) in enumerate(
+        (
+            ("referral_ineligible", "referral_ineligible_exact_text:main:не реферал", ""),
+            ("expired", "expired_exact_page_status:closed", ""),
+            ("technical_error", "", "TimeoutError: browser timed out"),
+            ("unconfirmed", "", "no exact confirmation"),
+        ),
+        start=2,
+    ):
+        assert not store.record_account_result(
+            event_id,
+            owner_id="owner-a",
+            account_key="primary",
+            account_label="Основной",
+            status=status,
+            confirmation=confirmation,
+            error_text=error,
+            attempt_count=attempt,
+        )
+
+    result = store.event_snapshot(event_id)["account_results"][0]
+    assert result["status"] == "participated"
+    assert result["attempt_count"] == 1
+    assert len(store.event_snapshot(event_id)["account_attempts"]) == 5
+
+
+def test_legacy_failures_map_only_to_allowed_public_statuses() -> None:
+    assert canonical_account_status("button_not_found", "dom_scan") == "unconfirmed"
+    assert (
+        canonical_account_status(
+            "browser_error",
+            error_text="TimeoutError: browser timed out",
+        )
+        == "technical_error"
+    )
+    assert status_confidence(
+        "technical_error",
+        error_text="TimeoutError: browser timed out",
+    ) == 30
+    assert canonical_account_status("not_eligible", "post_is_referral") == "unconfirmed"
 
 
 def test_telegram_only_mark_is_not_a_confirmed_account_success() -> None:

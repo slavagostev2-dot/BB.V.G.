@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from betboom_participation_browser import (
     CLICK_RE,
+    REFERRAL_INELIGIBLE_LABEL_RE,
     SUCCESS_LABEL_RE,
     _matches_full_label,
     _success,
+    _visible_referral_ineligible,
 )
 
 
@@ -70,3 +72,18 @@ def test_success_confirmation_phrases_are_exact() -> None:
         SUCCESS_LABEL_RE,
         "Правила объясняют, как вы участвуете в розыгрыше",
     )
+
+
+def test_referral_ineligible_requires_self_contained_betboom_refusal() -> None:
+    assert _matches_full_label(
+        REFERRAL_INELIGIBLE_LABEL_RE,
+        "Ваш аккаунт не является рефералом.",
+    )
+    assert _visible_referral_ineligible(
+        _Page(["Ваш аккаунт не является рефералом."])
+    ).endswith("Ваш аккаунт не является рефералом.")
+    assert not _matches_full_label(
+        REFERRAL_INELIGIBLE_LABEL_RE,
+        "Колесико для рефов",
+    )
+    assert _visible_referral_ineligible(_Page(["Колесико для рефов"])) == ""

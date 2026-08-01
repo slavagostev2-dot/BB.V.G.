@@ -30,6 +30,18 @@ COOKIE_RE = re.compile(
     re.IGNORECASE,
 )
 PROMO_DETAILS_RE = re.compile(r"об\s+акции", re.IGNORECASE)
+REFERRAL_INELIGIBLE_LABEL_RE = re.compile(
+    r"(?:"
+    r"(?:вы|ваш\s+аккаунт|аккаунт)[^.!?\n]{0,100}"
+    r"(?:не\s+(?:являетесь|является|подходите|подходит|соответствуете|соответствует))"
+    r"[^.!?\n]{0,100}(?:реферал\w*|реферальн\w*\s+услов\w*)"
+    r"|"
+    r"(?:участие|акция|колесо)[^.!?\n]{0,100}(?:недоступ\w*|закрыт\w*)"
+    r"[^.!?\n]{0,140}(?:не\s+реферал\w*|не\s+по\s+реферальн\w*\s+ссылк\w*)"
+    r")"
+    r"[.!]?",
+    re.IGNORECASE,
+)
 
 
 def _normalized_label(value: object) -> str:
@@ -125,6 +137,29 @@ def _visible_control_location(page: Any, pattern: re.Pattern[str]) -> str:
         candidate, label = _visible_exact_control(root, pattern)
         if candidate is not None:
             return f"{_root_name(root, page)}:{label}"[:180]
+    return ""
+
+
+def _visible_referral_ineligible(page: Any) -> str:
+    """Return only an explicit, self-contained BetBoom eligibility refusal."""
+
+    for root in _search_roots(page):
+        try:
+            locators = (
+                root.get_by_text(REFERRAL_INELIGIBLE_LABEL_RE),
+                root.locator('[role="alert"],[role="status"],[aria-live]').filter(
+                    has_text=REFERRAL_INELIGIBLE_LABEL_RE
+                ),
+            )
+        except Exception:
+            continue
+        for locator in locators:
+            _candidate, label = _matching_visible_label(
+                locator,
+                REFERRAL_INELIGIBLE_LABEL_RE,
+            )
+            if label:
+                return f"{_root_name(root, page)}:{label}"[:220]
     return ""
 
 
@@ -395,17 +430,17 @@ def participate(url: str) -> auto.ParticipationResult:
     """Use the stored BetBoom browser session as a resilient participation fallback."""
 
     if not url.startswith("https://betboom.ru/freestream/"):
-        return auto.ParticipationResult(False, "invalid_url", "некорректная ссылка BetBoom")
+        return auto.ParticipationResult(False, "technical_error", "invalid_url: некорректная ссылка BetBoom")
 
     storage_state = auto._storage_state()
     if storage_state is None:
-        return auto.ParticipationResult(False, "not_configured", "сессия BetBoom не настроена")
+        return auto.ParticipationResult(False, "technical_error", "not_configured: сессия BetBoom не настроена")
 
     page: Any = None
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
-        return auto.ParticipationResult(False, "dependency_missing", "Playwright не установлен")
+        return auto.ParticipationResult(False, "technical_error", "dependency_missing: Playwright не установлен")
 
     timeout_ms = max(
         8000,
@@ -421,6 +456,20 @@ def participate(url: str) -> auto.ParticipationResult:
             page.set_default_timeout(timeout_ms)
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             page.wait_for_timeout(800)
+
+            referral_refusal = _visible_referral_ineligible(page)
+            if referral_refusal:
+                detail = f"referral_ineligible_exact_text:{referral_refusal}"
+                artifact = _save_diagnostics(
+                    page, url, "referral_ineligible", detail
+                )
+                browser.close()
+                return auto.ParticipationResult(
+                    False,
+                    "referral_ineligible",
+                    detail[:300],
+                    artifact,
+                )
 
             clicked, location, preparations = _find_and_click(page, timeout_ms)
             if location == "already_participating":
@@ -450,6 +499,19 @@ def participate(url: str) -> auto.ParticipationResult:
                     )
 
             if not clicked:
+                referral_refusal = _visible_referral_ineligible(page)
+                if referral_refusal:
+                    detail = f"referral_ineligible_exact_text:{referral_refusal}"
+                    artifact = _save_diagnostics(
+                        page, url, "referral_ineligible", detail
+                    )
+                    browser.close()
+                    return auto.ParticipationResult(
+                        False,
+                        "referral_ineligible",
+                        detail[:300],
+                        artifact,
+                    )
                 body = _all_text(page).casefold()
                 labels = _diagnostic_labels(page)
                 detail = (
@@ -486,6 +548,19 @@ def participate(url: str) -> auto.ParticipationResult:
                     if preparations:
                         detail += "; подготовка: " + " | ".join(preparations)
                     return auto.ParticipationResult(True, "participated", detail[:300])
+                referral_refusal = _visible_referral_ineligible(page)
+                if referral_refusal:
+                    detail = f"referral_ineligible_exact_text:{referral_refusal}"
+                    artifact = _save_diagnostics(
+                        page, url, "referral_ineligible", detail
+                    )
+                    browser.close()
+                    return auto.ParticipationResult(
+                        False,
+                        "referral_ineligible",
+                        detail[:300],
+                        artifact,
+                    )
 
             try:
                 page.reload(wait_until="domcontentloaded", timeout=timeout_ms)
@@ -505,6 +580,20 @@ def participate(url: str) -> auto.ParticipationResult:
                     )[:300],
                 )
 
+            referral_refusal = _visible_referral_ineligible(page)
+            if referral_refusal:
+                detail = f"referral_ineligible_exact_text:{referral_refusal}"
+                artifact = _save_diagnostics(
+                    page, url, "referral_ineligible", detail
+                )
+                browser.close()
+                return auto.ParticipationResult(
+                    False,
+                    "referral_ineligible",
+                    detail[:300],
+                    artifact,
+                )
+
             detail = (
                 f"participation control clicked ({location}), "
                 "but no exact post-click confirmation was found"
@@ -519,10 +608,10 @@ def participate(url: str) -> auto.ParticipationResult:
             )
     except Exception as exc:
         detail = f"{type(exc).__name__}: {exc}"[:300]
-        artifact = _save_diagnostics(page, url, "browser_error", detail)
+        artifact = _save_diagnostics(page, url, "technical_error", detail)
         return auto.ParticipationResult(
             False,
-            "browser_error",
+            "technical_error",
             detail,
             artifact,
         )
@@ -534,6 +623,14 @@ def self_test() -> None:
     assert not _matches_full_label(
         CLICK_RE,
         "В розыгрыше могут участвовать все зарегистрированные пользователи",
+    )
+    assert _matches_full_label(
+        REFERRAL_INELIGIBLE_LABEL_RE,
+        "Ваш аккаунт не является рефералом.",
+    )
+    assert not _matches_full_label(
+        REFERRAL_INELIGIBLE_LABEL_RE,
+        "Колесико для рефов",
     )
     assert _matches_full_label(SUCCESS_LABEL_RE, "Вы уже участвуете")
     assert _matches_full_label(SUCCESS_LABEL_RE, "Вы уже участвуете в розыгрыше!")
