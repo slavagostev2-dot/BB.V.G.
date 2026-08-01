@@ -178,9 +178,6 @@ def _validate_wheel_delivery(
 
     result = _result(response)
     reason = str(result.get("reason") or "")
-    if reason == "referral_wheel_notifications_disabled":
-        return
-
     kind = notification_router.notification_kind(text)
     wheel_key = notification_router.wheel_key_from_message(text, url, reply_markup)
     if not wheel_key or not (kind == "wheels" or kind.startswith("wheel_")):

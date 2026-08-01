@@ -163,7 +163,8 @@ class Chapter5LifecycleTests(unittest.TestCase):
             )
         finally:
             monitor.send_message = original_send
-        self.assertIn("Колесо только для рефералов", sent[0])
+        self.assertIn("Реферальное колесо", sent[0])
+        self.assertIn("отдельно для каждого аккаунта", sent[0])
 
         panel_messages: list[str] = []
         panel = WheelInteractionRuntime.__new__(WheelInteractionRuntime)

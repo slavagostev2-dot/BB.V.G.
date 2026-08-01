@@ -172,7 +172,7 @@ class NotificationTestCase(unittest.TestCase):
         self.assertEqual(second["result"]["sent"], 0)
         self.assertEqual(len(fake.sent), 1)
 
-    def test_referral_wheel_notifications_are_suppressed(self) -> None:
+    def test_referral_wheel_notification_is_delivered_once(self) -> None:
         config = access_config(one_user=True)
         notification_router.load_config = lambda: (config, True)
         fake = self.fake_monitor()
@@ -183,12 +183,9 @@ class NotificationTestCase(unittest.TestCase):
             url="https://betboom.ru/freestream/ref-wheel",
         )
 
-        self.assertTrue(result["result"]["suppressed"])
-        self.assertEqual(
-            result["result"]["reason"],
-            "referral_wheel_notifications_disabled",
-        )
-        self.assertEqual(fake.sent, [])
+        self.assertEqual(result["result"]["sent"], 1)
+        self.assertEqual(len(fake.sent), 1)
+        self.assertIn("Колесо только для рефералов", fake.sent[0]["text"])
 
     def test_technical_failure_is_visible_only_to_owner_and_admin(self) -> None:
         config = access_config()

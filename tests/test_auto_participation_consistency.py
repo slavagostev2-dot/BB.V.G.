@@ -7,6 +7,7 @@ import auto_participation_notifications
 import auto_participation_owner_sync
 import betboom_auto_participation as auto
 import monitor
+import wheel_publications_v2
 
 UTC = timezone.utc
 
@@ -57,7 +58,7 @@ def test_legacy_success_cannot_be_replaced_by_later_failure() -> None:
     assert "zonertg16#event:6b6a163030b5ef75219f" not in state["auto_participation_events"]
 
 
-def test_owner_registry_waits_for_all_enabled_owner_accounts() -> None:
+def test_final_report_uses_exact_three_accounts_and_ignores_extra_registry() -> None:
     base = "wheel#action:42:start"
     state = {
         "auto_participation_account_registry": {
@@ -120,19 +121,6 @@ def test_owner_registry_waits_for_all_enabled_owner_accounts() -> None:
             },
         },
     }
-    assert not auto_participation_notifications._settled_event_groups(
-        state, now=datetime(2026, 7, 25, 9, 10, tzinfo=UTC)
-    )
-    state["auto_participation_events"][base + "#account:vyacheslav_spare"] = {
-        "wheel_key": "wheel",
-        "event_token": base,
-        "account_key": "vyacheslav_spare",
-        "account_label": "Резервный аккаунт",
-        "account_owner": "vyacheslav",
-        "account_order": 30,
-        "status": "participated",
-        "bot_success_pending_at": "2026-07-25T09:00:03+00:00",
-    }
     groups = auto_participation_notifications._settled_event_groups(
         state, now=datetime(2026, 7, 25, 9, 10, tzinfo=UTC)
     )
@@ -144,15 +132,15 @@ def test_owner_registry_waits_for_all_enabled_owner_accounts() -> None:
     assert set(accounts) == {
         "vyacheslav_primary",
         "vyacheslav_secondary",
-        "vyacheslav_spare",
+        "xflarxx_primary",
     }
     text, _ = auto_participation_notifications._result_message(
         "wheel", {"identifier": "wheel"}, accounts
     )
     assert "Аккаунт 1" in text
     assert "Аккаунт 2" in text
-    assert "Резервный аккаунт" in text
-    assert "xFLARXx" not in text
+    assert "Резервный аккаунт" not in text
+    assert "xFLARXx" in text
 
 
 def test_referral_success_on_one_account_sends_one_honest_owner_result() -> None:
@@ -186,6 +174,18 @@ def test_referral_success_on_one_account_sends_one_honest_owner_result() -> None
                 "status": "participated",
                 "bot_success_pending_at": "2026-07-30T15:00:10+00:00",
             },
+            base + "#account:xflarxx_primary": {
+                "wheel_key": "kekw2",
+                "event_token": base,
+                "account_key": "xflarxx_primary",
+                "account_label": "xFLARXx",
+                "status": "referral_ineligible",
+                "detail": (
+                    "referral_ineligible_exact_text:main:"
+                    "Ваш аккаунт не является рефералом"
+                ),
+                "bot_failure_pending_at": "2026-07-30T15:00:20+00:00",
+            },
         },
     }
     groups = auto_participation_notifications._settled_event_groups(
@@ -204,11 +204,11 @@ def test_referral_success_on_one_account_sends_one_honest_owner_result() -> None
         item,
         accounts,
     )
-    assert "Реферальное колесо — участие доступно" in text
+    assert "Реферальное колесо" in text
     assert "Источник: @shadowkekw" in text
-    assert "⏳ Аккаунт 1 — участие пока не подтверждено" in text
+    assert "⚠️ Аккаунт 1 — результат не подтверждён" in text
     assert "✅ Аккаунт 2 — участие подтверждено BetBoom" in text
-    assert "❌ Аккаунт 1" not in text
+    assert "⛔ xFLARXx — недоступно" in text
     assert "no exact post-click confirmation" not in text
 
     assert auto_participation_notifications._should_finalize(
@@ -221,7 +221,7 @@ def test_referral_success_on_one_account_sends_one_honest_owner_result() -> None
         all_success=False,
         allow_referral_upgrade=True,
     )
-    assert not auto_participation_notifications._should_send_event_result(
+    assert auto_participation_notifications._should_send_event_result(
         {"notification_preferences": {}},
         item,
         {
@@ -229,6 +229,120 @@ def test_referral_success_on_one_account_sends_one_honest_owner_result() -> None
             for key, (token, record, _success) in accounts.items()
         },
     )
+
+
+def test_referral_outcomes_are_independent_for_all_three_accounts() -> None:
+    accounts = {
+        "vyacheslav_primary": (
+            "evt:one",
+            {
+                "account_key": "vyacheslav_primary",
+                "account_label": "Аккаунт 1",
+                "status": "participated",
+            },
+            True,
+        ),
+        "vyacheslav_secondary": (
+            "evt:one#account:vyacheslav_secondary",
+            {
+                "account_key": "vyacheslav_secondary",
+                "account_label": "Аккаунт 2",
+                "status": "referral_ineligible",
+                "detail": "referral_ineligible_exact_text:main:не является рефералом",
+            },
+            False,
+        ),
+        "xflarxx_primary": (
+            "evt:one#account:xflarxx_primary",
+            {
+                "account_key": "xflarxx_primary",
+                "account_label": "xFLARXx",
+                "status": "referral_ineligible",
+                "detail": "referral_ineligible_exact_text:main:не является рефералом",
+            },
+            False,
+        ),
+    }
+
+    text, _ = auto_participation_notifications._result_message(
+        "ref-one",
+        {"identifier": "ref-one", "message_text": "Колесо для рефов"},
+        accounts,
+    )
+    assert text.count("участие подтверждено BetBoom") == 1
+    assert text.count("BetBoom подтвердил реферальное ограничение") == 2
+
+    accounts["vyacheslav_secondary"] = (
+        "evt:one#account:vyacheslav_secondary",
+        {
+            "account_key": "vyacheslav_secondary",
+            "account_label": "Аккаунт 2",
+            "status": "participated",
+        },
+        True,
+    )
+    text, _ = auto_participation_notifications._result_message(
+        "ref-two",
+        {"identifier": "ref-two", "message_text": "Колесо для рефов"},
+        accounts,
+    )
+    assert text.count("участие подтверждено BetBoom") == 2
+    assert text.count("BetBoom подтвердил реферальное ограничение") == 1
+
+
+def test_suspected_referral_and_technical_error_stay_cautious() -> None:
+    item = {
+        "identifier": "hint",
+        "message_text": "Реферальный розыгрыш BetBoom",
+    }
+    assert (
+        wheel_publications_v2.referral_classification(item)
+        == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
+    )
+    accounts = {
+        "vyacheslav_primary": (
+            "evt:hint",
+            {
+                "account_key": "vyacheslav_primary",
+                "account_label": "Аккаунт 1",
+                "status": "technical_error",
+                "detail": "TimeoutError: page timed out",
+            },
+            False,
+        ),
+        "vyacheslav_secondary": (
+            "evt:hint#account:vyacheslav_secondary",
+            {
+                "account_key": "vyacheslav_secondary",
+                "account_label": "Аккаунт 2",
+                "status": "unconfirmed",
+            },
+            False,
+        ),
+        "xflarxx_primary": (
+            "evt:hint#account:xflarxx_primary",
+            {
+                "account_key": "xflarxx_primary",
+                "account_label": "xFLARXx",
+                "status": "participated",
+            },
+            True,
+        ),
+    }
+    text, _ = auto_participation_notifications._result_message(
+        "hint", item, accounts
+    )
+    assert "Предположительно реферальное колесо" in text
+    assert "🛠 Аккаунт 1 — техническая ошибка" in text
+    assert "⚠️ Аккаунт 2 — результат не подтверждён" in text
+    assert "✅ xFLARXx" in text
+
+    ordinary = {"identifier": "ordinary", "message_text": "Колесо для всех"}
+    ordinary_text, _ = auto_participation_notifications._result_message(
+        "ordinary", ordinary, accounts
+    )
+    assert wheel_publications_v2.referral_classification(ordinary) == "normal"
+    assert "реферальное колесо" not in ordinary_text.casefold()
 
 
 def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:

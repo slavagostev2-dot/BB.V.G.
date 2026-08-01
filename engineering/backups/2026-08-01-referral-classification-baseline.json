@@ -1,0 +1,102 @@
+{
+  "schema": "bbvg-change-backup-manifest-v1",
+  "backup_id": "2026-08-01-referral-classification-baseline",
+  "created_at": "2026-08-01T03:11:47Z",
+  "manifest_generated_at": "2026-08-01T03:14:50Z",
+  "reason": "Immutable baseline before restoring account-aware referral wheel classification and notifications.",
+  "change_set": "p0-referral-account-aware-notifications",
+  "repository": "slavagostev2-dot/BB.V.G.",
+  "main_sha": "78ce37682df4bf8e496f4701aa160b894d08059b",
+  "production_sha": "084227e96762c752ac71036f79f57e7181be9724",
+  "release_marker": "084227e96762c752ac71036f79f57e7181be9724",
+  "refs": {
+    "code": {
+      "name": "safety/backup-2026-08-01-referral-classification-baseline",
+      "sha": "78ce37682df4bf8e496f4701aa160b894d08059b",
+      "tree": "3aed8fdae5da5e3b10bb8d724d65e8ad56d51938"
+    },
+    "runtime_state": {
+      "name": "safety/backup-2026-08-01-referral-classification-runtime-state",
+      "sha": "cc78fe66237b601773b0c0ca912e065739613d10",
+      "tree": "24e45976d2369760b44a79e9c872616cb47f0228"
+    },
+    "runtime_status": {
+      "name": "safety/backup-2026-08-01-referral-classification-runtime-status",
+      "sha": "1f50a8cd94a0966de43c2ec98e4cdb1b9078da30",
+      "tree": "993164457540c05293001cbd28182ec236ba148e"
+    },
+    "runtime_ledger": {
+      "name": "safety/backup-2026-08-01-referral-classification-runtime-ledger",
+      "sha": "cc23d0688b910e961941a3076762211bf68bf28a",
+      "tree": "6e687861e710ea949485e260277f59a421a82a83"
+    }
+  },
+  "saved_state": [
+    "Full source, workflows, tests and documentation tree at main_sha.",
+    "Encrypted protected state in its existing envelope; no decrypted data is stored in this manifest.",
+    "Runtime state including event state, notification queue, claims, recovery, incident and system-check exports.",
+    "Runtime status including Monitor, Control Center and deployment manifest exports.",
+    "Immutable event ledger containing 57 event JSON files, including generation 1393d78ddd6274d3103d."
+  ],
+  "tree_listing_sha256": {
+    "code": "bfed1e3fd5da271b6442214aaa76393b9ee8078b6f0dc8fd311609f8266fc800",
+    "runtime_state": "02ab0ae1771b2fe325913961080eb2e32aa8476158b939982057c79de405be8e",
+    "runtime_status": "f246f83ef4e92f5fc46511f1113c950b84a0b218eb42d3e7713f0919ac63ad90",
+    "runtime_ledger": "b4ca4803184a30e9274a171252a9afe0632dfbe2746ec78e5e281a7ea2baf9d0"
+  },
+  "critical_file_sha256": {
+    "code:control_center_release.txt": "e1474e689b7c47c83deb856bf087f15a4db166747172c5821df1d270b7605293",
+    "code:bot_private_state.enc.json": "a219557d501d4a927e1eb135da1fa6e483116773532fa582ab5c98da5fcc0b14",
+    "code:deployment_manifest.json": "2ebbe2dc8dbe6a8a89f76fe12947eb8bac56d332510b4e9f680a02fea148156a",
+    "code:admin_action_queue.json": "5f5dacdb1a9978703a6b2ad0e4227acc4970e95ac38510b3c43175c6eb7bd5ea",
+    "code:notification_delivery_state.json": "cd935030e71fe8cece68d405545182192e35cfd5fc7b00fe4585426568065d46",
+    "code:incident_state.json": "afe6d7fd18a3d02b9e215aa55faa2849b67b640e9e296ddfe78740b13deae4b3",
+    "code:system_check_state.json": "c5623e77abfd07a1e0a5371e3550564e9b6c74523d36e32da35cfd5b5e36e43e",
+    "runtime_state:state.json": "1ae1e3e194f282f7b0cd17229030b5c33576b580b0118afd6919e1bb188e6a1b",
+    "runtime_state:admin_action_queue.json": "862ddc00907c809d7b7f6da01c5b149672654ba363e3695b8e2f3f5c423f1b06",
+    "runtime_state:notification_delivery_state.json": "a36035f3121629678fdeb6484661dfc08dab4adac20396be00653260e8ed12b8",
+    "runtime_state:incident_state.json": "212a903fd5e1b1f907e26d3f90292759885d6942ff0ca22e6f8cd843fa007048",
+    "runtime_state:system_check_state.json": "a7e367ebc6544f668ab4b03ebfdb3d9bffbb9c2baaaae9291213c5d53e892e6c",
+    "runtime_state:bot_private_state.enc.json": "71854cde706d4011c96f359f4326e7ac3307e99868e9abeb852ae5d787775cfc",
+    "runtime_status:admin_panel_status.json": "a382fa6a87f49b01e6639a4be5373f00753aed6d3607dee35d9c86f3edcd2f51",
+    "runtime_status:monitor_status.json": "7d5790f8d4f09729fd0f6c15951b852bda1afb76ab6d60a16a326a8716704838",
+    "runtime_status:deployment_manifest.json": "d97ae8fc6f7a8e48f43fb7296eaaa0e72baa040c54f8d4020c8363e965e6698f",
+    "runtime_ledger:events/2026-07-30/1393d78ddd6274d3103d.json": "2e419ca448df07c7c8b83629373342c7458d6a655bfc1963d2beb6eeaa943832"
+  },
+  "protected_state": {
+    "format": "bbvg-bot-state-v2",
+    "key_mode": "dedicated",
+    "envelope_fields": [
+      "algorithm",
+      "ciphertext",
+      "format",
+      "key_mode",
+      "nonce"
+    ],
+    "encrypted_size_bytes": 206732,
+    "decrypted_or_personal_data_recorded": false,
+    "production_key_restore_required_for_full_acceptance": true
+  },
+  "restore": {
+    "instructions": [
+      "Fetch all four refs and verify their exact commit and tree SHAs against this manifest.",
+      "Restore code from the code ref without moving or rewriting the safety ref.",
+      "Restore state, status and ledger from their corresponding refs; do not substitute files across snapshots.",
+      "Verify tree listings and critical file SHA-256 values before starting a process.",
+      "Run JSON parsing, Python compilation and the encrypted-state restore workflow with BOT_STATE_KEY in GitHub Actions.",
+      "After rollback, verify exact deployed SHA, release marker, Monitor, Control Center, one getUpdates owner, claims, notifications, recovery and ledger."
+    ],
+    "isolated_smoke_checked_at": "2026-08-01T03:14:00Z",
+    "isolated_smoke_result": "passed",
+    "checks": [
+      "All refs fetched at exact SHA.",
+      "All four trees archived and restored to isolated directories.",
+      "Release marker matched production SHA.",
+      "Critical state, status and ledger JSON parsed.",
+      "Referral/event-store Python modules compiled.",
+      "Selected SHA-256 values matched."
+    ],
+    "full_protected_state_restore": "not_run_without_production_key"
+  },
+  "retention_note": "Safety refs are intentionally outside backup/* because the current backup rotation would delete older refs; this preserves all pre-existing backup points."
+}

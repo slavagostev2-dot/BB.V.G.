@@ -165,8 +165,7 @@ def reconcile_candidates(
             entry,
             detected_at=entry.get("first_seen_at"),
             enqueue_participation=active,
-            enqueue_notification=active
-            and not bool(entry.get("referral_restricted")),
+            enqueue_notification=active,
             discovery_reason=recovery_reason,
         )
         store.record_transition(

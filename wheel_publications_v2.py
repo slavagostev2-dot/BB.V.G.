@@ -7,6 +7,15 @@ from typing import Any, Callable
 
 UTC = timezone.utc
 
+WHEEL_TYPE_NORMAL = "normal"
+WHEEL_TYPE_REFERRAL = "referral"
+WHEEL_TYPE_SUSPECTED_REFERRAL = "suspected_referral"
+WHEEL_TYPES = {
+    WHEEL_TYPE_NORMAL,
+    WHEEL_TYPE_REFERRAL,
+    WHEEL_TYPE_SUSPECTED_REFERRAL,
+}
+
 REFERRAL_RESTRICTED_NOTICE_TEXT = (
     "Колесо только для рефералов. Для участия аккаунт должен быть зарегистрирован "
     "по реферальной ссылке или промокоду автора."
@@ -36,6 +45,10 @@ _REFERRAL_RESTRICTION_PATTERNS = (
     ),
     re.compile(r"\b(?:only\s+for\s+referrals?|referral[-\s]?only)\b", re.IGNORECASE),
 )
+_REFERRAL_HINT_RE = re.compile(
+    r"\b(?:реф(?:ерал\w*|ов|ы)?|referral\w*)\b",
+    re.IGNORECASE,
+)
 
 
 def is_referral_restricted(text: str) -> bool:
@@ -55,6 +68,49 @@ def entry_is_referral_restricted(entry: Any) -> bool:
     return is_referral_restricted(str(entry.get("message_text") or ""))
 
 
+def referral_classification(value: Any) -> str:
+    """Classify referral scope without inferring per-account eligibility.
+
+    ``referral`` requires explicit publication/state evidence. A weaker referral
+    mention is kept as ``suspected_referral`` and must never be promoted to an
+    account-level ``referral_ineligible`` result.
+    """
+
+    if isinstance(value, dict):
+        if entry_is_referral_restricted(value):
+            return WHEEL_TYPE_REFERRAL
+        explicit = str(
+            value.get("wheel_type")
+            or value.get("referral_classification")
+            or ""
+        ).strip().casefold()
+        if explicit in WHEEL_TYPES:
+            return explicit
+        if value.get("referral_suspected") is True:
+            return WHEEL_TYPE_SUSPECTED_REFERRAL
+        text = str(value.get("message_text") or "")
+    else:
+        text = str(value or "")
+
+    if is_referral_restricted(text):
+        return WHEEL_TYPE_REFERRAL
+    normalized = " ".join(text.split())
+    if normalized and _REFERRAL_HINT_RE.search(normalized):
+        return WHEEL_TYPE_SUSPECTED_REFERRAL
+    return WHEEL_TYPE_NORMAL
+
+
+def referral_classification_evidence(value: Any) -> str:
+    classification = referral_classification(value)
+    if classification == WHEEL_TYPE_REFERRAL:
+        if isinstance(value, dict) and value.get("referral_restricted") is True:
+            return "explicit_persisted_referral_restriction"
+        return "explicit_publication_referral_restriction"
+    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
+        return "publication_referral_hint_without_explicit_restriction"
+    return ""
+
+
 def referral_restriction_notice(text: str, *, html_mode: bool = True) -> str:
     if not is_referral_restricted(text):
         return ""
@@ -63,6 +119,25 @@ def referral_restriction_notice(text: str, *, html_mode: bool = True) -> str:
         if html_mode
         else REFERRAL_RESTRICTED_NOTICE_TEXT
     )
+
+
+def referral_classification_notice(value: Any, *, html_mode: bool = True) -> str:
+    classification = referral_classification(value)
+    if classification == WHEEL_TYPE_REFERRAL:
+        return (
+            "🎯 <b>Реферальное колесо</b>\n"
+            "Доступность будет проверена отдельно для каждого аккаунта."
+            if html_mode
+            else "Реферальное колесо. Доступность проверяется отдельно для каждого аккаунта."
+        )
+    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
+        return (
+            "🟡 <b>Предположительно реферальное колесо</b>\n"
+            "Ограничение ещё не подтверждено BetBoom."
+            if html_mode
+            else "Предположительно реферальное колесо. Ограничение ещё не подтверждено BetBoom."
+        )
+    return ""
 
 
 def _clean_source(value: Any) -> str:
@@ -319,6 +394,12 @@ def self_test() -> None:
     assert "Колесо только для рефералов" in referral_restriction_notice(
         "Колесо для рефов"
     )
+    assert referral_classification("Колесо для рефов") == WHEEL_TYPE_REFERRAL
+    assert (
+        referral_classification("Реферальный розыгрыш BetBoom")
+        == WHEEL_TYPE_SUSPECTED_REFERRAL
+    )
+    assert referral_classification("Колесо для всех") == WHEEL_TYPE_NORMAL
 
     first = [
         {

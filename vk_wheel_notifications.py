@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 import vk_dynamic_subscribers
+import wheel_publications_v2
 
 VK_API_ENDPOINT = "https://api.vk.com/method/messages.send"
 VK_API_VERSION = os.getenv("VK_API_VERSION", "5.199").strip() or "5.199"
@@ -317,7 +318,9 @@ def install(monitor_module: Any, router_module: Any) -> None:
             else {}
         )
         referral_suppressed = (
-            telegram_payload.get("reason")
+            wheel_publications_v2.referral_classification(text)
+            != wheel_publications_v2.WHEEL_TYPE_NORMAL
+            or telegram_payload.get("reason")
             == "referral_wheel_notifications_disabled"
         )
         if not referral_suppressed:

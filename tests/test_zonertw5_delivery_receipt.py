@@ -91,22 +91,23 @@ def test_actual_or_already_completed_delivery_is_accepted(monkeypatch) -> None:
     )
 
 
-def test_referral_silence_remains_intentional(monkeypatch) -> None:
+def test_legacy_referral_suppression_is_rejected(monkeypatch) -> None:
     monkeypatch.setattr(notification_router, "load_config", lambda: (_config(), True))
-    guard._validate_wheel_delivery(
-        {
-            "ok": True,
-            "result": {
-                "sent": 0,
-                "suppressed": True,
-                "reason": "referral_wheel_notifications_disabled",
-                "kind": "wheels",
+    with pytest.raises(guard.WheelNotificationNotDelivered, match="sent=0"):
+        guard._validate_wheel_delivery(
+            {
+                "ok": True,
+                "result": {
+                    "sent": 0,
+                    "suppressed": True,
+                    "reason": "referral_wheel_notifications_disabled",
+                    "kind": "wheels",
+                },
             },
-        },
-        text=TEXT,
-        url=URL,
-        reply_markup=None,
-    )
+            text=TEXT,
+            url=URL,
+            reply_markup=None,
+        )
 
 
 class _Monitor:

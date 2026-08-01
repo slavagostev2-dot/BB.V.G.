@@ -6,6 +6,7 @@ ledger, transactional outboxes, account results and safe audit exports.
 
 from .event_store import (
     EventStore,
+    canonical_account_status,
     canonical_event_id,
     canonical_generation_id,
     canonical_start_at,
@@ -16,6 +17,7 @@ from .event_store import (
 
 __all__ = [
     "EventStore",
+    "canonical_account_status",
     "canonical_event_id",
     "canonical_generation_id",
     "canonical_start_at",

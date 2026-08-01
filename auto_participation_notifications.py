@@ -8,12 +8,15 @@ from typing import Any, Callable
 import auto_participation_owner_sync
 import personal_wheel_voting
 import wheel_publications_v2
+from bbvg.storage import canonical_account_status
 
 UTC = timezone.utc
 PRIMARY_ACCOUNT_KEY = "vyacheslav_primary"
 PRIMARY_ACCOUNT_LABEL = "Аккаунт 1"
 SECONDARY_ACCOUNT_KEY = "vyacheslav_secondary"
 SECONDARY_ACCOUNT_LABEL = "Аккаунт 2"
+XFLARXX_ACCOUNT_KEY = "xflarxx_primary"
+XFLARXX_ACCOUNT_LABEL = "xFLARXx"
 AUTO_NOTIFICATION_KEY = "auto_participation"
 AUTO_NOTIFICATION_LABEL = "🤖 Автоучастие"
 AUTO_NOTIFICATION_DESCRIPTION = "Один общий итог по аккаунтам владельца"
@@ -85,10 +88,12 @@ def _expected_accounts(state: dict[str, Any]) -> list[tuple[str, str, int]]:
         for raw_key, raw in registry.items():
             if not isinstance(raw, dict) or not bool(raw.get("enabled", True)):
                 continue
-            if str(raw.get("account_owner") or "") != OWNER_SCOPE:
-                continue
             key = str(raw.get("account_key") or raw_key).strip()
-            if not key:
+            if key not in {
+                PRIMARY_ACCOUNT_KEY,
+                SECONDARY_ACCOUNT_KEY,
+                XFLARXX_ACCOUNT_KEY,
+            }:
                 continue
             label = str(raw.get("account_label") or key).strip() or key
             try:
@@ -96,15 +101,25 @@ def _expected_accounts(state: dict[str, Any]) -> list[tuple[str, str, int]]:
             except (TypeError, ValueError):
                 order = 100
             rows.append((key, label, order))
-    if not rows:
-        rows = [
-            (PRIMARY_ACCOUNT_KEY, PRIMARY_ACCOUNT_LABEL, 10),
-            (SECONDARY_ACCOUNT_KEY, SECONDARY_ACCOUNT_LABEL, 20),
-        ]
+    configured = {key for key, _label, _order in rows}
+    for key, label, order in (
+        (PRIMARY_ACCOUNT_KEY, PRIMARY_ACCOUNT_LABEL, 10),
+        (SECONDARY_ACCOUNT_KEY, SECONDARY_ACCOUNT_LABEL, 20),
+        (XFLARXX_ACCOUNT_KEY, XFLARXX_ACCOUNT_LABEL, 30),
+    ):
+        if key not in configured:
+            rows.append((key, label, order))
     return sorted(rows, key=lambda row: (row[2], row[0]))
 
 
 def _account_order(record: dict[str, Any], account_key: str) -> int:
+    fixed = {
+        PRIMARY_ACCOUNT_KEY: 10,
+        SECONDARY_ACCOUNT_KEY: 20,
+        XFLARXX_ACCOUNT_KEY: 30,
+    }
+    if account_key in fixed:
+        return fixed[account_key]
     try:
         return int(record.get("account_order", 10 if account_key == PRIMARY_ACCOUNT_KEY else 20) or 100)
     except (TypeError, ValueError):
@@ -283,8 +298,6 @@ def _settled_event_groups(
     for token, accounts in observed_groups.items():
         if not expected_keys.issubset(accounts):
             continue
-        if not any(success for _raw, _record, success in accounts.values()):
-            continue
         item, _active_matches = _event_item(state, token, accounts)
         if (
             isinstance(item, dict)
@@ -302,9 +315,7 @@ def _notification_enabled(owner: dict[str, Any]) -> bool:
 
 
 def _should_send_notification(owner: dict[str, Any], item: dict[str, Any]) -> bool:
-    return _notification_enabled(owner) and not (
-        wheel_publications_v2.entry_is_referral_restricted(item)
-    )
+    return _notification_enabled(owner)
 
 
 def _should_send_event_result(
@@ -312,13 +323,9 @@ def _should_send_event_result(
     item: dict[str, Any],
     accounts: dict[str, tuple[str, dict[str, Any], bool]],
 ) -> bool:
-    """Keep referral discovery silent unless an owner account really joined."""
+    """Send one result whenever the recipient enabled auto-participation reports."""
 
-    if not _notification_enabled(owner):
-        return False
-    if not wheel_publications_v2.entry_is_referral_restricted(item):
-        return True
-    return any(success for _token, _record, success in accounts.values())
+    return _notification_enabled(owner)
 
 
 def _processed(record: Any, *, allow_referral_upgrade: bool = False) -> bool:
@@ -376,6 +383,26 @@ def _success_description(record: dict[str, Any]) -> str:
     return "участие подтверждено BetBoom"
 
 
+def _account_result_status(record: dict[str, Any], success: bool) -> str:
+    if success:
+        return "participated"
+    raw_status = str(
+        record.get("bot_failure_status") or record.get("status") or "unconfirmed"
+    )
+    confirmation = str(
+        record.get("confirmation")
+        or record.get("confirmation_method")
+        or ""
+    )
+    detail = str(
+        record.get("bot_failure_detail")
+        or record.get("error_text")
+        or record.get("detail")
+        or ""
+    )
+    return canonical_account_status(raw_status, confirmation, detail)
+
+
 def _result_message(
     key: str,
     item: dict[str, Any],
@@ -400,22 +427,33 @@ def _result_message(
             else account_key
         )
         escaped_label = html.escape(label or fallback)
-        if success:
+        result_status = _account_result_status(record, success)
+        if result_status == "participated":
             lines.append(
                 f"✅ {escaped_label} — {html.escape(_success_description(record))}"
             )
-        elif str(
-            record.get("bot_failure_status") or record.get("status") or ""
-        ).casefold() not in FAILURE_LABELS:
+        elif result_status == "referral_ineligible":
             lines.append(
-                f"⏳ {escaped_label} — участие пока не подтверждено"
+                f"⛔ {escaped_label} — недоступно: BetBoom подтвердил "
+                "реферальное ограничение"
+            )
+        elif result_status == "expired":
+            lines.append(f"⌛ {escaped_label} — подтверждено, что колесо завершено")
+        elif result_status == "technical_error":
+            lines.append(
+                f"🛠 {escaped_label} — техническая ошибка: "
+                f"{html.escape(_failure_reason(record))}; повторная проверка запланирована"
             )
         else:
             lines.append(
-                f"❌ {escaped_label} — {html.escape(_failure_reason(record))}"
+                f"⚠️ {escaped_label} — результат не подтверждён; "
+                "повторная проверка запланирована"
             )
-    if referral_restricted and any_success:
-        title = "🎡 <b>Реферальное колесо — участие доступно</b>"
+    wheel_type = wheel_publications_v2.referral_classification(item)
+    if wheel_type == wheel_publications_v2.WHEEL_TYPE_REFERRAL:
+        title = "🎡 <b>Реферальное колесо</b>"
+    elif wheel_type == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL:
+        title = "🎡 <b>Предположительно реферальное колесо</b>"
     else:
         title = (
             "✅ <b>Участие принято</b>"
@@ -480,7 +518,7 @@ def sync_once(panel: Any) -> dict[str, int]:
         all_success = all(value[2] for value in accounts.values())
         any_success = any(value[2] for value in accounts.values())
         referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
-        allow_referral_upgrade = referral_restricted and any_success
+        allow_referral_upgrade = referral_restricted
         if not _should_finalize(
             success_records.get(event_key),
             failure_records.get(event_key),
@@ -494,7 +532,8 @@ def sync_once(panel: Any) -> dict[str, int]:
         now_text = datetime.now(UTC).isoformat()
         account_payload = {
             account_key: {
-                "status": str(record.get("status") or ""),
+                "status": _account_result_status(record, success),
+                "raw_status": str(record.get("status") or ""),
                 "success": bool(success),
                 "label": _account_identity(record)[1],
             }
@@ -525,13 +564,13 @@ def sync_once(panel: Any) -> dict[str, int]:
                 "notified_at": now_text if should_send else "",
                 "notification_sent": should_send,
                 "notification_policy": (
-                    "referral_participation_sent"
+                    "referral_result_sent"
                     if should_send and referral_restricted
                     else "sent"
                     if should_send
                     else "disabled"
                     if not notifications_enabled
-                    else "referral_suppressed"
+                    else "not_sent"
                 ),
                 "referral_restricted": referral_restricted,
                 "accounts": account_payload,
@@ -727,6 +766,14 @@ def self_test() -> None:
                 "status": "participated",
                 "bot_success_pending_at": "2026-07-22T12:01:10+00:00",
             },
+            base + "#account:xflarxx_primary": {
+                "wheel_key": "wheel",
+                "event_token": base,
+                "account_key": XFLARXX_ACCOUNT_KEY,
+                "account_label": XFLARXX_ACCOUNT_LABEL,
+                "status": "participated",
+                "bot_success_pending_at": "2026-07-22T12:01:20+00:00",
+            },
         }
     }
     groups = _settled_event_groups(
@@ -739,6 +786,7 @@ def self_test() -> None:
     assert text.count("Участие принято") == 1
     assert "✅ Аккаунт 1 — участие подтверждено BetBoom" in text
     assert "✅ Аккаунт 2 — участие подтверждено BetBoom" in text
+    assert "✅ xFLARXx — участие подтверждено BetBoom" in text
     state["auto_participation_events"][
         base + "#account:xflarxx_primary"
     ] = {
@@ -755,7 +803,7 @@ def self_test() -> None:
     )
     assert isolated_groups[base][PRIMARY_ACCOUNT_KEY][0] == base
     assert isolated_groups[base][PRIMARY_ACCOUNT_KEY][2] is True
-    assert "xflarxx_primary" not in isolated_groups[base]
+    assert isolated_groups[base][XFLARXX_ACCOUNT_KEY][2] is False
     assert _should_finalize(
         {},
         {"notified_at": "2026-07-22T12:02:00+00:00"},
@@ -785,7 +833,7 @@ def self_test() -> None:
     text, _markup = _result_message(
         "wheel", {"identifier": "wheel"}, groups[base]
     )
-    assert "❌ Аккаунт 2" in text
+    assert "⚠️ Аккаунт 2" in text
     assert "✅ Аккаунт 1" in text
     assert not _notification_enabled(
         {"notification_preferences": {AUTO_NOTIFICATION_KEY: False}}
@@ -794,7 +842,7 @@ def self_test() -> None:
         {"notification_preferences": {}},
         {"identifier": "ordinary"},
     )
-    assert not _should_send_notification(
+    assert _should_send_notification(
         {"notification_preferences": {}},
         {"message_text": "Колесо для рефов"},
     )
@@ -803,7 +851,7 @@ def self_test() -> None:
         {"message_text": "Колесо для рефов"},
         groups[base],
     )
-    assert not _should_send_event_result(
+    assert _should_send_event_result(
         {"notification_preferences": {}},
         {"message_text": "Колесо для рефов"},
         {
@@ -876,6 +924,15 @@ def self_test() -> None:
                 "attempted_at": "2026-07-25T09:05:50+00:00",
                 "bot_success_pending_at": "2026-07-25T09:05:50+00:00",
             },
+            "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00#account:xflarxx_primary": {
+                "wheel_key": "zonertg16",
+                "account_key": XFLARXX_ACCOUNT_KEY,
+                "account_label": XFLARXX_ACCOUNT_LABEL,
+                "event_token": "zonertg16#action:701:2026-07-25T08:36:46.419000+00:00",
+                "status": "participated",
+                "attempted_at": "2026-07-25T09:05:55+00:00",
+                "bot_success_pending_at": "2026-07-25T09:05:55+00:00",
+            },
         },
     }
     grouped = _settled_event_groups(
@@ -889,6 +946,7 @@ def self_test() -> None:
     event = grouped[event_id]
     assert event[PRIMARY_ACCOUNT_KEY][2] is True
     assert event[SECONDARY_ACCOUNT_KEY][2] is True
+    assert event[XFLARXX_ACCOUNT_KEY][2] is True
     text, _markup = _result_message("zonertg16", {"identifier": "zonertg16"}, event)
     assert "Аккаунт 1 — участие подтверждено BetBoom" in text
     assert "Аккаунт 2 — участие подтверждено изменением страницы BetBoom" in text

@@ -13,6 +13,7 @@ import betboom_account_participation as account_base
 import monitor
 import personal_wheel_voting
 import wheel_publications_v2
+from bbvg.storage import canonical_account_status
 
 UTC = timezone.utc
 ACCOUNT_KEY = "xflarxx_primary"
@@ -196,9 +197,7 @@ def _notification_enabled(user: dict[str, Any]) -> bool:
 
 
 def _should_send_notification(user: dict[str, Any], item: dict[str, Any]) -> bool:
-    return _notification_enabled(user) and not (
-        wheel_publications_v2.entry_is_referral_restricted(item)
-    )
+    return _notification_enabled(user)
 
 
 def _failure_reason(record: dict[str, Any]) -> str:
@@ -228,18 +227,38 @@ def _message(
 ) -> tuple[str, dict[str, Any]]:
     identifier = html.escape(str(item.get("identifier") or key))
     label = html.escape(str(record.get("account_label") or DEFAULT_ACCOUNT_LABEL))
-    if success:
+    result_status = canonical_account_status(
+        record.get("bot_failure_status") or record.get("status"),
+        record.get("confirmation") or record.get("confirmation_method"),
+        record.get("bot_failure_detail") or record.get("detail"),
+    )
+    if success or result_status == "participated":
         text = (
             "✅ <b>Участие принято</b>\n\n"
             f"Колесо: <code>{identifier}</code>\n"
             f"Аккаунт: <b>{label}</b>"
         )
-    else:
+    elif result_status == "referral_ineligible":
         text = (
-            "⚠️ <b>Участие не принято</b>\n\n"
+            "⛔ <b>Реферальное ограничение подтверждено</b>\n\n"
             f"Колесо: <code>{identifier}</code>\n"
             f"Аккаунт: <b>{label}</b>\n"
-            f"Причина: {html.escape(_failure_reason(record))}"
+            "BetBoom явно подтвердил недоступность по реферальному условию."
+        )
+    elif result_status == "technical_error":
+        text = (
+            "🛠 <b>Техническая ошибка автоучастия</b>\n\n"
+            f"Колесо: <code>{identifier}</code>\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            f"Причина: {html.escape(_failure_reason(record))}\n"
+            "Повторная проверка запланирована."
+        )
+    else:
+        text = (
+            "⚠️ <b>Результат участия не подтверждён</b>\n\n"
+            f"Колесо: <code>{identifier}</code>\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            "Повторная проверка запланирована."
         )
     return (
         text,
@@ -331,7 +350,7 @@ def sync_account_events(panel: Any) -> dict[str, int]:
                         if should_send
                         else "disabled"
                         if not notifications_enabled
-                        else "referral_suppressed"
+                        else "not_sent"
                     ),
                     "referral_restricted": referral_restricted,
                     "original_button_updated": original_button_updated,
@@ -406,7 +425,7 @@ def self_test() -> None:
     assert not _notification_enabled(
         {"notification_preferences": {"auto_participation": False}}
     )
-    assert not _should_send_notification(
+    assert _should_send_notification(
         {"notification_preferences": {}},
         {"message_text": "Колесо только для рефералов"},
     )
