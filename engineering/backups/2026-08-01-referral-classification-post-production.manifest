@@ -1,0 +1,75 @@
+{
+  "schema": "bbvg-change-backup-manifest-v1",
+  "backup_id": "2026-08-01-referral-classification-post-production",
+  "created_at": "2026-08-01T04:21:52Z",
+  "reason": "Final checkpoint after marker release and live production acceptance.",
+  "change_set": "p0-referral-account-aware-notifications",
+  "repository": "slavagostev2-dot/BB.V.G.",
+  "main_sha": "ea83c8c175bcfe0607776db514c4788fb5d80153",
+  "main_tree": "0cfed5680842ec1be2d3cc13f7fdb321ee5d33b7",
+  "production_sha": "1a762d500976e1c9c04d5454f577c94dcea22a47",
+  "production_tree": "58901c3f2517815e507adb9760e07ae7d260542f",
+  "release_marker": "1a762d500976e1c9c04d5454f577c94dcea22a47",
+  "refs": {
+    "main": "safety/backup-2026-08-01-referral-classification-post-production-main@ea83c8c175bcfe0607776db514c4788fb5d80153",
+    "code": "safety/backup-2026-08-01-referral-classification-post-production-code@1a762d500976e1c9c04d5454f577c94dcea22a47",
+    "runtime_state": "safety/backup-2026-08-01-referral-classification-post-production-state@30c5616f8fd1426ec09f77d0d55937e4808b3cd6",
+    "runtime_status": "safety/backup-2026-08-01-referral-classification-post-production-status@fcf2f5704ac4e2b32f889a0c2e9e89f6b6f73680",
+    "runtime_ledger": "safety/backup-2026-08-01-referral-classification-post-production-ledger@cc23d0688b910e961941a3076762211bf68bf28a"
+  },
+  "saved_state": [
+    "Exact production code and released main marker.",
+    "Encrypted protected-state envelope without decrypted or personal fields in metadata.",
+    "Runtime state, notification delivery ledger, claims, incident and recovery exports.",
+    "Live Monitor and Control Center status exports.",
+    "Ledger with 57 event JSON files, including kekw2 generation 1393d78ddd6274d3103d."
+  ],
+  "tree_listing_sha256": {
+    "main": "9b3d44ea697565b640a6a88b3a9a88d119cad734854f61fdbd10c1589dbd09b4",
+    "code": "1840af6033845412c60264ee54b074f18e3276679da61feea3062c9eae41719c",
+    "runtime_state": "5c968e0f188c54eb253882e66c3bbc3be9ab52799f8660818f92f6e7c5022e44",
+    "runtime_status": "45cdf53ddc8810a60409a007b03b224df62efd94fa7eec65e37505907323bb64",
+    "runtime_ledger": "b4ca4803184a30e9274a171252a9afe0632dfbe2746ec78e5e281a7ea2baf9d0"
+  },
+  "critical_file_sha256": {
+    "main:control_center_release.txt": "77996b85788d5a61fb9efb8f8a2e1a680edbe3a5c84724896aea574c77e75ec6",
+    "code:bot_private_state.enc.json": "a219557d501d4a927e1eb135da1fa6e483116773532fa582ab5c98da5fcc0b14",
+    "runtime_state:state.json": "98508d5454b52f489414275c2b5e14927749c4a334d5028d6b643a74b9c748c1",
+    "runtime_state:notification_delivery_state.json": "a36035f3121629678fdeb6484661dfc08dab4adac20396be00653260e8ed12b8",
+    "runtime_state:admin_action_queue.json": "862ddc00907c809d7b7f6da01c5b149672654ba363e3695b8e2f3f5c423f1b06",
+    "runtime_state:incident_state.json": "212a903fd5e1b1f907e26d3f90292759885d6942ff0ca22e6f8cd843fa007048",
+    "runtime_state:system_check_state.json": "a7e367ebc6544f668ab4b03ebfdb3d9bffbb9c2baaaae9291213c5d53e892e6c",
+    "runtime_status:admin_panel_status.json": "c99363676d7c26ecb18577e8a881473f86df0524241c3053d59b313fc0254486",
+    "runtime_status:monitor_status.json": "9cd213316ab164108ea38f978b9612785220f87af47cf6a99021a96df2c358b4",
+    "runtime_status:deployment_manifest.json": "8b0b320768eec8017d394e8faf9bf1e98d3fb202724e91eda60172e0abc74d6d",
+    "runtime_ledger:kekw2": "2e419ca448df07c7c8b83629373342c7458d6a655bfc1963d2beb6eeaa943832"
+  },
+  "production_acceptance": {
+    "control_center": "running; exact SHA; heartbeat 2026-08-01T04:20:01.463222+00:00; run 30683541156; single_getUpdates_owner; previous job cancelled",
+    "monitor": "running; exact SHA; heartbeat 2026-08-01T04:17:07.297378+00:00; run 30683588700; 169/169; zero source errors; exit code 0",
+    "notification_delivery": "76 entries; 38 messages; zero claims",
+    "handoff_delta": "attempts 8->8; dispatch 99->99; messages 38->38; claims 0->0",
+    "ledger": "57 event files retained",
+    "real_referral_event_after_release": "not_observed_during_acceptance_window",
+    "direct_telegram_endpoint_consumer_count": "not_queried; one active GitHub Control Center job and single_getUpdates_owner contract observed"
+  },
+  "restore": {
+    "instructions": [
+      "Fetch the five exact safety refs and verify commit IDs, tree-listing SHA-256 values and critical checksums.",
+      "Restore each scope to an isolated directory; validate JSON and compile the production code.",
+      "Run account/referral/reconciliation/delivery tests.",
+      "For code rollback, restore the marker to 084227e96762c752ac71036f79f57e7181be9724 without rolling runtime data backward.",
+      "After rollback verify deployed SHA, marker, both heartbeats, one Control Center job, notification claims, recovery and ledger."
+    ],
+    "isolated_smoke_checked_at": "2026-08-01T04:21:52Z",
+    "isolated_smoke_result": "passed; five archives, marker, JSON, compilation and 59 restored-tree tests",
+    "full_protected_state_restore": "not_run_without_production_key"
+  },
+  "known_unresolved": [
+    "No real new referral wheel occurred during the acceptance window, so live BetBoom referral responses were not reclassified in production.",
+    "Recovery and incident-state timestamps remain stale and require a separate recovery change set.",
+    "Repeated stale-backlog operational commits continue and require the separate P1 churn change set."
+  ],
+  "rollback_role": "Final accepted production checkpoint; pre-marker baseline remains the immediate code rollback source.",
+  "retention_note": "Commit IDs are content-addressed; safety refs preserve older backup refs and avoid destructive backup/* rotation."
+}
