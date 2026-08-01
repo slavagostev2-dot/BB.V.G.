@@ -24,7 +24,7 @@
 **Недеструктивные точки до изменения:**
 `safety/backup-2026-08-01-referral-classification-baseline` и отдельный набор
 `safety/backup-2026-08-01-referral-classification-pre-format-*`; manifests —
-`engineering/backups/2026-08-01-referral-classification-*.json`.
+`engineering/backups/2026-08-01-referral-classification-*.manifest`.
 
 # 2026-07-31 — смена Control Center не загружает полную runtime-историю
 
