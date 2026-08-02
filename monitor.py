@@ -938,6 +938,30 @@ def remember_active_wheel(
         else None
     ) or current
     entry = dict(previous) if isinstance(previous, dict) else {}
+    same_generation = True
+    if isinstance(previous, dict):
+        previous_action = previous.get("action_id")
+        if action_id is not None and previous_action is not None:
+            try:
+                same_generation = int(previous_action) == int(action_id)
+            except (TypeError, ValueError):
+                same_generation = str(previous_action) == str(action_id)
+        previous_start = parse_datetime(previous.get("server_start_at"))
+        if (
+            same_generation
+            and server_start_at is not None
+            and previous_start is not None
+            and previous_start != server_start_at.astimezone(UTC)
+        ):
+            same_generation = False
+    if not same_generation:
+        for field in (
+            "referral_restricted",
+            "referral_suspected",
+            "wheel_type",
+            "referral_classification_evidence",
+        ):
+            entry.pop(field, None)
     entry.update(
         {
             "identifier": wheel_identifier(link),
@@ -956,15 +980,16 @@ def remember_active_wheel(
             "expires_at": participation_expiry(deadline, current=current).isoformat(),
             "button_token": button_context_token(message, link),
             "referral_restricted": (
-                bool(entry.get("referral_restricted"))
+                (same_generation and bool(entry.get("referral_restricted")))
                 or wheel_publications_v2.is_referral_restricted(message.text)
             ),
             "participating": is_participating(state, key),
         }
     )
-    entry["wheel_type"] = wheel_publications_v2.referral_classification(entry)
-    entry["referral_classification_evidence"] = (
-        wheel_publications_v2.referral_classification_evidence(entry)
+    wheel_publications_v2.apply_referral_context(
+        state,
+        entry,
+        observed_at=current,
     )
     if deadline:
         entry["deadline"] = deadline.isoformat()
@@ -1060,6 +1085,9 @@ def active_wheels_text(state: dict) -> str:
         referral = (
             "\n   ⚠️ колесо только для рефералов"
             if wheel_publications_v2.entry_is_referral_restricted(entry)
+            else "\n   🟡 предположительно реферальное колесо"
+            if wheel_publications_v2.referral_classification(entry)
+            == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
             else ""
         )
         lines.append(
@@ -1883,8 +1911,7 @@ def notify_new_link(
         if verification_status == WHEEL_VERIFICATION_FAILED
         else ""
     )
-    referral_notice = wheel_publications_v2.referral_classification_notice(message.text)
-    referral_line = f"{referral_notice}\n" if referral_notice else ""
+    referral_value: Any = message.text
 
     # The event and its dispatch outbox must exist before the external Telegram
     # delivery. A notification checkpoint advances main, so persisting afterwards
@@ -1903,7 +1930,16 @@ def notify_new_link(
             verification_status=verification_status,
             server_start_at=server_start_at,
         )
+        referral_value = state.get("active_wheels", {}).get(
+            wheel_key(link),
+            message.text,
+        )
         dispatch_notified_wheel_event(state, link)
+
+    referral_notice = wheel_publications_v2.referral_classification_notice(
+        referral_value
+    )
+    referral_line = f"{referral_notice}\n" if referral_notice else ""
 
     response = send_message(
         "🎡 <b>Новое колесо BetBoom</b>\n\n"
@@ -1958,8 +1994,7 @@ def notify_activation(
         if verification_status == WHEEL_VERIFICATION_FAILED
         else ""
     )
-    referral_notice = wheel_publications_v2.referral_classification_notice(message.text)
-    referral_line = f"{referral_notice}\n" if referral_notice else ""
+    referral_value: Any = message.text
 
     if state is not None:
         remember_active_wheel(
@@ -1975,7 +2010,16 @@ def notify_activation(
             verification_status=verification_status,
             server_start_at=server_start_at,
         )
+        referral_value = state.get("active_wheels", {}).get(
+            wheel_key(link),
+            message.text,
+        )
         dispatch_notified_wheel_event(state, link)
+
+    referral_notice = wheel_publications_v2.referral_classification_notice(
+        referral_value
+    )
+    referral_line = f"{referral_notice}\n" if referral_notice else ""
 
     response = send_message(
         "✅ <b>Колесо BetBoom стало активно</b>\n\n"
