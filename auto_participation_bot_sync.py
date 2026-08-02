@@ -315,6 +315,9 @@ def _event_context(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any
         "available_at",
         "generation_id",
         "event_id",
+        "wheel_type",
+        "referral_suspected",
+        "referral_classification_evidence",
     )
     context = {
         field: copy.deepcopy(source[field])
@@ -326,6 +329,7 @@ def _event_context(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any
     context["referral_restricted"] = (
         wheel_publications_v2.entry_is_referral_restricted(source)
     )
+    context["wheel_type"] = wheel_publications_v2.referral_classification(source)
     return context
 
 

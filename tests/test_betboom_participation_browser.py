@@ -63,6 +63,15 @@ def test_success_requires_self_contained_visible_confirmation() -> None:
         _success(_Page(["Если вы участвуете, дождитесь окончания таймера"]))
         is False
     )
+    assert _success(
+        _Page(
+            [
+                "ПОДГОН ОТ DEKO\n"
+                "Отлично! Теперь ты участвуешь в розыгрыше. "
+                "Скоро узнаешь результат."
+            ]
+        )
+    ) is True
 
 
 def test_success_confirmation_phrases_are_exact() -> None:

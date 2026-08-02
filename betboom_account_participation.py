@@ -13,6 +13,7 @@ import betboom_auto_participation as primary_auto
 import betboom_participation_browser
 import monitor
 import personal_wheel_voting
+import wheel_publications_v2
 
 
 UTC = timezone.utc
@@ -222,6 +223,12 @@ def run_second_account(
 
         attempted += 1
         result = _participate_with_storage(url, session)
+        wheel_publications_v2.apply_referral_context(
+            state,
+            item,
+            observed_at=current,
+            browser_detail=result.detail,
+        )
         record: dict[str, Any] = {
             "wheel_key": key,
             "event_token": _base_event_token(item, key),

@@ -291,6 +291,13 @@ def _restore_runtime_state(
             entry.setdefault("lifecycle_state", "active")
             continue
 
+        wheel_publications_v2.apply_referral_context(
+            state,
+            entry,
+            observed_at=scanned_at,
+            browser_detail=attempt.get("detail"),
+        )
+
         token = _event_token(item)
         if not bool(attempt.get("success")):
             if confirmed_before:
