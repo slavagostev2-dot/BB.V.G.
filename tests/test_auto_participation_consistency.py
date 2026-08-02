@@ -345,6 +345,165 @@ def test_suspected_referral_and_technical_error_stay_cautious() -> None:
     assert "реферальное колесо" not in ordinary_text.casefold()
 
 
+def test_identifier_history_makes_later_generation_suspected_referral() -> None:
+    state = {
+        "auto_participation_events": {
+            "evt:old": {
+                "wheel_key": "kekw2",
+                "status": "unconfirmed",
+                "event_context": {
+                    "wheel_key": "kekw2",
+                    "identifier": "kekw2",
+                    "message_date": "2026-07-30T12:45:41+00:00",
+                    "message_text": "Колесико для рефов",
+                    "referral_restricted": True,
+                },
+            }
+        }
+    }
+    current = {
+        "wheel_key": "kekw2",
+        "identifier": "kekw2",
+        "message_text": "ВСЕ В КОЛЕСО",
+    }
+
+    classification = wheel_publications_v2.apply_referral_context(
+        state,
+        current,
+        observed_at=datetime(2026, 8, 2, 7, 0, tzinfo=UTC),
+    )
+
+    assert classification == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
+    assert current["referral_suspected"] is True
+    assert current.get("referral_restricted") is not True
+    assert current["referral_classification_evidence"] == (
+        "identifier_history_explicit_referral"
+    )
+    assert state["referral_identifier_history"]["kekw2"]["classification"] == (
+        wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
+    )
+
+
+def test_explicit_page_banner_is_referral_but_failure_is_not_eligibility_proof() -> None:
+    state: dict = {}
+    current = {
+        "wheel_key": "banner-wheel",
+        "identifier": "banner-wheel",
+        "message_text": "Колесо для всех",
+    }
+    detail = (
+        "page_referral_hint=referral;page_explicit_referral_restriction; "
+        "кнопка участия не найдена"
+    )
+
+    classification = wheel_publications_v2.apply_referral_context(
+        state,
+        current,
+        browser_detail=detail,
+    )
+
+    assert classification == wheel_publications_v2.WHEEL_TYPE_REFERRAL
+    assert current["referral_restricted"] is True
+    assert "referral_ineligible" not in current
+
+
+def test_new_action_does_not_inherit_exact_referral_flag_from_old_generation(
+    monkeypatch,
+) -> None:
+    now = datetime(2026, 8, 2, 7, 0, tzinfo=UTC)
+    monkeypatch.setattr(monitor, "now_utc", lambda: now)
+    state = {
+        "active_wheels": {
+            "kekw2": {
+                "wheel_key": "kekw2",
+                "identifier": "kekw2",
+                "action_id": 1124,
+                "server_start_at": "2026-07-30T14:53:33.479000+00:00",
+                "message_text": "Колесико для рефов",
+                "referral_restricted": True,
+                "wheel_type": "referral",
+            }
+        },
+        "participating_wheels": {},
+    }
+    message = monitor.Message(
+        source="burdakekw",
+        message_id=5542,
+        date=now,
+        text="ВСЕ В КОЛЕСО",
+        message_url="https://telegram.me/burdakekw/5542",
+    )
+
+    monitor.remember_active_wheel(
+        state,
+        message,
+        "https://betboom.ru/freestream/kekw2",
+        now,
+        "active",
+        "api",
+        action_id=1156,
+        server_start_at=datetime(2026, 8, 1, 11, 19, 30, 763000, tzinfo=UTC),
+    )
+
+    current = state["active_wheels"]["kekw2"]
+    assert current["wheel_type"] == "suspected_referral"
+    assert current["referral_restricted"] is False
+    assert current["referral_suspected"] is True
+
+
+def test_initial_notification_uses_identifier_history_indicator(monkeypatch) -> None:
+    now = datetime(2026, 8, 2, 7, 0, tzinfo=UTC)
+    monkeypatch.setattr(monitor, "now_utc", lambda: now)
+    delivered: list[str] = []
+    monkeypatch.setattr(
+        monitor,
+        "send_message",
+        lambda text, **_kwargs: delivered.append(text) or {"ok": True},
+    )
+    monkeypatch.setattr(
+        monitor,
+        "dispatch_notified_wheel_event",
+        lambda _state, _link: True,
+    )
+    state = {
+        "active_wheels": {},
+        "button_contexts": {},
+        "participating_wheels": {},
+        "auto_participation_events": {
+            "evt:old": {
+                "wheel_key": "kekw2",
+                "event_context": {
+                    "wheel_key": "kekw2",
+                    "identifier": "kekw2",
+                    "message_text": "Колесико для рефов",
+                    "referral_restricted": True,
+                },
+            }
+        },
+    }
+    message = monitor.Message(
+        source="burdakekw",
+        message_id=5542,
+        date=now,
+        text="ВСЕ В КОЛЕСО",
+        message_url="https://telegram.me/burdakekw/5542",
+    )
+
+    monitor.notify_new_link(
+        message,
+        "https://betboom.ru/freestream/kekw2",
+        now,
+        "api",
+        [],
+        state,
+        action_id=1156,
+        server_start_at=datetime(2026, 8, 1, 11, 19, 30, 763000, tzinfo=UTC),
+    )
+
+    assert len(delivered) == 1
+    assert "Предположительно реферальное колесо" in delivered[0]
+
+
 def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:
     calls: list[str] = []
     monkeypatch.setattr(monitor, "send_message", lambda *args, **kwargs: calls.append("send") or {"ok": True})
