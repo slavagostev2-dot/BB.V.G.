@@ -15,6 +15,13 @@ WHEEL_TYPES = {
     WHEEL_TYPE_REFERRAL,
     WHEEL_TYPE_SUSPECTED_REFERRAL,
 }
+REFERRAL_IDENTIFIER_HISTORY_KEY = "referral_identifier_history"
+REFERRAL_IDENTIFIER_HISTORY_LIMIT = 500
+PAGE_REFERRAL_HINT_RE = re.compile(
+    r"(?:^|[;\s])page_referral_hint="
+    r"(?P<classification>referral|suspected_referral)(?:;|$)",
+    re.IGNORECASE,
+)
 
 REFERRAL_RESTRICTED_NOTICE_TEXT = (
     "Колесо только для рефералов. Для участия аккаунт должен быть зарегистрирован "
@@ -26,6 +33,7 @@ REFERRAL_RESTRICTED_NOTICE_HTML = (
     "или промокоду автора."
 )
 REFERRAL_RESTRICTED_SHORT_HTML = "⚠️ <b>Колесо только для рефералов</b>"
+SUSPECTED_REFERRAL_SHORT_HTML = "🟡 <b>Предположительно реферальное колесо</b>"
 _REFERRAL_RESTRICTION_PATTERNS = (
     re.compile(r"\bтолько\s+(?:для\s+)?реф(?:ерал\w*|ов)\b", re.IGNORECASE),
     re.compile(r"\b(?:для|моим?|нашим?)\s+реферал\w*\b", re.IGNORECASE),
@@ -107,8 +115,201 @@ def referral_classification_evidence(value: Any) -> str:
             return "explicit_persisted_referral_restriction"
         return "explicit_publication_referral_restriction"
     if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
+        if isinstance(value, dict):
+            explicit = str(value.get("referral_classification_evidence") or "").strip()
+            if explicit:
+                return explicit
         return "publication_referral_hint_without_explicit_restriction"
     return ""
+
+
+def page_referral_hint(text: str) -> str:
+    """Return a privacy-safe machine hint for referral evidence on BetBoom."""
+
+    classification = referral_classification(str(text or ""))
+    if classification == WHEEL_TYPE_REFERRAL:
+        return "page_referral_hint=referral;page_explicit_referral_restriction"
+    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
+        return "page_referral_hint=suspected_referral;page_referral_banner_hint"
+    return ""
+
+
+def page_referral_classification_from_detail(detail: Any) -> str:
+    match = PAGE_REFERRAL_HINT_RE.search(str(detail or ""))
+    if not match:
+        return WHEEL_TYPE_NORMAL
+    value = str(match.group("classification") or "").casefold()
+    return value if value in WHEEL_TYPES else WHEEL_TYPE_NORMAL
+
+
+def _entry_identifier(entry: Any, fallback: Any = "") -> str:
+    if not isinstance(entry, dict):
+        return str(fallback or "").strip().casefold()
+    return str(
+        entry.get("wheel_key") or entry.get("identifier") or fallback or ""
+    ).strip().casefold()
+
+
+def _history_signal_from_state(
+    state: dict[str, Any],
+    identifier: str,
+) -> tuple[str, str, str]:
+    """Find prior referral evidence for one identifier without using failures."""
+
+    history = state.get(REFERRAL_IDENTIFIER_HISTORY_KEY)
+    stored = history.get(identifier) if isinstance(history, dict) else None
+    if isinstance(stored, dict):
+        classification = str(stored.get("classification") or "").casefold()
+        if classification in {
+            WHEEL_TYPE_REFERRAL,
+            WHEEL_TYPE_SUSPECTED_REFERRAL,
+        }:
+            return (
+                classification,
+                str(stored.get("evidence") or "identifier_history"),
+                str(stored.get("last_seen_at") or ""),
+            )
+
+    candidates: list[dict[str, Any]] = []
+    for collection_name in (
+        "active_wheels",
+        "recently_completed_wheels",
+        "inactive_wheels",
+    ):
+        collection = state.get(collection_name)
+        if not isinstance(collection, dict):
+            continue
+        for raw_key, raw in collection.items():
+            if isinstance(raw, dict) and _entry_identifier(raw, raw_key) == identifier:
+                candidates.append(raw)
+
+    events = state.get("auto_participation_events")
+    if isinstance(events, dict):
+        for raw in events.values():
+            if not isinstance(raw, dict):
+                continue
+            context = raw.get("event_context")
+            if isinstance(context, dict) and _entry_identifier(context) == identifier:
+                candidates.append(context)
+
+    suspected: tuple[str, str, str] | None = None
+    for candidate in candidates:
+        classification = referral_classification(candidate)
+        observed_at = str(
+            candidate.get("message_date")
+            or candidate.get("server_start_at")
+            or candidate.get("last_checked_at")
+            or ""
+        )
+        if classification == WHEEL_TYPE_REFERRAL:
+            return (
+                classification,
+                "identifier_history_explicit_referral",
+                observed_at,
+            )
+        if classification == WHEEL_TYPE_SUSPECTED_REFERRAL and suspected is None:
+            suspected = (
+                classification,
+                "identifier_history_suspected_referral",
+                observed_at,
+            )
+    return suspected or (WHEEL_TYPE_NORMAL, "", "")
+
+
+def _prune_identifier_history(state: dict[str, Any]) -> None:
+    history = state.get(REFERRAL_IDENTIFIER_HISTORY_KEY)
+    if not isinstance(history, dict) or len(history) <= REFERRAL_IDENTIFIER_HISTORY_LIMIT:
+        return
+    ordered = sorted(
+        history,
+        key=lambda key: str(
+            history.get(key, {}).get("last_seen_at")
+            if isinstance(history.get(key), dict)
+            else ""
+        ),
+        reverse=True,
+    )
+    for key in ordered[REFERRAL_IDENTIFIER_HISTORY_LIMIT:]:
+        history.pop(key, None)
+
+
+def apply_referral_context(
+    state: dict[str, Any],
+    entry: dict[str, Any],
+    *,
+    observed_at: Any = None,
+    browser_detail: Any = "",
+) -> str:
+    """Classify current evidence and cautiously remember identifier history."""
+
+    identifier = _entry_identifier(entry)
+    direct = referral_classification(entry)
+    page = page_referral_classification_from_detail(browser_detail)
+    history_classification, history_evidence, history_seen_at = (
+        _history_signal_from_state(state, identifier)
+        if identifier
+        else (WHEEL_TYPE_NORMAL, "", "")
+    )
+
+    if direct == WHEEL_TYPE_REFERRAL:
+        classification = WHEEL_TYPE_REFERRAL
+        evidence = referral_classification_evidence(entry)
+    elif page == WHEEL_TYPE_REFERRAL:
+        classification = WHEEL_TYPE_REFERRAL
+        evidence = "explicit_betboom_page_referral_restriction"
+        entry["referral_restricted"] = True
+    elif direct == WHEEL_TYPE_SUSPECTED_REFERRAL:
+        classification = WHEEL_TYPE_SUSPECTED_REFERRAL
+        evidence = referral_classification_evidence(entry)
+    elif page == WHEEL_TYPE_SUSPECTED_REFERRAL:
+        classification = WHEEL_TYPE_SUSPECTED_REFERRAL
+        evidence = "betboom_page_referral_banner_hint"
+    elif history_classification in {
+        WHEEL_TYPE_REFERRAL,
+        WHEEL_TYPE_SUSPECTED_REFERRAL,
+    }:
+        classification = WHEEL_TYPE_SUSPECTED_REFERRAL
+        evidence = history_evidence or "identifier_history"
+    else:
+        classification = WHEEL_TYPE_NORMAL
+        evidence = ""
+
+    entry["wheel_type"] = classification
+    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
+        entry["referral_suspected"] = True
+    else:
+        entry.pop("referral_suspected", None)
+    if evidence:
+        entry["referral_classification_evidence"] = evidence
+    else:
+        entry.pop("referral_classification_evidence", None)
+
+    if identifier and classification in {
+        WHEEL_TYPE_REFERRAL,
+        WHEEL_TYPE_SUSPECTED_REFERRAL,
+    }:
+        history = state.setdefault(REFERRAL_IDENTIFIER_HISTORY_KEY, {})
+        previous = history.get(identifier)
+        record = dict(previous) if isinstance(previous, dict) else {}
+        previous_classification = str(record.get("classification") or "")
+        stored_classification = (
+            WHEEL_TYPE_REFERRAL
+            if WHEEL_TYPE_REFERRAL in {previous_classification, classification}
+            else WHEEL_TYPE_SUSPECTED_REFERRAL
+        )
+        when = str(observed_at or history_seen_at or datetime.now(UTC).isoformat())
+        record.update(
+            {
+                "identifier": identifier,
+                "classification": stored_classification,
+                "evidence": evidence,
+                "last_seen_at": when,
+            }
+        )
+        record.setdefault("first_seen_at", when)
+        history[identifier] = record
+        _prune_identifier_history(state)
+    return classification
 
 
 def referral_restriction_notice(text: str, *, html_mode: bool = True) -> str:
