@@ -21,6 +21,8 @@ WHEEL_URL_RE = re.compile(
     r"(?:https?://)?(?:www\.)?betboom\.ru/freestream/([A-Za-z0-9._~-]+)",
     re.IGNORECASE,
 )
+_EVENT_ID_RE = re.compile(r"^(?:evt|pending):[0-9a-f]{20}$")
+_EVENT_ID_MARKUP_KEY = "_bbvg_event_id"
 
 USER_NOTIFICATION_MARKERS = (
     "новое колесо betboom",
@@ -330,7 +332,13 @@ def notification_event_identity(
             phase = "detected"
         event_token = ""
         if isinstance(reply_markup, dict):
+            candidate = str(reply_markup.get(_EVENT_ID_MARKUP_KEY) or "").casefold()
+            if _EVENT_ID_RE.fullmatch(candidate):
+                event_token = candidate
+        if isinstance(reply_markup, dict):
             for row in reply_markup.get("inline_keyboard", []):
+                if event_token:
+                    break
                 if not isinstance(row, list):
                     continue
                 for button in row:
@@ -389,6 +397,8 @@ def markup_for_chat(reply_markup: dict | None, *, admin: bool) -> dict | None:
     if not isinstance(reply_markup, dict):
         return reply_markup
     result = copy.deepcopy(reply_markup)
+    # Internal delivery metadata must never be passed to the Telegram API.
+    result.pop(_EVENT_ID_MARKUP_KEY, None)
     rows: list[list[dict[str, Any]]] = []
     for row in result.get("inline_keyboard", []):
         if not isinstance(row, list):
@@ -629,6 +639,20 @@ def self_test() -> None:
     assert participation_button_token(
         {"inline_keyboard": [[{"text": "Участвую", "callback_data": "bb:p:ABC123"}]]}
     ) == "abc123"
+    canonical_markup = {
+        _EVENT_ID_MARKUP_KEY: "evt:11111111111111111111",
+        "inline_keyboard": [[{"callback_data": "bb:p:publication-one"}]],
+    }
+    assert notification_event_identity(
+        "wheels",
+        "🎡 Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>",
+        None,
+        canonical_markup,
+    ).endswith(":evt:11111111111111111111")
+    assert _EVENT_ID_MARKUP_KEY not in markup_for_chat(
+        canonical_markup,
+        admin=True,
+    )
     assert notification_event_identity(
         "wheel_final_reminders",
         "Напоминание о колесе BetBoom\nИдентификатор: <code>wheel-a</code>",
