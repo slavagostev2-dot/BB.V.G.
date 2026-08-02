@@ -110,6 +110,12 @@ def run_account(
 
         attempted += 1
         result = account_base._participate_with_storage(url, session)
+        wheel_publications_v2.apply_referral_context(
+            state,
+            item,
+            observed_at=current,
+            browser_detail=result.detail,
+        )
         record: dict[str, Any] = {
             "wheel_key": key,
             "event_token": account_base._base_event_token(item, key),
