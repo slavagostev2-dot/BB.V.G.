@@ -19,6 +19,7 @@ def test_recovery_replaces_previous_generation_publication_metadata(
 ) -> None:
     monkeypatch.setattr(monitor, "STATE_PATH", tmp_path / "state.json")
     scanned_at = datetime(2026, 8, 2, 10, 37, tzinfo=UTC)
+    monkeypatch.setattr(monitor, "now_utc", lambda: scanned_at)
     current = {
         "wheel_key": "helin",
         "identifier": "helin",
