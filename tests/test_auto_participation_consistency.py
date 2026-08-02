@@ -5,11 +5,66 @@ from types import SimpleNamespace
 
 import auto_participation_notifications
 import auto_participation_owner_sync
+import auto_participation_recovery
 import betboom_auto_participation as auto
 import monitor
 import wheel_publications_v2
 
 UTC = timezone.utc
+
+
+def test_recovery_replaces_previous_generation_publication_metadata(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setattr(monitor, "STATE_PATH", tmp_path / "state.json")
+    scanned_at = datetime(2026, 8, 2, 10, 37, tzinfo=UTC)
+    current = {
+        "wheel_key": "helin",
+        "identifier": "helin",
+        "url": "https://betboom.ru/freestream/helin",
+        "source": "helin139burmalda",
+        "message_id": 1077,
+        "message_date": "2026-08-02T10:35:37+00:00",
+        "message_url": "https://telegram.me/helin139burmalda/1077",
+        "message_text": "current generation",
+        "action_id": 1187,
+        "server_start_at": "2026-08-02T10:36:16.686000+00:00",
+        "deadline": "2026-08-02T10:56:16.686000+00:00",
+    }
+    state = {
+        "active_wheels": {
+            "helin": {
+                **current,
+                "source": "old-source",
+                "message_id": 1050,
+                "message_date": "2026-07-26T14:47:16+00:00",
+                "message_url": "https://telegram.me/helin139burmalda/1050",
+                "message_text": "previous generation",
+                "action_id": 1039,
+                "server_start_at": "2026-07-26T14:46:34.585000+00:00",
+            }
+        },
+        "participating_wheels": {},
+        "auto_participation_events": {},
+    }
+
+    auto_participation_recovery._restore_runtime_state(
+        state,
+        [current],
+        [],
+        scanned_at,
+    )
+
+    restored = state["active_wheels"]["helin"]
+    assert restored["action_id"] == 1187
+    assert restored["server_start_at"] == current["server_start_at"]
+    assert restored["message_id"] == 1077
+    assert restored["message_date"] == current["message_date"]
+    assert restored["message_text"] == "current generation"
+    assert restored["recovered_initial_notification_pending_at"] == (
+        scanned_at.isoformat()
+    )
 
 
 def event() -> dict:
