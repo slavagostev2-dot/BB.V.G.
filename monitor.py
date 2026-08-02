@@ -1439,7 +1439,7 @@ def wheel_reply_markup(
     participating = is_participating(state, link)
     participation_text = "✅ Участие отмечено" if participating else "✅ Участвую"
     participation_action = "n" if participating else "p"
-    return {
+    markup = {
         "inline_keyboard": [
             [{"text": "🎡 Открыть колесо", "url": normalize_url(link)}],
             [
@@ -1449,6 +1449,16 @@ def wheel_reply_markup(
             [{"text": "📨 Пост", "url": message.message_url}],
         ]
     }
+    entry = state.get("active_wheels", {}).get(wheel_key(link))
+    if isinstance(entry, dict):
+        event_id = str(
+            entry.get("canonical_event_id") or event_id_from_entry(entry)
+        ).casefold()
+        if event_id:
+            # notification_router consumes and strips this internal field before
+            # the markup reaches Telegram. Callback payloads remain unchanged.
+            markup["_bbvg_event_id"] = event_id
+    return markup
 
 
 def _callback_allowed(query: dict) -> bool:
