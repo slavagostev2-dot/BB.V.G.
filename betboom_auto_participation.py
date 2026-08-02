@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from bbvg.storage import event_id_from_entry, legacy_event_aliases
+import wheel_publications_v2
 
 
 _SUCCESS_RE = re.compile(
@@ -715,6 +716,12 @@ def process_new_wheel_events(
 
         attempted += 1
         result = participate(str(entry.get("url") or ""))
+        wheel_publications_v2.apply_referral_context(
+            state,
+            entry,
+            observed_at=current,
+            browser_detail=result.detail,
+        )
 
         event_record: dict[str, Any] = {
             "wheel_key": normalized,
