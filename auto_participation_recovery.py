@@ -224,7 +224,12 @@ def _restore_runtime_state(
         if not key:
             continue
         existing = active_wheels.get(key)
-        is_recovered_missing = not isinstance(existing, dict)
+        same_event = bool(
+            isinstance(existing, dict)
+            and _event_token(existing)
+            and _event_token(existing) == _event_token(item)
+        )
+        is_recovered_missing = not same_event
         entry: dict[str, Any] = {} if is_recovered_missing else existing
         if is_recovered_missing:
             active_wheels[key] = entry
