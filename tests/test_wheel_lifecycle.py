@@ -368,6 +368,7 @@ class Chapter5LifecycleTests(unittest.TestCase):
 
     def test_same_event_is_deduplicated_but_next_publication_is_not(self) -> None:
         markup_one = {
+            "_bbvg_event_id": "evt:11111111111111111111",
             "inline_keyboard": [
                 [{"text": "Участвую", "callback_data": "bb:p:event-one"}]
             ]
@@ -382,13 +383,19 @@ class Chapter5LifecycleTests(unittest.TestCase):
             "wheels",
             "Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>\n@two",
             None,
-            markup_one,
+            {
+                "_bbvg_event_id": "evt:11111111111111111111",
+                "inline_keyboard": [
+                    [{"text": "Участвую", "callback_data": "bb:p:event-other-post"}]
+                ],
+            },
         )
         next_event = notification_router.notification_event_identity(
             "wheels",
             "Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>",
             None,
             {
+                "_bbvg_event_id": "evt:22222222222222222222",
                 "inline_keyboard": [
                     [{"text": "Участвую", "callback_data": "bb:p:event-two"}]
                 ]
