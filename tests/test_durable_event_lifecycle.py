@@ -267,7 +267,7 @@ def test_dispatch_can_claim_only_the_newly_notified_event(
     assert statuses[second] == "completed"
 
 
-def test_dispatch_wake_waits_and_keeps_failure_observable(
+def test_dispatch_wake_without_legacy_marker_keeps_failure_observable(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -280,9 +280,9 @@ def test_dispatch_wake_waits_and_keeps_failure_observable(
         save_state=lambda state: saved.append(json.loads(json.dumps(state))),
     )
     state: dict[str, object] = {
-        "auto_participation_event_mode_initialized_at": now.isoformat(),
         "active_wheels": {"over": _entry() | {"wheel_key": "over"}},
     }
+    assert "auto_participation_event_mode_initialized_at" not in state
     monkeypatch.setenv("GITHUB_TOKEN", "token")
     monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
     monkeypatch.setattr(

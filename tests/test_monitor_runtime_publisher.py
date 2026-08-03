@@ -190,6 +190,75 @@ def test_monitor_publish_retries_cas_and_writes_latest_merge_back(
     assert persisted == published
 
 
+def test_monitor_publish_reads_large_state_via_git_blob(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    local_path = tmp_path / "state.json"
+    local_path.write_text(
+        json.dumps({"monitor_field": "fresh", "active_wheels": {}}),
+        encoding="utf-8",
+    )
+    remote = {"auto_participation_events": {"evt:kept": {"status": "participated"}}}
+
+    class Response:
+        def __init__(self, status_code: int, payload: dict, text: str = ""):
+            self.status_code = status_code
+            self._payload = payload
+            self.text = text
+
+        def json(self):
+            return self._payload
+
+    reads: list[str] = []
+    writes: list[dict] = []
+
+    def get(url, **kwargs):
+        reads.append(url)
+        if "/contents/state.json" in url:
+            return Response(
+                200,
+                {
+                    "sha": "large-state-blob",
+                    "size": 1_049_887,
+                    "encoding": "none",
+                    "content": "",
+                },
+            )
+        assert url.endswith("/git/blobs/large-state-blob")
+        return Response(
+            200,
+            {
+                "encoding": "base64",
+                "content": base64.b64encode(json.dumps(remote).encode()).decode(),
+            },
+        )
+
+    def put(*args, **kwargs):
+        writes.append(kwargs["json"])
+        return Response(200, {"commit": {"sha": "published"}})
+
+    monkeypatch.setattr(runtime_state_publisher.requests, "get", get)
+    monkeypatch.setattr(runtime_state_publisher.requests, "put", put)
+
+    result = runtime_state_publisher.publish_monitor_runtime(
+        local_path,
+        token="token",
+        repository="owner/repo",
+    )
+
+    assert result["changed"] is True
+    assert reads == [
+        "https://api.github.com/repos/owner/repo/contents/state.json",
+        "https://api.github.com/repos/owner/repo/git/blobs/large-state-blob",
+    ]
+    published = json.loads(base64.b64decode(writes[-1]["content"]))
+    assert published["monitor_field"] == "fresh"
+    assert published["auto_participation_events"]["evt:kept"]["status"] == (
+        "participated"
+    )
+
+
 def test_monitor_workflow_uses_one_publisher_and_does_not_block_later_files() -> None:
     workflow = Path(".github/workflows/monitor.yml").read_text(encoding="utf-8")
     assert '"runtime_state_publisher.py"' in workflow
@@ -203,3 +272,9 @@ def test_monitor_workflow_uses_one_publisher_and_does_not_block_later_files() ->
     publish_loop = block.split("            publish_failed=false", 1)[1]
     assert publish_loop.index("publish_failed=true") < publish_loop.index("done")
     assert publish_loop.index("done") < publish_loop.rindex("return 1")
+    assert '"/repos/${GITHUB_REPOSITORY}/git/blobs/${blob_sha}"' in workflow
+    assert 'python - "${file}.runtime"' in workflow
+    assert 'mv "${file}.runtime" "$file"' in workflow
+    assert workflow.index('python - "${file}.runtime"') < workflow.index(
+        'mv "${file}.runtime" "$file"'
+    )

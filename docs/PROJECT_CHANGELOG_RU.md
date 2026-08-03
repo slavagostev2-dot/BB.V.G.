@@ -1,3 +1,33 @@
+# 2026-08-03 — восстановлена передача большого runtime-state в автоучастие
+
+`runtime-state/state.json` превысил лимит прямого содержимого GitHub Contents API
+и достиг `1 049 887` байт. Contents API продолжал отвечать успешно, но возвращал
+`encoding: none` и пустое поле `content`. Стартовый шаг Monitor принимал пустой
+base64-результат за authoritative snapshot, а CAS publisher не мог прочитать
+удалённый JSON. Поэтому новые колёса обнаруживались и уведомлялись, но durable
+browser dispatch оставался без фактического event-state.
+
+Monitor теперь получает SHA runtime-файла через Contents API, читает содержимое
+через Git Blobs API, проверяет JSON-объект до замены локального snapshot и при
+любом невалидном ответе сохраняет проверенную копию exact release SHA. CAS
+publisher использует тот же Git Blobs fallback для файлов больше 1 MiB.
+Dispatcher больше не зависит от исторической метки
+`auto_participation_event_mode_initialized_at`: наличие пригодного активного
+события и durable outbox является достаточным основанием для wake-up.
+
+Четыре обязательных PR-validation workflow больше не загружают полную историю
+runtime-коммитов: exact event SHA проверяется с `fetch-depth: 1`. Это сохраняет
+проверку именно предложенного commit и устраняет многоминутную остановку CI на
+checkout разросшегося `main`.
+
+**Backup перед изменением:**
+`backup/2026-08-03-before-runtime-state-api-limit-repair` →
+`7f6a30063b425f156afb8f974c124c4a07b3a941`.
+
+**Отдельный snapshot runtime-state:**
+`safety/runtime-state-before-api-limit-repair-20260803` →
+`d22eb71f427e3a481d3bfb2f76f3a2f0e647c302`.
+
 # 2026-08-02 — дедупликация одной генерации между Monitor и recovery
 
 - Инциденты `kekw/1183` и `helin/1187` подтвердили повтор первичной
