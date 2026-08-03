@@ -323,8 +323,6 @@ def _wake_durable_dispatcher(
     monitor log instead of discarding stdout/stderr.
     """
 
-    if not state.get("auto_participation_event_mode_initialized_at"):
-        return False
     current = monitor_module.now_utc()
     processed = state.setdefault("auto_participation_events", {})
     dispatched = state.setdefault("auto_participation_dispatch_events", {})

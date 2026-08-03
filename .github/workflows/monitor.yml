@@ -399,13 +399,30 @@ jobs:
           )
 
           for file in "${runtime_files[@]}"; do
-            if gh api \
+            blob_sha=$(gh api \
               "/repos/${GITHUB_REPOSITORY}/contents/${file}?ref=runtime-state" \
+              --jq '.sha' 2>/dev/null) || blob_sha=""
+            if [[ -z "$blob_sha" ]] || ! gh api \
+              "/repos/${GITHUB_REPOSITORY}/git/blobs/${blob_sha}" \
               --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d > "${file}.runtime"; then
-              mv "${file}.runtime" "$file"
-            else
               rm -f "${file}.runtime"
+              continue
             fi
+            if ! python - "${file}.runtime" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as stream:
+              value = json.load(stream)
+          if not isinstance(value, dict):
+              raise SystemExit("runtime snapshot must be a JSON object")
+          PY
+            then
+              echo "WARNING invalid runtime snapshot ${file}; keeping the checked-out fallback."
+              rm -f "${file}.runtime"
+              continue
+            fi
+            mv "${file}.runtime" "$file"
           done
           git add "${runtime_files[@]}"
 

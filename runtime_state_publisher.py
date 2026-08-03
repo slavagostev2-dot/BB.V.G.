@@ -175,6 +175,45 @@ def _decode_remote(payload: dict[str, Any]) -> bytes:
         ) from exc
 
 
+def _read_remote_bytes(
+    payload: dict[str, Any],
+    *,
+    repository: str,
+    headers: dict[str, str],
+) -> bytes:
+    """Read a Contents API payload, falling back to Git Blobs above 1 MiB."""
+
+    decoded = _decode_remote(payload)
+    try:
+        remote_size = int(payload.get("size", 0) or 0)
+    except (TypeError, ValueError):
+        remote_size = 0
+    remote_encoding = str(payload.get("encoding") or "").strip().casefold()
+    if decoded or (remote_size == 0 and remote_encoding != "none"):
+        return decoded
+
+    blob_sha = str(payload.get("sha") or "").strip()
+    if not blob_sha:
+        raise RuntimeError("runtime_file_decode_failed:missing_blob_sha")
+    response = requests.get(
+        f"https://api.github.com/repos/{repository}/git/blobs/{blob_sha}",
+        headers=headers,
+        timeout=PUBLISH_TIMEOUT_SECONDS,
+    )
+    if response.status_code != 200:
+        raise RuntimeError(
+            "runtime_blob_read_http_"
+            f"{response.status_code}:{response.text[:300]}"
+        )
+    blob_payload = response.json()
+    if not isinstance(blob_payload, dict):
+        raise RuntimeError("runtime_blob_decode_failed:not_an_object")
+    blob_bytes = _decode_remote(blob_payload)
+    if not blob_bytes:
+        raise RuntimeError("runtime_blob_decode_failed:empty_content")
+    return blob_bytes
+
+
 def publish_monitor_runtime(
     local_path: Path,
     *,
@@ -209,7 +248,11 @@ def publish_monitor_runtime(
         elif response.status_code == 200:
             payload = response.json()
             remote_sha = str(payload.get("sha") or "")
-            remote_bytes = _decode_remote(payload)
+            remote_bytes = _read_remote_bytes(
+                payload,
+                repository=repository,
+                headers=headers,
+            )
             if semantic_state:
                 try:
                     decoded = json.loads(remote_bytes.decode("utf-8"))
