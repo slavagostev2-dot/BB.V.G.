@@ -183,6 +183,21 @@ def test_control_center_runs_the_exact_validated_release() -> None:
     assert 'validation_stage="record_project_changelog"' not in validator
 
 
+def test_pull_request_validation_uses_shallow_exact_sha_checkout() -> None:
+    workflows = workflow_texts()
+    for name in (
+        "bot-recovery-smoke.yml",
+        "current-checks.yml",
+        "validate-current.yml",
+        "validate-private-state.yml",
+    ):
+        text = workflows[name]
+        assert "ref: ${{ github.event.pull_request.head.sha || github.sha }}" in text
+        assert "persist-credentials: false" in text
+        assert "fetch-depth: 1" in text
+        assert "fetch-depth: 0" not in text
+
+
 def test_cancelled_control_center_shift_never_self_dispatches() -> None:
     admin = workflow_texts()["admin-bot.yml"]
     replacement = admin.split(

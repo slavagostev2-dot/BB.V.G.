@@ -15,6 +15,11 @@ Dispatcher больше не зависит от исторической мет
 `auto_participation_event_mode_initialized_at`: наличие пригодного активного
 события и durable outbox является достаточным основанием для wake-up.
 
+Четыре обязательных PR-validation workflow больше не загружают полную историю
+runtime-коммитов: exact event SHA проверяется с `fetch-depth: 1`. Это сохраняет
+проверку именно предложенного commit и устраняет многоминутную остановку CI на
+checkout разросшегося `main`.
+
 **Backup перед изменением:**
 `backup/2026-08-03-before-runtime-state-api-limit-repair` →
 `7f6a30063b425f156afb8f974c124c4a07b3a941`.
