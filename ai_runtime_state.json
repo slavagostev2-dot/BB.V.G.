@@ -1,8 +1,8 @@
 {
   "cache": {
-    "7b603dee8eb1beb071d61a08e11a78d9641ef4d6899f511eb2ecab01250dfd67": {
-      "expires_at": 1785003753.1938238,
-      "text": "{\n  \"summary\": \"Критическая ошибка: панель управления не обновляла статус более 80 минут.\",\n  \"impact\": \"Бот перестал принимать и обрабатывать команды пользователей, что делает систему неработоспособной.\",\n  \"recommended_action\": \"Проверить heartbeat Control Center и последний workflow панели.\",\n  \"confidence\": \"high\"\n}"
+    "5124c4e227e321898842e02240b4037acfd9d331da1649256352040c8242172d": {
+      "expires_at": 1785917321.8081653,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The author is gauging interest for a BetBoom freebet wheel and provides a registration link, indicating an intent to launch or promote the wheel activity.\"\n}"
     }
   },
   "decisions": [
@@ -1467,10 +1467,23 @@
       "output_sha256": "bb7cba9c7da5f1c1fe6c7ad6e90c589860c0f54da7a8019baf4a839dbee29296",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1785916421.8081653,
+      "feature": "suspicious_post_analysis",
+      "id": "c9d092cd82604abaa88c9c58d8aed6d6",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "821fa1ecbfa05966066fd53271002b4f626750114eb61289b3e2c2c4848048ae",
+      "provider": "gemini",
+      "reason": "The author is gauging interest for a BetBoom freebet wheel and provides a registration link, indicating an intent to launch or promote the wheel activity.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1785002853.1938238
+    1785916421.8081653
   ],
   "version": 1
 }
