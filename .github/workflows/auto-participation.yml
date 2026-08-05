@@ -102,6 +102,7 @@ jobs:
           import auto_participation_owner_sync
           import betboom_account_participation
           import betboom_participation_browser
+          import runtime_state_publish
           import xflarxx_account_participation
           required = ("_event_token", "_eligible_for_event_attempt", "process_new_wheel_events")
           missing = [name for name in required if not hasattr(auto, name)]
@@ -122,6 +123,7 @@ jobs:
           auto_participation_bot_sync.self_test()
           auto_participation_owner_sync.self_test()
           betboom_account_participation.self_test()
+          runtime_state_publish.self_test()
           xflarxx_account_participation.self_test()
           print("Auto participation preflight OK for all BetBoom accounts")
           PY
@@ -262,7 +264,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
         run: >-
-          python auto_participation_bot_sync.py
+          python runtime_state_publish.py
           --publish-runtime-state state.json
 
       - name: Recover fresh active wheels independently of monitor state
@@ -347,15 +349,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
         run: >-
-          python auto_participation_bot_sync.py
+          python runtime_state_publish.py
           --publish-runtime-state state.json
 
-      - name: Deliver owner-scoped emergency outcome after GitHub checkpoint failure
+      - name: Log runtime checkpoint failure without Telegram delivery
         if: ${{ always() && steps.mode.outputs.probe != 'true' && steps.final_runtime_publish.outcome == 'failure' }}
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
-          BBVG_EVENT_PAYLOAD_JSON: ${{ inputs.event_payload }}
         run: >-
-          python auto_participation_bot_sync.py
-          --emergency-notify-event state.json
+          echo "::warning::Runtime-state checkpoint failed. Account results remain in the event ledger; direct Telegram emergency delivery is disabled."
