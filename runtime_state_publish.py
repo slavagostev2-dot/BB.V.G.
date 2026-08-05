@@ -23,7 +23,9 @@ def _load_json(path: Path) -> dict[str, Any]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise RuntimeError(f"invalid_local_runtime_state:{type(exc).__name__}:{exc}") from exc
+        raise RuntimeError(
+            f"invalid_local_runtime_state:{type(exc).__name__}:{exc}"
+        ) from exc
     if not isinstance(value, dict):
         raise RuntimeError("invalid_local_runtime_state:not_an_object")
     return value
@@ -41,8 +43,10 @@ def _headers(token: str) -> dict[str, str]:
 def _json_object(response: Any, label: str) -> dict[str, Any]:
     try:
         value = response.json()
-    except (ValueError, json.JSONDecodeError) as exc:
-        raise RuntimeError(f"{label}_invalid_json:{type(exc).__name__}:{exc}") from exc
+    except ValueError as exc:
+        raise RuntimeError(
+            f"{label}_invalid_json:{type(exc).__name__}:{exc}"
+        ) from exc
     if not isinstance(value, dict):
         raise RuntimeError(f"{label}_not_an_object")
     return value
@@ -180,7 +184,11 @@ def publish_runtime_state(
 
         if update.status_code in {200, 201}:
             result = _json_object(update, "runtime_state_update")
-            commit = result.get("commit") if isinstance(result.get("commit"), dict) else {}
+            commit = (
+                result.get("commit")
+                if isinstance(result.get("commit"), dict)
+                else {}
+            )
             return {
                 "branch": branch,
                 "attempt": attempt,
@@ -189,7 +197,10 @@ def publish_runtime_state(
                 "read_mode": read_mode,
             }
 
-        last_error = f"http_{update.status_code}:{str(getattr(update, 'text', ''))[:300]}"
+        last_error = (
+            f"http_{update.status_code}:"
+            f"{str(getattr(update, 'text', ''))[:300]}"
+        )
         if update.status_code not in {409, 422, 429, 500, 502, 503, 504}:
             break
         if attempt < max(1, attempts):
@@ -224,7 +235,6 @@ def self_test() -> None:
     large_remote = {
         "version": 6,
         "padding": "x" * 1_100_000,
-        "active_wheels": {},
     }
     raw = (json.dumps(large_remote, ensure_ascii=False) + "\n").encode("utf-8")
     calls: list[str] = []
@@ -275,7 +285,12 @@ def self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("state_path", type=Path)
+    parser.add_argument("state_path", type=Path, nargs="?")
+    parser.add_argument(
+        "--publish-runtime-state",
+        dest="publish_runtime_state_path",
+        type=Path,
+    )
     parser.add_argument(
         "--branch",
         default=os.getenv("BBVG_RUNTIME_STATE_BRANCH", RUNTIME_STATE_BRANCH),
@@ -285,8 +300,13 @@ def main() -> int:
     if args.self_test:
         self_test()
         return 0
+    state_path = args.publish_runtime_state_path or args.state_path
+    if state_path is None:
+        parser.error(
+            "state_path or --publish-runtime-state state.json is required"
+        )
     result = publish_runtime_state(
-        args.state_path,
+        state_path,
         token=os.getenv("GH_TOKEN", "").strip()
         or os.getenv("GITHUB_TOKEN", "").strip(),
         repository=os.getenv("GITHUB_REPOSITORY", "").strip(),
