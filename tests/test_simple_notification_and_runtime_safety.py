@@ -29,7 +29,8 @@ def test_workflow_has_no_direct_emergency_telegram_delivery() -> None:
     workflow = AUTO_WORKFLOW.read_text(encoding="utf-8")
     assert "--emergency-notify-event" not in workflow
     assert "Deliver owner-scoped emergency outcome" not in workflow
-    assert workflow.count("python runtime_state_publish.py state.json") == 2
+    assert workflow.count("--publish-runtime-state state.json") == 2
+    assert workflow.count("python runtime_state_publish.py") == 2
     assert "direct Telegram emergency delivery is disabled" in workflow
 
 
