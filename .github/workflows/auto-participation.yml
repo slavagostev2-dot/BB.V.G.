@@ -263,7 +263,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
-        run: python runtime_state_publish.py state.json
+        run: >-
+          python runtime_state_publish.py
+          --publish-runtime-state state.json
 
       - name: Recover fresh active wheels independently of monitor state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
@@ -346,7 +348,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
-        run: python runtime_state_publish.py state.json
+        run: >-
+          python runtime_state_publish.py
+          --publish-runtime-state state.json
 
       - name: Log runtime checkpoint failure without Telegram delivery
         if: ${{ always() && steps.mode.outputs.probe != 'true' && steps.final_runtime_publish.outcome == 'failure' }}
