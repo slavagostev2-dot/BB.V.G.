@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "",
-      "attempt_id": "f21220ff9577f5b3c5236ad311fd0ea85ce526077431453a2b72008cc965eb50",
-      "confidence": 120,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
-      "event_id": "evt:7061238465e4afde5c1a",
-      "finished_at": "2026-08-07T08:45:49.711562+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-07T08:46:03.591691+00:00",
-      "started_at": "2026-08-07T08:45:49.711562+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "",
       "attempt_id": "cf91b9c757b8a9fd42879bc01ad782773ef8f865c5c3a7971d55b46962a74ac3",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-08-07T08:46:03.592964+00:00",
       "started_at": "2026-08-07T08:45:54.025784+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "",
+      "attempt_id": "f21220ff9577f5b3c5236ad311fd0ea85ce526077431453a2b72008cc965eb50",
+      "confidence": 120,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
+      "event_id": "evt:7061238465e4afde5c1a",
+      "finished_at": "2026-08-07T08:45:49.711562+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-07T08:46:03.591691+00:00",
+      "started_at": "2026-08-07T08:45:49.711562+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-07T08:45:33.617123+00:00",
       "status": "participated",
-      "updated_at": "2026-08-07T08:46:03.590206+00:00"
+      "updated_at": "2026-08-07T08:46:30.913218+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-07T08:45:49.711562+00:00",
       "status": "participated",
-      "updated_at": "2026-08-07T08:46:03.591691+00:00"
+      "updated_at": "2026-08-07T08:46:30.914446+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-07T08:45:54.025784+00:00",
       "status": "participated",
-      "updated_at": "2026-08-07T08:46:03.592964+00:00"
+      "updated_at": "2026-08-07T08:46:30.915731+00:00"
     }
   ],
   "action_id": 1210,
@@ -118,93 +118,6 @@
   "source_message_url": "https://telegram.me/smurf_gigachad/2154",
   "status": "active",
   "transitions": [
-    {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-07T08:46:03.583851+00:00",
-      "payload": {
-        "action_id": 1210,
-        "available_at": "",
-        "deadline": "2026-08-07T09:01:16.594000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:7061238465e4afde5c1a",
-        "expires_at": "2026-08-07T09:31:16.594000+00:00",
-        "generation_id": "7061238465e4afde5c1a",
-        "identifier": "smurf1",
-        "message_text": "LCK KT vs GENG уже идёт, так что запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf1\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2154\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf1",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-07T08:41:16.594000+00:00",
-        "source": "smurf_gigachad",
-        "source_message_date": "2026-08-07T08:38:56+00:00",
-        "source_message_id": 2154,
-        "source_message_url": "https://telegram.me/smurf_gigachad/2154",
-        "status": "active",
-        "url": "https://betboom.ru/freestream/smurf1",
-        "verification_status": "confirmed",
-        "wheel_key": "smurf1",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "ac92e4af64184fc02aa5359d0e0d8c26867d68584f22ee07158ab61c28bcaf39"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-07T08:46:03.583851+00:00",
-      "payload": {
-        "action_id": 1210,
-        "available_at": "",
-        "deadline": "2026-08-07T09:01:16.594000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:7061238465e4afde5c1a",
-        "expires_at": "2026-08-07T09:31:16.594000+00:00",
-        "generation_id": "7061238465e4afde5c1a",
-        "identifier": "smurf1",
-        "message_text": "LCK KT vs GENG уже идёт, так что запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf1\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2154\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf1",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-07T08:41:16.594000+00:00",
-        "source": "smurf_gigachad",
-        "source_message_date": "2026-08-07T08:38:56+00:00",
-        "source_message_id": 2154,
-        "source_message_url": "https://telegram.me/smurf_gigachad/2154",
-        "status": "active",
-        "url": "https://betboom.ru/freestream/smurf1",
-        "verification_status": "confirmed",
-        "wheel_key": "smurf1",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "f02473a46fe922be35f5d5a9b4370a624a35f361df1f01859ff2487e43786f12"
-    },
-    {
-      "dedupe_key": "1210:2026-08-07T08:41:16.594000+00:00",
-      "occurred_at": "2026-08-07T08:46:03.583851+00:00",
-      "payload": {
-        "action_id": 1210,
-        "available_at": "",
-        "deadline": "2026-08-07T09:01:16.594000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:7061238465e4afde5c1a",
-        "expires_at": "2026-08-07T09:31:16.594000+00:00",
-        "generation_id": "7061238465e4afde5c1a",
-        "identifier": "smurf1",
-        "message_text": "LCK KT vs GENG уже идёт, так что запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf1\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2154\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf1",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-07T08:41:16.594000+00:00",
-        "source": "smurf_gigachad",
-        "source_message_date": "2026-08-07T08:38:56+00:00",
-        "source_message_id": 2154,
-        "source_message_url": "https://telegram.me/smurf_gigachad/2154",
-        "status": "active",
-        "url": "https://betboom.ru/freestream/smurf1",
-        "verification_status": "confirmed",
-        "wheel_key": "smurf1",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "ed2d8a4845782d7b796d1d39a99ede33b3f7ef932f833e48a1ec6d9991013c9e"
-    },
     {
       "dedupe_key": "31162935623",
       "occurred_at": "2026-08-07T08:46:03.588136+00:00",
@@ -246,6 +159,35 @@
       "transition_id": "a7f39ea986170dbfff5872d7172887e7a5a587bb8a75074e8539c73dcc5d8f35"
     },
     {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-07T08:46:03.583851+00:00",
+      "payload": {
+        "action_id": 1210,
+        "available_at": "",
+        "deadline": "2026-08-07T09:01:16.594000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:7061238465e4afde5c1a",
+        "expires_at": "2026-08-07T09:31:16.594000+00:00",
+        "generation_id": "7061238465e4afde5c1a",
+        "identifier": "smurf1",
+        "message_text": "LCK KT vs GENG уже идёт, так что запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf1\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2154\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf1",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-07T08:41:16.594000+00:00",
+        "source": "smurf_gigachad",
+        "source_message_date": "2026-08-07T08:38:56+00:00",
+        "source_message_id": 2154,
+        "source_message_url": "https://telegram.me/smurf_gigachad/2154",
+        "status": "active",
+        "url": "https://betboom.ru/freestream/smurf1",
+        "verification_status": "confirmed",
+        "wheel_key": "smurf1",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "ac92e4af64184fc02aa5359d0e0d8c26867d68584f22ee07158ab61c28bcaf39"
+    },
+    {
       "dedupe_key": "xflarxx:xflarxx_primary:cf91b9c757b8a9fd42879bc01ad782773ef8f865c5c3a7971d55b46962a74ac3",
       "occurred_at": "2026-08-07T08:45:54.025784+00:00",
       "payload": {
@@ -259,9 +201,67 @@
       },
       "stage": "account_result",
       "transition_id": "de111ba42f1c19b8825b4f2bf2e416b1e9da388116ada5c42c33c1e1f209fea2"
+    },
+    {
+      "dedupe_key": "1210:2026-08-07T08:41:16.594000+00:00",
+      "occurred_at": "2026-08-07T08:46:03.583851+00:00",
+      "payload": {
+        "action_id": 1210,
+        "available_at": "",
+        "deadline": "2026-08-07T09:01:16.594000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:7061238465e4afde5c1a",
+        "expires_at": "2026-08-07T09:31:16.594000+00:00",
+        "generation_id": "7061238465e4afde5c1a",
+        "identifier": "smurf1",
+        "message_text": "LCK KT vs GENG уже идёт, так что запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf1\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2154\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf1",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-07T08:41:16.594000+00:00",
+        "source": "smurf_gigachad",
+        "source_message_date": "2026-08-07T08:38:56+00:00",
+        "source_message_id": 2154,
+        "source_message_url": "https://telegram.me/smurf_gigachad/2154",
+        "status": "active",
+        "url": "https://betboom.ru/freestream/smurf1",
+        "verification_status": "confirmed",
+        "wheel_key": "smurf1",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "ed2d8a4845782d7b796d1d39a99ede33b3f7ef932f833e48a1ec6d9991013c9e"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-07T08:46:03.583851+00:00",
+      "payload": {
+        "action_id": 1210,
+        "available_at": "",
+        "deadline": "2026-08-07T09:01:16.594000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:7061238465e4afde5c1a",
+        "expires_at": "2026-08-07T09:31:16.594000+00:00",
+        "generation_id": "7061238465e4afde5c1a",
+        "identifier": "smurf1",
+        "message_text": "LCK KT vs GENG уже идёт, так что запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf1\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2154\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf1",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-07T08:41:16.594000+00:00",
+        "source": "smurf_gigachad",
+        "source_message_date": "2026-08-07T08:38:56+00:00",
+        "source_message_id": 2154,
+        "source_message_url": "https://telegram.me/smurf_gigachad/2154",
+        "status": "active",
+        "url": "https://betboom.ru/freestream/smurf1",
+        "verification_status": "confirmed",
+        "wheel_key": "smurf1",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "f02473a46fe922be35f5d5a9b4370a624a35f361df1f01859ff2487e43786f12"
     }
   ],
-  "updated_at": "2026-08-07T08:46:03.588136+00:00",
+  "updated_at": "2026-08-07T08:46:30.911660+00:00",
   "wheel_key": "smurf1",
   "workflow_started_at": "2026-08-07T08:46:03.588136+00:00"
 }
