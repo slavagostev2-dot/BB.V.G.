@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "",
-      "attempt_id": "c0f31919da25a16e865a34f379ee393eb906f0f42f88d41c93d99bf3a7736d85",
-      "confidence": 120,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
-      "event_id": "evt:35a70a1f826aaa39cdff",
-      "finished_at": "2026-08-07T10:37:44.248037+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-07T10:37:54.360196+00:00",
-      "started_at": "2026-08-07T10:37:44.248037+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "",
       "attempt_id": "23ab83b7ddaef0cd680cbceff04650e391cea99172dd63d510ee10b6662292dc",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-08-07T10:37:54.361330+00:00",
       "started_at": "2026-08-07T10:37:49.208447+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "",
+      "attempt_id": "c0f31919da25a16e865a34f379ee393eb906f0f42f88d41c93d99bf3a7736d85",
+      "confidence": 120,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
+      "event_id": "evt:35a70a1f826aaa39cdff",
+      "finished_at": "2026-08-07T10:37:44.248037+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-07T10:37:54.360196+00:00",
+      "started_at": "2026-08-07T10:37:44.248037+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-07T10:37:37.663931+00:00",
       "status": "participated",
-      "updated_at": "2026-08-07T10:37:54.358994+00:00"
+      "updated_at": "2026-08-07T10:38:32.940769+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-07T10:37:44.248037+00:00",
       "status": "participated",
-      "updated_at": "2026-08-07T10:37:54.360196+00:00"
+      "updated_at": "2026-08-07T10:38:32.941928+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-07T10:37:49.208447+00:00",
       "status": "participated",
-      "updated_at": "2026-08-07T10:37:54.361330+00:00"
+      "updated_at": "2026-08-07T10:38:32.943074+00:00"
     }
   ],
   "action_id": 733,
@@ -119,33 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-07T10:37:54.352680+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:23ab83b7ddaef0cd680cbceff04650e391cea99172dd63d510ee10b6662292dc",
+      "occurred_at": "2026-08-07T10:37:49.208447+00:00",
       "payload": {
-        "action_id": 733,
-        "available_at": "",
-        "deadline": "2026-08-07T17:58:38.877000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:35a70a1f826aaa39cdff",
-        "expires_at": "2026-08-07T18:28:38.877000+00:00",
-        "generation_id": "35a70a1f826aaa39cdff",
-        "identifier": "sigma",
-        "message_text": "https://betboom.ru/freestream/sigma\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/331",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-07T08:58:38.877000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-08-07T10:35:16+00:00",
-        "source_message_id": 331,
-        "source_message_url": "https://telegram.me/kolesaBB/331",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/sigma",
-        "verification_status": "confirmed",
-        "wheel_key": "sigma",
-        "wheel_type": "normal"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "b2fb2c960b749ca0c149b2c774f9dda504e724ef045759726f97aa861665c7c9"
+      "stage": "account_result",
+      "transition_id": "03ffc9d234408be10d2613f7bf2e1fcf98f6c1b7c580a3af02345c47f1f58325"
     },
     {
       "dedupe_key": "durable-event",
@@ -206,16 +192,6 @@
       "transition_id": "7a2bcca9b3cc2b98ad44fdec191a4940338866e00b4bcbb3cacda11c176d0f66"
     },
     {
-      "dedupe_key": "31170742043",
-      "occurred_at": "2026-08-07T10:37:54.356787+00:00",
-      "payload": {
-        "workflow_run_id": "31170742043",
-        "workflow_sha": "24b6effceccbc42aea94e1f98c7a53704019f3cf"
-      },
-      "stage": "workflow_started",
-      "transition_id": "8ffed9bf5f8a8b4cd2a2415efe24f2cf031b170555192ffb530857488abdb8aa"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:05b644e048251a647f07cf6942188e0d594b74bb3296c857068eabce77cbd359",
       "occurred_at": "2026-08-07T10:37:37.663931+00:00",
       "payload": {
@@ -231,6 +207,45 @@
       "transition_id": "7b965e90d8f0bca15cb0cf4ca4b9399ebe3c836a86c7f4d998820ee822418254"
     },
     {
+      "dedupe_key": "31170742043",
+      "occurred_at": "2026-08-07T10:37:54.356787+00:00",
+      "payload": {
+        "workflow_run_id": "31170742043",
+        "workflow_sha": "24b6effceccbc42aea94e1f98c7a53704019f3cf"
+      },
+      "stage": "workflow_started",
+      "transition_id": "8ffed9bf5f8a8b4cd2a2415efe24f2cf031b170555192ffb530857488abdb8aa"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-07T10:37:54.352680+00:00",
+      "payload": {
+        "action_id": 733,
+        "available_at": "",
+        "deadline": "2026-08-07T17:58:38.877000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:35a70a1f826aaa39cdff",
+        "expires_at": "2026-08-07T18:28:38.877000+00:00",
+        "generation_id": "35a70a1f826aaa39cdff",
+        "identifier": "sigma",
+        "message_text": "https://betboom.ru/freestream/sigma\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/331",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-07T08:58:38.877000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-08-07T10:35:16+00:00",
+        "source_message_id": 331,
+        "source_message_url": "https://telegram.me/kolesaBB/331",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/sigma",
+        "verification_status": "confirmed",
+        "wheel_key": "sigma",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "b2fb2c960b749ca0c149b2c774f9dda504e724ef045759726f97aa861665c7c9"
+    },
+    {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:c0f31919da25a16e865a34f379ee393eb906f0f42f88d41c93d99bf3a7736d85",
       "occurred_at": "2026-08-07T10:37:44.248037+00:00",
       "payload": {
@@ -244,24 +259,9 @@
       },
       "stage": "account_result",
       "transition_id": "b9b16b5b1ed2b15da9754bbb0a4159973f103a6c62dcc6d10374e18bd4f05c10"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:23ab83b7ddaef0cd680cbceff04650e391cea99172dd63d510ee10b6662292dc",
-      "occurred_at": "2026-08-07T10:37:49.208447+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "03ffc9d234408be10d2613f7bf2e1fcf98f6c1b7c580a3af02345c47f1f58325"
     }
   ],
-  "updated_at": "2026-08-07T10:37:54.356787+00:00",
+  "updated_at": "2026-08-07T10:38:32.938978+00:00",
   "wheel_key": "sigma",
   "workflow_started_at": "2026-08-07T10:37:54.356787+00:00"
 }
