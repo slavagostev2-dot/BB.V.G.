@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "e0520497f41377c3e2a034d7a4740f5416e60ab23c33d9f8560b8ed520fa5861",
-      "confidence": 120,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
-      "event_id": "evt:b663431d5d3ebf8eee27",
-      "finished_at": "2026-08-08T08:44:08.162265+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-08T08:44:39.162174+00:00",
-      "started_at": "2026-08-08T08:44:08.162265+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "",
       "attempt_id": "105eecdbd8f62c187fe32448a5b8acf0a1f5d48301604388d122494ac42824d5",
@@ -26,6 +12,20 @@
       "owner_id": "vyacheslav",
       "recorded_at": "2026-08-08T08:44:39.163518+00:00",
       "started_at": "2026-08-08T08:44:28.303524+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "e0520497f41377c3e2a034d7a4740f5416e60ab23c33d9f8560b8ed520fa5861",
+      "confidence": 120,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
+      "event_id": "evt:b663431d5d3ebf8eee27",
+      "finished_at": "2026-08-08T08:44:08.162265+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-08T08:44:39.162174+00:00",
+      "started_at": "2026-08-08T08:44:08.162265+00:00",
       "status": "participated"
     },
     {
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-08T08:44:08.162265+00:00",
       "status": "participated",
-      "updated_at": "2026-08-08T08:44:39.162174+00:00"
+      "updated_at": "2026-08-08T08:45:06.962189+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-08T08:44:28.303524+00:00",
       "status": "participated",
-      "updated_at": "2026-08-08T08:44:39.163518+00:00"
+      "updated_at": "2026-08-08T08:45:06.963326+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-08T08:44:34.694121+00:00",
       "status": "participated",
-      "updated_at": "2026-08-08T08:44:39.164770+00:00"
+      "updated_at": "2026-08-08T08:45:06.964523+00:00"
     }
   ],
   "action_id": 1211,
@@ -119,62 +119,14 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-08T08:44:39.155675+00:00",
+      "dedupe_key": "31248983087",
+      "occurred_at": "2026-08-08T08:44:39.160141+00:00",
       "payload": {
-        "action_id": 1211,
-        "available_at": "",
-        "deadline": "2026-08-08T09:00:52.093000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:b663431d5d3ebf8eee27",
-        "expires_at": "2026-08-08T09:30:52.093000+00:00",
-        "generation_id": "b663431d5d3ebf8eee27",
-        "identifier": "smurf2",
-        "message_text": "Пока фейкер не успел проиграть ещё одну серию, запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\n🥰\nhttps://betboom.ru/freestream/smurf2\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2157\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-08T08:40:52.093000+00:00",
-        "source": "smurf_gigachad",
-        "source_message_date": "2026-08-08T08:41:07+00:00",
-        "source_message_id": 2157,
-        "source_message_url": "https://telegram.me/smurf_gigachad/2157",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/smurf2",
-        "verification_status": "confirmed",
-        "wheel_key": "smurf2",
-        "wheel_type": "normal"
+        "workflow_run_id": "31248983087",
+        "workflow_sha": "ea0131f48be3311b08268e3697f02342ac7bc487"
       },
-      "stage": "source_discovered",
-      "transition_id": "f8faee96ea2ea3452cf4b1951de27e7660cec92801d0a66a1a3c833a86ecc38a"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-08T08:44:39.155675+00:00",
-      "payload": {
-        "action_id": 1211,
-        "available_at": "",
-        "deadline": "2026-08-08T09:00:52.093000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:b663431d5d3ebf8eee27",
-        "expires_at": "2026-08-08T09:30:52.093000+00:00",
-        "generation_id": "b663431d5d3ebf8eee27",
-        "identifier": "smurf2",
-        "message_text": "Пока фейкер не успел проиграть ещё одну серию, запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\n🥰\nhttps://betboom.ru/freestream/smurf2\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2157\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-08T08:40:52.093000+00:00",
-        "source": "smurf_gigachad",
-        "source_message_date": "2026-08-08T08:41:07+00:00",
-        "source_message_id": 2157,
-        "source_message_url": "https://telegram.me/smurf_gigachad/2157",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/smurf2",
-        "verification_status": "confirmed",
-        "wheel_key": "smurf2",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "9cb9d25cba169c7e78d07dca0a17b932c761a875dec398de243c65ff7525627c"
+      "stage": "workflow_started",
+      "transition_id": "4cc2fab9e9b0a220ff502a135ad4df2ef9013e5362cfc3856d2b1f5f9f3039f8"
     },
     {
       "dedupe_key": "1211:2026-08-08T08:40:52.093000+00:00",
@@ -206,29 +158,33 @@
       "transition_id": "858a264c4fc7de12f4986f4bd1edeba6886838f25422d8f0c84492efd03fc3a6"
     },
     {
-      "dedupe_key": "31248983087",
-      "occurred_at": "2026-08-08T08:44:39.160141+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-08T08:44:39.155675+00:00",
       "payload": {
-        "workflow_run_id": "31248983087",
-        "workflow_sha": "ea0131f48be3311b08268e3697f02342ac7bc487"
+        "action_id": 1211,
+        "available_at": "",
+        "deadline": "2026-08-08T09:00:52.093000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:b663431d5d3ebf8eee27",
+        "expires_at": "2026-08-08T09:30:52.093000+00:00",
+        "generation_id": "b663431d5d3ebf8eee27",
+        "identifier": "smurf2",
+        "message_text": "Пока фейкер не успел проиграть ещё одну серию, запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\n🥰\nhttps://betboom.ru/freestream/smurf2\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2157\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-08T08:40:52.093000+00:00",
+        "source": "smurf_gigachad",
+        "source_message_date": "2026-08-08T08:41:07+00:00",
+        "source_message_id": 2157,
+        "source_message_url": "https://telegram.me/smurf_gigachad/2157",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/smurf2",
+        "verification_status": "confirmed",
+        "wheel_key": "smurf2",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "4cc2fab9e9b0a220ff502a135ad4df2ef9013e5362cfc3856d2b1f5f9f3039f8"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:e0520497f41377c3e2a034d7a4740f5416e60ab23c33d9f8560b8ed520fa5861",
-      "occurred_at": "2026-08-08T08:44:08.162265+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "ec266fafbd0732b700eb36fc59d42dc43e8f781470291bbc4cd54979ef121fb2"
+      "stage": "persisted",
+      "transition_id": "9cb9d25cba169c7e78d07dca0a17b932c761a875dec398de243c65ff7525627c"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:105eecdbd8f62c187fe32448a5b8acf0a1f5d48301604388d122494ac42824d5",
@@ -246,6 +202,50 @@
       "transition_id": "a33a83fc14fd90530d20432d0e7c1bfd90c3588441a0cb42840c60fe3d2bda28"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:e0520497f41377c3e2a034d7a4740f5416e60ab23c33d9f8560b8ed520fa5861",
+      "occurred_at": "2026-08-08T08:44:08.162265+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "ec266fafbd0732b700eb36fc59d42dc43e8f781470291bbc4cd54979ef121fb2"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-08T08:44:39.155675+00:00",
+      "payload": {
+        "action_id": 1211,
+        "available_at": "",
+        "deadline": "2026-08-08T09:00:52.093000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:b663431d5d3ebf8eee27",
+        "expires_at": "2026-08-08T09:30:52.093000+00:00",
+        "generation_id": "b663431d5d3ebf8eee27",
+        "identifier": "smurf2",
+        "message_text": "Пока фейкер не успел проиграть ещё одну серию, запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\n🥰\nhttps://betboom.ru/freestream/smurf2\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2157\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-08T08:40:52.093000+00:00",
+        "source": "smurf_gigachad",
+        "source_message_date": "2026-08-08T08:41:07+00:00",
+        "source_message_id": 2157,
+        "source_message_url": "https://telegram.me/smurf_gigachad/2157",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/smurf2",
+        "verification_status": "confirmed",
+        "wheel_key": "smurf2",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "f8faee96ea2ea3452cf4b1951de27e7660cec92801d0a66a1a3c833a86ecc38a"
+    },
+    {
       "dedupe_key": "xflarxx:xflarxx_primary:f40c0550911d23bf2f137fb48b24c790a0649625013ba04a1df59e2988276c89",
       "occurred_at": "2026-08-08T08:44:34.694121+00:00",
       "payload": {
@@ -261,7 +261,7 @@
       "transition_id": "facf789c100080d58a4c22a454fd2b13ffcb9b487aa575e79f905913afdd598f"
     }
   ],
-  "updated_at": "2026-08-08T08:44:39.160141+00:00",
+  "updated_at": "2026-08-08T08:45:06.960480+00:00",
   "wheel_key": "smurf2",
   "workflow_started_at": "2026-08-08T08:44:39.160141+00:00"
 }
