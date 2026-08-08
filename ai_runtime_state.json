@@ -1,8 +1,12 @@
 {
   "cache": {
-    "5124c4e227e321898842e02240b4037acfd9d331da1649256352040c8242172d": {
-      "expires_at": 1785917321.8081653,
-      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The author is gauging interest for a BetBoom freebet wheel and provides a registration link, indicating an intent to launch or promote the wheel activity.\"\n}"
+    "80c294ca7384eff7320a18ef8618b1be003bf88780236ff84001ee7a4e891260": {
+      "expires_at": 1786179373.7218986,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions distributing free bets via a wheel at a specific time today and includes a promotional link.\"\n}"
+    },
+    "fcd05f5c350a78f3f4e1161dc09100685d32ed6f74c20a6539eb4d2822b5b55a": {
+      "expires_at": 1786179374.4227567,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly announces a wheel-based freebet giveaway scheduled for 14:00 today.\"\n}"
     }
   },
   "decisions": [
@@ -1480,10 +1484,37 @@
       "provider": "gemini",
       "reason": "The author is gauging interest for a BetBoom freebet wheel and provides a registration link, indicating an intent to launch or promote the wheel activity.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1786178473.7218986,
+      "feature": "suspicious_post_analysis",
+      "id": "ee5d86fcd12e45d9b47421682114d364",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "cffa9c58b4c02ca623b7d1c6462e81a51cd37676452058c61bfdd2e2ee30cbbc",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions distributing free bets via a wheel at a specific time today and includes a promotional link.",
+      "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1786178474.4227567,
+      "feature": "suspicious_post_analysis",
+      "id": "e41a85da1edd483d95fc66e1b4b0ddaf",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "eac0294b97dab67bf3564ad9f7fb051fb13dbb30a6e9db9e9fa8ab5ee7fde595",
+      "provider": "gemini",
+      "reason": "The post explicitly announces a wheel-based freebet giveaway scheduled for 14:00 today.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1785916421.8081653
+    1786178473.7218986,
+    1786178474.4227567
   ],
   "version": 1
 }
