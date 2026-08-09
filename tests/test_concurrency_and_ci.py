@@ -5,6 +5,7 @@ import json
 import multiprocessing
 import os
 import subprocess
+import threading
 import unittest
 from copy import deepcopy
 from pathlib import Path
@@ -38,6 +39,93 @@ def _claim_in_process(
 
 
 class ConcurrentStateTests(unittest.TestCase):
+    @staticmethod
+    def _private_state_panel() -> tuple[PrivateStateRuntime, dict[str, Any]]:
+        panel = PrivateStateRuntime()
+        access = panel.normalize_access(
+            {
+                "owner_id": "1",
+                "admins": [],
+                "blocked_users": [],
+                "notification_recipients": ["101"],
+                "settings": {"notifications": True},
+                "users": {"1": {"id": "1", "chat_id": "101"}},
+            }
+        )
+        bundle = panel._normalize_bundle(
+            {
+                "version": 2,
+                "access": access,
+                "source_requests": {"version": 1, "requests": {}},
+            }
+        )
+        panel._bot_bundle = deepcopy(bundle)
+        panel._bundle_baseline = deepcopy(bundle)
+        panel.access = deepcopy(bundle["access"])
+        panel.access_loaded = True
+        panel._ensure_bundle_save_worker = lambda: None  # type: ignore[method-assign]
+        return panel, bundle
+
+    def test_force_refresh_cannot_discard_pending_private_state(self) -> None:
+        panel, stale_remote = self._private_state_panel()
+        remote_loads: list[bool] = []
+
+        def load_stale_remote() -> tuple[dict[str, Any], str]:
+            remote_loads.append(True)
+            return deepcopy(stale_remote), "stale-sha"
+
+        panel._load_remote_bundle = load_stale_remote  # type: ignore[method-assign]
+        panel.access["users"]["1"]["auto_participation_success_events"] = {
+            "wheel#action:42": {"notified_at": "2026-08-09T15:00:00+00:00"}
+        }
+        panel.save_access(
+            "Record automatic participation success for owner [skip ci]"
+        )
+
+        refreshed = panel.load_access(force=True)
+
+        self.assertEqual(remote_loads, [])
+        self.assertIn(
+            "wheel#action:42",
+            refreshed["users"]["1"]["auto_participation_success_events"],
+        )
+
+    def test_new_private_state_save_is_not_cleared_by_older_flush(self) -> None:
+        panel, _bundle = self._private_state_panel()
+        message = "Record automatic participation success for owner [skip ci]"
+        panel.access["users"]["1"]["first_name"] = "first"
+        panel.save_access(message)
+
+        def save_then_queue_newer(_message: str) -> bool:
+            panel._bot_bundle["access"]["users"]["1"]["first_name"] = "second"
+            panel._queue_bot_bundle_save(message)
+            return True
+
+        panel._save_bot_bundle = save_then_queue_newer  # type: ignore[method-assign]
+
+        self.assertTrue(panel.flush_pending_bot_bundle_save())
+        self.assertEqual(panel._pending_bundle_save_message, message)
+
+    def test_private_state_load_does_not_hold_access_lock_during_bundle_read(self) -> None:
+        panel = PrivateStateRuntime.__new__(PrivateStateRuntime)
+        panel.access_lock = threading.Lock()
+        panel.access_loaded = False
+        panel.access = {}
+        panel._bot_state_lock = threading.RLock()
+        panel._pending_bundle_save_message = None
+        panel._bot_bundle = None
+
+        def load_without_access_lock(*, force: bool = False) -> dict[str, Any]:
+            self.assertTrue(force)
+            self.assertFalse(panel.access_lock.locked())
+            return {"access": {}}
+
+        panel._load_bot_bundle = load_without_access_lock  # type: ignore[method-assign]
+        panel.normalize_access = lambda value: dict(value)  # type: ignore[method-assign]
+
+        self.assertEqual(panel.load_access(force=True), {})
+        self.assertTrue(panel.access_loaded)
+
     def test_registration_and_personal_action_merge_without_data_loss(self) -> None:
         panel = PrivateStateRuntime()
         base = panel.normalize_access(

@@ -193,28 +193,6 @@ def _install_auto_outcome_delivery_claims() -> None:
 class TelegramPanelRuntimeButtonRecovery(TelegramPanelRuntimeV41):
     """Compatibility entrypoint; personal wheel callbacks have one subject owner."""
 
-    def load_access(self, force: bool = False) -> dict[str, Any]:
-        """Load private state without taking locks in the opposite order.
-
-        The persistence worker owns ``_bot_state_lock`` and later updates the
-        public access view under ``access_lock``. Holding ``access_lock`` while
-        waiting for ``_bot_state_lock`` creates a permanent AB/BA deadlock. Read
-        the encrypted bundle first, then publish the normalized access snapshot.
-        """
-
-        with self.access_lock:
-            if self.access_loaded and not force:
-                return self.access
-
-        bundle = self._load_bot_bundle(force=force)
-        normalized = self.normalize_access(bundle["access"])
-        with self.access_lock:
-            if self.access_loaded and not force:
-                return self.access
-            self.access = normalized
-            self.access_loaded = True
-            return self.access
-
 
 _install_fast_outcome_policy()
 wheel_detection_reliability.install_owner_notification_update()
@@ -268,23 +246,6 @@ def self_test() -> None:
     assert _outcome_delivery_identity(
         "owner", "wheel#action:42", success=False
     ).endswith(":failure")
-
-    lock_panel = TelegramPanelRuntimeButtonRecovery.__new__(
-        TelegramPanelRuntimeButtonRecovery
-    )
-    lock_panel.access_lock = threading.Lock()
-    lock_panel.access_loaded = False
-    lock_panel.access = {}
-
-    def load_without_access_lock(*, force: bool = False) -> dict[str, Any]:
-        assert force is True
-        assert not lock_panel.access_lock.locked()
-        return {"access": {}}
-
-    lock_panel._load_bot_bundle = load_without_access_lock
-    lock_panel.normalize_access = lambda value: dict(value)
-    assert lock_panel.load_access(force=True) == {}
-    assert lock_panel.access_loaded is True
 
     original_delivery_key = notification_router.delivery_key
     original_claim = notification_router.claim_delivery
