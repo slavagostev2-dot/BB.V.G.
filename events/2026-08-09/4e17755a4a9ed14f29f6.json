@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-09T09:20:44.722224+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T09:21:06.963001+00:00"
+      "updated_at": "2026-08-09T09:21:34.426724+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-09T09:20:58.551912+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T09:21:06.964566+00:00"
+      "updated_at": "2026-08-09T09:21:34.428329+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-09T09:21:02.322727+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T09:21:06.965872+00:00"
+      "updated_at": "2026-08-09T09:21:34.429558+00:00"
     }
   ],
   "action_id": 1243,
@@ -119,35 +119,6 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-09T09:21:06.956596+00:00",
-      "payload": {
-        "action_id": 1243,
-        "available_at": "",
-        "deadline": "2026-08-09T18:18:23.867000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:4e17755a4a9ed14f29f6",
-        "expires_at": "2026-08-09T18:48:23.867000+00:00",
-        "generation_id": "4e17755a4a9ed14f29f6",
-        "identifier": "papa",
-        "message_text": "⚡️\nКОЛЕСО ФРИБЕТОВ\nот ПАПАставит\n20000 ФРИБЕТОВ\n✅\nЗаходи по ссылке -\nhttps://betboom.ru/freestream/papa\n✅\nНажимай кнопку\nУчаствовать\nВ конце игрового дня подведу итог!\nКолесо автоматически сделает прокрут\nИ между теми, кто нажал Участвовать разыграются призы!\nДальше, если ты выиграл, в течении 2-3 минут фрибеты будут зачислены на твой аккаунт BetBoom автоматически.\nВсё буду показывать и рассказывать на стриме, заходи:\n✨\nhttps://www.twitch.tv/cispapa\n✨\nhttps://www.twitch.tv/cispapa\nДля того, чтобы участвовать в раздаче КОЛЕСО ФРИБЕТОВ, нужно обязательно быть зарегистрированным на BetBoom\n(вносить деньги не обязательно)\n❤️\nЗАРЕГИСТРИРОВАТЬСЯ с промокодом PAPA\nhttps://telegram.me/PAPAdota2\nhttps://telegram.me/PAPAdota2/11717\nhttps://telegram.me/PAPAdota2/12486\nhttps://betboom.ru/freestream/papa\nhttps://www.twitch.tv/cispapa\nhttps://betboom.ru/link/RfH6hP/?erid=KW2aPRYdr5QoPXHUHGeGkQy9fyYoUK6D9riSDrkrkP7AQkFuvVuxCxDau45JnvhV9",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-09T09:18:23.867000+00:00",
-        "source": "PAPAdota2",
-        "source_message_date": "2026-08-09T09:18:33+00:00",
-        "source_message_id": 12486,
-        "source_message_url": "https://telegram.me/PAPAdota2/12486",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/papa",
-        "verification_status": "confirmed",
-        "wheel_key": "papa",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "81bd3c95d973586473d39b6099730cdf2d3a5b8d6ca26f0dec38f23a4fd0f83a"
-    },
-    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-08-09T09:21:06.956596+00:00",
       "payload": {
@@ -175,6 +146,31 @@
       },
       "stage": "persisted",
       "transition_id": "333630ef25a9d2c27b83b8738fb274ef825c10a3e5a3ea4aefbbbb589ee7c86e"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:7e9c58991c20454fba3fb6d4048f57a16e6e4552054d0ee17d3d0f05f0f7b018",
+      "occurred_at": "2026-08-09T09:20:58.551912+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "3b40ce54f186540f534472d5619187dee20b88df0939bfc24457c9e7295a9733"
+    },
+    {
+      "dedupe_key": "31305610161",
+      "occurred_at": "2026-08-09T09:21:06.961006+00:00",
+      "payload": {
+        "workflow_run_id": "31305610161",
+        "workflow_sha": "e7a681d2ebd53079d7d20cf9fc00c7d3acfd82a7"
+      },
+      "stage": "workflow_started",
+      "transition_id": "49de243178750258ca6f9aae7389d55a5cabb6c2e7e953c8f56baf2dd52ac311"
     },
     {
       "dedupe_key": "1243:2026-08-09T09:18:23.867000+00:00",
@@ -206,14 +202,33 @@
       "transition_id": "6779c453150b23f0e2c598d787297b9d2ef90e91ebbaca82be9731322b968e48"
     },
     {
-      "dedupe_key": "31305610161",
-      "occurred_at": "2026-08-09T09:21:06.961006+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-09T09:21:06.956596+00:00",
       "payload": {
-        "workflow_run_id": "31305610161",
-        "workflow_sha": "e7a681d2ebd53079d7d20cf9fc00c7d3acfd82a7"
+        "action_id": 1243,
+        "available_at": "",
+        "deadline": "2026-08-09T18:18:23.867000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:4e17755a4a9ed14f29f6",
+        "expires_at": "2026-08-09T18:48:23.867000+00:00",
+        "generation_id": "4e17755a4a9ed14f29f6",
+        "identifier": "papa",
+        "message_text": "⚡️\nКОЛЕСО ФРИБЕТОВ\nот ПАПАставит\n20000 ФРИБЕТОВ\n✅\nЗаходи по ссылке -\nhttps://betboom.ru/freestream/papa\n✅\nНажимай кнопку\nУчаствовать\nВ конце игрового дня подведу итог!\nКолесо автоматически сделает прокрут\nИ между теми, кто нажал Участвовать разыграются призы!\nДальше, если ты выиграл, в течении 2-3 минут фрибеты будут зачислены на твой аккаунт BetBoom автоматически.\nВсё буду показывать и рассказывать на стриме, заходи:\n✨\nhttps://www.twitch.tv/cispapa\n✨\nhttps://www.twitch.tv/cispapa\nДля того, чтобы участвовать в раздаче КОЛЕСО ФРИБЕТОВ, нужно обязательно быть зарегистрированным на BetBoom\n(вносить деньги не обязательно)\n❤️\nЗАРЕГИСТРИРОВАТЬСЯ с промокодом PAPA\nhttps://telegram.me/PAPAdota2\nhttps://telegram.me/PAPAdota2/11717\nhttps://telegram.me/PAPAdota2/12486\nhttps://betboom.ru/freestream/papa\nhttps://www.twitch.tv/cispapa\nhttps://betboom.ru/link/RfH6hP/?erid=KW2aPRYdr5QoPXHUHGeGkQy9fyYoUK6D9riSDrkrkP7AQkFuvVuxCxDau45JnvhV9",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-09T09:18:23.867000+00:00",
+        "source": "PAPAdota2",
+        "source_message_date": "2026-08-09T09:18:33+00:00",
+        "source_message_id": 12486,
+        "source_message_url": "https://telegram.me/PAPAdota2/12486",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/papa",
+        "verification_status": "confirmed",
+        "wheel_key": "papa",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "49de243178750258ca6f9aae7389d55a5cabb6c2e7e953c8f56baf2dd52ac311"
+      "stage": "source_discovered",
+      "transition_id": "81bd3c95d973586473d39b6099730cdf2d3a5b8d6ca26f0dec38f23a4fd0f83a"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:02a9cf9e7794726dd6222cd6fd31478fbe60709611f18ab8392a1288fd03f704",
@@ -231,21 +246,6 @@
       "transition_id": "c3722ba3ff34dc5fe7e5e5c0407d47f69d3090bd38498ed94d398479a507b601"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:7e9c58991c20454fba3fb6d4048f57a16e6e4552054d0ee17d3d0f05f0f7b018",
-      "occurred_at": "2026-08-09T09:20:58.551912+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "3b40ce54f186540f534472d5619187dee20b88df0939bfc24457c9e7295a9733"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:d91af85013ff49bf0ce5e6f5a77a2bf06cb1442ce3f1875c8be1f23765e17051",
       "occurred_at": "2026-08-09T09:21:02.322727+00:00",
       "payload": {
@@ -261,7 +261,7 @@
       "transition_id": "ccaa841218e129efec6ec1ea21d06a91d7e926438d7051dfed3cfbc0097c297f"
     }
   ],
-  "updated_at": "2026-08-09T09:21:06.961006+00:00",
+  "updated_at": "2026-08-09T09:21:34.424676+00:00",
   "wheel_key": "papa",
   "workflow_started_at": "2026-08-09T09:21:06.961006+00:00"
 }
