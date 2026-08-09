@@ -82,6 +82,7 @@ class PrivateStateRuntime(SourceRegistryRuntime):
         self._bot_bundle: dict[str, Any] | None = None
         self._bundle_baseline: dict[str, Any] | None = None
         self._pending_bundle_save_message: str | None = None
+        self._bundle_save_generation = 0
         self._bundle_save_event = threading.Event()
         self._bundle_save_thread: threading.Thread | None = None
 
@@ -210,6 +211,15 @@ class PrivateStateRuntime(SourceRegistryRuntime):
         with self._bot_state_lock:
             if self._bot_bundle is not None and not force:
                 return self._bot_bundle
+            if (
+                force
+                and self._bot_bundle is not None
+                and self._pending_bundle_save_message
+            ):
+                # A forced refresh must never replace local changes which the
+                # background writer has not confirmed remotely yet. The writer
+                # performs its own fresh remote read and three-way merge.
+                return self._bot_bundle
             if force:
                 try:
                     bundle, _ = self._load_remote_bundle()
@@ -307,7 +317,9 @@ class PrivateStateRuntime(SourceRegistryRuntime):
     def _save_bot_bundle(self, message: str) -> bool:
         """Persist a three-way merge so stale processes cannot erase roles."""
 
+        save_generation = 0
         with self._bot_state_lock:
+            save_generation = self._bundle_save_generation
             local = self._normalize_bundle(self._load_bot_bundle())
             base = self._normalize_bundle(self._bundle_baseline or local)
             last_error: Exception | None = None
@@ -334,15 +346,22 @@ class PrivateStateRuntime(SourceRegistryRuntime):
                     self._write_remote_bundle(merged, sha, message)
                     self._bot_bundle = merged
                     self._bundle_baseline = _clone(merged)
-                    with self.access_lock:
-                        self.access = self.normalize_access(merged["access"])
-                        self.access_loaded = True
-                    return True
+                    break
                 except Exception as exc:
                     last_error = exc
-            raise RuntimeError(
-                "Не удалось безопасно сохранить состояние без потери ролей"
-            ) from last_error
+            else:
+                raise RuntimeError(
+                    "Не удалось безопасно сохранить состояние без потери ролей"
+                ) from last_error
+
+        # Keep one lock order everywhere: access first, bundle second. A newer
+        # local save wins and must not be replaced by the just-persisted view.
+        with self.access_lock:
+            with self._bot_state_lock:
+                if self._bundle_save_generation == save_generation:
+                    self.access = self.normalize_access(merged["access"])
+                    self.access_loaded = True
+        return True
 
     def _ensure_bundle_save_worker(self) -> None:
         with self._bot_state_lock:
@@ -359,6 +378,7 @@ class PrivateStateRuntime(SourceRegistryRuntime):
 
     def _queue_bot_bundle_save(self, message: str) -> None:
         with self._bot_state_lock:
+            self._bundle_save_generation += 1
             self._pending_bundle_save_message = str(
                 message or "Update Telegram bot access [skip ci]"
             )
@@ -368,6 +388,7 @@ class PrivateStateRuntime(SourceRegistryRuntime):
     def flush_pending_bot_bundle_save(self) -> bool:
         with self._bot_state_lock:
             message = self._pending_bundle_save_message
+            generation = self._bundle_save_generation
         if not message:
             return True
         try:
@@ -379,7 +400,7 @@ class PrivateStateRuntime(SourceRegistryRuntime):
             )
             return False
         with self._bot_state_lock:
-            if self._pending_bundle_save_message == message:
+            if self._bundle_save_generation == generation:
                 self._pending_bundle_save_message = None
         return True
 
@@ -401,8 +422,19 @@ class PrivateStateRuntime(SourceRegistryRuntime):
         with self.access_lock:
             if self.access_loaded and not force:
                 return self.access
-            bundle = self._load_bot_bundle(force=force)
-            self.access = self.normalize_access(bundle["access"])
+
+        bundle = self._load_bot_bundle(force=force)
+        normalized = self.normalize_access(bundle["access"])
+        with self.access_lock:
+            if self.access_loaded and not force:
+                return self.access
+            with self._bot_state_lock:
+                if (
+                    self._pending_bundle_save_message
+                    and self._bot_bundle is not None
+                ):
+                    normalized = self.normalize_access(self._bot_bundle["access"])
+            self.access = normalized
             self.access_loaded = True
             return self.access
 
@@ -414,12 +446,17 @@ class PrivateStateRuntime(SourceRegistryRuntime):
         with self._bot_state_lock:
             bundle = self._load_bot_bundle()
             bundle["access"] = _clone(normalized)
+            self._bundle_save_generation += 1
+            self._pending_bundle_save_message = str(
+                message or "Update Telegram bot access [skip ci]"
+            )
         with self.access_lock:
             # A concurrent background merge may have refreshed the public view
             # while this update waited for the bundle lock.
             self.access = normalized
             self.access_loaded = True
-        self._queue_bot_bundle_save(message)
+        self._ensure_bundle_save_worker()
+        self._bundle_save_event.set()
 
     def load_source_requests(self) -> dict[str, Any]:
         value = self._load_bot_bundle().get("source_requests")
