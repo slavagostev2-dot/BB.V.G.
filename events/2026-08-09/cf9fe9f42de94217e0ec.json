@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-09T09:39:17.151573+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T09:39:46.332601+00:00"
+      "updated_at": "2026-08-09T09:40:46.284121+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-09T09:39:37.686289+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T09:39:46.333870+00:00"
+      "updated_at": "2026-08-09T09:40:46.285285+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-09T09:39:41.833757+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T09:39:46.335076+00:00"
+      "updated_at": "2026-08-09T09:40:46.286477+00:00"
     }
   ],
   "action_id": 1117,
@@ -119,33 +119,29 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-09T09:39:46.326649+00:00",
+      "dedupe_key": "31306360079",
+      "occurred_at": "2026-08-09T09:39:46.330650+00:00",
       "payload": {
-        "action_id": 1117,
-        "available_at": "",
-        "deadline": "2026-08-09T18:37:02.743000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:cf9fe9f42de94217e0ec",
-        "expires_at": "2026-08-09T19:07:02.743000+00:00",
-        "generation_id": "cf9fe9f42de94217e0ec",
-        "identifier": "neret",
-        "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ: 10 000 РАЗЫГРАЮ\n💎\n💎\n💎\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nВСЁ ПОКАЗЫВАЮ НА СТРИМЕ:\nhttps://www.twitch.tv/neret17\nhttps://www.twitch.tv/neret17\nhttps://www.twitch.tv/neret17\nЕсли не зареган на BetBoom:\nhttps://cyberbb.ru/tw/neret\nИТОГИ В КОНЦЕ СТРИМА\n❗️\n❗️\n❗️\nhttps://telegram.me/NeretCast\nhttps://telegram.me/NeretCast/4370\nhttps://betboom.ru/freestream/neret\nhttps://www.twitch.tv/neret17\nhttps://cyberbb.ru/tw/neret",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-09T09:37:02.743000+00:00",
-        "source": "NeretCast",
-        "source_message_date": "2026-08-09T09:36:44+00:00",
-        "source_message_id": 4370,
-        "source_message_url": "https://telegram.me/NeretCast/4370",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/neret",
-        "verification_status": "confirmed",
-        "wheel_key": "neret",
-        "wheel_type": "normal"
+        "workflow_run_id": "31306360079",
+        "workflow_sha": "f5b44ccd1d305da3d8962be66c4bc481e0802740"
       },
-      "stage": "source_discovered",
-      "transition_id": "55589b6cd7d5319db09c819739368623048ca0f091651e0c277d5e66faf2755d"
+      "stage": "workflow_started",
+      "transition_id": "09e0e73780b1b063324ad0f8c07f78cadfad563be1db1e835cec515f1f3cc7d6"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:9381b7b6775488c3eee227b5b94a4e6ea0c09eb591787fc9e890d4aaceaf3dd5",
+      "occurred_at": "2026-08-09T09:39:37.686289+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "0f01df59fb78e475c22b7cf9077cb7307a2b2dd1bed005128c8cb5754df1fddb"
     },
     {
       "dedupe_key": "durable-event",
@@ -206,14 +202,33 @@
       "transition_id": "3eee7fa2f700821cceb206833132db6bc554deac291bc18faf176b9b06f224a7"
     },
     {
-      "dedupe_key": "31306360079",
-      "occurred_at": "2026-08-09T09:39:46.330650+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-09T09:39:46.326649+00:00",
       "payload": {
-        "workflow_run_id": "31306360079",
-        "workflow_sha": "f5b44ccd1d305da3d8962be66c4bc481e0802740"
+        "action_id": 1117,
+        "available_at": "",
+        "deadline": "2026-08-09T18:37:02.743000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:cf9fe9f42de94217e0ec",
+        "expires_at": "2026-08-09T19:07:02.743000+00:00",
+        "generation_id": "cf9fe9f42de94217e0ec",
+        "identifier": "neret",
+        "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ: 10 000 РАЗЫГРАЮ\n💎\n💎\n💎\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nВСЁ ПОКАЗЫВАЮ НА СТРИМЕ:\nhttps://www.twitch.tv/neret17\nhttps://www.twitch.tv/neret17\nhttps://www.twitch.tv/neret17\nЕсли не зареган на BetBoom:\nhttps://cyberbb.ru/tw/neret\nИТОГИ В КОНЦЕ СТРИМА\n❗️\n❗️\n❗️\nhttps://telegram.me/NeretCast\nhttps://telegram.me/NeretCast/4370\nhttps://betboom.ru/freestream/neret\nhttps://www.twitch.tv/neret17\nhttps://cyberbb.ru/tw/neret",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-09T09:37:02.743000+00:00",
+        "source": "NeretCast",
+        "source_message_date": "2026-08-09T09:36:44+00:00",
+        "source_message_id": 4370,
+        "source_message_url": "https://telegram.me/NeretCast/4370",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/neret",
+        "verification_status": "confirmed",
+        "wheel_key": "neret",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "09e0e73780b1b063324ad0f8c07f78cadfad563be1db1e835cec515f1f3cc7d6"
+      "stage": "source_discovered",
+      "transition_id": "55589b6cd7d5319db09c819739368623048ca0f091651e0c277d5e66faf2755d"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:8c1bed2700992447354c063c8c67b1823aa524e328203e4bc0c86615d624cd4b",
@@ -231,21 +246,6 @@
       "transition_id": "b1489ea7c92d6514c369a94fcfc34d4e92866a51fa7edf5eb3878219bbb978f4"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:9381b7b6775488c3eee227b5b94a4e6ea0c09eb591787fc9e890d4aaceaf3dd5",
-      "occurred_at": "2026-08-09T09:39:37.686289+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "0f01df59fb78e475c22b7cf9077cb7307a2b2dd1bed005128c8cb5754df1fddb"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:94a53c9df28bc26883c71b65eeb65a543771cd4567c9a0504c0ec073b0e1e169",
       "occurred_at": "2026-08-09T09:39:41.833757+00:00",
       "payload": {
@@ -261,7 +261,7 @@
       "transition_id": "d75f873f79b20e640f21dcb607c529ed787b28cb459dab44aea2b6eb1993e74c"
     }
   ],
-  "updated_at": "2026-08-09T09:39:46.330650+00:00",
+  "updated_at": "2026-08-09T09:40:46.282645+00:00",
   "wheel_key": "neret",
   "workflow_started_at": "2026-08-09T09:39:46.330650+00:00"
 }
