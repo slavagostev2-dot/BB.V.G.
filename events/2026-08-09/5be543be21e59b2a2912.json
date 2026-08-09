@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "a54da7a28e978b9a7effb6f19545a7648d1e05db57ebc5e89d6c71ef2876ad5e",
-      "confidence": 120,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
-      "event_id": "evt:5be543be21e59b2a2912",
-      "finished_at": "2026-08-09T12:37:47.180253+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-09T12:38:13.462816+00:00",
-      "started_at": "2026-08-09T12:37:47.180253+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "",
       "attempt_id": "7551fb08513efb9649e3cd5e731dc180dc81ee88a72ceb8915d8e9bcbbe309cd",
@@ -26,6 +12,20 @@
       "owner_id": "vyacheslav",
       "recorded_at": "2026-08-09T12:38:13.464557+00:00",
       "started_at": "2026-08-09T12:38:04.535455+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "a54da7a28e978b9a7effb6f19545a7648d1e05db57ebc5e89d6c71ef2876ad5e",
+      "confidence": 120,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
+      "event_id": "evt:5be543be21e59b2a2912",
+      "finished_at": "2026-08-09T12:37:47.180253+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-09T12:38:13.462816+00:00",
+      "started_at": "2026-08-09T12:37:47.180253+00:00",
       "status": "participated"
     },
     {
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-09T12:37:47.180253+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T12:38:13.462816+00:00"
+      "updated_at": "2026-08-09T12:39:09.664553+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-09T12:38:04.535455+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T12:38:13.464557+00:00"
+      "updated_at": "2026-08-09T12:39:09.665919+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-09T12:38:08.937198+00:00",
       "status": "participated",
-      "updated_at": "2026-08-09T12:38:13.465916+00:00"
+      "updated_at": "2026-08-09T12:39:09.667113+00:00"
     }
   ],
   "action_id": 1254,
@@ -119,62 +119,34 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-09T12:38:13.455969+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:7551fb08513efb9649e3cd5e731dc180dc81ee88a72ceb8915d8e9bcbbe309cd",
+      "occurred_at": "2026-08-09T12:38:04.535455+00:00",
       "payload": {
-        "action_id": 1254,
-        "available_at": "",
-        "deadline": "2026-08-09T12:52:12.755000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:5be543be21e59b2a2912",
-        "expires_at": "2026-08-09T13:22:12.755000+00:00",
-        "generation_id": "5be543be21e59b2a2912",
-        "identifier": "kekw1",
-        "message_text": "3 игры и симпл на чемпионате мира\nКолесо:\nhttps://betboom.ru/freestream/kekw1\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://betboom.ru/freestream/kekw1\nhttp://twitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw/6188",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-09T12:32:12.755000+00:00",
-        "source": "shadowkekw",
-        "source_message_date": "2026-08-09T09:04:06+00:00",
-        "source_message_id": 6188,
-        "source_message_url": "https://telegram.me/shadowkekw/6188",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/kekw1",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw1",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "d0c11cad34ab85ac510e3c5363667d0fda9313c4a022362101d46d10b0234974"
+      "stage": "account_result",
+      "transition_id": "2d0ebec156c50cf630956a56fe7d3b3e30b6070379ff7e00c13bd52b72f63d11"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-09T12:38:13.455969+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:a54da7a28e978b9a7effb6f19545a7648d1e05db57ebc5e89d6c71ef2876ad5e",
+      "occurred_at": "2026-08-09T12:37:47.180253+00:00",
       "payload": {
-        "action_id": 1254,
-        "available_at": "",
-        "deadline": "2026-08-09T12:52:12.755000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:5be543be21e59b2a2912",
-        "expires_at": "2026-08-09T13:22:12.755000+00:00",
-        "generation_id": "5be543be21e59b2a2912",
-        "identifier": "kekw1",
-        "message_text": "3 игры и симпл на чемпионате мира\nКолесо:\nhttps://betboom.ru/freestream/kekw1\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://betboom.ru/freestream/kekw1\nhttp://twitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw/6188",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-09T12:32:12.755000+00:00",
-        "source": "shadowkekw",
-        "source_message_date": "2026-08-09T09:04:06+00:00",
-        "source_message_id": 6188,
-        "source_message_url": "https://telegram.me/shadowkekw/6188",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/kekw1",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw1",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "persisted",
-      "transition_id": "c9db4f469da37520278878c2517e27711e03ef5d0404288c9330b9d3251da1d8"
+      "stage": "account_result",
+      "transition_id": "7e9ea6da768be82c95e5ecb890a02923aa5a5d32a132033480b3c0c6cfa310b1"
     },
     {
       "dedupe_key": "1254:2026-08-09T12:32:12.755000+00:00",
@@ -216,34 +188,62 @@
       "transition_id": "b7b2d568e6f02da03edf2bc2eba91d235faf4332299c0956f96d2720c0a81fed"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:a54da7a28e978b9a7effb6f19545a7648d1e05db57ebc5e89d6c71ef2876ad5e",
-      "occurred_at": "2026-08-09T12:37:47.180253+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-09T12:38:13.455969+00:00",
       "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
+        "action_id": 1254,
+        "available_at": "",
+        "deadline": "2026-08-09T12:52:12.755000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:5be543be21e59b2a2912",
+        "expires_at": "2026-08-09T13:22:12.755000+00:00",
+        "generation_id": "5be543be21e59b2a2912",
+        "identifier": "kekw1",
+        "message_text": "3 игры и симпл на чемпионате мира\nКолесо:\nhttps://betboom.ru/freestream/kekw1\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://betboom.ru/freestream/kekw1\nhttp://twitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw/6188",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-09T12:32:12.755000+00:00",
+        "source": "shadowkekw",
+        "source_message_date": "2026-08-09T09:04:06+00:00",
+        "source_message_id": 6188,
+        "source_message_url": "https://telegram.me/shadowkekw/6188",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/kekw1",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw1",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "7e9ea6da768be82c95e5ecb890a02923aa5a5d32a132033480b3c0c6cfa310b1"
+      "stage": "persisted",
+      "transition_id": "c9db4f469da37520278878c2517e27711e03ef5d0404288c9330b9d3251da1d8"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:7551fb08513efb9649e3cd5e731dc180dc81ee88a72ceb8915d8e9bcbbe309cd",
-      "occurred_at": "2026-08-09T12:38:04.535455+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-09T12:38:13.455969+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
+        "action_id": 1254,
+        "available_at": "",
+        "deadline": "2026-08-09T12:52:12.755000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:5be543be21e59b2a2912",
+        "expires_at": "2026-08-09T13:22:12.755000+00:00",
+        "generation_id": "5be543be21e59b2a2912",
+        "identifier": "kekw1",
+        "message_text": "3 игры и симпл на чемпионате мира\nКолесо:\nhttps://betboom.ru/freestream/kekw1\ntwitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw\nhttps://betboom.ru/freestream/kekw1\nhttp://twitch.tv/shadowkekw\nhttps://telegram.me/shadowkekw/6188",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-09T12:32:12.755000+00:00",
+        "source": "shadowkekw",
+        "source_message_date": "2026-08-09T09:04:06+00:00",
+        "source_message_id": 6188,
+        "source_message_url": "https://telegram.me/shadowkekw/6188",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/kekw1",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw1",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "2d0ebec156c50cf630956a56fe7d3b3e30b6070379ff7e00c13bd52b72f63d11"
+      "stage": "source_discovered",
+      "transition_id": "d0c11cad34ab85ac510e3c5363667d0fda9313c4a022362101d46d10b0234974"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:a910cb931081d9d8287684a14db1be52fbbd4abe321ed34e56b3f36c654495e0",
@@ -261,7 +261,7 @@
       "transition_id": "d8da8c006b1984a1af2f523d1e844dc4c601635ca75ffbff063d8170a1a3cb2a"
     }
   ],
-  "updated_at": "2026-08-09T12:38:13.460553+00:00",
+  "updated_at": "2026-08-09T12:39:09.662842+00:00",
   "wheel_key": "kekw1",
   "workflow_started_at": "2026-08-09T12:38:13.460553+00:00"
 }
