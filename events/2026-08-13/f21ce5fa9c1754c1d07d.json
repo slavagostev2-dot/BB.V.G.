@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "",
-      "attempt_id": "dc795365ae0645bcf844fad3a4f882e47ffa2f4ea15561a2b48aac14bcfbdc4d",
-      "confidence": 120,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
-      "event_id": "evt:f21ce5fa9c1754c1d07d",
-      "finished_at": "2026-08-13T12:17:36.794458+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-13T12:17:45.356898+00:00",
-      "started_at": "2026-08-13T12:17:36.794458+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "",
       "attempt_id": "335782734953b8c4fd4ce9a6d254a3faec4bb158eee14e86390d63bdaca593e8",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-08-13T12:17:45.358013+00:00",
       "started_at": "2026-08-13T12:17:40.988466+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "",
+      "attempt_id": "dc795365ae0645bcf844fad3a4f882e47ffa2f4ea15561a2b48aac14bcfbdc4d",
+      "confidence": 120,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
+      "event_id": "evt:f21ce5fa9c1754c1d07d",
+      "finished_at": "2026-08-13T12:17:36.794458+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-13T12:17:45.356898+00:00",
+      "started_at": "2026-08-13T12:17:36.794458+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-13T12:17:23.436068+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T12:17:45.355695+00:00"
+      "updated_at": "2026-08-13T12:18:37.017905+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-13T12:17:36.794458+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T12:17:45.356898+00:00"
+      "updated_at": "2026-08-13T12:18:37.018984+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-13T12:17:40.988466+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T12:17:45.358013+00:00"
+      "updated_at": "2026-08-13T12:18:37.020208+00:00"
     }
   ],
   "action_id": 1341,
@@ -118,6 +118,60 @@
   "source_message_url": "https://telegram.me/burdakekw/5626",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "1341:2026-08-13T12:13:41.721000+00:00",
+      "occurred_at": "2026-08-13T12:17:45.350237+00:00",
+      "payload": {
+        "action_id": 1341,
+        "available_at": "",
+        "deadline": "2026-08-13T12:33:41.721000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:f21ce5fa9c1754c1d07d",
+        "expires_at": "2026-08-13T13:03:41.721000+00:00",
+        "generation_id": "f21ce5fa9c1754c1d07d",
+        "identifier": "kekw",
+        "message_text": "🎰\nВСЕ В КОЛЕСО:\nhttps://betboom.ru/freestream/kekw\n😍\nДо 10.000₽ за регистрацию по промокоду\nKEKW\nна\nBETBOOM\nhttps://telegram.me/burdakekw\nhttps://telegram.me/burdakekw/5626\nhttps://betboom.ru/freestream/kekw\nhttps://bbsport.su/link/gfsibY/",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-13T12:13:41.721000+00:00",
+        "source": "burdakekw",
+        "source_message_date": "2026-08-13T12:14:07+00:00",
+        "source_message_id": 5626,
+        "source_message_url": "https://telegram.me/burdakekw/5626",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/kekw",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "1200b0eb46f0b38b4b3a07a8938b46fe058010a8e2e87b0bf27cbb54be51a1c1"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:25c4bb6f3ef9c6914829e10b96be44108a7607d3c609bd17419221ba0c6c2aa4",
+      "occurred_at": "2026-08-13T12:17:23.436068+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "4122caa9471ff3e5c96d8de1ba08aae92fe701274916a25db045e13eb1741ce6"
+    },
+    {
+      "dedupe_key": "31699170999",
+      "occurred_at": "2026-08-13T12:17:45.353894+00:00",
+      "payload": {
+        "workflow_run_id": "31699170999",
+        "workflow_sha": "c6c7d91746f04c614c9419dc8447138c8afa1037"
+      },
+      "stage": "workflow_started",
+      "transition_id": "4345986d5f33ae12b6404b980dfc9d5f5184d8a44f7661e41f51a5a7e91fa8ab"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-08-13T12:17:45.350237+00:00",
@@ -177,58 +231,19 @@
       "transition_id": "a0c988512d90beefb5d7902f0e4d6abf9789e56c03089840495d87d69b698757"
     },
     {
-      "dedupe_key": "1341:2026-08-13T12:13:41.721000+00:00",
-      "occurred_at": "2026-08-13T12:17:45.350237+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:335782734953b8c4fd4ce9a6d254a3faec4bb158eee14e86390d63bdaca593e8",
+      "occurred_at": "2026-08-13T12:17:40.988466+00:00",
       "payload": {
-        "action_id": 1341,
-        "available_at": "",
-        "deadline": "2026-08-13T12:33:41.721000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:f21ce5fa9c1754c1d07d",
-        "expires_at": "2026-08-13T13:03:41.721000+00:00",
-        "generation_id": "f21ce5fa9c1754c1d07d",
-        "identifier": "kekw",
-        "message_text": "🎰\nВСЕ В КОЛЕСО:\nhttps://betboom.ru/freestream/kekw\n😍\nДо 10.000₽ за регистрацию по промокоду\nKEKW\nна\nBETBOOM\nhttps://telegram.me/burdakekw\nhttps://telegram.me/burdakekw/5626\nhttps://betboom.ru/freestream/kekw\nhttps://bbsport.su/link/gfsibY/",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-13T12:13:41.721000+00:00",
-        "source": "burdakekw",
-        "source_message_date": "2026-08-13T12:14:07+00:00",
-        "source_message_id": 5626,
-        "source_message_url": "https://telegram.me/burdakekw/5626",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/kekw",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "1200b0eb46f0b38b4b3a07a8938b46fe058010a8e2e87b0bf27cbb54be51a1c1"
-    },
-    {
-      "dedupe_key": "31699170999",
-      "occurred_at": "2026-08-13T12:17:45.353894+00:00",
-      "payload": {
-        "workflow_run_id": "31699170999",
-        "workflow_sha": "c6c7d91746f04c614c9419dc8447138c8afa1037"
-      },
-      "stage": "workflow_started",
-      "transition_id": "4345986d5f33ae12b6404b980dfc9d5f5184d8a44f7661e41f51a5a7e91fa8ab"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:25c4bb6f3ef9c6914829e10b96be44108a7607d3c609bd17419221ba0c6c2aa4",
-      "occurred_at": "2026-08-13T12:17:23.436068+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
         "artifact_url": "",
         "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
         "status": "participated"
       },
       "stage": "account_result",
-      "transition_id": "4122caa9471ff3e5c96d8de1ba08aae92fe701274916a25db045e13eb1741ce6"
+      "transition_id": "ceb516691268274e78a5346f811dd256323271f0ac672bfa00602912179b541b"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:dc795365ae0645bcf844fad3a4f882e47ffa2f4ea15561a2b48aac14bcfbdc4d",
@@ -244,24 +259,9 @@
       },
       "stage": "account_result",
       "transition_id": "dd3982e9300b1f39ab17e93c45070883d12a1189acdaba5fdc8b6b4502d94a8e"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:335782734953b8c4fd4ce9a6d254a3faec4bb158eee14e86390d63bdaca593e8",
-      "occurred_at": "2026-08-13T12:17:40.988466+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "ceb516691268274e78a5346f811dd256323271f0ac672bfa00602912179b541b"
     }
   ],
-  "updated_at": "2026-08-13T12:17:45.353894+00:00",
+  "updated_at": "2026-08-13T12:18:37.016421+00:00",
   "wheel_key": "kekw",
   "workflow_started_at": "2026-08-13T12:17:45.353894+00:00"
 }
