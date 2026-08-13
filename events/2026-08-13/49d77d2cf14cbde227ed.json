@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-13T17:12:48.974608+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T17:13:10.705760+00:00"
+      "updated_at": "2026-08-13T17:13:45.221166+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-13T17:13:01.621568+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T17:13:10.819443+00:00"
+      "updated_at": "2026-08-13T17:13:45.222476+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-13T17:13:06.201428+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T17:13:10.820622+00:00"
+      "updated_at": "2026-08-13T17:13:45.225492+00:00"
     }
   ],
   "action_id": 1248,
@@ -119,33 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-13T17:13:10.697577+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:9b4b30ce66d50ce80f272d2843278277def2e3d611dc59253d8ead66098cef26",
+      "occurred_at": "2026-08-13T17:13:01.621568+00:00",
       "payload": {
-        "action_id": 1248,
-        "available_at": "",
-        "deadline": "2026-08-13T17:38:44.264000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:49d77d2cf14cbde227ed",
-        "expires_at": "2026-08-13T18:08:44.264000+00:00",
-        "generation_id": "49d77d2cf14cbde227ed",
-        "identifier": "lent",
-        "message_text": "Колесо на 10.000 Фрибетов\n❤️\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nЧерез 30 минут после публикации — колесо сделает прокрут и раздаст победителям фрибеты разных номиналов\n🪙\n❤️\nЗабирай до 10к фрибетов по промокоду LENT\n❤️\nhttps://telegram.me/zont1x\nhttps://telegram.me/zont1x/34860\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&utm_source=freestream\nhttps://bbsport.su/link/5ouCEj/?erid=KW2aPRYdr5QoPXHUFSBHvZSemE3g6FLnvz2VVtD4DAbaB2YBtcVqqwztKNenqC18t\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&amp;utm_source=freestream",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-13T17:08:44.264000+00:00",
-        "source": "zont1x",
-        "source_message_date": "2026-08-13T17:08:58+00:00",
-        "source_message_id": 34860,
-        "source_message_url": "https://telegram.me/zont1x/34860",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/lent",
-        "verification_status": "confirmed",
-        "wheel_key": "lent",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "da848b8d6bde57afaac3a43c740343669f1ee7e34d410e98e910527f07d3ab49"
+      "stage": "account_result",
+      "transition_id": "4c8e0b0bf6144a4cab67f280a9b2f06e21de8b89576096f9fc55b902fc98917a"
     },
     {
       "dedupe_key": "durable-event",
@@ -177,6 +163,46 @@
       "transition_id": "7f8ca4c3f5494a54851e194ece86d5288113c7a7ed1ff30a9ecb7cd98bcf49f3"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:5ad3ab1bf00c538f8eb9c7eb7a9b94658d1471e8c43b14183814ec2f3df6cca4",
+      "occurred_at": "2026-08-13T17:12:48.974608+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "873ffda5cbd8952959441709ee283a95d0c315e12bc2aa2f255ad645edb27b82"
+    },
+    {
+      "dedupe_key": "31724313849",
+      "occurred_at": "2026-08-13T17:13:10.701890+00:00",
+      "payload": {
+        "workflow_run_id": "31724313849",
+        "workflow_sha": "e90a86b1bc0d56d60295ef180d601599aa7b7263"
+      },
+      "stage": "workflow_started",
+      "transition_id": "a6bd2d6baba8dfe2efdf1e843ef24c403c5c2ff9a59659674b7b45108fb9a2a5"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:fe252d7004b0cf57073e9a990c26c0aee9f5be6f0af41978fe9b7b1f46acef9a",
+      "occurred_at": "2026-08-13T17:13:06.201428+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "be644aeee71cfee745a82f05242cfe43d2de9df59b102b14687a4df478acf459"
+    },
+    {
       "dedupe_key": "1248:2026-08-13T17:08:44.264000+00:00",
       "occurred_at": "2026-08-13T17:13:10.697577+00:00",
       "payload": {
@@ -206,62 +232,36 @@
       "transition_id": "c2dd815dedfd6d600409b621c1b9f6abf5e50830a0fa1470b94bf5a8cdd601fa"
     },
     {
-      "dedupe_key": "31724313849",
-      "occurred_at": "2026-08-13T17:13:10.701890+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-13T17:13:10.697577+00:00",
       "payload": {
-        "workflow_run_id": "31724313849",
-        "workflow_sha": "e90a86b1bc0d56d60295ef180d601599aa7b7263"
+        "action_id": 1248,
+        "available_at": "",
+        "deadline": "2026-08-13T17:38:44.264000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:49d77d2cf14cbde227ed",
+        "expires_at": "2026-08-13T18:08:44.264000+00:00",
+        "generation_id": "49d77d2cf14cbde227ed",
+        "identifier": "lent",
+        "message_text": "Колесо на 10.000 Фрибетов\n❤️\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nЧерез 30 минут после публикации — колесо сделает прокрут и раздаст победителям фрибеты разных номиналов\n🪙\n❤️\nЗабирай до 10к фрибетов по промокоду LENT\n❤️\nhttps://telegram.me/zont1x\nhttps://telegram.me/zont1x/34860\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&utm_source=freestream\nhttps://bbsport.su/link/5ouCEj/?erid=KW2aPRYdr5QoPXHUFSBHvZSemE3g6FLnvz2VVtD4DAbaB2YBtcVqqwztKNenqC18t\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&amp;utm_source=freestream",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-13T17:08:44.264000+00:00",
+        "source": "zont1x",
+        "source_message_date": "2026-08-13T17:08:58+00:00",
+        "source_message_id": 34860,
+        "source_message_url": "https://telegram.me/zont1x/34860",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/lent",
+        "verification_status": "confirmed",
+        "wheel_key": "lent",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "a6bd2d6baba8dfe2efdf1e843ef24c403c5c2ff9a59659674b7b45108fb9a2a5"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:5ad3ab1bf00c538f8eb9c7eb7a9b94658d1471e8c43b14183814ec2f3df6cca4",
-      "occurred_at": "2026-08-13T17:12:48.974608+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "873ffda5cbd8952959441709ee283a95d0c315e12bc2aa2f255ad645edb27b82"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:9b4b30ce66d50ce80f272d2843278277def2e3d611dc59253d8ead66098cef26",
-      "occurred_at": "2026-08-13T17:13:01.621568+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "4c8e0b0bf6144a4cab67f280a9b2f06e21de8b89576096f9fc55b902fc98917a"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:fe252d7004b0cf57073e9a990c26c0aee9f5be6f0af41978fe9b7b1f46acef9a",
-      "occurred_at": "2026-08-13T17:13:06.201428+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "be644aeee71cfee745a82f05242cfe43d2de9df59b102b14687a4df478acf459"
+      "stage": "source_discovered",
+      "transition_id": "da848b8d6bde57afaac3a43c740343669f1ee7e34d410e98e910527f07d3ab49"
     }
   ],
-  "updated_at": "2026-08-13T17:13:10.701890+00:00",
+  "updated_at": "2026-08-13T17:13:45.219523+00:00",
   "wheel_key": "lent",
   "workflow_started_at": "2026-08-13T17:13:10.701890+00:00"
 }
