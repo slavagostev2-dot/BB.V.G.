@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "",
-      "attempt_id": "a95f67879968c0d8e74451fc46ab15497ba2b5b44e9d6e6a6e1fa3b6d191ae80",
-      "confidence": 120,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
-      "event_id": "evt:4b51db31e170b7b6bb94",
-      "finished_at": "2026-08-13T14:17:08.180981+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-13T14:17:17.153622+00:00",
-      "started_at": "2026-08-13T14:17:08.180981+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "",
       "attempt_id": "9057c338ea3d756d08a132186033aa631245aa2f845fbea1c22fca632019611b",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-08-13T14:17:17.154690+00:00",
       "started_at": "2026-08-13T14:17:12.556875+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "",
+      "attempt_id": "a95f67879968c0d8e74451fc46ab15497ba2b5b44e9d6e6a6e1fa3b6d191ae80",
+      "confidence": 120,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
+      "event_id": "evt:4b51db31e170b7b6bb94",
+      "finished_at": "2026-08-13T14:17:08.180981+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-13T14:17:17.153622+00:00",
+      "started_at": "2026-08-13T14:17:08.180981+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-13T14:16:53.358114+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T14:17:17.152365+00:00"
+      "updated_at": "2026-08-13T14:17:37.770657+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-13T14:17:08.180981+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T14:17:17.153622+00:00"
+      "updated_at": "2026-08-13T14:17:37.771650+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-13T14:17:12.556875+00:00",
       "status": "participated",
-      "updated_at": "2026-08-13T14:17:17.154690+00:00"
+      "updated_at": "2026-08-13T14:17:37.772779+00:00"
     }
   ],
   "action_id": 1352,
@@ -119,33 +119,14 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-13T14:17:17.147444+00:00",
+      "dedupe_key": "31709139261",
+      "occurred_at": "2026-08-13T14:17:17.150551+00:00",
       "payload": {
-        "action_id": 1352,
-        "available_at": "",
-        "deadline": "2026-08-13T14:32:02.746000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:4b51db31e170b7b6bb94",
-        "expires_at": "2026-08-13T15:02:02.746000+00:00",
-        "generation_id": "4b51db31e170b7b6bb94",
-        "identifier": "deko2",
-        "message_text": "https://betboom.ru/freestream/deko2\nhttps://telegram.me/kolesaBB\n//core.telegram.org/widgets\nhttps://telegram.me/kolesaBB/392",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-13T14:12:02.746000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-08-13T14:14:04+00:00",
-        "source_message_id": 392,
-        "source_message_url": "https://telegram.me/kolesaBB/392",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/deko2",
-        "verification_status": "confirmed",
-        "wheel_key": "deko2",
-        "wheel_type": "normal"
+        "workflow_run_id": "31709139261",
+        "workflow_sha": "c2a13123bcef7ba666cb826d53c85b8fe99e5af1"
       },
-      "stage": "source_discovered",
-      "transition_id": "dee950f948bc45ac16c219a2ed1f3e0b90e9678abe595106130359fcffff7891"
+      "stage": "workflow_started",
+      "transition_id": "0262a03f1d7acd69b3b66cae315d6aed3374a10305ea5bd8bc846e60e1d19e4c"
     },
     {
       "dedupe_key": "durable-event",
@@ -206,14 +187,19 @@
       "transition_id": "48b042ba5b897c3cddf503457d706ebc017861209e5b731565a835642543988f"
     },
     {
-      "dedupe_key": "31709139261",
-      "occurred_at": "2026-08-13T14:17:17.150551+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:9057c338ea3d756d08a132186033aa631245aa2f845fbea1c22fca632019611b",
+      "occurred_at": "2026-08-13T14:17:12.556875+00:00",
       "payload": {
-        "workflow_run_id": "31709139261",
-        "workflow_sha": "c2a13123bcef7ba666cb826d53c85b8fe99e5af1"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "participated"
       },
-      "stage": "workflow_started",
-      "transition_id": "0262a03f1d7acd69b3b66cae315d6aed3374a10305ea5bd8bc846e60e1d19e4c"
+      "stage": "account_result",
+      "transition_id": "7cb401fb702f97ae85bbade5436d25b08d30973b6926393f34c169442a322981"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:61c90b4e381d991bba045e09d678617c4aa525b0a3a77b2745a34814cf2e9e1e",
@@ -231,6 +217,35 @@
       "transition_id": "dac881cc3f4b1f7ca8b15b9b9ae02a7c6f276a5514b8af6268f03d24d7fb626e"
     },
     {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-13T14:17:17.147444+00:00",
+      "payload": {
+        "action_id": 1352,
+        "available_at": "",
+        "deadline": "2026-08-13T14:32:02.746000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:4b51db31e170b7b6bb94",
+        "expires_at": "2026-08-13T15:02:02.746000+00:00",
+        "generation_id": "4b51db31e170b7b6bb94",
+        "identifier": "deko2",
+        "message_text": "https://betboom.ru/freestream/deko2\nhttps://telegram.me/kolesaBB\n//core.telegram.org/widgets\nhttps://telegram.me/kolesaBB/392",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-13T14:12:02.746000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-08-13T14:14:04+00:00",
+        "source_message_id": 392,
+        "source_message_url": "https://telegram.me/kolesaBB/392",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/deko2",
+        "verification_status": "confirmed",
+        "wheel_key": "deko2",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "dee950f948bc45ac16c219a2ed1f3e0b90e9678abe595106130359fcffff7891"
+    },
+    {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:a95f67879968c0d8e74451fc46ab15497ba2b5b44e9d6e6a6e1fa3b6d191ae80",
       "occurred_at": "2026-08-13T14:17:08.180981+00:00",
       "payload": {
@@ -244,24 +259,9 @@
       },
       "stage": "account_result",
       "transition_id": "ea2aeebea647a5ce76970834af55481d6d02a975ba19f844cd773b3a01cd3f07"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:9057c338ea3d756d08a132186033aa631245aa2f845fbea1c22fca632019611b",
-      "occurred_at": "2026-08-13T14:17:12.556875+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "7cb401fb702f97ae85bbade5436d25b08d30973b6926393f34c169442a322981"
     }
   ],
-  "updated_at": "2026-08-13T14:17:17.150551+00:00",
+  "updated_at": "2026-08-13T14:17:37.769309+00:00",
   "wheel_key": "deko2",
   "workflow_started_at": "2026-08-13T14:17:17.150551+00:00"
 }
