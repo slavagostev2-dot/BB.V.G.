@@ -250,17 +250,21 @@ def _recovered_delivery_marker(monitor_module: Any, entry: Any):
     pending_at = monitor_module.parse_datetime(
         entry.get("recovered_initial_notification_pending_at")
     )
+    candidates = []
     for field in (
         "recovered_initial_notification_sent_at",
-        "last_notification_at",
         "first_notified_at",
+        "last_notification_at",
     ):
         delivered_at = monitor_module.parse_datetime(entry.get(field))
         if delivered_at is None:
             continue
-        if pending_at is None or delivered_at >= pending_at:
-            return delivered_at
-    return None
+        # A recovery workflow can publish its handoff after the live monitor has
+        # already delivered the exact event. ``first_notified_at`` is the event
+        # receipt, so comparing it with the later handoff time resurrects a card.
+        if field != "last_notification_at" or pending_at is None or delivered_at >= pending_at:
+            candidates.append(delivered_at)
+    return max(candidates) if candidates else None
 
 
 def _suppress_delivered_recovered_entries(

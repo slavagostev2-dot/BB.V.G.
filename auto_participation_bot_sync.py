@@ -269,16 +269,17 @@ def _suppress_delivered_recovery_pending(record: Any) -> bool:
     pending = _parse_datetime(record.get("recovered_initial_notification_pending_at"))
     if pending is None:
         return False
-    delivered = [
-        value
-        for field in (
-            "recovered_initial_notification_sent_at",
-            "last_notification_at",
-            "first_notified_at",
-        )
-        if (value := _parse_datetime(record.get(field))) is not None
-        and value >= pending
-    ]
+    delivered = []
+    for field in (
+        "recovered_initial_notification_sent_at",
+        "first_notified_at",
+        "last_notification_at",
+    ):
+        value = _parse_datetime(record.get(field))
+        if value is None:
+            continue
+        if field != "last_notification_at" or value >= pending:
+            delivered.append(value)
     if not delivered:
         return False
     record.pop("recovered_initial_notification_pending_at", None)

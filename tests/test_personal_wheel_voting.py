@@ -15,6 +15,7 @@ import personal_wheel_voting
 import telegram_post_links_v2
 import telegram_transport
 from bbvg.bot import runtime as bot_runtime
+from bbvg.storage import canonical_generation_id
 
 
 UTC = timezone.utc
@@ -95,6 +96,54 @@ def test_same_action_id_new_generation_is_a_new_vote_event() -> None:
             at=datetime(2026, 7, 16, 12, 0, tzinfo=UTC),
         )
     assert stats["sources"]["first"]["quality_score"] == 2
+
+
+def test_event_key_is_stable_when_generation_is_materialized_later() -> None:
+    entry = {
+        "action_id": 1325,
+        "server_start_at": "2026-08-13T10:33:26.247000+00:00",
+    }
+    generation_id = canonical_generation_id(
+        "solotg",
+        entry["action_id"],
+        entry["server_start_at"],
+    )
+
+    before = personal_wheel_voting.wheel_event_key("solotg", entry)
+    after = personal_wheel_voting.wheel_event_key(
+        "solotg",
+        {**entry, "generation_id": generation_id},
+    )
+
+    assert before == after == f"solotg#generation:{generation_id}"
+
+
+def test_repeated_personal_vote_uses_one_queue_command() -> None:
+    actor = personal_wheel_voting.actor_vote_token("100", secret="test-secret")
+    first_payload = {
+        "wheel_key": "solotg",
+        "event_key": "solotg#generation:4a05b53a5fcbbec43254",
+        "actor": actor,
+        "role": "owner",
+        "weight": 5,
+        "sources": ["solo_q_q"],
+    }
+    second_payload = {**first_payload, "sources": ["solo_q_q", "kolesaBB"]}
+
+    queue, first_id = admin_action_queue.append_command(
+        admin_action_queue.default_queue(),
+        "record_personal_vote",
+        json.dumps(first_payload),
+    )
+    queue, second_id = admin_action_queue.append_command(
+        queue,
+        "record_personal_vote",
+        json.dumps(second_payload),
+    )
+
+    assert first_id == second_id
+    assert first_id.startswith("vote-")
+    assert len(queue["commands"]) == 1
 
 
 def test_new_action_id_is_a_new_vote_event() -> None:

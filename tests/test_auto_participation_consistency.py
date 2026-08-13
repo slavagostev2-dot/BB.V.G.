@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import auto_participation_notifications
+import auto_participation_bot_sync
 import auto_participation_owner_sync
 import auto_participation_recovery
 import betboom_auto_participation as auto
@@ -11,6 +12,20 @@ import monitor
 import wheel_publications_v2
 
 UTC = timezone.utc
+
+
+def test_runtime_merge_does_not_resurrect_delivered_recovery_card() -> None:
+    record = {
+        "first_notified_at": "2026-08-13T10:40:00.223391+00:00",
+        "recovered_initial_notification_pending_at": "2026-08-13T10:41:00+00:00",
+        "recovered_initial_notification_reason": "recovery_discovered_missing_event",
+    }
+
+    assert auto_participation_bot_sync._suppress_delivered_recovery_pending(record)
+    assert "recovered_initial_notification_pending_at" not in record
+    assert record["recovered_initial_notification_sent_at"] == (
+        "2026-08-13T10:40:00.223391+00:00"
+    )
 
 
 def test_recovery_replaces_previous_generation_publication_metadata(
