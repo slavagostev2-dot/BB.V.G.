@@ -176,6 +176,50 @@ def test_recovered_notification_pending_is_cleared_without_second_send():
     )
 
 
+def test_recovery_handoff_created_after_delivery_is_still_suppressed():
+    sends: list[str] = []
+    monitor = SimpleNamespace(
+        parse_datetime=_parse_datetime,
+        now_utc=lambda: datetime(2026, 8, 13, 10, 42, tzinfo=UTC),
+    )
+
+    def original(state):
+        pending = bool(
+            state["active_wheels"]["solotg"].get(
+                "recovered_initial_notification_pending_at"
+            )
+        )
+        if pending:
+            sends.append("sent")
+        return {"sent": int(pending), "failed": 0, "changed": pending}
+
+    runtime = SimpleNamespace(_deliver_recovered_initial_notifications=original)
+    reliability.install_recovered_notification_guard(monitor, runtime)
+    state = {
+        "active_wheels": {
+            "solotg": {
+                "action_id": 1325,
+                "server_start_at": "2026-08-13T10:33:26.247000+00:00",
+                "first_notified_at": "2026-08-13T10:40:00.223391+00:00",
+                "last_notification_at": "2026-08-13T10:40:25.972694+00:00",
+                "recovered_initial_notification_pending_at": (
+                    "2026-08-13T10:41:00+00:00"
+                ),
+            }
+        }
+    }
+
+    result = runtime._deliver_recovered_initial_notifications(state)
+    entry = state["active_wheels"]["solotg"]
+
+    assert sends == []
+    assert result["skipped_already_delivered"] == 1
+    assert "recovered_initial_notification_pending_at" not in entry
+    assert entry["recovered_initial_notification_sent_at"] == (
+        "2026-08-13T10:40:00.223391+00:00"
+    )
+
+
 def test_final_process_guard_runs_before_composed_lifecycle_sender():
     sends: list[str] = []
 

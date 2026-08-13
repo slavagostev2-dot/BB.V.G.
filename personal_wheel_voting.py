@@ -10,6 +10,8 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Callable
 
+from bbvg.storage import canonical_generation_id
+
 UTC = timezone.utc
 PERSONAL_RATING_POLICY = "personal_votes_v1"
 ACTOR_TOKEN_RE = re.compile(r"^vote_[0-9a-f]{32}$")
@@ -24,10 +26,22 @@ def _clean_source(value: Any) -> str:
 
 
 def wheel_event_key(wheel_key: str, entry: dict[str, Any] | None) -> str:
-    """Return an event-scoped key, preferring BetBoom's action_id."""
+    """Return one stable key before and after generation metadata is saved."""
 
     normalized = _clean_wheel_key(wheel_key)
     record = entry if isinstance(entry, dict) else {}
+    canonical_generation = canonical_generation_id(
+        normalized,
+        record.get("action_id"),
+        record.get("server_start_at"),
+    )
+    if canonical_generation:
+        return f"{normalized}#generation:{canonical_generation}"
+    canonical_event_id = str(record.get("canonical_event_id") or "").strip().casefold()
+    if canonical_event_id.startswith("evt:"):
+        canonical_event_generation = canonical_event_id.removeprefix("evt:")
+        if canonical_event_generation:
+            return f"{normalized}#generation:{canonical_event_generation[:64]}"
     generation_id = str(record.get("generation_id") or "").strip().casefold()
     if generation_id:
         return f"{normalized}#generation:{generation_id[:64]}"

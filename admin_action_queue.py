@@ -99,6 +99,18 @@ def _safe_value(action: str, value: str) -> str:
     return clean
 
 
+def _command_id(action: str, safe_value: str) -> str:
+    """Keep a personal vote idempotent across retries and state refresh races."""
+
+    if action != "record_personal_vote":
+        return uuid.uuid4().hex
+    payload = personal_wheel_voting.normalize_vote_payload(json.loads(safe_value))
+    digest = hashlib.sha256(
+        f"{payload['event_key']}\x1f{payload['actor']}".encode("utf-8")
+    ).hexdigest()[:32]
+    return f"vote-{digest}"
+
+
 def append_command(
     queue: dict[str, Any],
     action: str,
@@ -110,7 +122,8 @@ def append_command(
     if action not in ALLOWED_ACTIONS:
         raise ValueError(f"Неподдерживаемое административное действие: {action}")
     result = normalize_queue(queue)
-    key = str(command_id or uuid.uuid4().hex)
+    safe_value = _safe_value(action, value)
+    key = str(command_id or _command_id(action, safe_value))
     if not COMMAND_ID_RE.fullmatch(key):
         raise ValueError("Некорректный идентификатор команды")
     if key in result["commands"]:
@@ -120,7 +133,7 @@ def append_command(
     result["commands"][key] = {
         "sequence": sequence,
         "action": action,
-        "value": _safe_value(action, value),
+        "value": safe_value,
         "created_at": (created_at or now_utc()).astimezone(UTC).isoformat(),
     }
     return normalize_queue(result), key
@@ -171,7 +184,8 @@ def enqueue_remote(action: str, value: str) -> str:
         "Authorization": f"Bearer {token}",
         "X-GitHub-Api-Version": "2022-11-28",
     }
-    command_id = uuid.uuid4().hex
+    safe_value = _safe_value(action, value)
+    command_id = _command_id(action, safe_value)
     last_error: Exception | None = None
     for _attempt in range(1, 5):
         response = requests.get(
@@ -183,10 +197,13 @@ def enqueue_remote(action: str, value: str) -> str:
         response.raise_for_status()
         payload = response.json()
         content = base64.b64decode(str(payload.get("content") or "")).decode("utf-8")
+        current = normalize_queue(json.loads(content))
+        if command_id in current["commands"]:
+            return command_id
         queue, _ = append_command(
-            normalize_queue(json.loads(content)),
+            current,
             action,
-            value,
+            safe_value,
             command_id=command_id,
         )
         updated = requests.put(
