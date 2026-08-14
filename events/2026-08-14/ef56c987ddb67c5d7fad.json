@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "",
-      "attempt_id": "cb06b2ecfb9523ea7566480aed1bc98d3df1123716eee0ca5388b50bbe1a9f4f",
-      "confidence": 120,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
-      "event_id": "evt:ef56c987ddb67c5d7fad",
-      "finished_at": "2026-08-14T11:31:04.950374+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-14T11:31:15.115123+00:00",
-      "started_at": "2026-08-14T11:31:04.950374+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "",
       "attempt_id": "46be5fe1bff6d6888772f4dc1cca1d475afc80e1015b6e2b6e80905d342e6fc2",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-08-14T11:31:15.116469+00:00",
       "started_at": "2026-08-14T11:31:09.862889+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "",
+      "attempt_id": "cb06b2ecfb9523ea7566480aed1bc98d3df1123716eee0ca5388b50bbe1a9f4f",
+      "confidence": 120,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
+      "event_id": "evt:ef56c987ddb67c5d7fad",
+      "finished_at": "2026-08-14T11:31:04.950374+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-14T11:31:15.115123+00:00",
+      "started_at": "2026-08-14T11:31:04.950374+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-14T11:30:33.608366+00:00",
       "status": "participated",
-      "updated_at": "2026-08-14T11:31:15.113554+00:00"
+      "updated_at": "2026-08-14T11:31:56.199474+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-14T11:31:04.950374+00:00",
       "status": "participated",
-      "updated_at": "2026-08-14T11:31:15.115123+00:00"
+      "updated_at": "2026-08-14T11:31:56.200793+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-14T11:31:09.862889+00:00",
       "status": "participated",
-      "updated_at": "2026-08-14T11:31:15.116469+00:00"
+      "updated_at": "2026-08-14T11:31:56.202029+00:00"
     }
   ],
   "action_id": 1347,
@@ -119,35 +119,6 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-14T11:31:15.107608+00:00",
-      "payload": {
-        "action_id": 1347,
-        "available_at": "",
-        "deadline": "2026-08-14T11:39:17.459000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:ef56c987ddb67c5d7fad",
-        "expires_at": "2026-08-14T12:09:17.459000+00:00",
-        "generation_id": "ef56c987ddb67c5d7fad",
-        "identifier": "nix1",
-        "message_text": "КОЛЕСА ФРИБЕТА\n❤️\nhttps://betboom.ru/freestream/nix1\nhttps://telegram.me/amam0610\nhttps://telegram.me/amam0610/72120\nhttps://betboom.ru/freestream/nix1",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-14T11:24:17.459000+00:00",
-        "source": "amam0610",
-        "source_message_date": "2026-08-14T11:27:48+00:00",
-        "source_message_id": 72120,
-        "source_message_url": "https://telegram.me/amam0610/72120",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/nix1",
-        "verification_status": "confirmed",
-        "wheel_key": "nix1",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "5c641cf641b0384c99cfdab40a37748f88bef12d1f3db8fd26c020744b6ae6cd"
-    },
-    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-08-14T11:31:15.107608+00:00",
       "payload": {
@@ -175,45 +146,6 @@
       },
       "stage": "persisted",
       "transition_id": "0efc3d7d4237d5cd2355d780efab23286e00b6f30bca193c769636225b59db7f"
-    },
-    {
-      "dedupe_key": "1347:2026-08-14T11:24:17.459000+00:00",
-      "occurred_at": "2026-08-14T11:31:15.107608+00:00",
-      "payload": {
-        "action_id": 1347,
-        "available_at": "",
-        "deadline": "2026-08-14T11:39:17.459000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:ef56c987ddb67c5d7fad",
-        "expires_at": "2026-08-14T12:09:17.459000+00:00",
-        "generation_id": "ef56c987ddb67c5d7fad",
-        "identifier": "nix1",
-        "message_text": "КОЛЕСА ФРИБЕТА\n❤️\nhttps://betboom.ru/freestream/nix1\nhttps://telegram.me/amam0610\nhttps://telegram.me/amam0610/72120\nhttps://betboom.ru/freestream/nix1",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-14T11:24:17.459000+00:00",
-        "source": "amam0610",
-        "source_message_date": "2026-08-14T11:27:48+00:00",
-        "source_message_id": 72120,
-        "source_message_url": "https://telegram.me/amam0610/72120",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/nix1",
-        "verification_status": "confirmed",
-        "wheel_key": "nix1",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "f7e33065cad30d70eb250458c25e4d5d699f5f4d469ded8ac00bd676bb40f28e"
-    },
-    {
-      "dedupe_key": "31796345886",
-      "occurred_at": "2026-08-14T11:31:15.111575+00:00",
-      "payload": {
-        "workflow_run_id": "31796345886",
-        "workflow_sha": "708a21a5c26042e4626907613a94517208a9c87e"
-      },
-      "stage": "workflow_started",
-      "transition_id": "cb3f40a8b326820c3b490f5b40d7199068cec0e4d3d00e576c127fbc1fb7cbbe"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:19b01a961c3dcf4e0f5b791e8d5e4c1d9d5c5529f45d35ccfba16778534c11cc",
@@ -246,6 +178,45 @@
       "transition_id": "318407a9b859f445779401e960bba8899fd0ac43ff412919c8cef29beb62c9ec"
     },
     {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-14T11:31:15.107608+00:00",
+      "payload": {
+        "action_id": 1347,
+        "available_at": "",
+        "deadline": "2026-08-14T11:39:17.459000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:ef56c987ddb67c5d7fad",
+        "expires_at": "2026-08-14T12:09:17.459000+00:00",
+        "generation_id": "ef56c987ddb67c5d7fad",
+        "identifier": "nix1",
+        "message_text": "КОЛЕСА ФРИБЕТА\n❤️\nhttps://betboom.ru/freestream/nix1\nhttps://telegram.me/amam0610\nhttps://telegram.me/amam0610/72120\nhttps://betboom.ru/freestream/nix1",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-14T11:24:17.459000+00:00",
+        "source": "amam0610",
+        "source_message_date": "2026-08-14T11:27:48+00:00",
+        "source_message_id": 72120,
+        "source_message_url": "https://telegram.me/amam0610/72120",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/nix1",
+        "verification_status": "confirmed",
+        "wheel_key": "nix1",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "5c641cf641b0384c99cfdab40a37748f88bef12d1f3db8fd26c020744b6ae6cd"
+    },
+    {
+      "dedupe_key": "31796345886",
+      "occurred_at": "2026-08-14T11:31:15.111575+00:00",
+      "payload": {
+        "workflow_run_id": "31796345886",
+        "workflow_sha": "708a21a5c26042e4626907613a94517208a9c87e"
+      },
+      "stage": "workflow_started",
+      "transition_id": "cb3f40a8b326820c3b490f5b40d7199068cec0e4d3d00e576c127fbc1fb7cbbe"
+    },
+    {
       "dedupe_key": "xflarxx:xflarxx_primary:46be5fe1bff6d6888772f4dc1cca1d475afc80e1015b6e2b6e80905d342e6fc2",
       "occurred_at": "2026-08-14T11:31:09.862889+00:00",
       "payload": {
@@ -259,9 +230,38 @@
       },
       "stage": "account_result",
       "transition_id": "db959d1677bdf7d408a5096657763f1d1ccc8b42619c2a9b15ee9a60bc96e9a0"
+    },
+    {
+      "dedupe_key": "1347:2026-08-14T11:24:17.459000+00:00",
+      "occurred_at": "2026-08-14T11:31:15.107608+00:00",
+      "payload": {
+        "action_id": 1347,
+        "available_at": "",
+        "deadline": "2026-08-14T11:39:17.459000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:ef56c987ddb67c5d7fad",
+        "expires_at": "2026-08-14T12:09:17.459000+00:00",
+        "generation_id": "ef56c987ddb67c5d7fad",
+        "identifier": "nix1",
+        "message_text": "КОЛЕСА ФРИБЕТА\n❤️\nhttps://betboom.ru/freestream/nix1\nhttps://telegram.me/amam0610\nhttps://telegram.me/amam0610/72120\nhttps://betboom.ru/freestream/nix1",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-14T11:24:17.459000+00:00",
+        "source": "amam0610",
+        "source_message_date": "2026-08-14T11:27:48+00:00",
+        "source_message_id": 72120,
+        "source_message_url": "https://telegram.me/amam0610/72120",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/nix1",
+        "verification_status": "confirmed",
+        "wheel_key": "nix1",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "f7e33065cad30d70eb250458c25e4d5d699f5f4d469ded8ac00bd676bb40f28e"
     }
   ],
-  "updated_at": "2026-08-14T11:31:15.111575+00:00",
+  "updated_at": "2026-08-14T11:31:56.197742+00:00",
   "wheel_key": "nix1",
   "workflow_started_at": "2026-08-14T11:31:15.111575+00:00"
 }
