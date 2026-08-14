@@ -1,17 +1,17 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
+      "account_key": "xflarxx_primary",
       "artifact_url": "",
-      "attempt_id": "f356b3aa9d4f2b059b791f16739b69e872e004db9e7a0d591823f335e8929f09",
+      "attempt_id": "8e86c7b0412fbe27b184ea5870c90ef661de957c8092be66d2f89dd6b79c00da",
       "confidence": 120,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
       "event_id": "evt:04561e560f29120057d8",
-      "finished_at": "2026-08-14T10:29:23.242370+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-14T10:29:44.034379+00:00",
-      "started_at": "2026-08-14T10:29:23.242370+00:00",
+      "finished_at": "2026-08-14T10:29:39.550875+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-08-14T10:29:44.036800+00:00",
+      "started_at": "2026-08-14T10:29:39.550875+00:00",
       "status": "participated"
     },
     {
@@ -29,17 +29,17 @@
       "status": "participated"
     },
     {
-      "account_key": "xflarxx_primary",
+      "account_key": "vyacheslav_primary",
       "artifact_url": "",
-      "attempt_id": "8e86c7b0412fbe27b184ea5870c90ef661de957c8092be66d2f89dd6b79c00da",
+      "attempt_id": "f356b3aa9d4f2b059b791f16739b69e872e004db9e7a0d591823f335e8929f09",
       "confidence": 120,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
       "event_id": "evt:04561e560f29120057d8",
-      "finished_at": "2026-08-14T10:29:39.550875+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-08-14T10:29:44.036800+00:00",
-      "started_at": "2026-08-14T10:29:39.550875+00:00",
+      "finished_at": "2026-08-14T10:29:23.242370+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-14T10:29:44.034379+00:00",
+      "started_at": "2026-08-14T10:29:23.242370+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-14T10:29:23.242370+00:00",
       "status": "participated",
-      "updated_at": "2026-08-14T10:29:44.034379+00:00"
+      "updated_at": "2026-08-14T10:30:18.248140+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-14T10:29:35.436860+00:00",
       "status": "participated",
-      "updated_at": "2026-08-14T10:29:44.035656+00:00"
+      "updated_at": "2026-08-14T10:30:18.249368+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-14T10:29:39.550875+00:00",
       "status": "participated",
-      "updated_at": "2026-08-14T10:29:44.036800+00:00"
+      "updated_at": "2026-08-14T10:30:18.250632+00:00"
     }
   ],
   "action_id": 1379,
@@ -119,35 +119,6 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-14T10:29:44.028247+00:00",
-      "payload": {
-        "action_id": 1379,
-        "available_at": "",
-        "deadline": "2026-08-14T10:46:32.813000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:04561e560f29120057d8",
-        "expires_at": "2026-08-14T11:16:32.813000+00:00",
-        "generation_id": "04561e560f29120057d8",
-        "identifier": "over",
-        "message_text": "Колесо фрибетов от BETBOOM!\n😍\nРешил порадовать вас фрибетами, все, что нужно сделать - перейти по ссылке ниже, авторизоваться в аккаунт BETBOOM и нажать \"Принять участие\".\nhttps://betboom.ru/freestream/over\nhttps://betboom.ru/freestream/over\nhttps://betboom.ru/freestream/over\nЖди окончания таймера и возможно именно тебе повезет\nСтавь со мной и получай фрибет 10000 по промокоду OVER\nhttps://telegram.me/overdrivebet\nhttps://betboom.ru/freestream/over\nhttps://betboom-link.ru/link/XWjvXS/?erid=KW2aPRYdr5QoPXHUHdKJB2MnRjXTVMft9dei2w1yWPV3wQzwxMoiCZGQ39KHVUhKv\nhttps://telegram.me/overdrivebet/629",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-14T10:26:32.813000+00:00",
-        "source": "overdrivebet",
-        "source_message_date": "2026-08-14T10:26:47+00:00",
-        "source_message_id": 629,
-        "source_message_url": "https://telegram.me/overdrivebet/629",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/over",
-        "verification_status": "confirmed",
-        "wheel_key": "over",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "96275d4ce02dcfc6a7337dbd51b4476013bfd2ed71e11ce6c9bbde1f58ebee53"
-    },
-    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-08-14T10:29:44.028247+00:00",
       "payload": {
@@ -175,6 +146,65 @@
       },
       "stage": "persisted",
       "transition_id": "573dfe0b824e5b8e90585def59ac8bc0bbdfbc29bd13c5e4028f488d754d70d3"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:8e86c7b0412fbe27b184ea5870c90ef661de957c8092be66d2f89dd6b79c00da",
+      "occurred_at": "2026-08-14T10:29:39.550875+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "8ba3a37eaad2f8bdb889aa55b8623d83368e13eb2067aafadb3f059e03401854"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:8ee88e20449d20216b6acded9ed556216f6f03c168fc9efc69f850e4f9b24d50",
+      "occurred_at": "2026-08-14T10:29:35.436860+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "91a4a0921aceadc1ef508a8dce5367cec7afb59cfc748591078267b9ca467865"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-14T10:29:44.028247+00:00",
+      "payload": {
+        "action_id": 1379,
+        "available_at": "",
+        "deadline": "2026-08-14T10:46:32.813000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:04561e560f29120057d8",
+        "expires_at": "2026-08-14T11:16:32.813000+00:00",
+        "generation_id": "04561e560f29120057d8",
+        "identifier": "over",
+        "message_text": "Колесо фрибетов от BETBOOM!\n😍\nРешил порадовать вас фрибетами, все, что нужно сделать - перейти по ссылке ниже, авторизоваться в аккаунт BETBOOM и нажать \"Принять участие\".\nhttps://betboom.ru/freestream/over\nhttps://betboom.ru/freestream/over\nhttps://betboom.ru/freestream/over\nЖди окончания таймера и возможно именно тебе повезет\nСтавь со мной и получай фрибет 10000 по промокоду OVER\nhttps://telegram.me/overdrivebet\nhttps://betboom.ru/freestream/over\nhttps://betboom-link.ru/link/XWjvXS/?erid=KW2aPRYdr5QoPXHUHdKJB2MnRjXTVMft9dei2w1yWPV3wQzwxMoiCZGQ39KHVUhKv\nhttps://telegram.me/overdrivebet/629",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-14T10:26:32.813000+00:00",
+        "source": "overdrivebet",
+        "source_message_date": "2026-08-14T10:26:47+00:00",
+        "source_message_id": 629,
+        "source_message_url": "https://telegram.me/overdrivebet/629",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/over",
+        "verification_status": "confirmed",
+        "wheel_key": "over",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "96275d4ce02dcfc6a7337dbd51b4476013bfd2ed71e11ce6c9bbde1f58ebee53"
     },
     {
       "dedupe_key": "1379:2026-08-14T10:26:32.813000+00:00",
@@ -206,16 +236,6 @@
       "transition_id": "cf05e749ef52e1d69b2143d779dd60dbc9a829c77b0076420f2ebc277f329aee"
     },
     {
-      "dedupe_key": "31792279059",
-      "occurred_at": "2026-08-14T10:29:44.032512+00:00",
-      "payload": {
-        "workflow_run_id": "31792279059",
-        "workflow_sha": "fd7fe2b0f541ebaa207c9845f535b79fbcc44c09"
-      },
-      "stage": "workflow_started",
-      "transition_id": "f1611ab258a30b72e7dcc1500634fd5bd98bb614a2e2b28f87dd9f46b298291b"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:f356b3aa9d4f2b059b791f16739b69e872e004db9e7a0d591823f335e8929f09",
       "occurred_at": "2026-08-14T10:29:23.242370+00:00",
       "payload": {
@@ -231,37 +251,17 @@
       "transition_id": "da761814dcf5a5407a7026d1a794242be13644cf350ea7895bade3f08d2d4a0f"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:8ee88e20449d20216b6acded9ed556216f6f03c168fc9efc69f850e4f9b24d50",
-      "occurred_at": "2026-08-14T10:29:35.436860+00:00",
+      "dedupe_key": "31792279059",
+      "occurred_at": "2026-08-14T10:29:44.032512+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
+        "workflow_run_id": "31792279059",
+        "workflow_sha": "fd7fe2b0f541ebaa207c9845f535b79fbcc44c09"
       },
-      "stage": "account_result",
-      "transition_id": "91a4a0921aceadc1ef508a8dce5367cec7afb59cfc748591078267b9ca467865"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:8e86c7b0412fbe27b184ea5870c90ef661de957c8092be66d2f89dd6b79c00da",
-      "occurred_at": "2026-08-14T10:29:39.550875+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "8ba3a37eaad2f8bdb889aa55b8623d83368e13eb2067aafadb3f059e03401854"
+      "stage": "workflow_started",
+      "transition_id": "f1611ab258a30b72e7dcc1500634fd5bd98bb614a2e2b28f87dd9f46b298291b"
     }
   ],
-  "updated_at": "2026-08-14T10:29:44.032512+00:00",
+  "updated_at": "2026-08-14T10:30:18.246548+00:00",
   "wheel_key": "over",
   "workflow_started_at": "2026-08-14T10:29:44.032512+00:00"
 }
