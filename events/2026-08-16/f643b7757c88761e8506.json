@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "",
-      "attempt_id": "d7d6f097710c0ad076284ae417793d1ec5f4f41b2fc35af078c95709ac6ad7ed",
-      "confidence": 120,
-      "confirmation": "workflow_state",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
-      "event_id": "evt:f643b7757c88761e8506",
-      "finished_at": "2026-08-16T03:37:12.403502+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-16T03:37:20.942460+00:00",
-      "started_at": "2026-08-16T03:37:12.403502+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "",
       "attempt_id": "a6a9802b059e17f22bfee2772c590f1c1fd129955c2fc1c5d6510b6c5f785f9d",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-08-16T03:37:20.943467+00:00",
       "started_at": "2026-08-16T03:37:16.495329+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "",
+      "attempt_id": "d7d6f097710c0ad076284ae417793d1ec5f4f41b2fc35af078c95709ac6ad7ed",
+      "confidence": 120,
+      "confirmation": "workflow_state",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label); подготовка: main:Окей",
+      "event_id": "evt:f643b7757c88761e8506",
+      "finished_at": "2026-08-16T03:37:12.403502+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-16T03:37:20.942460+00:00",
+      "started_at": "2026-08-16T03:37:12.403502+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-16T03:37:01.857272+00:00",
       "status": "participated",
-      "updated_at": "2026-08-16T03:37:20.941196+00:00"
+      "updated_at": "2026-08-16T03:37:43.121192+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-16T03:37:12.403502+00:00",
       "status": "participated",
-      "updated_at": "2026-08-16T03:37:20.942460+00:00"
+      "updated_at": "2026-08-16T03:37:43.122218+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-16T03:37:16.495329+00:00",
       "status": "participated",
-      "updated_at": "2026-08-16T03:37:20.943467+00:00"
+      "updated_at": "2026-08-16T03:37:43.123209+00:00"
     }
   ],
   "action_id": 1451,
@@ -119,62 +119,29 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-16T03:37:20.934527+00:00",
+      "dedupe_key": "31924598083",
+      "occurred_at": "2026-08-16T03:37:20.939054+00:00",
       "payload": {
-        "action_id": 1451,
-        "available_at": "",
-        "deadline": "2026-08-16T03:41:25.121000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:f643b7757c88761e8506",
-        "expires_at": "2026-08-16T04:11:25.121000+00:00",
-        "generation_id": "f643b7757c88761e8506",
-        "identifier": "stray",
-        "message_text": "Мощное колесо фрибетов, залетайте - у вас минут 6-7 чтобы забрать жирненькую гадину\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228/5486",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-16T03:31:25.121000+00:00",
-        "source": "StrayDungeon228",
-        "source_message_date": "2026-08-16T03:34:38+00:00",
-        "source_message_id": 5486,
-        "source_message_url": "https://telegram.me/StrayDungeon228/5486",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/stray",
-        "verification_status": "confirmed",
-        "wheel_key": "stray",
-        "wheel_type": "normal"
+        "workflow_run_id": "31924598083",
+        "workflow_sha": "09ef4356d91c539a0d6ce3becadc7d33d01aa0ad"
       },
-      "stage": "source_discovered",
-      "transition_id": "fff1b3875686239857c3982e23573deeee190bfbdf946161e1e7050e952f14b9"
+      "stage": "workflow_started",
+      "transition_id": "1d275c2e1eb9c088b6c06b480376000f08e5e53d4ba191fb96ec8f041330c151"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-16T03:37:20.934527+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:d7d6f097710c0ad076284ae417793d1ec5f4f41b2fc35af078c95709ac6ad7ed",
+      "occurred_at": "2026-08-16T03:37:12.403502+00:00",
       "payload": {
-        "action_id": 1451,
-        "available_at": "",
-        "deadline": "2026-08-16T03:41:25.121000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:f643b7757c88761e8506",
-        "expires_at": "2026-08-16T04:11:25.121000+00:00",
-        "generation_id": "f643b7757c88761e8506",
-        "identifier": "stray",
-        "message_text": "Мощное колесо фрибетов, залетайте - у вас минут 6-7 чтобы забрать жирненькую гадину\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228/5486",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-16T03:31:25.121000+00:00",
-        "source": "StrayDungeon228",
-        "source_message_date": "2026-08-16T03:34:38+00:00",
-        "source_message_id": 5486,
-        "source_message_url": "https://telegram.me/StrayDungeon228/5486",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/stray",
-        "verification_status": "confirmed",
-        "wheel_key": "stray",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "persisted",
-      "transition_id": "51a26a372922d9e575dc289db23fc4209b78a6d0e7a0854f5dd624da3c9a26e8"
+      "stage": "account_result",
+      "transition_id": "1e59e5d2a170e9adeba87d02fa08216d1b695cc5797005ffbdc60fa0c577185c"
     },
     {
       "dedupe_key": "1451:2026-08-16T03:31:25.121000+00:00",
@@ -206,16 +173,6 @@
       "transition_id": "2595312b30e5e1b7b470caf7f4951e40bbaf2f14e476fd66c6d378f3b3456c9b"
     },
     {
-      "dedupe_key": "31924598083",
-      "occurred_at": "2026-08-16T03:37:20.939054+00:00",
-      "payload": {
-        "workflow_run_id": "31924598083",
-        "workflow_sha": "09ef4356d91c539a0d6ce3becadc7d33d01aa0ad"
-      },
-      "stage": "workflow_started",
-      "transition_id": "1d275c2e1eb9c088b6c06b480376000f08e5e53d4ba191fb96ec8f041330c151"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:1c4a904d92ceb03b53e0c53cbb51888769fc9f64dc1e49f9cca13d798c1b43b4",
       "occurred_at": "2026-08-16T03:37:01.857272+00:00",
       "payload": {
@@ -231,19 +188,33 @@
       "transition_id": "45eac4181c1066971543e7224afb3bd79c5a76e1fe0c6856d8b6e92ad6843bc8"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:d7d6f097710c0ad076284ae417793d1ec5f4f41b2fc35af078c95709ac6ad7ed",
-      "occurred_at": "2026-08-16T03:37:12.403502+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-16T03:37:20.934527+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
+        "action_id": 1451,
+        "available_at": "",
+        "deadline": "2026-08-16T03:41:25.121000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:f643b7757c88761e8506",
+        "expires_at": "2026-08-16T04:11:25.121000+00:00",
+        "generation_id": "f643b7757c88761e8506",
+        "identifier": "stray",
+        "message_text": "Мощное колесо фрибетов, залетайте - у вас минут 6-7 чтобы забрать жирненькую гадину\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228/5486",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-16T03:31:25.121000+00:00",
+        "source": "StrayDungeon228",
+        "source_message_date": "2026-08-16T03:34:38+00:00",
+        "source_message_id": 5486,
+        "source_message_url": "https://telegram.me/StrayDungeon228/5486",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/stray",
+        "verification_status": "confirmed",
+        "wheel_key": "stray",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "1e59e5d2a170e9adeba87d02fa08216d1b695cc5797005ffbdc60fa0c577185c"
+      "stage": "persisted",
+      "transition_id": "51a26a372922d9e575dc289db23fc4209b78a6d0e7a0854f5dd624da3c9a26e8"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:a6a9802b059e17f22bfee2772c590f1c1fd129955c2fc1c5d6510b6c5f785f9d",
@@ -259,9 +230,38 @@
       },
       "stage": "account_result",
       "transition_id": "adca3e0fbf25fc276ff99d758a9bb8214c61b343140ef7242755b91b90eade70"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-16T03:37:20.934527+00:00",
+      "payload": {
+        "action_id": 1451,
+        "available_at": "",
+        "deadline": "2026-08-16T03:41:25.121000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:f643b7757c88761e8506",
+        "expires_at": "2026-08-16T04:11:25.121000+00:00",
+        "generation_id": "f643b7757c88761e8506",
+        "identifier": "stray",
+        "message_text": "Мощное колесо фрибетов, залетайте - у вас минут 6-7 чтобы забрать жирненькую гадину\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228\nhttps://betboom.ru/freestream/stray\nhttps://telegram.me/StrayDungeon228/5486",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-16T03:31:25.121000+00:00",
+        "source": "StrayDungeon228",
+        "source_message_date": "2026-08-16T03:34:38+00:00",
+        "source_message_id": 5486,
+        "source_message_url": "https://telegram.me/StrayDungeon228/5486",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/stray",
+        "verification_status": "confirmed",
+        "wheel_key": "stray",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "fff1b3875686239857c3982e23573deeee190bfbdf946161e1e7050e952f14b9"
     }
   ],
-  "updated_at": "2026-08-16T03:37:20.939054+00:00",
+  "updated_at": "2026-08-16T03:37:43.119681+00:00",
   "wheel_key": "stray",
   "workflow_started_at": "2026-08-16T03:37:20.939054+00:00"
 }
