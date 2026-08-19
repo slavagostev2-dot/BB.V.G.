@@ -182,3 +182,57 @@ def test_primary_recovery_accepts_exact_primary_success() -> None:
     }
 
     assert auto_participation_recovery._confirmed_success_for_event(state, item) is True
+
+
+def test_persisted_active_wheel_survives_source_age_cutoff_for_retry() -> None:
+    current = datetime(2026, 8, 19, 18, 35, tzinfo=UTC)
+    item = {
+        "wheel_key": "kekw19082",
+        "identifier": "kekw19082",
+        "url": "https://betboom.ru/freestream/kekw19082",
+        "message_date": (current - timedelta(hours=5)).isoformat(),
+        "server_start_at": (current - timedelta(minutes=7)).isoformat(),
+        "deadline": (current + timedelta(minutes=13)).isoformat(),
+        "page_status": "active",
+        "auto_participation_status": "unconfirmed",
+    }
+
+    rows = auto_participation_recovery._persisted_active_candidates(
+        {"active_wheels": {"kekw19082": item}},
+        current,
+    )
+
+    assert rows["kekw19082"]["message_date"] == item["message_date"]
+    assert rows["kekw19082"]["url"] == item["url"]
+
+
+def test_persisted_expired_wheel_is_not_retried() -> None:
+    current = datetime(2026, 8, 19, 18, 50, tzinfo=UTC)
+    item = {
+        "wheel_key": "expired",
+        "url": "https://betboom.ru/freestream/expired",
+        "deadline": (current - timedelta(seconds=1)).isoformat(),
+        "page_status": "active",
+    }
+
+    rows = auto_participation_recovery._persisted_active_candidates(
+        {"active_wheels": {"expired": item}},
+        current,
+    )
+
+    assert rows == {}
+
+
+def test_transient_primary_failure_stays_retryable() -> None:
+    current = datetime(2026, 8, 19, 18, 35, tzinfo=UTC)
+
+    record = auto_participation_recovery._failure_record(
+        None,
+        key="kekw19082",
+        status="unconfirmed",
+        detail="no exact post-click confirmation",
+        scanned_at=current,
+    )
+
+    assert record["retry_allowed"] is True
+    assert record["retry_after_at"] == (current + timedelta(minutes=2)).isoformat()

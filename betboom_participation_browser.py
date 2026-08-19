@@ -222,54 +222,24 @@ def _detail_with_page_hint(page: Any, detail: str) -> str:
 
 
 def _click_in_root(root: Any, timeout_ms: int) -> tuple[bool, str]:
-    candidate, label = _visible_exact_control(root, CLICK_RE)
-    if candidate is not None:
-        try:
-            candidate.click(timeout=min(timeout_ms, 5000), force=True)
-            return True, label or "playwright_locator"
-        except Exception:
-            pass
+    """Click only an actionable participation control.
 
+    A forced or synthetic DOM click can report success while BetBoom ignores the
+    action behind an overlay or during SPA loading. Let Playwright verify
+    actionability so an ignored click remains retryable instead of becoming a
+    false participation attempt.
+    """
+
+    candidate, label = _visible_exact_control(root, CLICK_RE)
+    if candidate is None:
+        return False, ""
     try:
-        result = root.evaluate(
-            r"""
-            () => {
-              const re = /^(принять\s+участие|участвовать|участвую)[.!]?$/i;
-              const nodes = Array.from(document.querySelectorAll(
-                'button,[role="button"],a,div,span'
-              ));
-              const candidates = [];
-              for (const el of nodes) {
-                const text = (el.innerText || el.textContent || '')
-                  .replace(/\s+/g, ' ').trim();
-                if (!text || !re.test(text)) continue;
-                const style = getComputedStyle(el);
-                const rect = el.getBoundingClientRect();
-                if (
-                  style.visibility === 'hidden' ||
-                  style.display === 'none' ||
-                  rect.width <= 0 ||
-                  rect.height <= 0
-                ) continue;
-                candidates.push({el, text, area: rect.width * rect.height});
-              }
-              candidates.sort((a, b) => a.area - b.area);
-              for (const item of candidates) {
-                const target = item.el.closest('button,[role="button"],a') || item.el;
-                try {
-                  target.click();
-                  return item.text.slice(0, 120);
-                } catch (_) {}
-              }
-              return '';
-            }
-            """
-        )
-        if result:
-            return True, str(result)
+        if hasattr(candidate, "is_enabled") and not candidate.is_enabled():
+            return False, ""
+        candidate.click(timeout=min(timeout_ms, 5000))
+        return True, label or "playwright_locator"
     except Exception:
-        pass
-    return False, ""
+        return False, ""
 
 
 def _click_candidates(page: Any, timeout_ms: int) -> tuple[bool, str]:
@@ -589,7 +559,7 @@ def participate(url: str) -> auto.ParticipationResult:
                     artifact,
                 )
 
-            for _ in range(8):
+            for _ in range(20):
                 page.wait_for_timeout(500)
                 confirmed, confirmation = _post_click_confirmed(page)
                 if confirmed:
@@ -624,19 +594,21 @@ def participate(url: str) -> auto.ParticipationResult:
                 _prepare_page(page, timeout_ms)
             except Exception:
                 pass
-            confirmed, confirmation = _post_click_confirmed(page)
-            if confirmed:
-                detail = _detail_with_page_hint(
-                    page,
-                    "BetBoom подтвердил участие после контрольной перезагрузки "
-                    f"({location}; {confirmation})",
-                )
-                browser.close()
-                return auto.ParticipationResult(
-                    True,
-                    "participated",
-                    detail[:300],
-                )
+            for _ in range(10):
+                confirmed, confirmation = _post_click_confirmed(page)
+                if confirmed:
+                    detail = _detail_with_page_hint(
+                        page,
+                        "BetBoom подтвердил участие после контрольной перезагрузки "
+                        f"({location}; {confirmation})",
+                    )
+                    browser.close()
+                    return auto.ParticipationResult(
+                        True,
+                        "participated",
+                        detail[:300],
+                    )
+                page.wait_for_timeout(700)
 
             referral_refusal = _visible_referral_ineligible(page)
             if referral_refusal:
@@ -659,6 +631,9 @@ def participate(url: str) -> auto.ParticipationResult:
                 f"participation control clicked ({location}), "
                 "but no exact post-click confirmation was found"
             )
+            labels = _diagnostic_labels(page)
+            if labels:
+                detail += f"; видимые действия после клика: {labels}"
             detail = _detail_with_page_hint(page, detail)
             artifact = _save_diagnostics(page, url, "unconfirmed", detail)
             browser.close()
