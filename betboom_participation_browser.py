@@ -659,6 +659,9 @@ def participate(url: str) -> auto.ParticipationResult:
                 f"participation control clicked ({location}), "
                 "but no exact post-click confirmation was found"
             )
+            labels = _diagnostic_labels(page)
+            if labels:
+                detail += f"; видимые действия после клика: {labels}"
             detail = _detail_with_page_hint(page, detail)
             artifact = _save_diagnostics(page, url, "unconfirmed", detail)
             browser.close()
