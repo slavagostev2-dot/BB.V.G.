@@ -1,6 +1,48 @@
 {
   "account_attempts": [
     {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260819T181504777579Z-881b5c816187",
+      "attempt_id": "176dff045a5f8adaa758309a3c86b7433b1555455bf70db49a3ba08cc0d13b48",
+      "confidence": 20,
+      "confirmation": "raw_status:button_not_found; workflow_state",
+      "error_text": "кнопка участия не найдена после закрытия cookie; подготовка: main:Окей; видимые действия: main:Об акции | main:Другие акции",
+      "event_id": "evt:2d95cb97bbd72d1e315a",
+      "finished_at": "2026-08-19T18:14:50.599648+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-19T18:15:20.101746+00:00",
+      "started_at": "2026-08-19T18:14:50.599648+00:00",
+      "status": "unconfirmed"
+    },
+    {
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260819T181519453672Z-317a64f02c01",
+      "attempt_id": "83556b8b1b3e6bec38a941b6c0f701b3193dbb6a1d8fa42c73bd481506629f6f",
+      "confidence": 20,
+      "confirmation": "raw_status:button_not_found; workflow_state",
+      "error_text": "кнопка участия не найдена после закрытия cookie; подготовка: main:Окей; видимые действия: main:Об акции | main:Другие акции",
+      "event_id": "evt:2d95cb97bbd72d1e315a",
+      "finished_at": "2026-08-19T18:15:05.258101+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-08-19T18:15:20.102812+00:00",
+      "started_at": "2026-08-19T18:15:05.258101+00:00",
+      "status": "unconfirmed"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260819T181450100216Z-71c88b8afbf2",
+      "attempt_id": "932a56da7d3633d6e5723e3937f06aa8eb62a2bdc131c44bcdec6480222ea49d",
+      "confidence": 20,
+      "confirmation": "raw_status:button_not_found; workflow_state",
+      "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции | main:Другие акции",
+      "event_id": "evt:2d95cb97bbd72d1e315a",
+      "finished_at": "2026-08-19T18:14:36.742404+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-19T18:15:20.100534+00:00",
+      "started_at": "2026-08-19T18:14:36.742404+00:00",
+      "status": "unconfirmed"
+    },
+    {
       "account_key": "vyacheslav_primary",
       "artifact_url": "",
       "attempt_id": "939726324bff45bac3c94dd9244fa85ef3fb037a9bb6095cd5df38406f768f88",
@@ -120,7 +162,7 @@
   "transitions": [
     {
       "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-19T17:53:02.005833+00:00",
+      "occurred_at": "2026-08-19T18:15:20.095663+00:00",
       "payload": {
         "action_id": 1441,
         "available_at": "",
@@ -148,8 +190,23 @@
       "transition_id": "0f29181012c68e61ad882b364077576b3e9b275ee2be0955a5c44a1b7ef8fd1e"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:932a56da7d3633d6e5723e3937f06aa8eb62a2bdc131c44bcdec6480222ea49d",
+      "occurred_at": "2026-08-19T18:14:36.742404+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260819T181450100216Z-71c88b8afbf2",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "30992a45a162f5db28b8d80fc9f45e7444710b71438c6c6537e7f0a7f6755b90"
+    },
+    {
       "dedupe_key": "1441:2026-08-19T17:48:14.272000+00:00",
-      "occurred_at": "2026-08-19T17:53:02.005833+00:00",
+      "occurred_at": "2026-08-19T18:15:20.095663+00:00",
       "payload": {
         "action_id": 1441,
         "available_at": "",
@@ -178,13 +235,28 @@
     },
     {
       "dedupe_key": "32283859675",
-      "occurred_at": "2026-08-19T17:53:02.011598+00:00",
+      "occurred_at": "2026-08-19T18:15:20.098909+00:00",
       "payload": {
         "workflow_run_id": "32283859675",
         "workflow_sha": "f34372b44fc3519afb774d0f6ca33455ec97851c"
       },
       "stage": "workflow_started",
       "transition_id": "3dde3d0f86bf33dd4ec237bf42222e3aed9a3f993e4bee5821819379b381fa9b"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:176dff045a5f8adaa758309a3c86b7433b1555455bf70db49a3ba08cc0d13b48",
+      "occurred_at": "2026-08-19T18:14:50.599648+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260819T181504777579Z-881b5c816187",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "451342f8e8042abb50efbc897332fff9ec680eaea7e0f939c52d1c9172624013"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:fa83f3aa92aca9df19ddc73c2916e8f80d4e1a3e0ed0ad6d6d5f417357129de4",
@@ -217,8 +289,23 @@
       "transition_id": "878befdda3d252aef7e9e0970983e7d09e98859aec1ea377e0333e193dd807fd"
     },
     {
+      "dedupe_key": "xflarxx:xflarxx_primary:83556b8b1b3e6bec38a941b6c0f701b3193dbb6a1d8fa42c73bd481506629f6f",
+      "occurred_at": "2026-08-19T18:15:05.258101+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260819T181519453672Z-317a64f02c01",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "8a72525f0a1a7e084c0ba6e25ca0c6e8849d38a6e76118b8e2ba3e79fa406648"
+    },
+    {
       "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-19T17:53:02.005833+00:00",
+      "occurred_at": "2026-08-19T18:15:20.095663+00:00",
       "payload": {
         "action_id": 1441,
         "available_at": "",
@@ -261,7 +348,7 @@
       "transition_id": "c63f27816abcc381991f67ac018b3e8c4cc7ae2e53fec255eb6467817062c061"
     }
   ],
-  "updated_at": "2026-08-19T17:53:17.505197+00:00",
+  "updated_at": "2026-08-19T18:15:20.098909+00:00",
   "wheel_key": "helin1",
   "workflow_started_at": "2026-08-19T17:53:02.011598+00:00"
 }
