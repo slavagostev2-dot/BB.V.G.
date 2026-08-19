@@ -255,6 +255,11 @@ def test_auto_participation_outcomes_publish_to_control_center_runtime_state() -
     assert workflow.count("--publish-runtime-state state.json") == 2
     assert "BBVG_RUNTIME_STATE_BRANCH: runtime-state" in workflow
     assert "Publish fast auto participation outcome [skip ci]" not in workflow
+    assert "git fetch origin main runtime-state" in workflow
+    assert "git show origin/runtime-state:state.json > state.json" in workflow
+    assert workflow.index("git show origin/runtime-state:state.json > state.json") < workflow.index(
+        "- name: Validate auto participation"
+    )
     fast_publish = workflow.split("- name: Publish fast participation state", 1)[1]
     fast_publish = fast_publish.split(
         "- name: Recover fresh active wheels independently of monitor state", 1

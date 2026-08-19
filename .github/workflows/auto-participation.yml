@@ -37,8 +37,9 @@ jobs:
       - name: Refresh latest monitor state
         run: |
           sleep 2
-          git fetch origin main
+          git fetch origin main runtime-state
           git reset --hard origin/main
+          git show origin/runtime-state:state.json > state.json
 
       - name: Detect isolated probe request
         id: mode
