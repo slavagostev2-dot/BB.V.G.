@@ -61,7 +61,7 @@ def _confirmed_success_for_event(
     state: dict[str, Any],
     item: dict[str, Any],
 ) -> bool:
-    """Return True when this exact event has any durable successful outcome."""
+    """Return True only for a durable primary-account success on this event."""
 
     key = str(item.get("wheel_key") or "").casefold()
     if not key:
@@ -69,28 +69,31 @@ def _confirmed_success_for_event(
     token = _event_token(item)
 
     processed = state.get("auto_participation_events")
-    if isinstance(processed, dict):
-        exact = processed.get(token)
-        if isinstance(exact, dict) and str(exact.get("status") or "").casefold() in SUCCESS_STATUSES:
-            return True
-        for record in processed.values():
-            if not isinstance(record, dict):
-                continue
-            if str(record.get("status") or "").casefold() not in SUCCESS_STATUSES:
-                continue
-            if _record_matches_event(record, item):
-                return True
+    if not isinstance(processed, dict):
+        return False
 
-    active = state.get("active_wheels")
-    entry = active.get(key) if isinstance(active, dict) else None
-    if isinstance(entry, dict) and _event_token(entry) == token:
-        if bool(entry.get("participating")):
-            return True
-        if str(entry.get("auto_participation_status") or "").casefold() in SUCCESS_STATUSES:
-            return True
-        if entry.get("auto_participation_confirmed_at"):
+    exact = processed.get(token)
+    if isinstance(exact, dict):
+        account_key = str(exact.get("account_key") or "").strip()
+        if (
+            account_key in {"", PRIMARY_ACCOUNT_KEY}
+            and str(exact.get("status") or "").casefold() in SUCCESS_STATUSES
+        ):
             return True
 
+    for record in processed.values():
+        if not isinstance(record, dict):
+            continue
+        account_key = str(record.get("account_key") or "").strip()
+        if account_key not in {"", PRIMARY_ACCOUNT_KEY}:
+            continue
+        if str(record.get("status") or "").casefold() not in SUCCESS_STATUSES:
+            continue
+        if _record_matches_event(record, item):
+            return True
+
+    # active_wheels.participating is an aggregate across all accounts. It cannot
+    # prove that the primary account succeeded when a secondary account did.
     return False
 
 

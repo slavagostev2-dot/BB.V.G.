@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import auto_participation_bot_sync
+import auto_participation_recovery
 
 UTC = timezone.utc
 
@@ -128,3 +129,56 @@ def test_expired_newer_generation_cannot_replace_monitor_generation() -> None:
     )
 
     assert merged["active_wheels"]["same-link"]["action_id"] == 200
+
+
+def test_primary_recovery_does_not_trust_secondary_account_success() -> None:
+    started = datetime(2026, 8, 19, 9, 15, tzinfo=UTC)
+    item = _event(
+        "zonertg8",
+        action_id=1290,
+        server_start_at=started,
+        deadline=started + timedelta(hours=10),
+    )
+    token = auto_participation_recovery._event_token(item)
+    state = {
+        "active_wheels": {"zonertg8": item},
+        "auto_participation_events": {
+            token: {
+                "wheel_key": "zonertg8",
+                "account_key": "vyacheslav_primary",
+                "event_token": token,
+                "status": "button_not_found",
+            },
+            f"{token}#account:vyacheslav_secondary": {
+                "wheel_key": "zonertg8",
+                "account_key": "vyacheslav_secondary",
+                "event_token": token,
+                "status": "participated",
+            },
+        },
+    }
+
+    assert auto_participation_recovery._confirmed_success_for_event(state, item) is False
+
+
+def test_primary_recovery_accepts_exact_primary_success() -> None:
+    started = datetime(2026, 8, 19, 9, 15, tzinfo=UTC)
+    item = _event(
+        "zonertg8",
+        action_id=1290,
+        server_start_at=started,
+        deadline=started + timedelta(hours=10),
+    )
+    token = auto_participation_recovery._event_token(item)
+    state = {
+        "auto_participation_events": {
+            token: {
+                "wheel_key": "zonertg8",
+                "account_key": "vyacheslav_primary",
+                "event_token": token,
+                "status": "participated",
+            }
+        }
+    }
+
+    assert auto_participation_recovery._confirmed_success_for_event(state, item) is True
