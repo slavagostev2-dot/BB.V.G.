@@ -206,9 +206,14 @@ def _failure_record(
         "recovery_scan": True,
     }
     if record["retry_allowed"]:
-        record["retry_after_at"] = (
-            scanned_at + timedelta(minutes=RETRY_DELAY_MINUTES)
-        ).isoformat()
+        try:
+            retry_after = scanned_at + timedelta(minutes=RETRY_DELAY_MINUTES)
+        except TypeError:
+            retry_base = monitor.parse_datetime(scanned_at.isoformat())
+            if retry_base is None:
+                raise
+            retry_after = retry_base + timedelta(minutes=RETRY_DELAY_MINUTES)
+        record["retry_after_at"] = retry_after.isoformat()
     if isinstance(previous, dict):
         for field in (
             "manual_notification_sent",
