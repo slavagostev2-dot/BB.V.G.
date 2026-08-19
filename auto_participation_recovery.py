@@ -19,6 +19,16 @@ SUCCESS_STATUSES = {
     "already_participating",
     "already_marked_participating",
 }
+TRANSIENT_FAILURE_STATUSES = {
+    "browser_error",
+    "button_not_found",
+    "unconfirmed",
+    "timeout",
+    "navigation_timeout",
+    "page_timeout",
+    "technical_error",
+}
+RETRY_DELAY_MINUTES = 2
 
 
 def _json(path: Path, default: Any) -> Any:
@@ -27,6 +37,37 @@ def _json(path: Path, default: Any) -> Any:
     except (OSError, json.JSONDecodeError):
         return default
     return value
+
+
+def _persisted_active_candidates(
+    state: dict[str, Any],
+    current: Any,
+) -> dict[str, dict[str, Any]]:
+    """Keep already-detected active events eligible for the full recovery pass."""
+
+    rows: dict[str, dict[str, Any]] = {}
+    active = state.get("active_wheels")
+    if not isinstance(active, dict):
+        return rows
+    for raw_key, raw in active.items():
+        if not isinstance(raw, dict):
+            continue
+        key = str(raw_key or raw.get("wheel_key") or raw.get("identifier") or "").casefold()
+        url = str(raw.get("url") or "").strip()
+        if not key or not url:
+            continue
+        page_status = str(raw.get("page_status") or "").casefold()
+        if page_status in {"not_started", "finished", "closed", "expired"}:
+            continue
+        deadline = monitor.parse_datetime(raw.get("deadline"))
+        if deadline is not None and current > deadline:
+            continue
+        item = dict(raw)
+        item["wheel_key"] = key
+        item.setdefault("identifier", key)
+        item["url"] = monitor.normalize_url(url)
+        rows[key] = item
+    return rows
 
 
 def _event_token(item: dict[str, Any]) -> str:
@@ -161,9 +202,13 @@ def _failure_record(
         "status": status,
         "detail": detail[:300],
         "attempted_at": scanned_at.isoformat(),
-        "retry_allowed": False,
+        "retry_allowed": status.casefold() in TRANSIENT_FAILURE_STATUSES,
         "recovery_scan": True,
     }
+    if record["retry_allowed"]:
+        record["retry_after_at"] = (
+            scanned_at + timedelta(minutes=RETRY_DELAY_MINUTES)
+        ).isoformat()
     if isinstance(previous, dict):
         for field in (
             "manual_notification_sent",
@@ -421,8 +466,14 @@ def run_recovery() -> dict[str, Any]:
     cutoff = now - timedelta(hours=3)
 
     persisted = _json(monitor.STATE_PATH, {})
+    if not isinstance(persisted, dict):
+        persisted = {}
 
-    candidates: dict[str, dict[str, Any]] = {}
+    # A wheel can be published hours before BetBoom activates it. Seed the full
+    # recovery pass from durable active state so transient browser failures get
+    # another attempt even when the original Telegram post is older than the
+    # source-scan cutoff.
+    candidates = _persisted_active_candidates(persisted, now)
     for source, messages in results.items():
         if not isinstance(messages, list):
             continue
