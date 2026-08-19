@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -17,6 +18,7 @@ import admin_runtime
 import bot_private_state
 import incident_manager
 import monitor_health
+import notification_button_recovery
 import notification_navigation
 import notification_preferences_v2
 import personal_reminder_filter
@@ -270,3 +272,35 @@ def test_auto_participation_outcomes_publish_to_control_center_runtime_state() -
     )[1]
     assert "git push origin HEAD:main" not in fast_publish
     assert "git push origin HEAD:main" not in final_publish
+
+def test_auto_participation_outcome_always_creates_a_new_message() -> None:
+    panel = panel_interface.PanelInterfaceRuntime.__new__(
+        panel_interface.PanelInterfaceRuntime
+    )
+    panel.current_chat_id = "owner-chat"
+    panel._edit_message_id = 777
+    panel._force_new_message_context = threading.local()
+    panel._remove_reply_keyboard_before_send = False
+    calls: list[tuple[str, dict]] = []
+    panel.telegram_api = lambda method, payload=None: (
+        calls.append((method, dict(payload or {})))
+        or {"ok": True, "result": {"message_id": 2000}}
+    )
+    panel.send = panel_interface.PanelInterfaceRuntime.send.__get__(
+        panel,
+        panel_interface.PanelInterfaceRuntime,
+    )
+
+    result = notification_button_recovery._run_with_outcome_delivery_claims(
+        lambda current: (
+            current.send("automatic outcome", chat_id="owner-chat")
+            and {"completed": 1}
+        ),
+        panel,
+    )
+
+    assert result == {"completed": 1}
+    assert [method for method, _payload in calls] == ["sendMessage"]
+    assert panel._edit_message_id == 777
+    assert not bool(getattr(panel._force_new_message_context, "active", False))
+
