@@ -4,6 +4,7 @@ import html
 import json
 import math
 import os
+import threading
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import Any
@@ -25,6 +26,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
     def __init__(self) -> None:
         super().__init__()
         self._edit_message_id: int | None = None
+        self._force_new_message_context = threading.local()
         self._remove_reply_keyboard_before_send = False
 
     @staticmethod
@@ -378,8 +380,12 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             self._remove_reply_keyboard_before_send = False
             self._hide_reply_keyboard()
 
-        if self._edit_message_id is not None and target == str(
-            self.current_chat_id or ""
+        force_context = getattr(self, "_force_new_message_context", None)
+        force_new_message = bool(getattr(force_context, "active", False))
+        if (
+            not force_new_message
+            and self._edit_message_id is not None
+            and target == str(self.current_chat_id or "")
         ):
             payload: dict[str, Any] = {
                 "chat_id": target,

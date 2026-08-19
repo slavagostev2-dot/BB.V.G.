@@ -117,12 +117,22 @@ def _run_with_outcome_delivery_claims(
             chat_id=chat_id,
         )
 
+    force_context = getattr(panel, "_force_new_message_context", None)
+    previous_force_new = (
+        bool(getattr(force_context, "active", False))
+        if force_context is not None
+        else False
+    )
     _take_outcome_delivery_identity()
     panel.send = send_once
+    if force_context is not None:
+        force_context.active = True
     try:
         value = callback(panel)
         return dict(value) if isinstance(value, dict) else {}
     finally:
+        if force_context is not None:
+            force_context.active = previous_force_new
         panel.send = original_send
         _take_outcome_delivery_identity()
 
