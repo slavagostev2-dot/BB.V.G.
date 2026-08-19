@@ -7,6 +7,7 @@ class Candidate:
     def __init__(self, text: str) -> None:
         self.text = text
         self.clicked = False
+        self.force_values: list[bool] = []
 
     def is_visible(self) -> bool:
         return True
@@ -15,6 +16,7 @@ class Candidate:
         return self.text
 
     def click(self, timeout: int = 0, force: bool = False) -> None:
+        self.force_values.append(force)
         self.clicked = True
 
 
@@ -71,6 +73,7 @@ def test_participation_button_is_clicked_inside_child_frame() -> None:
 
     assert clicked is True
     assert child.candidates[0].clicked is True
+    assert child.candidates[0].force_values == [False]
     assert location.startswith("frame:wheel.example:")
 
 
@@ -79,3 +82,29 @@ def test_frame_diagnostics_include_location_and_label() -> None:
     labels = _diagnostic_labels(page)
     assert "main:Об акции" in labels
     assert "frame:wheel.example:Участвовать" in labels
+
+
+class BlockedCandidate(Candidate):
+    def click(self, timeout: int = 0, force: bool = False) -> None:
+        self.force_values.append(force)
+        raise RuntimeError("covered by loading overlay")
+
+
+class BlockedRoot(Root):
+    def __init__(self) -> None:
+        super().__init__([])
+        self.candidates = [BlockedCandidate("Принять участие")]
+
+    def evaluate(self, _script: str):
+        return "Принять участие"
+
+
+def test_blocked_control_is_not_reported_as_clicked_by_dom_fallback() -> None:
+    child = BlockedRoot()
+    page = Page([], [child])
+
+    clicked, location = _click_candidates(page, 1000)
+
+    assert clicked is False
+    assert location == ""
+    assert child.candidates[0].force_values == [False]
