@@ -29,6 +29,20 @@
       "status": "unconfirmed"
     },
     {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133351500373Z-82531deef580",
+      "attempt_id": "947248f75a6888cfc10ff80523b5c1ec5c3f8cdd6bf55793e82acfbbabc193c3",
+      "confidence": 20,
+      "confirmation": "workflow_state",
+      "error_text": "participation control clicked (main:Принять участие), but no exact post-click confirmation was found; видимые действия после клика: main:Об акции | main:Принять участие",
+      "event_id": "evt:201dc30f04d3c65adc42",
+      "finished_at": "2026-08-20T13:33:25.847647+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-20T13:33:53.016049+00:00",
+      "started_at": "2026-08-20T13:33:25.847647+00:00",
+      "status": "unconfirmed"
+    },
+    {
       "account_key": "xflarxx_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133310718654Z-55e8313c1f96",
       "attempt_id": "af2eade8913530a32cb582c4529cea9c70818ac26c81ab561c6d950367085752",
@@ -47,17 +61,17 @@
     {
       "account_key": "vyacheslav_primary",
       "account_label": "Аккаунт 1",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133222272142Z-3619265ed49a",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133351500373Z-82531deef580",
       "attempt_count": 1,
       "confidence": 20,
       "confirmation": "workflow_state",
       "error_text": "participation control clicked (main:Принять участие), but no exact post-click confirmation was found; видимые действия после клика: main:Об акции | main:Принять участие",
       "event_id": "evt:201dc30f04d3c65adc42",
-      "finished_at": "2026-08-20T13:31:58.636327+00:00",
+      "finished_at": "2026-08-20T13:33:25.847647+00:00",
       "owner_id": "vyacheslav",
       "started_at": "2026-08-20T13:31:58.636327+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-20T13:33:11.550211+00:00"
+      "updated_at": "2026-08-20T13:33:53.016049+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +86,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-20T13:32:22.857120+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-20T13:33:11.551553+00:00"
+      "updated_at": "2026-08-20T13:33:53.017184+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +101,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-20T13:32:47.544977+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-20T13:33:11.552849+00:00"
+      "updated_at": "2026-08-20T13:33:53.018267+00:00"
     }
   ],
   "action_id": 1513,
@@ -119,62 +133,34 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-20T13:33:11.544135+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:49a3397d7593e64a86cc96fd036c72b6247f8e2e30742a94a7d1ea5c6b813753",
+      "occurred_at": "2026-08-20T13:31:58.636327+00:00",
       "payload": {
-        "action_id": 1513,
-        "available_at": "",
-        "deadline": "2026-08-20T13:37:49.623000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:201dc30f04d3c65adc42",
-        "expires_at": "2026-08-20T14:07:49.623000+00:00",
-        "generation_id": "201dc30f04d3c65adc42",
-        "identifier": "dyrachyoref",
-        "message_text": "https://betboom.ru/freestream/dyrachyoref\nКОЛЕСО ТОК ДЛЯ РЕФОВ\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets\nhttps://betboom.ru/freestream/dyrachyoref\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets/1004",
-        "referral_classification_evidence": "explicit_persisted_referral_restriction",
-        "referral_restricted": true,
-        "server_start_at": "2026-08-20T13:22:49.623000+00:00",
-        "source": "dyrachyobets",
-        "source_message_date": "2026-08-20T13:27:54+00:00",
-        "source_message_id": 1004,
-        "source_message_url": "https://telegram.me/dyrachyobets/1004",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/dyrachyoref",
-        "verification_status": "confirmed",
-        "wheel_key": "dyrachyoref",
-        "wheel_type": "referral"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133222272142Z-3619265ed49a",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
       },
-      "stage": "source_discovered",
-      "transition_id": "9e47c64eb93d8f8cfc5c2d5a5951e83f5c131d4777e267ad70b625e0899b8a07"
+      "stage": "account_result",
+      "transition_id": "32a505f64dfc2f6b6f470836cd45c0c49d2ab820832f72c9cb1215936712bf40"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-20T13:33:11.544135+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:af2eade8913530a32cb582c4529cea9c70818ac26c81ab561c6d950367085752",
+      "occurred_at": "2026-08-20T13:32:47.544977+00:00",
       "payload": {
-        "action_id": 1513,
-        "available_at": "",
-        "deadline": "2026-08-20T13:37:49.623000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:201dc30f04d3c65adc42",
-        "expires_at": "2026-08-20T14:07:49.623000+00:00",
-        "generation_id": "201dc30f04d3c65adc42",
-        "identifier": "dyrachyoref",
-        "message_text": "https://betboom.ru/freestream/dyrachyoref\nКОЛЕСО ТОК ДЛЯ РЕФОВ\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets\nhttps://betboom.ru/freestream/dyrachyoref\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets/1004",
-        "referral_classification_evidence": "explicit_persisted_referral_restriction",
-        "referral_restricted": true,
-        "server_start_at": "2026-08-20T13:22:49.623000+00:00",
-        "source": "dyrachyobets",
-        "source_message_date": "2026-08-20T13:27:54+00:00",
-        "source_message_id": 1004,
-        "source_message_url": "https://telegram.me/dyrachyobets/1004",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/dyrachyoref",
-        "verification_status": "confirmed",
-        "wheel_key": "dyrachyoref",
-        "wheel_type": "referral"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133310718654Z-55e8313c1f96",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
       },
-      "stage": "persisted",
-      "transition_id": "ef6e8ec88295e6c7e7e25160c10a9e5d83a8317d3d36cc685ac1b40699510e95"
+      "stage": "account_result",
+      "transition_id": "7b4d27c69533db93689eb902920cf4e2ee84bcc6d600cb2958891350378aece0"
     },
     {
       "dedupe_key": "1513:2026-08-20T13:22:49.623000+00:00",
@@ -216,19 +202,77 @@
       "transition_id": "96f594e2fb8d27875c706626da61d89509f9e97e6b9cde32e271e99d390d9a7e"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:49a3397d7593e64a86cc96fd036c72b6247f8e2e30742a94a7d1ea5c6b813753",
-      "occurred_at": "2026-08-20T13:31:58.636327+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-20T13:33:11.544135+00:00",
+      "payload": {
+        "action_id": 1513,
+        "available_at": "",
+        "deadline": "2026-08-20T13:37:49.623000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:201dc30f04d3c65adc42",
+        "expires_at": "2026-08-20T14:07:49.623000+00:00",
+        "generation_id": "201dc30f04d3c65adc42",
+        "identifier": "dyrachyoref",
+        "message_text": "https://betboom.ru/freestream/dyrachyoref\nКОЛЕСО ТОК ДЛЯ РЕФОВ\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets\nhttps://betboom.ru/freestream/dyrachyoref\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets/1004",
+        "referral_classification_evidence": "explicit_persisted_referral_restriction",
+        "referral_restricted": true,
+        "server_start_at": "2026-08-20T13:22:49.623000+00:00",
+        "source": "dyrachyobets",
+        "source_message_date": "2026-08-20T13:27:54+00:00",
+        "source_message_id": 1004,
+        "source_message_url": "https://telegram.me/dyrachyobets/1004",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dyrachyoref",
+        "verification_status": "confirmed",
+        "wheel_key": "dyrachyoref",
+        "wheel_type": "referral"
+      },
+      "stage": "source_discovered",
+      "transition_id": "9e47c64eb93d8f8cfc5c2d5a5951e83f5c131d4777e267ad70b625e0899b8a07"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:947248f75a6888cfc10ff80523b5c1ec5c3f8cdd6bf55793e82acfbbabc193c3",
+      "occurred_at": "2026-08-20T13:33:25.847647+00:00",
       "payload": {
         "account_key": "vyacheslav_primary",
         "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133222272142Z-3619265ed49a",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133351500373Z-82531deef580",
         "attempt_count": 1,
         "confirmation": "workflow_state",
         "owner_id": "vyacheslav",
         "status": "unconfirmed"
       },
       "stage": "account_result",
-      "transition_id": "32a505f64dfc2f6b6f470836cd45c0c49d2ab820832f72c9cb1215936712bf40"
+      "transition_id": "9f63a5123c3ecc2eb2609794e21581217927bcf5a1e8ad09f799526dedbeaa97"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-20T13:33:11.544135+00:00",
+      "payload": {
+        "action_id": 1513,
+        "available_at": "",
+        "deadline": "2026-08-20T13:37:49.623000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:201dc30f04d3c65adc42",
+        "expires_at": "2026-08-20T14:07:49.623000+00:00",
+        "generation_id": "201dc30f04d3c65adc42",
+        "identifier": "dyrachyoref",
+        "message_text": "https://betboom.ru/freestream/dyrachyoref\nКОЛЕСО ТОК ДЛЯ РЕФОВ\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets\nhttps://betboom.ru/freestream/dyrachyoref\nhttps://www.twitch.tv/dyrachyo\nhttps://telegram.me/dyrachyobets/1004",
+        "referral_classification_evidence": "explicit_persisted_referral_restriction",
+        "referral_restricted": true,
+        "server_start_at": "2026-08-20T13:22:49.623000+00:00",
+        "source": "dyrachyobets",
+        "source_message_date": "2026-08-20T13:27:54+00:00",
+        "source_message_id": 1004,
+        "source_message_url": "https://telegram.me/dyrachyobets/1004",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dyrachyoref",
+        "verification_status": "confirmed",
+        "wheel_key": "dyrachyoref",
+        "wheel_type": "referral"
+      },
+      "stage": "persisted",
+      "transition_id": "ef6e8ec88295e6c7e7e25160c10a9e5d83a8317d3d36cc685ac1b40699510e95"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:6de441aa369e04385448b5f853f834ac60eb272b6fba94e54c286aebe56f2ced",
@@ -244,24 +288,9 @@
       },
       "stage": "account_result",
       "transition_id": "fe9026df98facba0d3e62738c28a491c95399ebb9cd36b14b248f31991b02a76"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:af2eade8913530a32cb582c4529cea9c70818ac26c81ab561c6d950367085752",
-      "occurred_at": "2026-08-20T13:32:47.544977+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260820T133310718654Z-55e8313c1f96",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "7b4d27c69533db93689eb902920cf4e2ee84bcc6d600cb2958891350378aece0"
     }
   ],
-  "updated_at": "2026-08-20T13:33:11.548256+00:00",
+  "updated_at": "2026-08-20T13:33:53.014461+00:00",
   "wheel_key": "dyrachyoref",
   "workflow_started_at": "2026-08-20T13:33:11.548256+00:00"
 }
