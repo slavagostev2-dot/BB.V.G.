@@ -1,6 +1,20 @@
 {
   "account_attempts": [
     {
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260821T171455982120Z-acf6a5123aa9",
+      "attempt_id": "1744d32d7b7b57dc2345387b2affa0491ff9ee1d484a28b140a50f7e6213e2f0",
+      "confidence": 20,
+      "confirmation": "raw_status:button_not_found; workflow_state",
+      "error_text": "страница показывает вход/авторизацию; подготовка: main:Окей; видимые действия: main:Об акции | main:Авторизоваться",
+      "event_id": "evt:ee151e31abce4ccedc56",
+      "finished_at": "2026-08-21T17:14:40.134579+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-08-21T17:14:56.836402+00:00",
+      "started_at": "2026-08-21T17:14:40.134579+00:00",
+      "status": "unconfirmed"
+    },
+    {
       "account_key": "vyacheslav_primary",
       "artifact_url": "",
       "attempt_id": "ac58022ddb134afea6e000ad65d005709a84e53ab65375f701ab37c0734eea9e",
@@ -27,20 +41,6 @@
       "recorded_at": "2026-08-21T17:14:56.835124+00:00",
       "started_at": "2026-08-21T17:14:23.927426+00:00",
       "status": "unconfirmed"
-    },
-    {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260821T171455982120Z-acf6a5123aa9",
-      "attempt_id": "1744d32d7b7b57dc2345387b2affa0491ff9ee1d484a28b140a50f7e6213e2f0",
-      "confidence": 20,
-      "confirmation": "raw_status:button_not_found; workflow_state",
-      "error_text": "страница показывает вход/авторизацию; подготовка: main:Окей; видимые действия: main:Об акции | main:Авторизоваться",
-      "event_id": "evt:ee151e31abce4ccedc56",
-      "finished_at": "2026-08-21T17:14:40.134579+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-08-21T17:14:56.836402+00:00",
-      "started_at": "2026-08-21T17:14:40.134579+00:00",
-      "status": "unconfirmed"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-21T17:14:17.036579+00:00",
       "status": "participated",
-      "updated_at": "2026-08-21T17:14:56.833911+00:00"
+      "updated_at": "2026-08-21T17:15:58.177879+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-21T17:14:23.927426+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-21T17:14:56.835124+00:00"
+      "updated_at": "2026-08-21T17:15:58.179059+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-21T17:14:40.134579+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-21T17:14:56.836402+00:00"
+      "updated_at": "2026-08-21T17:15:58.180119+00:00"
     }
   ],
   "action_id": 1585,
@@ -119,35 +119,6 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-21T17:14:56.827133+00:00",
-      "payload": {
-        "action_id": 1585,
-        "available_at": "",
-        "deadline": "2026-08-21T17:27:55.493000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:ee151e31abce4ccedc56",
-        "expires_at": "2026-08-21T17:57:55.493000+00:00",
-        "generation_id": "ee151e31abce4ccedc56",
-        "identifier": "zonertw10",
-        "message_text": "https://betboom.ru/freestream/zonertw10\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/488",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-21T17:07:55.493000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-08-21T17:10:35+00:00",
-        "source_message_id": 488,
-        "source_message_url": "https://telegram.me/kolesaBB/488",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zonertw10",
-        "verification_status": "confirmed",
-        "wheel_key": "zonertw10",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "c4e3e5e69ccc696791c94db345414311a392c512f6021e6e736424983dafa127"
-    },
-    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-08-21T17:14:56.827133+00:00",
       "payload": {
@@ -177,43 +148,19 @@
       "transition_id": "2440654e52684ee7c8c67ad679d9a38ced3db0caa09edbcc7508fe88e13aea1a"
     },
     {
-      "dedupe_key": "1585:2026-08-21T17:07:55.493000+00:00",
-      "occurred_at": "2026-08-21T17:14:56.827133+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:1744d32d7b7b57dc2345387b2affa0491ff9ee1d484a28b140a50f7e6213e2f0",
+      "occurred_at": "2026-08-21T17:14:40.134579+00:00",
       "payload": {
-        "action_id": 1585,
-        "available_at": "",
-        "deadline": "2026-08-21T17:27:55.493000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:ee151e31abce4ccedc56",
-        "expires_at": "2026-08-21T17:57:55.493000+00:00",
-        "generation_id": "ee151e31abce4ccedc56",
-        "identifier": "zonertw10",
-        "message_text": "https://betboom.ru/freestream/zonertw10\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/488",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-21T17:07:55.493000+00:00",
-        "source": "kolesaBB",
-        "source_message_date": "2026-08-21T17:10:35+00:00",
-        "source_message_id": 488,
-        "source_message_url": "https://telegram.me/kolesaBB/488",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zonertw10",
-        "verification_status": "confirmed",
-        "wheel_key": "zonertw10",
-        "wheel_type": "normal"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260821T171455982120Z-acf6a5123aa9",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
       },
-      "stage": "api_confirmed",
-      "transition_id": "aa082a4afe7d3160b81e992d47233c3c7b5fc4c0639a0a7adc0ac43ae823c09d"
-    },
-    {
-      "dedupe_key": "32506852207",
-      "occurred_at": "2026-08-21T17:14:56.831321+00:00",
-      "payload": {
-        "workflow_run_id": "32506852207",
-        "workflow_sha": "5a196c3d31484679578a25a1db1a9243736f47a2"
-      },
-      "stage": "workflow_started",
-      "transition_id": "c71beecbdfdc59dd6d61007848f863a0d611d631ce5ec0e84a2fe08269ef47da"
+      "stage": "account_result",
+      "transition_id": "5c63245c0d24e150ca2219efaf91cd5d6e8576fb4e23149276ebc7885b04fd4b"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:ac58022ddb134afea6e000ad65d005709a84e53ab65375f701ab37c0734eea9e",
@@ -246,22 +193,75 @@
       "transition_id": "9a8bb8fc18b41f453320a71cf6195cea9e4d34801ec85355bd3c7e8d4e56f581"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:1744d32d7b7b57dc2345387b2affa0491ff9ee1d484a28b140a50f7e6213e2f0",
-      "occurred_at": "2026-08-21T17:14:40.134579+00:00",
+      "dedupe_key": "1585:2026-08-21T17:07:55.493000+00:00",
+      "occurred_at": "2026-08-21T17:14:56.827133+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260821T171455982120Z-acf6a5123aa9",
-        "attempt_count": 1,
-        "confirmation": "raw_status:button_not_found; workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
+        "action_id": 1585,
+        "available_at": "",
+        "deadline": "2026-08-21T17:27:55.493000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:ee151e31abce4ccedc56",
+        "expires_at": "2026-08-21T17:57:55.493000+00:00",
+        "generation_id": "ee151e31abce4ccedc56",
+        "identifier": "zonertw10",
+        "message_text": "https://betboom.ru/freestream/zonertw10\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/488",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-21T17:07:55.493000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-08-21T17:10:35+00:00",
+        "source_message_id": 488,
+        "source_message_url": "https://telegram.me/kolesaBB/488",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zonertw10",
+        "verification_status": "confirmed",
+        "wheel_key": "zonertw10",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "5c63245c0d24e150ca2219efaf91cd5d6e8576fb4e23149276ebc7885b04fd4b"
+      "stage": "api_confirmed",
+      "transition_id": "aa082a4afe7d3160b81e992d47233c3c7b5fc4c0639a0a7adc0ac43ae823c09d"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-21T17:14:56.827133+00:00",
+      "payload": {
+        "action_id": 1585,
+        "available_at": "",
+        "deadline": "2026-08-21T17:27:55.493000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:ee151e31abce4ccedc56",
+        "expires_at": "2026-08-21T17:57:55.493000+00:00",
+        "generation_id": "ee151e31abce4ccedc56",
+        "identifier": "zonertw10",
+        "message_text": "https://betboom.ru/freestream/zonertw10\nhttps://telegram.me/kolesaBB\nhttps://telegram.me/kolesaBB/488",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-21T17:07:55.493000+00:00",
+        "source": "kolesaBB",
+        "source_message_date": "2026-08-21T17:10:35+00:00",
+        "source_message_id": 488,
+        "source_message_url": "https://telegram.me/kolesaBB/488",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zonertw10",
+        "verification_status": "confirmed",
+        "wheel_key": "zonertw10",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "c4e3e5e69ccc696791c94db345414311a392c512f6021e6e736424983dafa127"
+    },
+    {
+      "dedupe_key": "32506852207",
+      "occurred_at": "2026-08-21T17:14:56.831321+00:00",
+      "payload": {
+        "workflow_run_id": "32506852207",
+        "workflow_sha": "5a196c3d31484679578a25a1db1a9243736f47a2"
+      },
+      "stage": "workflow_started",
+      "transition_id": "c71beecbdfdc59dd6d61007848f863a0d611d631ce5ec0e84a2fe08269ef47da"
     }
   ],
-  "updated_at": "2026-08-21T17:14:56.831321+00:00",
+  "updated_at": "2026-08-21T17:15:58.175626+00:00",
   "wheel_key": "zonertw10",
   "workflow_started_at": "2026-08-21T17:14:56.831321+00:00"
 }
