@@ -1532,10 +1532,21 @@
       "provider": "gemini",
       "reason": "The post explicitly states 'Колеса будут на каждой игре' (Wheels will be at every game) and invites viewers to the stream to participate.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1787308764.821284,
+      "error": "ReadTimeout: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=20)",
+      "feature": "suspicious_post_analysis",
+      "id": "60b9a103f47045bf8e08c5a2a2e9911d",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "06fad6ea648953fba50d2251c108b442d8c072a0f88a793dacdcce62f1a09711",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1787222522.6230903
+    1787308764.821284
   ],
   "version": 1
 }
