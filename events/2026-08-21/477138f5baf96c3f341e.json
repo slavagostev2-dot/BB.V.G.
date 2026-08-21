@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-21T17:38:15.781455+00:00",
       "status": "participated",
-      "updated_at": "2026-08-21T17:38:54.403864+00:00"
+      "updated_at": "2026-08-21T17:39:45.944931+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-21T17:38:22.727389+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-21T17:38:54.405390+00:00"
+      "updated_at": "2026-08-21T17:39:45.946093+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-21T17:38:38.818442+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-21T17:38:54.406778+00:00"
+      "updated_at": "2026-08-21T17:39:45.947246+00:00"
     }
   ],
   "action_id": 1595,
@@ -119,62 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-21T17:38:54.397011+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:0bccb9fca1b97b3cfd96f3d271287171c92a4191eb103c328cf08f9e877fedc6",
+      "occurred_at": "2026-08-21T17:38:15.781455+00:00",
       "payload": {
-        "action_id": 1595,
-        "available_at": "",
-        "deadline": "2026-08-21T17:54:28.574000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:477138f5baf96c3f341e",
-        "expires_at": "2026-08-21T18:24:28.574000+00:00",
-        "generation_id": "477138f5baf96c3f341e",
-        "identifier": "kekw3",
-        "message_text": "🎰\nВСЕ В КОЛЕСО:\nhttps://betboom.ru/freestream/kekw3\n😍\nДо 10.000₽ за регистрацию по промокоду\nKEKW\nна\nBETBOOM\nhttps://telegram.me/burdakekw\nhttps://telegram.me/burdakekw/5718\nhttps://betboom.ru/freestream/kekw3\nhttps://bbsport.su/link/gfsibY/",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-21T17:34:28.574000+00:00",
-        "source": "burdakekw",
-        "source_message_date": "2026-08-21T17:34:51+00:00",
-        "source_message_id": 5718,
-        "source_message_url": "https://telegram.me/burdakekw/5718",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/kekw3",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw3",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "a38c578d2ae08fa9ce94c4f85d380b0249684c03564a5acef5731b3ab976d7b7"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-21T17:38:54.397011+00:00",
-      "payload": {
-        "action_id": 1595,
-        "available_at": "",
-        "deadline": "2026-08-21T17:54:28.574000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:477138f5baf96c3f341e",
-        "expires_at": "2026-08-21T18:24:28.574000+00:00",
-        "generation_id": "477138f5baf96c3f341e",
-        "identifier": "kekw3",
-        "message_text": "🎰\nВСЕ В КОЛЕСО:\nhttps://betboom.ru/freestream/kekw3\n😍\nДо 10.000₽ за регистрацию по промокоду\nKEKW\nна\nBETBOOM\nhttps://telegram.me/burdakekw\nhttps://telegram.me/burdakekw/5718\nhttps://betboom.ru/freestream/kekw3\nhttps://bbsport.su/link/gfsibY/",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-21T17:34:28.574000+00:00",
-        "source": "burdakekw",
-        "source_message_date": "2026-08-21T17:34:51+00:00",
-        "source_message_id": 5718,
-        "source_message_url": "https://telegram.me/burdakekw/5718",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/kekw3",
-        "verification_status": "confirmed",
-        "wheel_key": "kekw3",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "41421df09a880dab84df030c2f345488919f08bec7ddc6ba30a7a22b6d8791ae"
+      "stage": "account_result",
+      "transition_id": "23d873549a47b84b4f8367e8e945b0086d23ee24e34fc979eedfb3bcd3603013"
     },
     {
       "dedupe_key": "1595:2026-08-21T17:34:28.574000+00:00",
@@ -206,29 +163,33 @@
       "transition_id": "38fc5327a615d1214546624101eed0c4c89c3f5f135fde938b7f22018b990fb3"
     },
     {
-      "dedupe_key": "32508955212",
-      "occurred_at": "2026-08-21T17:38:54.401433+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-21T17:38:54.397011+00:00",
       "payload": {
-        "workflow_run_id": "32508955212",
-        "workflow_sha": "fc428b751a5532177a33f9cd4ee8a01d8b6a0d33"
+        "action_id": 1595,
+        "available_at": "",
+        "deadline": "2026-08-21T17:54:28.574000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:477138f5baf96c3f341e",
+        "expires_at": "2026-08-21T18:24:28.574000+00:00",
+        "generation_id": "477138f5baf96c3f341e",
+        "identifier": "kekw3",
+        "message_text": "🎰\nВСЕ В КОЛЕСО:\nhttps://betboom.ru/freestream/kekw3\n😍\nДо 10.000₽ за регистрацию по промокоду\nKEKW\nна\nBETBOOM\nhttps://telegram.me/burdakekw\nhttps://telegram.me/burdakekw/5718\nhttps://betboom.ru/freestream/kekw3\nhttps://bbsport.su/link/gfsibY/",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-21T17:34:28.574000+00:00",
+        "source": "burdakekw",
+        "source_message_date": "2026-08-21T17:34:51+00:00",
+        "source_message_id": 5718,
+        "source_message_url": "https://telegram.me/burdakekw/5718",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/kekw3",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw3",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "ade2f191ed81bcd756f9b1a9f3ce726c85c362513f2de6f4dc93095da98341c0"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:0bccb9fca1b97b3cfd96f3d271287171c92a4191eb103c328cf08f9e877fedc6",
-      "occurred_at": "2026-08-21T17:38:15.781455+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "23d873549a47b84b4f8367e8e945b0086d23ee24e34fc979eedfb3bcd3603013"
+      "stage": "persisted",
+      "transition_id": "41421df09a880dab84df030c2f345488919f08bec7ddc6ba30a7a22b6d8791ae"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:46a54cb4efea335f4ae37bf3f4c9424670517a348989a2fd3c06d6769130b3f1",
@@ -259,9 +220,48 @@
       },
       "stage": "account_result",
       "transition_id": "9a9bf18e58713d85964f569925baf986f38dc78c2e52c16542c70098855f4b28"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-21T17:38:54.397011+00:00",
+      "payload": {
+        "action_id": 1595,
+        "available_at": "",
+        "deadline": "2026-08-21T17:54:28.574000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:477138f5baf96c3f341e",
+        "expires_at": "2026-08-21T18:24:28.574000+00:00",
+        "generation_id": "477138f5baf96c3f341e",
+        "identifier": "kekw3",
+        "message_text": "🎰\nВСЕ В КОЛЕСО:\nhttps://betboom.ru/freestream/kekw3\n😍\nДо 10.000₽ за регистрацию по промокоду\nKEKW\nна\nBETBOOM\nhttps://telegram.me/burdakekw\nhttps://telegram.me/burdakekw/5718\nhttps://betboom.ru/freestream/kekw3\nhttps://bbsport.su/link/gfsibY/",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-21T17:34:28.574000+00:00",
+        "source": "burdakekw",
+        "source_message_date": "2026-08-21T17:34:51+00:00",
+        "source_message_id": 5718,
+        "source_message_url": "https://telegram.me/burdakekw/5718",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/kekw3",
+        "verification_status": "confirmed",
+        "wheel_key": "kekw3",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "a38c578d2ae08fa9ce94c4f85d380b0249684c03564a5acef5731b3ab976d7b7"
+    },
+    {
+      "dedupe_key": "32508955212",
+      "occurred_at": "2026-08-21T17:38:54.401433+00:00",
+      "payload": {
+        "workflow_run_id": "32508955212",
+        "workflow_sha": "fc428b751a5532177a33f9cd4ee8a01d8b6a0d33"
+      },
+      "stage": "workflow_started",
+      "transition_id": "ade2f191ed81bcd756f9b1a9f3ce726c85c362513f2de6f4dc93095da98341c0"
     }
   ],
-  "updated_at": "2026-08-21T17:38:54.401433+00:00",
+  "updated_at": "2026-08-21T17:39:45.942994+00:00",
   "wheel_key": "kekw3",
   "workflow_started_at": "2026-08-21T17:38:54.401433+00:00"
 }
