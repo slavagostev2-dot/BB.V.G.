@@ -1,8 +1,8 @@
 {
   "cache": {
-    "dccc317efe7236367906f048645ccba8c0b97a38b4e021166540dfae9c87fde7": {
-      "expires_at": 1787407385.1479537,
-      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly states that wheels will be present during every game of the broadcast and includes a link to a BetBoom promotion.\"\n}"
+    "25320e2d5b555389b36110e569dfbd2089aed3609ef7a22deea366291520765d": {
+      "expires_at": 1787412653.0820844,
+      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions '2 wheels of freebets' as part of the current plans for the final day of The International 2026, indicating an active promotion.\"\n}"
     }
   },
   "decisions": [
@@ -1582,10 +1582,23 @@
       "provider": "gemini",
       "reason": "The post explicitly states that wheels will be present during every game of the broadcast and includes a link to a BetBoom promotion.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "active_wheel",
+      "confidence": 0.95,
+      "created_at": 1787411753.0820844,
+      "feature": "suspicious_post_analysis",
+      "id": "fadec1a6027d4513a27ef559eebdf548",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "8583bb2135ce1df13e52df8deb781cc9d16484eb63b3d488f8518ffa8125f444",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions '2 wheels of freebets' as part of the current plans for the final day of The International 2026, indicating an active promotion.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1787406485.1479537
+    1787411753.0820844
   ],
   "version": 1
 }
