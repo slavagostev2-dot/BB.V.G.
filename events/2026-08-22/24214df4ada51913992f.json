@@ -1,18 +1,18 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "ceb70402acf887c837f5561f79681025a5ef343f7d2e81d23cb32692be865d69",
-      "confidence": 120,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T101136508158Z-806952324965",
+      "attempt_id": "26d5c27c4c65c84f3dda45040b845601fb43d1335d28239ce9a5d5adbdc33691",
+      "confidence": 20,
+      "confirmation": "raw_status:button_not_found; workflow_state",
+      "error_text": "страница показывает вход/авторизацию; подготовка: main:Окей; видимые действия: main:Об акции | main:Авторизоваться",
       "event_id": "evt:24214df4ada51913992f",
-      "finished_at": "2026-08-22T10:10:43.520980+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-22T10:11:52.383956+00:00",
-      "started_at": "2026-08-22T10:10:43.520980+00:00",
-      "status": "participated"
+      "finished_at": "2026-08-22T10:11:21.831590+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-08-22T10:11:52.386244+00:00",
+      "started_at": "2026-08-22T10:11:21.831590+00:00",
+      "status": "unconfirmed"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -29,18 +29,18 @@
       "status": "unconfirmed"
     },
     {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T101136508158Z-806952324965",
-      "attempt_id": "26d5c27c4c65c84f3dda45040b845601fb43d1335d28239ce9a5d5adbdc33691",
-      "confidence": 20,
-      "confirmation": "raw_status:button_not_found; workflow_state",
-      "error_text": "страница показывает вход/авторизацию; подготовка: main:Окей; видимые действия: main:Об акции | main:Авторизоваться",
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "ceb70402acf887c837f5561f79681025a5ef343f7d2e81d23cb32692be865d69",
+      "confidence": 120,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
       "event_id": "evt:24214df4ada51913992f",
-      "finished_at": "2026-08-22T10:11:21.831590+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-08-22T10:11:52.386244+00:00",
-      "started_at": "2026-08-22T10:11:21.831590+00:00",
-      "status": "unconfirmed"
+      "finished_at": "2026-08-22T10:10:43.520980+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-22T10:11:52.383956+00:00",
+      "started_at": "2026-08-22T10:10:43.520980+00:00",
+      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-22T10:10:43.520980+00:00",
       "status": "participated",
-      "updated_at": "2026-08-22T10:11:52.383956+00:00"
+      "updated_at": "2026-08-22T10:12:07.710690+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-22T10:10:51.400030+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-22T10:11:52.385128+00:00"
+      "updated_at": "2026-08-22T10:12:07.711956+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-22T10:11:21.831590+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-22T10:11:52.386244+00:00"
+      "updated_at": "2026-08-22T10:12:07.713192+00:00"
     }
   ],
   "action_id": 1609,
@@ -119,62 +119,44 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-22T10:11:52.377976+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:26d5c27c4c65c84f3dda45040b845601fb43d1335d28239ce9a5d5adbdc33691",
+      "occurred_at": "2026-08-22T10:11:21.831590+00:00",
       "payload": {
-        "action_id": 1609,
-        "available_at": "",
-        "deadline": "2026-08-22T10:14:24.204000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:24214df4ada51913992f",
-        "expires_at": "2026-08-22T10:44:24.204000+00:00",
-        "generation_id": "24214df4ada51913992f",
-        "identifier": "solo",
-        "message_text": "❤️\n❤️\nКОЛЕСО ФРИБЕТОВ\n❤️\n❤️\nВторое в бабках —\n@solo322\n💰\n😍\nДо 10 000 ₽ — при регистрации по промокоду SOLO\nhttps://telegram.me/solo322\nhttps://telegram.me/solo322/3173\nhttps://betboom.ru/freestream/solo\nhttps://telegram.me/solo322berezin\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg",
-        "referral_classification_evidence": "identifier_history_explicit_referral",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-22T09:59:24.204000+00:00",
-        "source": "solo322",
-        "source_message_date": "2026-08-22T10:07:15+00:00",
-        "source_message_id": 3173,
-        "source_message_url": "https://telegram.me/solo322/3173",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/solo",
-        "verification_status": "confirmed",
-        "wheel_key": "solo",
-        "wheel_type": "suspected_referral"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T101136508158Z-806952324965",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
       },
-      "stage": "source_discovered",
-      "transition_id": "b8da49553a7b48e8c3a767cfa362b34c4ff1eaef9dbbcbb7edd203313febe754"
+      "stage": "account_result",
+      "transition_id": "03648144bae7c2352045497300d031529917c980bb4ace8b375b43a82acf9b86"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-22T10:11:52.377976+00:00",
+      "dedupe_key": "32566800731",
+      "occurred_at": "2026-08-22T10:11:52.382042+00:00",
       "payload": {
-        "action_id": 1609,
-        "available_at": "",
-        "deadline": "2026-08-22T10:14:24.204000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:24214df4ada51913992f",
-        "expires_at": "2026-08-22T10:44:24.204000+00:00",
-        "generation_id": "24214df4ada51913992f",
-        "identifier": "solo",
-        "message_text": "❤️\n❤️\nКОЛЕСО ФРИБЕТОВ\n❤️\n❤️\nВторое в бабках —\n@solo322\n💰\n😍\nДо 10 000 ₽ — при регистрации по промокоду SOLO\nhttps://telegram.me/solo322\nhttps://telegram.me/solo322/3173\nhttps://betboom.ru/freestream/solo\nhttps://telegram.me/solo322berezin\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg",
-        "referral_classification_evidence": "identifier_history_explicit_referral",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-22T09:59:24.204000+00:00",
-        "source": "solo322",
-        "source_message_date": "2026-08-22T10:07:15+00:00",
-        "source_message_id": 3173,
-        "source_message_url": "https://telegram.me/solo322/3173",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/solo",
-        "verification_status": "confirmed",
-        "wheel_key": "solo",
-        "wheel_type": "suspected_referral"
+        "workflow_run_id": "32566800731",
+        "workflow_sha": "b3177cb5db6f03c48fd7146077147400a49db4b9"
       },
-      "stage": "persisted",
-      "transition_id": "f6c76db3d7d499a5abe30c2645062780e44ae580684403707d919059f1bb1883"
+      "stage": "workflow_started",
+      "transition_id": "060c64c2b01dce8e5cb007316a6765498d4a5620344e607bd1ecda35f0957d44"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:ceb70402acf887c837f5561f79681025a5ef343f7d2e81d23cb32692be865d69",
+      "occurred_at": "2026-08-22T10:10:43.520980+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "674d8fe99fb9dcf1fa76dbf8a347b40b70dc943ba216b59aea04c3b6260fefe5"
     },
     {
       "dedupe_key": "1609:2026-08-22T09:59:24.204000+00:00",
@@ -206,29 +188,33 @@
       "transition_id": "af9bb6fa42aac607fbc8b27f8d5cf6ccae4956a8ba627c6e33a83743c63eb96d"
     },
     {
-      "dedupe_key": "32566800731",
-      "occurred_at": "2026-08-22T10:11:52.382042+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-22T10:11:52.377976+00:00",
       "payload": {
-        "workflow_run_id": "32566800731",
-        "workflow_sha": "b3177cb5db6f03c48fd7146077147400a49db4b9"
+        "action_id": 1609,
+        "available_at": "",
+        "deadline": "2026-08-22T10:14:24.204000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:24214df4ada51913992f",
+        "expires_at": "2026-08-22T10:44:24.204000+00:00",
+        "generation_id": "24214df4ada51913992f",
+        "identifier": "solo",
+        "message_text": "❤️\n❤️\nКОЛЕСО ФРИБЕТОВ\n❤️\n❤️\nВторое в бабках —\n@solo322\n💰\n😍\nДо 10 000 ₽ — при регистрации по промокоду SOLO\nhttps://telegram.me/solo322\nhttps://telegram.me/solo322/3173\nhttps://betboom.ru/freestream/solo\nhttps://telegram.me/solo322berezin\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg",
+        "referral_classification_evidence": "identifier_history_explicit_referral",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-22T09:59:24.204000+00:00",
+        "source": "solo322",
+        "source_message_date": "2026-08-22T10:07:15+00:00",
+        "source_message_id": 3173,
+        "source_message_url": "https://telegram.me/solo322/3173",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/solo",
+        "verification_status": "confirmed",
+        "wheel_key": "solo",
+        "wheel_type": "suspected_referral"
       },
-      "stage": "workflow_started",
-      "transition_id": "060c64c2b01dce8e5cb007316a6765498d4a5620344e607bd1ecda35f0957d44"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:ceb70402acf887c837f5561f79681025a5ef343f7d2e81d23cb32692be865d69",
-      "occurred_at": "2026-08-22T10:10:43.520980+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "674d8fe99fb9dcf1fa76dbf8a347b40b70dc943ba216b59aea04c3b6260fefe5"
+      "stage": "source_discovered",
+      "transition_id": "b8da49553a7b48e8c3a767cfa362b34c4ff1eaef9dbbcbb7edd203313febe754"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:68f189cac124fb72bf52b51fb417688ce20c03a76d302e73982eb7207963fcd9",
@@ -246,22 +232,36 @@
       "transition_id": "e76d8d1a244af2752de0f488ec087d5bccaa85ad1362c210d3d77ae7b7377f32"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:26d5c27c4c65c84f3dda45040b845601fb43d1335d28239ce9a5d5adbdc33691",
-      "occurred_at": "2026-08-22T10:11:21.831590+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-22T10:11:52.377976+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T101136508158Z-806952324965",
-        "attempt_count": 1,
-        "confirmation": "raw_status:button_not_found; workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
+        "action_id": 1609,
+        "available_at": "",
+        "deadline": "2026-08-22T10:14:24.204000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:24214df4ada51913992f",
+        "expires_at": "2026-08-22T10:44:24.204000+00:00",
+        "generation_id": "24214df4ada51913992f",
+        "identifier": "solo",
+        "message_text": "❤️\n❤️\nКОЛЕСО ФРИБЕТОВ\n❤️\n❤️\nВторое в бабках —\n@solo322\n💰\n😍\nДо 10 000 ₽ — при регистрации по промокоду SOLO\nhttps://telegram.me/solo322\nhttps://telegram.me/solo322/3173\nhttps://betboom.ru/freestream/solo\nhttps://telegram.me/solo322berezin\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&utm_content=SOLO&utm_medium=esports&utm_source=Telegram&utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUHdcgTCt4YvVMXRbzXgm5jt2GVqmW9XeS5o1yNCX7TEKTsATfe\nhttps://betboom.ru/cyber?utm_campaign=esports&amp;utm_content=SOLO&amp;utm_medium=esports&amp;utm_source=Telegram&amp;utm_term=SOLO/?erid=KW2aPRYdr5QoPXHUdtobk8svGfxAJ8yZPyEBhs3uTbQW8gQT9DXB6CaoCdcj9UtVg",
+        "referral_classification_evidence": "identifier_history_explicit_referral",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-22T09:59:24.204000+00:00",
+        "source": "solo322",
+        "source_message_date": "2026-08-22T10:07:15+00:00",
+        "source_message_id": 3173,
+        "source_message_url": "https://telegram.me/solo322/3173",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/solo",
+        "verification_status": "confirmed",
+        "wheel_key": "solo",
+        "wheel_type": "suspected_referral"
       },
-      "stage": "account_result",
-      "transition_id": "03648144bae7c2352045497300d031529917c980bb4ace8b375b43a82acf9b86"
+      "stage": "persisted",
+      "transition_id": "f6c76db3d7d499a5abe30c2645062780e44ae580684403707d919059f1bb1883"
     }
   ],
-  "updated_at": "2026-08-22T10:11:52.382042+00:00",
+  "updated_at": "2026-08-22T10:12:07.708943+00:00",
   "wheel_key": "solo",
   "workflow_started_at": "2026-08-22T10:11:52.382042+00:00"
 }
