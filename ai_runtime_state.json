@@ -1,8 +1,12 @@
 {
   "cache": {
-    "25320e2d5b555389b36110e569dfbd2089aed3609ef7a22deea366291520765d": {
-      "expires_at": 1787412653.0820844,
-      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions '2 wheels of freebets' as part of the current plans for the final day of The International 2026, indicating an active promotion.\"\n}"
+    "4c0fcc7a5c3ce80219ced26e32724a691bc9f9c5031530b08fbc0d4e78b3e26d": {
+      "expires_at": 1787440280.8910651,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions a 'wheel of freebets' (колесико фрибетов) occurring before a specific game, indicating an upcoming event.\"\n}"
+    },
+    "997818c75f30583348d41a2893f6122de3477e2a64198659913575b27935a087": {
+      "expires_at": 1787440280.2103882,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that a 'freebet wheel' will be available before the upcoming game and includes a promotional code.\"\n}"
     }
   },
   "decisions": [
@@ -1595,10 +1599,37 @@
       "provider": "gemini",
       "reason": "The post explicitly mentions '2 wheels of freebets' as part of the current plans for the final day of The International 2026, indicating an active promotion.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1787439380.2103882,
+      "feature": "suspicious_post_analysis",
+      "id": "b7547f2b5e874de8a35fcf03a956d0c9",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "68e5e906128cb62c82edf585139e761da6b79cb873adf41445dba6619f293147",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions that a 'freebet wheel' will be available before the upcoming game and includes a promotional code.",
+      "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1787439380.8910651,
+      "feature": "suspicious_post_analysis",
+      "id": "67cd5ffd48e247a0aa8b8603d53bd0e7",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "f41bb89950a160a7aaecab710253bb9034a64a04305fe498ac5e4d3964c84b0a",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions a 'wheel of freebets' (колесико фрибетов) occurring before a specific game, indicating an upcoming event.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1787411753.0820844
+    1787439380.2103882,
+    1787439380.8910651
   ],
   "version": 1
 }
