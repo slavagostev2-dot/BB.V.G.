@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112155911637Z-510926153a04",
-      "attempt_id": "a331044aa7fd4cd2d7b0bb23c20b78a0b1b126790f617d5f346fb797807b4c65",
-      "confidence": 20,
-      "confirmation": "workflow_state",
-      "error_text": "participation control clicked (main:Принять участие), but no exact post-click confirmation was found; видимые действия после клика: main:Об акции | main:Принять участие",
-      "event_id": "evt:61e75ecee3b70ee21897",
-      "finished_at": "2026-08-22T11:21:33.088707+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-22T11:22:55.646498+00:00",
-      "started_at": "2026-08-22T11:21:33.088707+00:00",
-      "status": "unconfirmed"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112211114112Z-0c3d9c84a417",
       "attempt_id": "0f3156df1823fa54cbabfa0cc14d751d373210524904fc7a486d7a66056ca394",
@@ -41,23 +27,51 @@
       "recorded_at": "2026-08-22T11:22:55.648622+00:00",
       "started_at": "2026-08-22T11:22:25.928084+00:00",
       "status": "unconfirmed"
-    }
-  ],
-  "account_results": [
+    },
     {
       "account_key": "vyacheslav_primary",
-      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112334219507Z-f8dc7713276c",
+      "attempt_id": "4241386e39aea1fa2a6439ec14be8855694302e2d52b925d27a9be877fa866f8",
+      "confidence": 20,
+      "confirmation": "workflow_state",
+      "error_text": "participation control clicked (main:Принять участие), but no exact post-click confirmation was found; видимые действия после клика: main:Об акции | main:Принять участие",
+      "event_id": "evt:61e75ecee3b70ee21897",
+      "finished_at": "2026-08-22T11:23:09.252639+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-22T11:23:35.900048+00:00",
+      "started_at": "2026-08-22T11:23:09.252639+00:00",
+      "status": "unconfirmed"
+    },
+    {
+      "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112155911637Z-510926153a04",
-      "attempt_count": 1,
+      "attempt_id": "a331044aa7fd4cd2d7b0bb23c20b78a0b1b126790f617d5f346fb797807b4c65",
       "confidence": 20,
       "confirmation": "workflow_state",
       "error_text": "participation control clicked (main:Принять участие), but no exact post-click confirmation was found; видимые действия после клика: main:Об акции | main:Принять участие",
       "event_id": "evt:61e75ecee3b70ee21897",
       "finished_at": "2026-08-22T11:21:33.088707+00:00",
       "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-22T11:22:55.646498+00:00",
+      "started_at": "2026-08-22T11:21:33.088707+00:00",
+      "status": "unconfirmed"
+    }
+  ],
+  "account_results": [
+    {
+      "account_key": "vyacheslav_primary",
+      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112334219507Z-f8dc7713276c",
+      "attempt_count": 1,
+      "confidence": 20,
+      "confirmation": "workflow_state",
+      "error_text": "participation control clicked (main:Принять участие), but no exact post-click confirmation was found; видимые действия после клика: main:Об акции | main:Принять участие",
+      "event_id": "evt:61e75ecee3b70ee21897",
+      "finished_at": "2026-08-22T11:23:09.252639+00:00",
+      "owner_id": "vyacheslav",
       "started_at": "2026-08-22T11:21:33.088707+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-22T11:22:55.646498+00:00"
+      "updated_at": "2026-08-22T11:23:35.900048+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +86,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-22T11:21:56.459179+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-22T11:22:55.647579+00:00"
+      "updated_at": "2026-08-22T11:23:35.901196+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +101,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-22T11:22:25.928084+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-22T11:22:55.648622+00:00"
+      "updated_at": "2026-08-22T11:23:35.902302+00:00"
     }
   ],
   "action_id": 1607,
@@ -119,33 +133,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-22T11:22:55.640233+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:4241386e39aea1fa2a6439ec14be8855694302e2d52b925d27a9be877fa866f8",
+      "occurred_at": "2026-08-22T11:23:09.252639+00:00",
       "payload": {
-        "action_id": 1607,
-        "available_at": "",
-        "deadline": "2026-08-22T11:31:11.597000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:61e75ecee3b70ee21897",
-        "expires_at": "2026-08-22T12:01:11.597000+00:00",
-        "generation_id": "61e75ecee3b70ee21897",
-        "identifier": "soloref",
-        "message_text": "Колесо для моих рефов на 200К\nhttps://betboom.ru/freestream/soloref\nhttps://betboom.ru/freestream/soloref\nhttps://betboom.ru/freestream/soloref\nhttps://telegram.me/solo_q_q\nhttps://betboom.ru/freestream/soloref\nhttps://telegram.me/solo_q_q/1666",
-        "referral_classification_evidence": "publication_referral_hint_without_explicit_restriction",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-22T11:16:11.597000+00:00",
-        "source": "solo_q_q",
-        "source_message_date": "2026-08-22T11:17:19+00:00",
-        "source_message_id": 1666,
-        "source_message_url": "https://telegram.me/solo_q_q/1666",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/soloref",
-        "verification_status": "confirmed",
-        "wheel_key": "soloref",
-        "wheel_type": "suspected_referral"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112334219507Z-f8dc7713276c",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
       },
-      "stage": "source_discovered",
-      "transition_id": "43b95c509f12c0f09fdc94b6bc1fc9ef9d9922ba2b3996166ce4e5617dee2750"
+      "stage": "account_result",
+      "transition_id": "215e9fa49b7f8f711da19f961f223bb51346a4be1b8509975e38f16da712522e"
     },
     {
       "dedupe_key": "durable-event",
@@ -177,7 +177,22 @@
       "transition_id": "28312e04791f1b16a41306a9f29a59147cefdcf12d2ee29ea81f9332dc6db0da"
     },
     {
-      "dedupe_key": "1607:2026-08-22T11:16:11.597000+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:247c125698bd02c4f871408801ad063bf87b3f386bd45516592c39c316e124a6",
+      "occurred_at": "2026-08-22T11:22:25.928084+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112240426711Z-b0327d57e742",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "2d636e4677601ed2606c98b3bd02d6142006a19be2a20904762825689e109cde"
+    },
+    {
+      "dedupe_key": "workflow_payload",
       "occurred_at": "2026-08-22T11:22:55.640233+00:00",
       "payload": {
         "action_id": 1607,
@@ -202,8 +217,8 @@
         "wheel_key": "soloref",
         "wheel_type": "suspected_referral"
       },
-      "stage": "api_confirmed",
-      "transition_id": "ae32eaef049f45225c06fc0b176b1fc204b8af64ebd7b5f8b3387ea310b72caa"
+      "stage": "source_discovered",
+      "transition_id": "43b95c509f12c0f09fdc94b6bc1fc9ef9d9922ba2b3996166ce4e5617dee2750"
     },
     {
       "dedupe_key": "32569935490",
@@ -246,22 +261,36 @@
       "transition_id": "a7f29326b5886d977af78f308420e870db24f6ddafce4561ebc8732d6e934408"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:247c125698bd02c4f871408801ad063bf87b3f386bd45516592c39c316e124a6",
-      "occurred_at": "2026-08-22T11:22:25.928084+00:00",
+      "dedupe_key": "1607:2026-08-22T11:16:11.597000+00:00",
+      "occurred_at": "2026-08-22T11:22:55.640233+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260822T112240426711Z-b0327d57e742",
-        "attempt_count": 1,
-        "confirmation": "raw_status:button_not_found; workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
+        "action_id": 1607,
+        "available_at": "",
+        "deadline": "2026-08-22T11:31:11.597000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:61e75ecee3b70ee21897",
+        "expires_at": "2026-08-22T12:01:11.597000+00:00",
+        "generation_id": "61e75ecee3b70ee21897",
+        "identifier": "soloref",
+        "message_text": "Колесо для моих рефов на 200К\nhttps://betboom.ru/freestream/soloref\nhttps://betboom.ru/freestream/soloref\nhttps://betboom.ru/freestream/soloref\nhttps://telegram.me/solo_q_q\nhttps://betboom.ru/freestream/soloref\nhttps://telegram.me/solo_q_q/1666",
+        "referral_classification_evidence": "publication_referral_hint_without_explicit_restriction",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-22T11:16:11.597000+00:00",
+        "source": "solo_q_q",
+        "source_message_date": "2026-08-22T11:17:19+00:00",
+        "source_message_id": 1666,
+        "source_message_url": "https://telegram.me/solo_q_q/1666",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/soloref",
+        "verification_status": "confirmed",
+        "wheel_key": "soloref",
+        "wheel_type": "suspected_referral"
       },
-      "stage": "account_result",
-      "transition_id": "2d636e4677601ed2606c98b3bd02d6142006a19be2a20904762825689e109cde"
+      "stage": "api_confirmed",
+      "transition_id": "ae32eaef049f45225c06fc0b176b1fc204b8af64ebd7b5f8b3387ea310b72caa"
     }
   ],
-  "updated_at": "2026-08-22T11:22:55.644224+00:00",
+  "updated_at": "2026-08-22T11:23:35.898123+00:00",
   "wheel_key": "soloref",
   "workflow_started_at": "2026-08-22T11:22:55.644224+00:00"
 }
