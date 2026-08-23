@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-23T10:44:43.779620+00:00",
       "status": "participated",
-      "updated_at": "2026-08-23T10:50:37.131058+00:00"
+      "updated_at": "2026-08-23T10:51:23.152167+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-23T10:48:57.684910+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-23T10:50:37.132358+00:00"
+      "updated_at": "2026-08-23T10:51:23.153515+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-23T10:49:52.748749+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-23T10:50:37.133939+00:00"
+      "updated_at": "2026-08-23T10:51:23.154761+00:00"
     }
   ],
   "action_id": 1601,
@@ -119,62 +119,19 @@
   "status": "unknown",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-23T10:50:37.124588+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:b699ca1d80af7dc9c70f28e528aff898fc0b55d4f9606ebe92c5874ff4ad814d",
+      "occurred_at": "2026-08-23T10:49:52.748749+00:00",
       "payload": {
-        "action_id": 1601,
-        "available_at": "",
-        "deadline": "2026-08-23T10:58:22.219000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2f436884e13431bbf285",
-        "expires_at": "2026-08-23T11:28:22.219000+00:00",
-        "generation_id": "2f436884e13431bbf285",
-        "identifier": "mantis4",
-        "message_text": "Ластовое колесо!\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis/7742",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-23T10:43:22.219000+00:00",
-        "source": "kzmantis",
-        "source_message_date": "2026-08-23T10:43:47+00:00",
-        "source_message_id": 7742,
-        "source_message_url": "https://telegram.me/kzmantis/7742",
-        "status": "unknown",
-        "url": "https://betboom.ru/freestream/mantis4",
-        "verification_status": "confirmed",
-        "wheel_key": "mantis4",
-        "wheel_type": "normal"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260823T105006913064Z-aa16d076d353",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
       },
-      "stage": "source_discovered",
-      "transition_id": "ffb241d9eb5af3740cdbc411604c5c8fe4467a0148bc80e275773680dc3eeae3"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-23T10:50:37.124588+00:00",
-      "payload": {
-        "action_id": 1601,
-        "available_at": "",
-        "deadline": "2026-08-23T10:58:22.219000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2f436884e13431bbf285",
-        "expires_at": "2026-08-23T11:28:22.219000+00:00",
-        "generation_id": "2f436884e13431bbf285",
-        "identifier": "mantis4",
-        "message_text": "Ластовое колесо!\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis/7742",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-23T10:43:22.219000+00:00",
-        "source": "kzmantis",
-        "source_message_date": "2026-08-23T10:43:47+00:00",
-        "source_message_id": 7742,
-        "source_message_url": "https://telegram.me/kzmantis/7742",
-        "status": "unknown",
-        "url": "https://betboom.ru/freestream/mantis4",
-        "verification_status": "confirmed",
-        "wheel_key": "mantis4",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "cd2cd176d60e175d00adeebd6fe4c5a082807ce23b6f1b1e6dc03e959020367b"
+      "stage": "account_result",
+      "transition_id": "420cb2e402cea6469cb5a047a7309c4424978e5c44920cf462196735efc56701"
     },
     {
       "dedupe_key": "1601:2026-08-23T10:43:22.219000+00:00",
@@ -216,21 +173,6 @@
       "transition_id": "c3f36a97904752c4660b18f07ffb02369d9b98b0e1907830d5fe0d356e4b172e"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:6730601973bc06c8ce92b4d89d2db878434ae7c1bd2686959d46f673da369e82",
-      "occurred_at": "2026-08-23T10:44:43.779620+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "d9ef5c6fd35185af4ace497243c0d60718cd3ab83760e9253150c638094dd87a"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:a17aadc4e07db5a9ec843ea3d1b48da4eb01cab5f4896cdefd497393a7e18cd1",
       "occurred_at": "2026-08-23T10:48:57.684910+00:00",
       "payload": {
@@ -246,22 +188,80 @@
       "transition_id": "ca9b8481a2f5115f28104ce0cb74c6668afeb0e59108837d28cda4bd4398a671"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:b699ca1d80af7dc9c70f28e528aff898fc0b55d4f9606ebe92c5874ff4ad814d",
-      "occurred_at": "2026-08-23T10:49:52.748749+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-23T10:50:37.124588+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260823T105006913064Z-aa16d076d353",
+        "action_id": 1601,
+        "available_at": "",
+        "deadline": "2026-08-23T10:58:22.219000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2f436884e13431bbf285",
+        "expires_at": "2026-08-23T11:28:22.219000+00:00",
+        "generation_id": "2f436884e13431bbf285",
+        "identifier": "mantis4",
+        "message_text": "Ластовое колесо!\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis/7742",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-23T10:43:22.219000+00:00",
+        "source": "kzmantis",
+        "source_message_date": "2026-08-23T10:43:47+00:00",
+        "source_message_id": 7742,
+        "source_message_url": "https://telegram.me/kzmantis/7742",
+        "status": "unknown",
+        "url": "https://betboom.ru/freestream/mantis4",
+        "verification_status": "confirmed",
+        "wheel_key": "mantis4",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "cd2cd176d60e175d00adeebd6fe4c5a082807ce23b6f1b1e6dc03e959020367b"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:6730601973bc06c8ce92b4d89d2db878434ae7c1bd2686959d46f673da369e82",
+      "occurred_at": "2026-08-23T10:44:43.779620+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
         "attempt_count": 1,
-        "confirmation": "raw_status:button_not_found; workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
       "stage": "account_result",
-      "transition_id": "420cb2e402cea6469cb5a047a7309c4424978e5c44920cf462196735efc56701"
+      "transition_id": "d9ef5c6fd35185af4ace497243c0d60718cd3ab83760e9253150c638094dd87a"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-23T10:50:37.124588+00:00",
+      "payload": {
+        "action_id": 1601,
+        "available_at": "",
+        "deadline": "2026-08-23T10:58:22.219000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2f436884e13431bbf285",
+        "expires_at": "2026-08-23T11:28:22.219000+00:00",
+        "generation_id": "2f436884e13431bbf285",
+        "identifier": "mantis4",
+        "message_text": "Ластовое колесо!\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis\nhttps://betboom.ru/freestream/mantis4\nhttps://telegram.me/kzmantis/7742",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-23T10:43:22.219000+00:00",
+        "source": "kzmantis",
+        "source_message_date": "2026-08-23T10:43:47+00:00",
+        "source_message_id": 7742,
+        "source_message_url": "https://telegram.me/kzmantis/7742",
+        "status": "unknown",
+        "url": "https://betboom.ru/freestream/mantis4",
+        "verification_status": "confirmed",
+        "wheel_key": "mantis4",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "ffb241d9eb5af3740cdbc411604c5c8fe4467a0148bc80e275773680dc3eeae3"
     }
   ],
-  "updated_at": "2026-08-23T10:50:37.128763+00:00",
+  "updated_at": "2026-08-23T10:51:23.149341+00:00",
   "wheel_key": "mantis4",
   "workflow_started_at": "2026-08-23T10:50:37.128763+00:00"
 }
