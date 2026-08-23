@@ -1,12 +1,8 @@
 {
   "cache": {
-    "4c0fcc7a5c3ce80219ced26e32724a691bc9f9c5031530b08fbc0d4e78b3e26d": {
-      "expires_at": 1787440280.8910651,
-      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions a 'wheel of freebets' (колесико фрибетов) occurring before a specific game, indicating an upcoming event.\"\n}"
-    },
-    "997818c75f30583348d41a2893f6122de3477e2a64198659913575b27935a087": {
-      "expires_at": 1787440280.2103882,
-      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that a 'freebet wheel' will be available before the upcoming game and includes a promotional code.\"\n}"
+    "c8ea102382bb350a7eb32c94798cbb5777482ac6a42c44a946e1255e7abcc72d": {
+      "expires_at": 1787472121.0400004,
+      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that wheels will be present during every game of the broadcast and provides a link to the stream.\"\n}"
     }
   },
   "decisions": [
@@ -1625,11 +1621,23 @@
       "provider": "gemini",
       "reason": "The post explicitly mentions a 'wheel of freebets' (колесико фрибетов) occurring before a specific game, indicating an upcoming event.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "active_wheel",
+      "confidence": 0.95,
+      "created_at": 1787471221.0400004,
+      "feature": "suspicious_post_analysis",
+      "id": "da9fa1e985d74fbaafa42091c7ea31ec",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "9187f33b104913ca60e58e6f8200fc01cf0512be6a86a6a3a1c08df5ccb187e8",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions that wheels will be present during every game of the broadcast and provides a link to the stream.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1787439380.2103882,
-    1787439380.8910651
+    1787471221.0400004
   ],
   "version": 1
 }
