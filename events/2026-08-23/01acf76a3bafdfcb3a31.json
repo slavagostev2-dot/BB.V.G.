@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "70a6c1a8830465a54d15d865e66e57f2e83ef7b3420a05ca8ff034c50d852e4a",
-      "confidence": 120,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
-      "event_id": "evt:01acf76a3bafdfcb3a31",
-      "finished_at": "2026-08-23T07:35:08.925859+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-23T07:37:12.710074+00:00",
-      "started_at": "2026-08-23T07:35:08.925859+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260823T073558516212Z-3a58318f3739",
       "attempt_id": "493623e8b210a90f91b43b0be32dc45de93b5e4faaa2da03be9135eaa6dfe449",
@@ -27,6 +13,20 @@
       "recorded_at": "2026-08-23T07:37:12.711135+00:00",
       "started_at": "2026-08-23T07:35:43.612044+00:00",
       "status": "unconfirmed"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "70a6c1a8830465a54d15d865e66e57f2e83ef7b3420a05ca8ff034c50d852e4a",
+      "confidence": 120,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
+      "event_id": "evt:01acf76a3bafdfcb3a31",
+      "finished_at": "2026-08-23T07:35:08.925859+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-23T07:37:12.710074+00:00",
+      "started_at": "2026-08-23T07:35:08.925859+00:00",
+      "status": "participated"
     },
     {
       "account_key": "xflarxx_primary",
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-23T07:35:08.925859+00:00",
       "status": "participated",
-      "updated_at": "2026-08-23T07:37:12.710074+00:00"
+      "updated_at": "2026-08-23T07:38:34.178084+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-23T07:35:43.612044+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-23T07:37:12.711135+00:00"
+      "updated_at": "2026-08-23T07:38:34.179974+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-23T07:36:28.512645+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-23T07:37:12.712245+00:00"
+      "updated_at": "2026-08-23T07:38:34.181039+00:00"
     }
   ],
   "action_id": 1577,
@@ -119,62 +119,44 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-23T07:37:12.704064+00:00",
+      "dedupe_key": "32625841531",
+      "occurred_at": "2026-08-23T07:37:12.708117+00:00",
       "payload": {
-        "action_id": 1577,
-        "available_at": "",
-        "deadline": "2026-08-23T07:51:29.870000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:01acf76a3bafdfcb3a31",
-        "expires_at": "2026-08-23T08:21:29.870000+00:00",
-        "generation_id": "01acf76a3bafdfcb3a31",
-        "identifier": "ADEKVAT06",
-        "message_text": "Счет в серии открыт, и кажется, дракона не остановить.\nКак и колесо фрибетов от BETBOOM!\n20 минут, едем:\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik/4555",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-23T07:31:29.870000+00:00",
-        "source": "adekvatik",
-        "source_message_date": "2026-08-23T07:31:35+00:00",
-        "source_message_id": 4555,
-        "source_message_url": "https://telegram.me/adekvatik/4555",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/ADEKVAT06",
-        "verification_status": "confirmed",
-        "wheel_key": "adekvat06",
-        "wheel_type": "normal"
+        "workflow_run_id": "32625841531",
+        "workflow_sha": "c6ff5ab4fae9748d383d144b7f38cd7d0b134176"
       },
-      "stage": "source_discovered",
-      "transition_id": "98913513a5a64fca105ee8d3a2b3b5394083e48f174fe6512812945977d933c6"
+      "stage": "workflow_started",
+      "transition_id": "077714bcd8664bf7b74bcea904500f7ad794633dbec911ebd6a0658351c98a5d"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-23T07:37:12.704064+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:493623e8b210a90f91b43b0be32dc45de93b5e4faaa2da03be9135eaa6dfe449",
+      "occurred_at": "2026-08-23T07:35:43.612044+00:00",
       "payload": {
-        "action_id": 1577,
-        "available_at": "",
-        "deadline": "2026-08-23T07:51:29.870000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:01acf76a3bafdfcb3a31",
-        "expires_at": "2026-08-23T08:21:29.870000+00:00",
-        "generation_id": "01acf76a3bafdfcb3a31",
-        "identifier": "ADEKVAT06",
-        "message_text": "Счет в серии открыт, и кажется, дракона не остановить.\nКак и колесо фрибетов от BETBOOM!\n20 минут, едем:\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik/4555",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-23T07:31:29.870000+00:00",
-        "source": "adekvatik",
-        "source_message_date": "2026-08-23T07:31:35+00:00",
-        "source_message_id": 4555,
-        "source_message_url": "https://telegram.me/adekvatik/4555",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/ADEKVAT06",
-        "verification_status": "confirmed",
-        "wheel_key": "adekvat06",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260823T073558516212Z-3a58318f3739",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
       },
-      "stage": "persisted",
-      "transition_id": "fbf9f57e63fe0027761531355d8ce05e9c78fc5ef0d190abc1df78260ba83030"
+      "stage": "account_result",
+      "transition_id": "544ff674b864653512bc2d8cb71d9d2a6a806676238136c9f4cbf3bda35b0c03"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:ca686cb304f6bcd5a4f25daaa6df4ebfb2d6501ab0931b4785ec850537a7fb05",
+      "occurred_at": "2026-08-23T07:36:28.512645+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260823T073642824486Z-3964e37bf3ff",
+        "attempt_count": 1,
+        "confirmation": "raw_status:button_not_found; workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "619798e976cc0befded5b12ab77fb4216e2e8a3c46d37b95c291d00b56908f91"
     },
     {
       "dedupe_key": "1577:2026-08-23T07:31:29.870000+00:00",
@@ -206,14 +188,33 @@
       "transition_id": "8aeda1771f251fb30bd9aa995212da0e27cbce611477d728aaaeef914d93dd28"
     },
     {
-      "dedupe_key": "32625841531",
-      "occurred_at": "2026-08-23T07:37:12.708117+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-23T07:37:12.704064+00:00",
       "payload": {
-        "workflow_run_id": "32625841531",
-        "workflow_sha": "c6ff5ab4fae9748d383d144b7f38cd7d0b134176"
+        "action_id": 1577,
+        "available_at": "",
+        "deadline": "2026-08-23T07:51:29.870000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:01acf76a3bafdfcb3a31",
+        "expires_at": "2026-08-23T08:21:29.870000+00:00",
+        "generation_id": "01acf76a3bafdfcb3a31",
+        "identifier": "ADEKVAT06",
+        "message_text": "Счет в серии открыт, и кажется, дракона не остановить.\nКак и колесо фрибетов от BETBOOM!\n20 минут, едем:\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik/4555",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-23T07:31:29.870000+00:00",
+        "source": "adekvatik",
+        "source_message_date": "2026-08-23T07:31:35+00:00",
+        "source_message_id": 4555,
+        "source_message_url": "https://telegram.me/adekvatik/4555",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/ADEKVAT06",
+        "verification_status": "confirmed",
+        "wheel_key": "adekvat06",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "077714bcd8664bf7b74bcea904500f7ad794633dbec911ebd6a0658351c98a5d"
+      "stage": "source_discovered",
+      "transition_id": "98913513a5a64fca105ee8d3a2b3b5394083e48f174fe6512812945977d933c6"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:70a6c1a8830465a54d15d865e66e57f2e83ef7b3420a05ca8ff034c50d852e4a",
@@ -231,37 +232,36 @@
       "transition_id": "d73cebe21c2a35754293f69da6a4c88ee33e2e66b54ead8bd85de623d1a610ff"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:493623e8b210a90f91b43b0be32dc45de93b5e4faaa2da03be9135eaa6dfe449",
-      "occurred_at": "2026-08-23T07:35:43.612044+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-23T07:37:12.704064+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260823T073558516212Z-3a58318f3739",
-        "attempt_count": 1,
-        "confirmation": "raw_status:button_not_found; workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "unconfirmed"
+        "action_id": 1577,
+        "available_at": "",
+        "deadline": "2026-08-23T07:51:29.870000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:01acf76a3bafdfcb3a31",
+        "expires_at": "2026-08-23T08:21:29.870000+00:00",
+        "generation_id": "01acf76a3bafdfcb3a31",
+        "identifier": "ADEKVAT06",
+        "message_text": "Счет в серии открыт, и кажется, дракона не остановить.\nКак и колесо фрибетов от BETBOOM!\n20 минут, едем:\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik\nhttps://betboom.ru/freestream/ADEKVAT06\nhttps://telegram.me/adekvatik/4555",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-23T07:31:29.870000+00:00",
+        "source": "adekvatik",
+        "source_message_date": "2026-08-23T07:31:35+00:00",
+        "source_message_id": 4555,
+        "source_message_url": "https://telegram.me/adekvatik/4555",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/ADEKVAT06",
+        "verification_status": "confirmed",
+        "wheel_key": "adekvat06",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "544ff674b864653512bc2d8cb71d9d2a6a806676238136c9f4cbf3bda35b0c03"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:ca686cb304f6bcd5a4f25daaa6df4ebfb2d6501ab0931b4785ec850537a7fb05",
-      "occurred_at": "2026-08-23T07:36:28.512645+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260823T073642824486Z-3964e37bf3ff",
-        "attempt_count": 1,
-        "confirmation": "raw_status:button_not_found; workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "619798e976cc0befded5b12ab77fb4216e2e8a3c46d37b95c291d00b56908f91"
+      "stage": "persisted",
+      "transition_id": "fbf9f57e63fe0027761531355d8ce05e9c78fc5ef0d190abc1df78260ba83030"
     }
   ],
-  "updated_at": "2026-08-23T07:37:12.708117+00:00",
+  "updated_at": "2026-08-23T07:38:34.176505+00:00",
   "wheel_key": "adekvat06",
   "workflow_started_at": "2026-08-23T07:37:12.708117+00:00"
 }
