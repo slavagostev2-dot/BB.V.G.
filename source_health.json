@@ -5,34 +5,34 @@
     "database_path": "/home/runner/work/BB.V.G./BB.V.G./runtime/bbvg_events.sqlite3",
     "discovery_health": "ok",
     "dispatch_health": "backlogged",
-    "events": 421,
+    "events": 422,
     "latest_source_progress_at": "2026-08-24T14:23:16.067257+00:00",
     "notification_health": "unknown",
     "notifications_sent": 0,
     "oldest_pending_at": "2026-08-24T12:03:26.493279+00:00",
     "pending_by_kind": {
       "auto_participation": 1,
-      "github_ledger_sync": 421,
+      "github_ledger_sync": 422,
       "new_wheel_notification": 1
     },
-    "pending_outbox": 423,
+    "pending_outbox": 424,
     "process_health": "ok",
     "reconciliation_health": "enabled",
     "schema_version": 3,
-    "source_freshness": "degraded",
-    "stale_sources": 1
+    "source_freshness": "ok",
+    "stale_sources": 0
   },
   "sources": {
     "AdamStaya": {
-      "checks": 42639,
+      "checks": 42640,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062204+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904279+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-14T02:15:56.965265+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062204+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904279+00:00",
       "status": "ok",
-      "successful_checks": 42625,
+      "successful_checks": 42626,
       "transport_outages": 10
     },
     "Artem1dacast": {
@@ -43,9 +43,11 @@
       "last_messages_count": 7,
       "last_problem_at": "2026-08-13T15:51:30.930208+00:00",
       "last_success_at": "2026-08-24T16:36:03.064089+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905356+00:00",
       "status": "ok",
       "successful_checks": 40541,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "Avtoritet06101": {
       "checks": 40557,
@@ -55,9 +57,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.738699+00:00",
       "last_success_at": "2026-08-24T16:36:03.064179+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905395+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "BCLesports": {
       "checks": 40557,
@@ -67,9 +71,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-20T06:42:33.738721+00:00",
       "last_success_at": "2026-08-24T16:36:03.064196+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905402+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "BELKAKIBER": {
       "checks": 40555,
@@ -79,9 +85,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T01:55:23.821422+00:00",
       "last_success_at": "2026-08-24T16:36:03.064214+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905410+00:00",
       "status": "ok",
       "successful_checks": 40548,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "BetBoomPR": {
       "checks": 40492,
@@ -91,9 +99,11 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-08-20T06:42:33.739563+00:00",
       "last_success_at": "2026-08-24T16:36:03.065099+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905766+00:00",
       "status": "ok",
       "successful_checks": 40474,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "Blessmur_mlbb": {
       "checks": 40555,
@@ -103,20 +113,22 @@
       "last_messages_count": 1,
       "last_problem_at": "2026-08-15T10:03:10.144340+00:00",
       "last_success_at": "2026-08-24T16:36:03.064264+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905418+00:00",
       "status": "ok",
       "successful_checks": 40548,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "Blindzonexbet": {
-      "checks": 42643,
+      "checks": 42644,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062489+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904517+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T04:55:18.825101+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062489+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904517+00:00",
       "status": "ok",
-      "successful_checks": 42634,
+      "successful_checks": 42635,
       "transport_outages": 6
     },
     "Breakevens": {
@@ -127,9 +139,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-19T00:00:28.154859+00:00",
       "last_success_at": "2026-08-24T16:36:03.063180+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904966+00:00",
       "status": "ok",
       "successful_checks": 42435,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "Cyberhero_mobilelegends": {
       "checks": 40555,
@@ -139,20 +153,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.738798+00:00",
       "last_success_at": "2026-08-24T16:36:03.064356+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905457+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "DayneezBet": {
-      "checks": 42644,
+      "checks": 42645,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062508+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904536+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-11T04:55:18.825121+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062508+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904536+00:00",
       "status": "ok",
-      "successful_checks": 42635,
+      "successful_checks": 42636,
       "transport_outages": 5
     },
     "EWC_betboom": {
@@ -163,9 +179,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-11T04:55:18.825855+00:00",
       "last_success_at": "2026-08-24T16:36:03.063264+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904989+00:00",
       "status": "ok",
       "successful_checks": 42435,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "EviLGrannY_WoT": {
       "checks": 40484,
@@ -175,9 +193,11 @@
       "last_messages_count": 14,
       "last_problem_at": "2026-08-13T15:51:30.929832+00:00",
       "last_success_at": "2026-08-24T16:36:03.063735+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905182+00:00",
       "status": "ok",
       "successful_checks": 40470,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "False9Jersey": {
       "checks": 42442,
@@ -187,9 +207,11 @@
       "last_messages_count": 5,
       "last_problem_at": "2026-08-05T01:59:18.778804+00:00",
       "last_success_at": "2026-08-24T16:36:03.063198+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904973+00:00",
       "status": "ok",
       "successful_checks": 42431,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "GromoZekaCS": {
       "checks": 40555,
@@ -199,9 +221,11 @@
       "last_messages_count": 15,
       "last_problem_at": "2026-08-20T05:24:16.357957+00:00",
       "last_success_at": "2026-08-24T16:36:03.063882+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905270+00:00",
       "status": "ok",
       "successful_checks": 40542,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "IGMMLBB": {
       "checks": 40484,
@@ -211,20 +235,22 @@
       "last_messages_count": 15,
       "last_problem_at": "2026-08-13T15:51:30.930025+00:00",
       "last_success_at": "2026-08-24T16:36:03.063919+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905285+00:00",
       "status": "ok",
       "successful_checks": 40473,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "KRATtv": {
-      "checks": 42643,
+      "checks": 42644,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062567+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904593+00:00",
       "last_messages_count": 17,
       "last_problem_at": "2026-08-14T00:14:29.926108+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062567+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904593+00:00",
       "status": "ok",
-      "successful_checks": 42628,
+      "successful_checks": 42629,
       "transport_outages": 6
     },
     "KeysieCloud": {
@@ -235,9 +261,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-13T15:51:30.930629+00:00",
       "last_success_at": "2026-08-24T16:36:03.064540+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905531+00:00",
       "status": "ok",
       "successful_checks": 40540,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "LPK_esport": {
       "checks": 40558,
@@ -247,9 +275,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739115+00:00",
       "last_success_at": "2026-08-24T16:36:03.064634+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905567+00:00",
       "status": "ok",
       "successful_checks": 40549,
-      "transport_outages": 1
+      "transport_outages": 2
     },
     "LifeForSurf": {
       "checks": 40556,
@@ -259,9 +289,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739076+00:00",
       "last_success_at": "2026-08-24T16:36:03.064598+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905553+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "LilCandyML": {
       "checks": 40235,
@@ -271,9 +303,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-16T11:52:13.552141+00:00",
       "last_success_at": "2026-08-24T16:36:03.064616+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905561+00:00",
       "status": "ok",
       "successful_checks": 40222,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "MARIOMAXTV": {
       "checks": 42318,
@@ -283,9 +317,11 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-08-05T01:59:18.778970+00:00",
       "last_success_at": "2026-08-24T16:36:03.063397+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905046+00:00",
       "status": "ok",
       "successful_checks": 42308,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "MPKBK2": {
       "checks": 40555,
@@ -295,32 +331,34 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739237+00:00",
       "last_success_at": "2026-08-24T16:36:03.064765+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905621+00:00",
       "status": "ok",
       "successful_checks": 40548,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "NeretCast": {
-      "checks": 42638,
+      "checks": 42639,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062264+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904301+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-11T04:55:18.824890+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062264+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904301+00:00",
       "status": "ok",
-      "successful_checks": 42627,
+      "successful_checks": 42628,
       "transport_outages": 11
     },
     "PAPAdota2": {
-      "checks": 42645,
+      "checks": 42646,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062075+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904100+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-16T12:01:44.484521+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062075+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904100+00:00",
       "status": "ok",
-      "successful_checks": 42633,
+      "successful_checks": 42634,
       "transport_outages": 4
     },
     "PIVOVAR_Cast": {
@@ -334,15 +372,15 @@
       "successful_checks": 2195
     },
     "RelaxCisBet": {
-      "checks": 42642,
+      "checks": 42643,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062647+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904669+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T04:55:18.825271+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062647+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904669+00:00",
       "status": "ok",
-      "successful_checks": 42633,
+      "successful_checks": 42634,
       "transport_outages": 7
     },
     "SashkaDestroyer": {
@@ -353,32 +391,34 @@
       "last_messages_count": 15,
       "last_problem_at": "2026-08-20T06:42:33.739347+00:00",
       "last_success_at": "2026-08-24T16:36:03.064876+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905678+00:00",
       "status": "ok",
       "successful_checks": 40536,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "StrayDungeon228": {
-      "checks": 42573,
+      "checks": 42574,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065336+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905943+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739767+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065336+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905943+00:00",
       "status": "ok",
-      "successful_checks": 42557,
+      "successful_checks": 42558,
       "transport_outages": 5
     },
     "Team_Spirit_Official": {
-      "checks": 39981,
+      "checks": 39982,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065136+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905780+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-20T06:42:33.739600+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065136+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905780+00:00",
       "status": "ok",
-      "successful_checks": 39959,
+      "successful_checks": 39960,
       "transport_outages": 4
     },
     "VooDooSh_Stream": {
@@ -389,9 +429,11 @@
       "last_messages_count": 17,
       "last_problem_at": "2026-08-20T06:42:33.739487+00:00",
       "last_success_at": "2026-08-24T16:36:03.065025+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905736+00:00",
       "status": "ok",
       "successful_checks": 40542,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "XDZachQ": {
       "checks": 40556,
@@ -401,9 +443,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-15T10:03:10.144179+00:00",
       "last_success_at": "2026-08-24T16:36:03.064070+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905349+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "Xoma_cs": {
       "checks": 40558,
@@ -413,9 +457,11 @@
       "last_messages_count": 9,
       "last_problem_at": "2026-08-20T06:42:33.739525+00:00",
       "last_success_at": "2026-08-24T16:36:03.065063+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905751+00:00",
       "status": "ok",
       "successful_checks": 40550,
-      "transport_outages": 1
+      "transport_outages": 2
     },
     "YBNFedor": {
       "checks": 42422,
@@ -425,9 +471,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-05T01:59:18.778560+00:00",
       "last_success_at": "2026-08-24T16:36:03.062977+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904876+00:00",
       "status": "ok",
       "successful_checks": 42412,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "ZZoneRM": {
       "checks": 42640,
@@ -437,20 +485,22 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-17T05:01:29.569480+00:00",
       "last_success_at": "2026-08-24T16:36:03.062745+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904769+00:00",
       "status": "ok",
       "successful_checks": 42633,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "acoolbazarit": {
-      "checks": 42643,
+      "checks": 42644,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062390+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904419+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T04:55:18.825013+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062390+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904419+00:00",
       "status": "ok",
-      "successful_checks": 42636,
+      "successful_checks": 42637,
       "transport_outages": 6
     },
     "adekvatik": {
@@ -461,9 +511,11 @@
       "last_messages_count": 17,
       "last_problem_at": "2026-08-05T01:59:18.778989+00:00",
       "last_success_at": "2026-08-24T16:36:03.063417+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905054+00:00",
       "status": "ok",
       "successful_checks": 42307,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "alex_white_official": {
       "checks": 39980,
@@ -473,9 +525,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739619+00:00",
       "last_success_at": "2026-08-24T16:36:03.065154+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905803+00:00",
       "status": "ok",
       "successful_checks": 39968,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "amam0610": {
       "checks": 42640,
@@ -485,9 +539,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-05T01:59:18.778499+00:00",
       "last_success_at": "2026-08-24T16:36:03.062919+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904851+00:00",
       "status": "ok",
       "successful_checks": 42633,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "arszeeqq": {
       "checks": 40555,
@@ -497,9 +553,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-24T07:22:47.165325+00:00",
       "last_success_at": "2026-08-24T16:36:03.063609+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905130+00:00",
       "status": "ok",
       "successful_checks": 40549,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "artemkef": {
       "checks": 42441,
@@ -509,9 +567,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778748+00:00",
       "last_success_at": "2026-08-24T16:36:03.063142+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904950+00:00",
       "status": "ok",
       "successful_checks": 42432,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "aterionlegends": {
       "checks": 40554,
@@ -521,20 +581,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.930228+00:00",
       "last_success_at": "2026-08-24T16:36:03.064107+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905364+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "aunkereEZ": {
-      "checks": 42642,
+      "checks": 42643,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062164+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904187+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-20T00:13:50.070636+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062164+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904187+00:00",
       "status": "ok",
-      "successful_checks": 42631,
+      "successful_checks": 42632,
       "transport_outages": 7
     },
     "aunkeretg": {
@@ -545,9 +607,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-19T00:00:28.154623+00:00",
       "last_success_at": "2026-08-24T16:36:03.062764+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904782+00:00",
       "status": "ok",
       "successful_checks": 42630,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "autodestruction": {
       "checks": 40552,
@@ -557,9 +621,11 @@
       "last_messages_count": 14,
       "last_problem_at": "2026-08-05T01:59:18.779699+00:00",
       "last_success_at": "2026-08-24T16:36:03.064125+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905372+00:00",
       "status": "ok",
       "successful_checks": 40546,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "ave_rim": {
       "checks": 40552,
@@ -569,20 +635,22 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-20T06:42:33.738655+00:00",
       "last_success_at": "2026-08-24T16:36:03.064144+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905380+00:00",
       "status": "ok",
       "successful_checks": 40539,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "aviciixd": {
-      "checks": 42640,
+      "checks": 42641,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062469+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904498+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-11T04:55:18.825080+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062469+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904498+00:00",
       "status": "ok",
-      "successful_checks": 42627,
+      "successful_checks": 42628,
       "transport_outages": 9
     },
     "avstriez": {
@@ -593,20 +661,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T01:55:23.821368+00:00",
       "last_success_at": "2026-08-24T16:36:03.064161+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905387+00:00",
       "status": "ok",
       "successful_checks": 40536,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "ayukifunpage": {
-      "checks": 37813,
+      "checks": 37814,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065257+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905868+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T05:24:16.359298+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065257+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905868+00:00",
       "status": "ok",
-      "successful_checks": 37798,
+      "successful_checks": 37799,
       "transport_outages": 1
     },
     "bbteamcs2": {
@@ -617,9 +687,11 @@
       "last_messages_count": 2,
       "last_problem_at": "2026-08-05T01:59:18.778767+00:00",
       "last_success_at": "2026-08-24T16:36:03.063161+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904958+00:00",
       "status": "ok",
       "successful_checks": 42440,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "beardserklife": {
       "checks": 40554,
@@ -629,9 +701,11 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-08-05T01:59:18.779192+00:00",
       "last_success_at": "2026-08-24T16:36:03.063626+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905138+00:00",
       "status": "ok",
       "successful_checks": 40538,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "betbistTV": {
       "checks": 41925,
@@ -641,9 +715,11 @@
       "last_messages_count": 10,
       "last_problem_at": "2026-08-13T15:51:30.929650+00:00",
       "last_success_at": "2026-08-24T16:36:03.063573+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905115+00:00",
       "status": "ok",
       "successful_checks": 41917,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "betboom_baza": {
       "checks": 42269,
@@ -653,9 +729,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-05T01:59:18.779048+00:00",
       "last_success_at": "2026-08-24T16:36:03.063476+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905077+00:00",
       "status": "ok",
       "successful_checks": 42257,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "betboom_esports": {
       "checks": 42420,
@@ -665,9 +743,11 @@
       "last_messages_count": 12,
       "last_problem_at": "2026-08-20T05:25:43.557733+00:00",
       "last_success_at": "2026-08-24T16:36:03.063052+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904910+00:00",
       "status": "ok",
       "successful_checks": 42408,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "betboom_esports_cs": {
       "checks": 42416,
@@ -677,9 +757,11 @@
       "last_messages_count": 12,
       "last_problem_at": "2026-08-11T04:55:18.825676+00:00",
       "last_success_at": "2026-08-24T16:36:03.063070+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904919+00:00",
       "status": "ok",
       "successful_checks": 42408,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "betboomru": {
       "checks": 42420,
@@ -689,9 +771,11 @@
       "last_messages_count": 12,
       "last_problem_at": "2026-08-05T01:59:18.778616+00:00",
       "last_success_at": "2026-08-24T16:36:03.063014+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904892+00:00",
       "status": "ok",
       "successful_checks": 42413,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "betboomstreamersbattle": {
       "checks": 42419,
@@ -701,9 +785,11 @@
       "last_messages_count": 14,
       "last_problem_at": "2026-08-11T04:55:18.825636+00:00",
       "last_success_at": "2026-08-24T16:36:03.063034+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904902+00:00",
       "status": "ok",
       "successful_checks": 42415,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "betboomteam": {
       "checks": 42420,
@@ -713,9 +799,11 @@
       "last_messages_count": 12,
       "last_problem_at": "2026-08-11T04:55:18.825711+00:00",
       "last_success_at": "2026-08-24T16:36:03.063105+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904934+00:00",
       "status": "ok",
       "successful_checks": 42414,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "betboomteamcs2": {
       "checks": 42419,
@@ -725,9 +813,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778729+00:00",
       "last_success_at": "2026-08-24T16:36:03.063124+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904942+00:00",
       "status": "ok",
       "successful_checks": 42408,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "bettingmedialeague": {
       "checks": 40558,
@@ -737,9 +827,11 @@
       "last_messages_count": 12,
       "last_problem_at": "2026-08-13T15:51:30.929736+00:00",
       "last_success_at": "2026-08-24T16:36:03.063644+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905145+00:00",
       "status": "ok",
       "successful_checks": 40548,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "blast_betboom": {
       "checks": 42417,
@@ -749,9 +841,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T05:25:43.557778+00:00",
       "last_success_at": "2026-08-24T16:36:03.063088+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904926+00:00",
       "status": "ok",
       "successful_checks": 42408,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "blindzonexgod": {
       "checks": 42642,
@@ -761,32 +855,34 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-11T04:55:18.825453+00:00",
       "last_success_at": "2026-08-24T16:36:03.062821+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904810+00:00",
       "status": "ok",
       "successful_checks": 42636,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "boltcast": {
-      "checks": 42643,
-      "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062143+00:00",
-      "last_messages_count": 19,
-      "last_problem_at": "2026-08-13T03:19:27.763021+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062143+00:00",
-      "status": "ok",
-      "successful_checks": 42627,
-      "transport_outages": 6
-    },
-    "burdakekw": {
       "checks": 42644,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062607+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904167+00:00",
+      "last_messages_count": 19,
+      "last_problem_at": "2026-08-13T03:19:27.763021+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904167+00:00",
+      "status": "ok",
+      "successful_checks": 42628,
+      "transport_outages": 6
+    },
+    "burdakekw": {
+      "checks": 42645,
+      "consecutive_empty": 0,
+      "consecutive_errors": 0,
+      "last_checked_at": "2026-08-24T16:40:33.904631+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778182+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062607+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904631+00:00",
       "status": "ok",
-      "successful_checks": 42638,
+      "successful_checks": 42639,
       "transport_outages": 5
     },
     "cakestreampage": {
@@ -797,20 +893,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.779231+00:00",
       "last_success_at": "2026-08-24T16:36:03.063662+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905152+00:00",
       "status": "ok",
       "successful_checks": 40538,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "cct_betboom": {
-      "checks": 37741,
+      "checks": 37742,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065297+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905905+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739730+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065297+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905905+00:00",
       "status": "ok",
-      "successful_checks": 37731,
+      "successful_checks": 37732,
       "transport_outages": 7
     },
     "chiilstreeamML": {
@@ -821,9 +919,11 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-08-11T01:55:23.820843+00:00",
       "last_success_at": "2026-08-24T16:36:03.063680+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905160+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "chopperinho": {
       "checks": 41922,
@@ -833,20 +933,22 @@
       "last_messages_count": 7,
       "last_problem_at": "2026-08-05T01:59:18.779066+00:00",
       "last_success_at": "2026-08-24T16:36:03.063496+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905085+00:00",
       "status": "ok",
       "successful_checks": 41912,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "chopperis": {
-      "checks": 42638,
+      "checks": 42639,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062409+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904439+00:00",
       "last_messages_count": 16,
       "last_problem_at": "2026-08-16T11:52:13.550517+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062409+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904439+00:00",
       "status": "ok",
-      "successful_checks": 42624,
+      "successful_checks": 42625,
       "transport_outages": 11
     },
     "clife_cs2": {
@@ -857,9 +959,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.930377+00:00",
       "last_success_at": "2026-08-24T16:36:03.064282+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905427+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "cscis": {
       "checks": 40557,
@@ -869,9 +973,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T01:55:23.821476+00:00",
       "last_success_at": "2026-08-24T16:36:03.064301+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905434+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "csgobet": {
       "checks": 40554,
@@ -881,9 +987,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.930414+00:00",
       "last_success_at": "2026-08-24T16:36:03.064319+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905442+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "ct0mislove": {
       "checks": 42638,
@@ -893,9 +1001,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-19T00:00:28.154644+00:00",
       "last_success_at": "2026-08-24T16:36:03.062801+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904801+00:00",
       "status": "ok",
       "successful_checks": 42627,
-      "transport_outages": 11
+      "transport_outages": 12
     },
     "cybercracken": {
       "checks": 40555,
@@ -905,9 +1015,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-13T15:51:30.930432+00:00",
       "last_success_at": "2026-08-24T16:36:03.064337+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905449+00:00",
       "status": "ok",
       "successful_checks": 40547,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "cyberheromlbb": {
       "checks": 40556,
@@ -917,9 +1029,11 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-08-20T06:42:33.738818+00:00",
       "last_success_at": "2026-08-24T16:36:03.064374+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905464+00:00",
       "status": "ok",
       "successful_checks": 40549,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "dadtex": {
       "checks": 40127,
@@ -929,20 +1043,22 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-20T06:42:33.739582+00:00",
       "last_success_at": "2026-08-24T16:36:03.065118+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905773+00:00",
       "status": "ok",
       "successful_checks": 40116,
-      "transport_outages": 1
+      "transport_outages": 2
     },
     "danila_gorilla": {
-      "checks": 42642,
+      "checks": 42643,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062528+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904554+00:00",
       "last_messages_count": 18,
       "last_problem_at": "2026-08-19T00:00:28.154487+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062528+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904554+00:00",
       "status": "ok",
-      "successful_checks": 42625,
+      "successful_checks": 42626,
       "transport_outages": 7
     },
     "danzelpodval": {
@@ -953,9 +1069,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.929794+00:00",
       "last_success_at": "2026-08-24T16:36:03.063699+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905168+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "dartwager": {
       "checks": 42642,
@@ -965,9 +1083,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-12T21:39:35.854844+00:00",
       "last_success_at": "2026-08-24T16:36:03.062901+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904843+00:00",
       "status": "ok",
       "successful_checks": 42629,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "dayneZz": {
       "checks": 42639,
@@ -977,20 +1097,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-19T00:00:28.154668+00:00",
       "last_success_at": "2026-08-24T16:36:03.062840+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904818+00:00",
       "status": "ok",
       "successful_checks": 42627,
-      "transport_outages": 10
+      "transport_outages": 11
     },
     "dekocs": {
-      "checks": 42642,
+      "checks": 42643,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062328+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904361+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-11T04:55:18.824956+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062328+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904361+00:00",
       "status": "ok",
-      "successful_checks": 42631,
+      "successful_checks": 42632,
       "transport_outages": 7
     },
     "dekocsoff": {
@@ -1001,9 +1123,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-07-31T00:42:29.288294+00:00",
       "last_success_at": "2026-08-24T16:36:03.062783+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904792+00:00",
       "status": "ok",
       "successful_checks": 42636,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "dmitrylebwa": {
       "checks": 40551,
@@ -1013,20 +1137,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T01:55:23.820908+00:00",
       "last_success_at": "2026-08-24T16:36:03.063717+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905176+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "dyrachyo": {
-      "checks": 42642,
+      "checks": 42643,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062047+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904071+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-19T00:00:28.154219+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062047+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904071+00:00",
       "status": "ok",
-      "successful_checks": 42630,
+      "successful_checks": 42631,
       "transport_outages": 7
     },
     "dyrachyobets": {
@@ -1037,9 +1163,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-19T00:00:28.155080+00:00",
       "last_success_at": "2026-08-24T16:36:03.063553+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905108+00:00",
       "status": "ok",
       "successful_checks": 41917,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "etozhekoval": {
       "checks": 41656,
@@ -1049,9 +1177,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.929676+00:00",
       "last_success_at": "2026-08-24T16:36:03.063590+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905123+00:00",
       "status": "ok",
       "successful_checks": 41640,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "exilemusic13": {
       "checks": 40555,
@@ -1061,9 +1191,11 @@
       "last_messages_count": 14,
       "last_problem_at": "2026-08-17T04:55:32.843817+00:00",
       "last_success_at": "2026-08-24T16:36:03.063753+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905190+00:00",
       "status": "ok",
       "successful_checks": 40533,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "f_1ncsgo": {
       "checks": 40556,
@@ -1073,9 +1205,11 @@
       "last_messages_count": 11,
       "last_problem_at": "2026-08-20T06:42:33.738836+00:00",
       "last_success_at": "2026-08-24T16:36:03.064391+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905472+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "fishmandota2": {
       "checks": 40554,
@@ -1085,9 +1219,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.929871+00:00",
       "last_success_at": "2026-08-24T16:36:03.063771+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905198+00:00",
       "status": "ok",
       "successful_checks": 40542,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "flamebaker": {
       "checks": 40558,
@@ -1097,9 +1233,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-05T01:59:18.779358+00:00",
       "last_success_at": "2026-08-24T16:36:03.063789+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905206+00:00",
       "status": "ok",
       "successful_checks": 40541,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "flashynthen1ght": {
       "checks": 40555,
@@ -1109,9 +1247,11 @@
       "last_messages_count": 13,
       "last_problem_at": "2026-08-22T20:58:53.363344+00:00",
       "last_success_at": "2026-08-24T16:36:03.063808+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905214+00:00",
       "status": "ok",
       "successful_checks": 40540,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "flouzer666": {
       "checks": 40556,
@@ -1121,9 +1261,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-13T15:51:30.929927+00:00",
       "last_success_at": "2026-08-24T16:36:03.063827+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905245+00:00",
       "status": "ok",
       "successful_checks": 40542,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "fmeleague": {
       "checks": 40554,
@@ -1133,9 +1275,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T00:14:18.954081+00:00",
       "last_success_at": "2026-08-24T16:36:03.064411+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905479+00:00",
       "status": "ok",
       "successful_checks": 40542,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "fonbetesports": {
       "checks": 40555,
@@ -1145,9 +1289,11 @@
       "last_messages_count": 10,
       "last_problem_at": "2026-08-13T15:51:30.929947+00:00",
       "last_success_at": "2026-08-24T16:36:03.063845+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905253+00:00",
       "status": "ok",
       "successful_checks": 40546,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "fonpass": {
       "checks": 40495,
@@ -1157,9 +1303,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739543+00:00",
       "last_success_at": "2026-08-24T16:36:03.065081+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905758+00:00",
       "status": "ok",
       "successful_checks": 40482,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "geassamlbb": {
       "checks": 40557,
@@ -1169,9 +1317,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.930516+00:00",
       "last_success_at": "2026-08-24T16:36:03.064428+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905486+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "gexsuntv": {
       "checks": 40557,
@@ -1181,9 +1331,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.930536+00:00",
       "last_success_at": "2026-08-24T16:36:03.064447+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905494+00:00",
       "status": "ok",
       "successful_checks": 40548,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "gluck_es": {
       "checks": 40556,
@@ -1193,9 +1345,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.738909+00:00",
       "last_success_at": "2026-08-24T16:36:03.064465+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905501+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "golospokera": {
       "checks": 40554,
@@ -1205,20 +1359,22 @@
       "last_messages_count": 17,
       "last_problem_at": "2026-08-13T15:51:30.929966+00:00",
       "last_success_at": "2026-08-24T16:36:03.063863+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905262+00:00",
       "status": "ok",
       "successful_checks": 40538,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "gorilla_armor": {
-      "checks": 42643,
+      "checks": 42644,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062548+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904573+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-11T04:55:18.825165+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062548+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904573+00:00",
       "status": "ok",
-      "successful_checks": 42634,
+      "successful_checks": 42635,
       "transport_outages": 6
     },
     "graynetv": {
@@ -1229,9 +1385,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-13T15:51:30.930573+00:00",
       "last_success_at": "2026-08-24T16:36:03.064483+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905509+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "gshikaryan": {
       "checks": 42644,
@@ -1241,9 +1399,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-05T01:59:18.778300+00:00",
       "last_success_at": "2026-08-24T16:36:03.062726+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904750+00:00",
       "status": "ok",
       "successful_checks": 42630,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "happyzerg11": {
       "checks": 40555,
@@ -1253,20 +1413,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.930006+00:00",
       "last_success_at": "2026-08-24T16:36:03.063900+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905277+00:00",
       "status": "ok",
       "successful_checks": 40540,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "helin139burmalda": {
-      "checks": 36621,
+      "checks": 36622,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065316+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905923+00:00",
       "last_messages_count": 17,
       "last_problem_at": "2026-08-20T06:42:33.739748+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065316+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905923+00:00",
       "status": "ok",
-      "successful_checks": 36608,
+      "successful_checks": 36609,
       "transport_outages": 5
     },
     "homakolesa": {
@@ -1277,20 +1439,22 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-07-31T00:47:38.829517+00:00",
       "last_success_at": "2026-08-24T16:36:03.062859+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904826+00:00",
       "status": "ok",
       "successful_checks": 42633,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "hoochcs2": {
-      "checks": 42637,
+      "checks": 42638,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062429+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904458+00:00",
       "last_messages_count": 16,
       "last_problem_at": "2026-08-15T00:31:25.895681+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062429+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904458+00:00",
       "status": "ok",
-      "successful_checks": 42622,
+      "successful_checks": 42623,
       "transport_outages": 12
     },
     "igmtv": {
@@ -1301,20 +1465,22 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-08-11T01:55:23.821673+00:00",
       "last_success_at": "2026-08-24T16:36:03.064502+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905516+00:00",
       "status": "ok",
       "successful_checks": 40546,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "ihuntnoobs": {
-      "checks": 42643,
+      "checks": 42644,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062307+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904341+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-13T00:12:53.382369+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062307+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904341+00:00",
       "status": "ok",
-      "successful_checks": 42630,
+      "successful_checks": 42631,
       "transport_outages": 6
     },
     "jestercast": {
@@ -1325,9 +1491,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-05T01:59:18.779009+00:00",
       "last_success_at": "2026-08-24T16:36:03.063436+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905062+00:00",
       "status": "ok",
       "successful_checks": 42303,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "jetnizestream": {
       "checks": 40552,
@@ -1337,9 +1505,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.779500+00:00",
       "last_success_at": "2026-08-24T16:36:03.063936+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905293+00:00",
       "status": "ok",
       "successful_checks": 40535,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "kdh440cast": {
       "checks": 40556,
@@ -1349,9 +1519,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-21T01:46:19.410087+00:00",
       "last_success_at": "2026-08-24T16:36:03.063954+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905301+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "keendabol": {
       "checks": 40557,
@@ -1361,9 +1533,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-13T15:51:30.930610+00:00",
       "last_success_at": "2026-08-24T16:36:03.064522+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905523+00:00",
       "status": "ok",
       "successful_checks": 40548,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "kiraenn": {
       "checks": 40554,
@@ -1373,9 +1547,11 @@
       "last_messages_count": 3,
       "last_problem_at": "2026-08-15T10:03:10.144057+00:00",
       "last_success_at": "2026-08-24T16:36:03.063973+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905310+00:00",
       "status": "ok",
       "successful_checks": 40540,
-      "transport_outages": 6
+      "transport_outages": 7
     },
     "kiritych1": {
       "checks": 42440,
@@ -1385,9 +1561,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778859+00:00",
       "last_success_at": "2026-08-24T16:36:03.063282+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904997+00:00",
       "status": "ok",
       "successful_checks": 42426,
-      "transport_outages": 10
+      "transport_outages": 11
     },
     "kolesaBB": {
       "checks": 42645,
@@ -1397,9 +1575,11 @@
       "last_messages_count": 14,
       "last_problem_at": "2026-08-20T05:25:43.557600+00:00",
       "last_success_at": "2026-08-24T16:36:03.062938+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904859+00:00",
       "status": "ok",
       "successful_checks": 42639,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "kr4syy": {
       "checks": 40555,
@@ -1409,20 +1589,22 @@
       "last_messages_count": 11,
       "last_problem_at": "2026-08-20T06:42:33.738990+00:00",
       "last_success_at": "2026-08-24T16:36:03.064559+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905538+00:00",
       "status": "ok",
       "successful_checks": 40539,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "kzmantis": {
-      "checks": 42638,
+      "checks": 42639,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062666+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904687+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778241+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062666+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904687+00:00",
       "status": "ok",
-      "successful_checks": 42630,
+      "successful_checks": 42631,
       "transport_outages": 11
     },
     "ladlda": {
@@ -1433,9 +1615,11 @@
       "last_messages_count": 6,
       "last_problem_at": "2026-08-05T01:59:18.778878+00:00",
       "last_success_at": "2026-08-24T16:36:03.063301+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905005+00:00",
       "status": "ok",
       "successful_checks": 42433,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "lasthero_dota": {
       "checks": 40557,
@@ -1445,9 +1629,11 @@
       "last_messages_count": 17,
       "last_problem_at": "2026-08-20T06:42:33.739045+00:00",
       "last_success_at": "2026-08-24T16:36:03.064579+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905545+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "lukawahouse": {
       "checks": 42443,
@@ -1457,9 +1643,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-19T00:00:28.154923+00:00",
       "last_success_at": "2026-08-24T16:36:03.063320+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905013+00:00",
       "status": "ok",
       "successful_checks": 42437,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "m3traNeoStream": {
       "checks": 42412,
@@ -1469,9 +1657,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778952+00:00",
       "last_success_at": "2026-08-24T16:36:03.063378+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905038+00:00",
       "status": "ok",
       "successful_checks": 42405,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "m4gastreams": {
       "checks": 40480,
@@ -1481,20 +1671,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-18T00:12:54.467328+00:00",
       "last_success_at": "2026-08-24T16:36:03.064651+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905574+00:00",
       "status": "ok",
       "successful_checks": 40464,
-      "transport_outages": 9
+      "transport_outages": 10
     },
     "mAger_de_nuke": {
-      "checks": 42323,
+      "checks": 42324,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062349+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904380+00:00",
       "last_messages_count": 13,
       "last_problem_at": "2026-08-06T00:04:36.433888+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062349+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904380+00:00",
       "status": "ok",
-      "successful_checks": 42307,
+      "successful_checks": 42308,
       "transport_outages": 7
     },
     "magnojezking": {
@@ -1505,9 +1697,11 @@
       "last_messages_count": 10,
       "last_problem_at": "2026-08-07T00:56:30.520987+00:00",
       "last_success_at": "2026-08-24T16:36:03.063339+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905020+00:00",
       "status": "ok",
       "successful_checks": 42432,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "mash1nkaaa": {
       "checks": 40556,
@@ -1517,9 +1711,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-20T06:42:33.739143+00:00",
       "last_success_at": "2026-08-24T16:36:03.064671+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905582+00:00",
       "status": "ok",
       "successful_checks": 40546,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "mashiromlbb": {
       "checks": 40554,
@@ -1529,9 +1725,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739163+00:00",
       "last_success_at": "2026-08-24T16:36:03.064690+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905590+00:00",
       "status": "ok",
       "successful_checks": 40541,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "mayakmlbb": {
       "checks": 40556,
@@ -1541,32 +1739,34 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739182+00:00",
       "last_success_at": "2026-08-24T16:36:03.064709+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905597+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "mechanogun": {
-      "checks": 42641,
-      "consecutive_empty": 0,
-      "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.061979+00:00",
-      "last_messages_count": 20,
-      "last_problem_at": "2026-08-15T00:00:33.124236+00:00",
-      "last_success_at": "2026-08-24T16:36:03.061979+00:00",
-      "status": "ok",
-      "successful_checks": 42625,
-      "transport_outages": 8
-    },
-    "meowbettt": {
       "checks": 42642,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062369+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904005+00:00",
+      "last_messages_count": 20,
+      "last_problem_at": "2026-08-15T00:00:33.124236+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904005+00:00",
+      "status": "ok",
+      "successful_checks": 42626,
+      "transport_outages": 8
+    },
+    "meowbettt": {
+      "checks": 42643,
+      "consecutive_empty": 0,
+      "consecutive_errors": 0,
+      "last_checked_at": "2026-08-24T16:40:33.904400+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T04:55:18.824992+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062369+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904400+00:00",
       "status": "ok",
-      "successful_checks": 42627,
+      "successful_checks": 42628,
       "transport_outages": 7
     },
     "mlbbcis": {
@@ -1577,9 +1777,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739200+00:00",
       "last_success_at": "2026-08-24T16:36:03.064727+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905605+00:00",
       "status": "ok",
       "successful_checks": 40550,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "mlbbesports": {
       "checks": 40555,
@@ -1589,9 +1791,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739219+00:00",
       "last_success_at": "2026-08-24T16:36:03.064746+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905613+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "mrdaburud": {
       "checks": 40556,
@@ -1601,9 +1805,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-20T06:42:33.739256+00:00",
       "last_success_at": "2026-08-24T16:36:03.064783+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905628+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "mugretnug": {
       "checks": 40555,
@@ -1613,20 +1819,22 @@
       "last_messages_count": 7,
       "last_problem_at": "2026-08-18T00:12:54.466848+00:00",
       "last_success_at": "2026-08-24T16:36:03.063991+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905318+00:00",
       "status": "ok",
       "successful_checks": 40534,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "mugretnugbet": {
-      "checks": 39908,
+      "checks": 39909,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065172+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905811+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739637+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065172+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905811+00:00",
       "status": "ok",
-      "successful_checks": 39896,
+      "successful_checks": 39897,
       "transport_outages": 5
     },
     "narodCast": {
@@ -1637,44 +1845,46 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T04:55:18.825501+00:00",
       "last_success_at": "2026-08-24T16:36:03.062879+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904835+00:00",
       "status": "ok",
       "successful_checks": 42632,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "nixtalk": {
-      "checks": 42642,
+      "checks": 42643,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062121+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904146+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-15T00:00:33.124382+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062121+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904146+00:00",
       "status": "ok",
-      "successful_checks": 42630,
+      "successful_checks": 42631,
       "transport_outages": 7
     },
     "nucleartigeres": {
-      "checks": 37811,
+      "checks": 37812,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065277+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905887+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-20T06:42:33.739711+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065277+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905887+00:00",
       "status": "ok",
-      "successful_checks": 37802,
+      "successful_checks": 37803,
       "transport_outages": 3
     },
     "obshakstaya": {
-      "checks": 42574,
+      "checks": 42575,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062185+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904208+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T04:55:18.824850+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062185+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904208+00:00",
       "status": "ok",
-      "successful_checks": 42563,
+      "successful_checks": 42564,
       "transport_outages": 6
     },
     "overdrivebet": {
@@ -1685,20 +1895,22 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-13T15:51:30.929577+00:00",
       "last_success_at": "2026-08-24T16:36:03.063515+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905092+00:00",
       "status": "ok",
       "successful_checks": 41917,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "pandafx": {
-      "checks": 42572,
+      "checks": 42573,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062706+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904725+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-19T00:00:28.154589+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062706+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904725+00:00",
       "status": "ok",
-      "successful_checks": 42558,
+      "successful_checks": 42559,
       "transport_outages": 8
     },
     "pandafx2": {
@@ -1709,9 +1921,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-11T04:55:18.825608+00:00",
       "last_success_at": "2026-08-24T16:36:03.062995+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904884+00:00",
       "status": "ok",
       "successful_checks": 42409,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "pokerclubsochi": {
       "checks": 40555,
@@ -1721,9 +1935,11 @@
       "last_messages_count": 17,
       "last_problem_at": "2026-08-20T06:42:33.739274+00:00",
       "last_success_at": "2026-08-24T16:36:03.064801+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905635+00:00",
       "status": "ok",
       "successful_checks": 40543,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "realmerussia": {
       "checks": 40552,
@@ -1733,9 +1949,11 @@
       "last_messages_count": 16,
       "last_problem_at": "2026-08-20T06:42:33.739292+00:00",
       "last_success_at": "2026-08-24T16:36:03.064820+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905654+00:00",
       "status": "ok",
       "successful_checks": 40537,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "recrent": {
       "checks": 40556,
@@ -1745,20 +1963,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739311+00:00",
       "last_success_at": "2026-08-24T16:36:03.064839+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905662+00:00",
       "status": "ok",
       "successful_checks": 40544,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "relaxcis": {
-      "checks": 42641,
+      "checks": 42642,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062627+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904649+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-19T00:00:28.154544+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062627+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904649+00:00",
       "status": "ok",
-      "successful_checks": 42630,
+      "successful_checks": 42631,
       "transport_outages": 8
     },
     "risenhaha": {
@@ -1769,9 +1989,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-11T04:55:18.825568+00:00",
       "last_success_at": "2026-08-24T16:36:03.062958+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904868+00:00",
       "status": "ok",
       "successful_checks": 42408,
-      "transport_outages": 7
+      "transport_outages": 8
     },
     "rodjerchamp": {
       "checks": 40556,
@@ -1781,9 +2003,11 @@
       "last_messages_count": 15,
       "last_problem_at": "2026-08-20T06:42:33.739329+00:00",
       "last_success_at": "2026-08-24T16:36:03.064857+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905670+00:00",
       "status": "ok",
       "successful_checks": 40545,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "satir_Ilya": {
       "checks": 40557,
@@ -1793,20 +2017,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.930128+00:00",
       "last_success_at": "2026-08-24T16:36:03.064012+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905326+00:00",
       "status": "ok",
       "successful_checks": 40550,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "shadowkekw": {
-      "checks": 42573,
+      "checks": 42574,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062587+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904611+00:00",
       "last_messages_count": 14,
       "last_problem_at": "2026-08-11T04:55:18.825207+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062587+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904611+00:00",
       "status": "ok",
-      "successful_checks": 42564,
+      "successful_checks": 42565,
       "transport_outages": 7
     },
     "shalashshpui": {
@@ -1817,9 +2043,11 @@
       "last_messages_count": 18,
       "last_problem_at": "2026-08-20T06:42:33.739366+00:00",
       "last_success_at": "2026-08-24T16:36:03.064894+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905685+00:00",
       "status": "ok",
       "successful_checks": 40539,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "shalfeycsgo": {
       "checks": 40556,
@@ -1829,9 +2057,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739385+00:00",
       "last_success_at": "2026-08-24T16:36:03.064914+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905693+00:00",
       "status": "ok",
       "successful_checks": 40539,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "sheyl31": {
       "checks": 40556,
@@ -1841,9 +2071,11 @@
       "last_messages_count": 15,
       "last_problem_at": "2026-08-20T06:42:33.739403+00:00",
       "last_success_at": "2026-08-24T16:36:03.064932+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905700+00:00",
       "status": "ok",
       "successful_checks": 40547,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "shoke": {
       "checks": 42271,
@@ -1853,32 +2085,34 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T05:25:43.558141+00:00",
       "last_success_at": "2026-08-24T16:36:03.063456+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905070+00:00",
       "status": "ok",
       "successful_checks": 42265,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "shoketg": {
-      "checks": 42645,
+      "checks": 42646,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062285+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904320+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T08:01:13.500340+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062285+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904320+00:00",
       "status": "ok",
-      "successful_checks": 42637,
+      "successful_checks": 42638,
       "transport_outages": 4
     },
     "smurf_gigachad": {
-      "checks": 42641,
+      "checks": 42642,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062686+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904707+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778262+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062686+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904707+00:00",
       "status": "ok",
-      "successful_checks": 42631,
+      "successful_checks": 42632,
       "transport_outages": 8
     },
     "solo322": {
@@ -1889,20 +2123,22 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-18T01:00:06.735439+00:00",
       "last_success_at": "2026-08-24T16:36:03.063534+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905100+00:00",
       "status": "ok",
       "successful_checks": 41913,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "solo_q_q": {
-      "checks": 42643,
+      "checks": 42644,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062098+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904125+00:00",
       "last_messages_count": 19,
       "last_problem_at": "2026-08-14T00:59:05.305393+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062098+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904125+00:00",
       "status": "ok",
-      "successful_checks": 42629,
+      "successful_checks": 42630,
       "transport_outages": 6
     },
     "spatich": {
@@ -1913,9 +2149,11 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-13T15:51:30.931015+00:00",
       "last_success_at": "2026-08-24T16:36:03.064950+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905706+00:00",
       "status": "ok",
       "successful_checks": 40542,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "starie_seniory": {
       "checks": 42442,
@@ -1925,9 +2163,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-05T01:59:18.778933+00:00",
       "last_success_at": "2026-08-24T16:36:03.063358+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905029+00:00",
       "status": "ok",
       "successful_checks": 42433,
-      "transport_outages": 8
+      "transport_outages": 9
     },
     "stavka_tv": {
       "checks": 40555,
@@ -1937,9 +2177,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.738571+00:00",
       "last_success_at": "2026-08-24T16:36:03.064031+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905333+00:00",
       "status": "ok",
       "successful_checks": 40542,
-      "transport_outages": 5
+      "transport_outages": 6
     },
     "stavkatv": {
       "checks": 40555,
@@ -1949,9 +2191,11 @@
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739430+00:00",
       "last_success_at": "2026-08-24T16:36:03.064969+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905714+00:00",
       "status": "ok",
       "successful_checks": 40546,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "streamrosstg": {
       "checks": 40558,
@@ -1961,9 +2205,11 @@
       "last_messages_count": 13,
       "last_problem_at": "2026-08-20T05:24:16.358158+00:00",
       "last_success_at": "2026-08-24T16:36:03.064050+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905341+00:00",
       "status": "ok",
       "successful_checks": 40549,
-      "transport_outages": 2
+      "transport_outages": 3
     },
     "torycs": {
       "checks": 40555,
@@ -1973,9 +2219,11 @@
       "last_messages_count": 17,
       "last_problem_at": "2026-08-24T03:50:47.717577+00:00",
       "last_success_at": "2026-08-24T16:36:03.064988+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905721+00:00",
       "status": "ok",
       "successful_checks": 40536,
-      "transport_outages": 4
+      "transport_outages": 5
     },
     "vane4kawyhm": {
       "checks": 40556,
@@ -1985,9 +2233,11 @@
       "last_messages_count": 12,
       "last_problem_at": "2026-08-20T06:42:33.739468+00:00",
       "last_success_at": "2026-08-24T16:36:03.065007+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905728+00:00",
       "status": "ok",
       "successful_checks": 40540,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "wfksiris": {
       "checks": 21077,
@@ -2007,27 +2257,27 @@
       "successful_checks": 21001
     },
     "whylollybet": {
-      "checks": 38178,
+      "checks": 38179,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065208+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905849+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-13T15:51:30.931325+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065208+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905849+00:00",
       "status": "ok",
-      "successful_checks": 38169,
+      "successful_checks": 38170,
       "transport_outages": 5
     },
     "whylollycrry": {
-      "checks": 42638,
+      "checks": 42639,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.062448+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.904479+00:00",
       "last_messages_count": 11,
       "last_problem_at": "2026-08-19T00:00:28.154439+00:00",
-      "last_success_at": "2026-08-24T16:36:03.062448+00:00",
+      "last_success_at": "2026-08-24T16:40:33.904479+00:00",
       "status": "ok",
-      "successful_checks": 42627,
+      "successful_checks": 42628,
       "transport_outages": 11
     },
     "wonderbelkaML": {
@@ -2038,20 +2288,22 @@
       "last_messages_count": 19,
       "last_problem_at": "2026-08-11T01:55:23.822198+00:00",
       "last_success_at": "2026-08-24T16:36:03.065043+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.905743+00:00",
       "status": "ok",
       "successful_checks": 40549,
-      "transport_outages": 3
+      "transport_outages": 4
     },
     "zont1x": {
-      "checks": 38951,
+      "checks": 38952,
       "consecutive_empty": 0,
       "consecutive_errors": 0,
-      "last_checked_at": "2026-08-24T16:36:03.065191+00:00",
+      "last_checked_at": "2026-08-24T16:40:33.905831+00:00",
       "last_messages_count": 20,
       "last_problem_at": "2026-08-20T06:42:33.739656+00:00",
-      "last_success_at": "2026-08-24T16:36:03.065191+00:00",
+      "last_success_at": "2026-08-24T16:40:33.905831+00:00",
       "status": "ok",
-      "successful_checks": 38933,
+      "successful_checks": 38934,
       "transport_outages": 3
     },
     "zortelad": {
@@ -2062,9 +2314,11 @@
       "last_messages_count": 17,
       "last_problem_at": "2026-08-05T01:59:18.778822+00:00",
       "last_success_at": "2026-08-24T16:36:03.063242+00:00",
+      "last_transport_error": "ReadTimeout: HTTPSConnectionPool(host='telegram.me', port=443): Read timed out. (read timeout=8)",
+      "last_transport_outage_at": "2026-08-24T16:40:33.904981+00:00",
       "status": "ok",
       "successful_checks": 42437,
-      "transport_outages": 9
+      "transport_outages": 10
     }
   },
   "version": 1
