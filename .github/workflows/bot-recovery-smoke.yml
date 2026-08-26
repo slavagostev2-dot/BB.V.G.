@@ -55,8 +55,9 @@ jobs:
             rating_policy.py bbvg_monitor_main.py recurring_wheel_events.py \
             wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py \
             wheel_lifecycle_v2.py wheel_link_lifecycle.py wheel_scenario_suite.py \
-            personal_reminder_filter.py daily_report.py source_intelligence_alerts.py \
-            system_checks_v2.py source_tier_maintenance_v2.py
+            personal_reminder_filter.py source_intelligence_alerts.py \
+            source_intelligence_retention.py source_model_simplification.py \
+            system_checks_v2.py
           python -m bbvg.bot.storage
           python -m bbvg.bot.users
           python -m bbvg.bot.runtime --self-test
@@ -67,6 +68,7 @@ jobs:
           python security_audit.py --current
           python migrate_bot_private_state.py --check
           python notification_preferences_v2.py
+          python tests/test_single_source_model.py
 
       - name: Validate stable production runtime
         run: |
@@ -88,11 +90,9 @@ jobs:
           python wheel_scenario_suite.py
           python personal_reminder_filter.py
           python source_intelligence_alerts.py
-          python -c "import daily_report; daily_report.self_test()"
           python admin_action_v2.py --self-test
           python admin_action_v3.py --self-test
           python system_checks_v2.py --self-test
-          python source_tier_maintenance_v2.py --self-test
 
       - name: Validate recovery architecture and monitor patches
         run: |
@@ -147,12 +147,7 @@ jobs:
             for line in Path('public_sources.txt').read_text(encoding='utf-8').splitlines()
             if line.split('#', 1)[0].strip()
           ]
-          nightly = [
-            line.split('#', 1)[0].strip().lstrip('@')
-            for line in Path('source_catalog.txt').read_text(encoding='utf-8').splitlines()
-            if line.split('#', 1)[0].strip()
-          ]
-          combined = [value.casefold() for value in primary + nightly]
+          combined = [value.casefold() for value in primary]
           assert len(combined) == len(set(combined))
           assert {'mariomaxtv', 'adekvatik', 'jestercast'} <= set(combined)
           print('Consolidated recovery and monitor smoke test passed')
