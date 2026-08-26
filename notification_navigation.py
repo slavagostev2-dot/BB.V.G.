@@ -4,6 +4,8 @@ import copy
 import html
 from typing import Any, Callable
 
+import betboom_wheel_api_semantics
+
 
 MAIN_MENU_CALLBACK = "page:menu"
 ACTIVE_LIST_CALLBACK = "bb:l:active"
@@ -65,10 +67,14 @@ def notification_markup(
 
 
 def install(monitor_module: Any) -> None:
-    """Install navigation decoration after the notification router."""
+    """Install navigation and the authoritative BetBoom wheel-state semantics."""
 
     if getattr(monitor_module, "_bbvg_notification_navigation_installed", False):
         return
+    # The notification layer is installed by the production entrypoint on every
+    # Monitor process. Keep the server-state correction here as a small additive
+    # integration point instead of duplicating the large legacy monitor module.
+    betboom_wheel_api_semantics.install(monitor_module)
     original: Callable = monitor_module.send_message
 
     def send_with_navigation(
