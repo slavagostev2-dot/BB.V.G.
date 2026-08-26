@@ -84,3 +84,11 @@ def test_elapsed_server_deadline_is_terminal_even_without_end_flag():
         current=current,
     )
     assert result.status == "inactive"
+
+
+def test_install_replaces_only_the_server_inspector():
+    original = lambda link: link
+    fake = SimpleNamespace(inspect_wheel_page=original)
+    semantics.install(fake)
+    assert fake.inspect_wheel_page is not original
+    assert fake._bbvg_betboom_wheel_api_semantics_installed is True
