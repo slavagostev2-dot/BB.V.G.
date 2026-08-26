@@ -98,7 +98,14 @@ jobs:
           python notification_preferences_v2.py
           python test_bot_state_fixture.py
           python admin_panel_runtime_v41.py --self-test
-          python -m pytest -q tests/test_single_source_model.py
+          python - <<'PY'
+          import tests.test_single_source_model as single
+          single.test_production_panel_uses_single_source_model()
+          single.test_summary_notification_controls_are_removed_from_live_panel()
+          single.test_only_public_sources_contains_operational_inventory()
+          single.test_discovery_alert_has_one_add_path_and_24_hour_threshold()
+          print("Single source model private-state checks passed")
+          PY
           python tests/production_acceptance.py --section interface
 
       - name: Validate privacy, role and delivery invariants
