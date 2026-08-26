@@ -45,9 +45,9 @@ import source_intelligence  # noqa: E402
 import source_intelligence_alerts  # noqa: E402
 import source_intelligence_retention  # noqa: E402
 
-# Broad discovery still scans and verifies thematic references, but speculative
-# candidates exist only in memory for the current run. Persistent intelligence
-# keeps only channels where a direct BetBoom wheel link was actually observed.
+# source_intelligence.main still performs the broad discovery scan first.
+# Speculative candidates exist only in memory for the current run; persistent
+# intelligence keeps only channels where a direct BetBoom wheel was observed.
 source_intelligence_retention.install(
     source_intelligence,
     source_intelligence_alerts,
