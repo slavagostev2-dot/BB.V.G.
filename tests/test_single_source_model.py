@@ -7,6 +7,7 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import notification_button_recovery
+import source_intelligence
 import source_intelligence_alerts
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,17 +49,19 @@ def test_only_public_sources_contains_operational_inventory() -> None:
         for line in (ROOT / "public_sources.txt").read_text(encoding="utf-8").splitlines()
         if line.split("#", 1)[0].strip().lstrip("@")
     ]
-    nightly = [
-        line.split("#", 1)[0].strip().lstrip("@")
-        for line in (ROOT / "source_catalog.txt").read_text(encoding="utf-8").splitlines()
-        if line.split("#", 1)[0].strip().lstrip("@")
-    ]
     assert "PIVOVAR_Cast" in active
-    assert nightly == []
-    assert not (ROOT / ".github/workflows/nightly-discovery.yml").exists()
-    assert not (ROOT / ".github/workflows/source-tier-maintenance.yml").exists()
-    assert not (ROOT / "source_tier_maintenance.py").exists()
-    assert not (ROOT / "source_tier_maintenance_v2.py").exists()
+    assert source_intelligence.ACTIVE_PATH == ROOT / "public_sources.txt"
+    assert not hasattr(source_intelligence, "NIGHTLY_PATH")
+    for obsolete in (
+        "source_catalog.txt",
+        "nightly_discovery.py",
+        "nightly_discovery_entry.py",
+        "source_tier_maintenance.py",
+        "source_tier_maintenance_v2.py",
+        ".github/workflows/nightly-discovery.yml",
+        ".github/workflows/source-tier-maintenance.yml",
+    ):
+        assert not (ROOT / obsolete).exists()
 
 
 def test_discovery_alert_has_one_add_path_and_24_hour_threshold() -> None:
