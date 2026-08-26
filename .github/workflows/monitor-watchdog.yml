@@ -32,6 +32,16 @@ jobs:
         with:
           persist-credentials: false
           ref: main
+          fetch-depth: 1
+
+      - name: Load authoritative monitor status
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin \
+            +refs/heads/runtime-status:refs/remotes/origin/runtime-status
+          git show origin/runtime-status:monitor_status.json > monitor_status.json
+          python -m json.tool monitor_status.json >/dev/null
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
