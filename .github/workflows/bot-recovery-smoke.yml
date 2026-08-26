@@ -68,7 +68,7 @@ jobs:
           python security_audit.py --current
           python migrate_bot_private_state.py --check
           python notification_preferences_v2.py
-          python tests/test_single_source_model.py
+          python -m pytest -q tests/test_single_source_model.py
 
       - name: Validate stable production runtime
         run: |
