@@ -98,10 +98,15 @@ def runtime_snapshot(*, since: datetime) -> dict[str, int]:
     )
     checked, reachable, errors = source_cycle_counts(health, since)
     summary_checked = int(summary.get("checked_sources", 0) or 0)
-    if summary_checked > 0:
-        # last_run_summary belongs to the monitor iteration that just finished.
-        # Per-source health timestamps may collapse Telegram redirect aliases and
-        # therefore undercount an otherwise complete cycle.
+    summary_at = parse_datetime(state.get("last_heartbeat_at"))
+    if (
+        summary_checked > 0
+        and summary_at is not None
+        and summary_at >= since
+    ):
+        # Use the periodic summary only when it was written by the cycle that
+        # just finished. Between six-hour state heartbeats it is deliberately
+        # stale, while per-source health timestamps still describe this cycle.
         checked = summary_checked
         reachable = int(summary.get("reachable_sources", 0) or 0)
         errors = int(summary.get("source_errors", 0) or 0)
