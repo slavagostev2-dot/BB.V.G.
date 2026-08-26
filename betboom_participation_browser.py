@@ -38,6 +38,10 @@ COOKIE_RE = re.compile(
     re.IGNORECASE,
 )
 PROMO_DETAILS_RE = re.compile(r"об\s+акции", re.IGNORECASE)
+AUTH_RE = re.compile(
+    r"(?:войти|вход|авторизоваться|авторизация)",
+    re.IGNORECASE,
+)
 REFERRAL_INELIGIBLE_LABEL_RE = re.compile(
     r"(?:"
     r"(?:вы|ваш\s+аккаунт|аккаунт)[^.!?\n]{0,100}"
@@ -159,6 +163,12 @@ def _visible_control_location(page: Any, pattern: re.Pattern[str]) -> str:
     return ""
 
 
+def _authentication_required(page: Any) -> str:
+    """Return a visible BetBoom authentication control, if one is present."""
+
+    return _visible_control_location(page, AUTH_RE)
+
+
 def _visible_referral_ineligible(page: Any) -> str:
     """Return only an explicit, self-contained BetBoom eligibility refusal."""
 
@@ -183,8 +193,10 @@ def _visible_referral_ineligible(page: Any) -> str:
 
 
 def _success(page: Any) -> bool:
-    """Accept only a visible, self-contained confirmation label in any frame."""
+    """Accept only a visible confirmation while the account is authenticated."""
 
+    if _authentication_required(page):
+        return False
     for root in _search_roots(page):
         try:
             locators = (
@@ -300,15 +312,23 @@ def _accepted_post_click_layout(
     *,
     participation_visible: bool,
     promo_details_visible: bool,
+    authentication_required: bool = False,
 ) -> bool:
-    """Recognize the BetBoom layout that replaces participation after a click."""
+    """Recognize the BetBoom post-click layout only for an authenticated page."""
 
-    return promo_details_visible and not participation_visible
+    return (
+        promo_details_visible
+        and not participation_visible
+        and not authentication_required
+    )
 
 
 def _post_click_confirmed(page: Any) -> tuple[bool, str]:
     """Confirm participation after our click without opening «Об акции»."""
 
+    auth_location = _authentication_required(page)
+    if auth_location:
+        return False, f"authentication_required:{auth_location}"[:180]
     if _success(page):
         return True, "exact_success_label"
     participation_location = _visible_control_location(page, CLICK_RE)
@@ -316,6 +336,7 @@ def _post_click_confirmed(page: Any) -> tuple[bool, str]:
     if _accepted_post_click_layout(
         participation_visible=bool(participation_location),
         promo_details_visible=bool(promo_location),
+        authentication_required=False,
     ):
         return True, f"post_click_layout:{promo_location}"[:180]
     return False, ""
@@ -571,6 +592,21 @@ def participate(url: str) -> auto.ParticipationResult:
                     detail = _detail_with_page_hint(page, detail)
                     browser.close()
                     return auto.ParticipationResult(True, "participated", detail[:300])
+                if confirmation.startswith("authentication_required:"):
+                    detail = _detail_with_page_hint(
+                        page,
+                        "страница показывает вход/авторизацию после нажатия участия",
+                    )
+                    artifact = _save_diagnostics(
+                        page, url, "button_not_found", detail
+                    )
+                    browser.close()
+                    return auto.ParticipationResult(
+                        False,
+                        "button_not_found",
+                        detail[:300],
+                        artifact,
+                    )
                 referral_refusal = _visible_referral_ineligible(page)
                 if referral_refusal:
                     detail = _detail_with_page_hint(
@@ -607,6 +643,21 @@ def participate(url: str) -> auto.ParticipationResult:
                         True,
                         "participated",
                         detail[:300],
+                    )
+                if confirmation.startswith("authentication_required:"):
+                    detail = _detail_with_page_hint(
+                        page,
+                        "контрольная перезагрузка показывает вход/авторизацию; участие не подтверждено",
+                    )
+                    artifact = _save_diagnostics(
+                        page, url, "button_not_found", detail
+                    )
+                    browser.close()
+                    return auto.ParticipationResult(
+                        False,
+                        "button_not_found",
+                        detail[:300],
+                        artifact,
                     )
                 page.wait_for_timeout(700)
 
@@ -677,11 +728,18 @@ def self_test() -> None:
     )
     assert _matches_full_label(COOKIE_RE, "Окей")
     assert _matches_full_label(PROMO_DETAILS_RE, "Об акции")
+    assert _matches_full_label(AUTH_RE, "Войти")
     assert not _matches_full_label(PROMO_DETAILS_RE, "Другие акции")
     assert PROMO_DETAILS_RE not in _preparation_patterns()
     assert _accepted_post_click_layout(
         participation_visible=False,
         promo_details_visible=True,
+        authentication_required=False,
+    )
+    assert not _accepted_post_click_layout(
+        participation_visible=False,
+        promo_details_visible=True,
+        authentication_required=True,
     )
     assert not _accepted_post_click_layout(
         participation_visible=True,

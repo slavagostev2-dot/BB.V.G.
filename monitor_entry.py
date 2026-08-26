@@ -127,12 +127,25 @@ def fetch_all_sources_with_originals(sources):
 
 
 def _notification_first(message, result):
-    """Deliver a fresh unique Telegram wheel post even if page parsing is inconclusive."""
+    """Deliver a fresh unique wheel post when BetBoom supplied event evidence.
+
+    A definitive API ``not found`` response has no action identity, start time or
+    deadline and remains silent. A fresh ``inactive`` response that does carry
+    event identity can race BetBoom's lifecycle, so it is downgraded to a cautious
+    preliminary alert instead of disappearing. Explicit duplicates and
+    not-started actions remain suppressed.
+    """
     age = monitor.message_age(message)
     if result.should_notify:
         return result
+    if (
+        result.status == "inactive"
+        and result.action_id is None
+        and result.server_start_at is None
+        and result.deadline is None
+    ):
+        return result
     if result.status in {
-        "inactive",
         "not_started",
         "duplicate_action",
         "duplicate_link",
