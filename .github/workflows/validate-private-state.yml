@@ -98,7 +98,7 @@ jobs:
           python notification_preferences_v2.py
           python test_bot_state_fixture.py
           python admin_panel_runtime_v41.py --self-test
-          python tests/test_single_source_model.py
+          python -m pytest -q tests/test_single_source_model.py
           python tests/production_acceptance.py --section interface
 
       - name: Validate privacy, role and delivery invariants
