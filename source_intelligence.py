@@ -18,7 +18,6 @@ import telegram_transport
 ROOT = Path(__file__).resolve().parent
 STATE_PATH = ROOT / "intelligence_state.json"
 ACTIVE_PATH = ROOT / "public_sources.txt"
-NIGHTLY_PATH = ROOT / "source_catalog.txt"
 MODERATION_PATH = ROOT / "candidate_moderation.json"
 
 UTC = timezone.utc
@@ -103,11 +102,9 @@ def save_state(value: dict[str, Any]) -> None:
 
 
 def known_sources() -> tuple[list[str], set[str]]:
-    active = monitor.read_list(ACTIVE_PATH)
-    nightly = monitor.read_list(NIGHTLY_PATH)
     ordered: list[str] = []
     seen: set[str] = set()
-    for source in [*active, *nightly]:
+    for source in monitor.read_list(ACTIVE_PATH):
         clean = source.strip().lstrip("@")
         if clean and clean.casefold() not in seen:
             seen.add(clean.casefold())
