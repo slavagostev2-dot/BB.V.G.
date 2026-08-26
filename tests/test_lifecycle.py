@@ -364,6 +364,7 @@ class WheelApiVerificationTests(unittest.TestCase):
                 monitor_health.STATE_PATH.write_text(
                     json.dumps(
                         {
+                            "last_heartbeat_at": self.current.isoformat(),
                             "last_run_summary": {
                                 "checked_sources": 169,
                                 "reachable_sources": 169,
