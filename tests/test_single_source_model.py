@@ -54,6 +54,7 @@ def test_only_public_sources_contains_operational_inventory() -> None:
     assert not hasattr(source_intelligence, "NIGHTLY_PATH")
     for obsolete in (
         "source_catalog.txt",
+        "source_tier_state.json",
         "nightly_discovery.py",
         "nightly_discovery_entry.py",
         "source_tier_maintenance.py",
