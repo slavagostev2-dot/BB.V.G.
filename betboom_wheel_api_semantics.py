@@ -186,25 +186,26 @@ def install(monitor_module: Any) -> None:
 
     monitor_module.inspect_wheel_page = inspect_wheel_page_authoritative
 
-    original_main = monitor_module.main
+    original_main = getattr(monitor_module, "main", None)
+    if callable(original_main):
+        def main_with_recent_closed_probe(*args: Any, **kwargs: Any):
+            try:
+                state = monitor_module.load_state()
+                for key in _recent_closed_keys(monitor_module, state):
+                    result = inspect_wheel_page_authoritative(
+                        f"https://betboom.ru/freestream/{key}"
+                    )
+                    print(
+                        "BetBoom recent-closed probe: "
+                        f"wheel={key} status={result.status} "
+                        f"deadline={result.deadline.isoformat() if result.deadline else '-'}"
+                    )
+            except Exception as exc:
+                print(f"WARNING BetBoom recent-closed probe: {type(exc).__name__}: {exc}")
+            return original_main(*args, **kwargs)
 
-    def main_with_recent_closed_probe(*args: Any, **kwargs: Any):
-        try:
-            state = monitor_module.load_state()
-            for key in _recent_closed_keys(monitor_module, state):
-                result = inspect_wheel_page_authoritative(
-                    f"https://betboom.ru/freestream/{key}"
-                )
-                print(
-                    "BetBoom recent-closed probe: "
-                    f"wheel={key} status={result.status} "
-                    f"deadline={result.deadline.isoformat() if result.deadline else '-'}"
-                )
-        except Exception as exc:
-            print(f"WARNING BetBoom recent-closed probe: {type(exc).__name__}: {exc}")
-        return original_main(*args, **kwargs)
+        monitor_module.main = main_with_recent_closed_probe
 
-    monitor_module.main = main_with_recent_closed_probe
     monitor_module._bbvg_betboom_wheel_api_semantics_installed = True
 
 
