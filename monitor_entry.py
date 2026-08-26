@@ -127,12 +127,19 @@ def fetch_all_sources_with_originals(sources):
 
 
 def _notification_first(message, result):
-    """Deliver a fresh unique Telegram wheel post even if page parsing is inconclusive."""
+    """Deliver a fresh unique Telegram wheel post even if page parsing is inconclusive.
+
+    A fresh publication must not disappear solely because BetBoom momentarily
+    classifies the URL as inactive. That response can race the action lifecycle
+    (observed in production with a fresh server_start_at and no action_id), so
+    fresh inactive results are downgraded to a cautious preliminary alert rather
+    than being silently discarded. Explicit duplicates and not-started actions
+    remain suppressed as before.
+    """
     age = monitor.message_age(message)
     if result.should_notify:
         return result
     if result.status in {
-        "inactive",
         "not_started",
         "duplicate_action",
         "duplicate_link",
