@@ -330,15 +330,27 @@ def check_monitor_runtime(details: dict[str, Any], findings: list[dict[str, Any]
     checked = int(status.get("checked_sources", 0) or 0) if isinstance(status, dict) else 0
     reachable = int(status.get("reachable_sources", 0) or 0) if isinstance(status, dict) else 0
     source_errors = int(status.get("source_errors", 0) or 0) if isinstance(status, dict) else 0
-    expected_primary = len(data_store.operational_sources(unique_sources(PUBLIC_SOURCES_PATH), "fast"))
+    primary_sources = data_store.operational_sources(
+        unique_sources(PUBLIC_SOURCES_PATH), "fast"
+    )
+    expected_primary = len(primary_sources)
+    expected_checked = sum(
+        1 for source in primary_sources
+        if data_store.source_due_for_check(health, source)
+    )
+    details["monitor_source_expectation"] = {
+        "configured": expected_primary,
+        "due_for_check": expected_checked,
+    }
     # A fresh startup marker intentionally carries counts from the previous
-    # completed iteration. Do not diagnose those inherited counters as a new
-    # partial scan while the replacement process is still starting.
-    if runtime_status != "starting" and checked and checked < expected_primary:
+    # completed iteration. Quarantined sources waiting for their scheduled
+    # recheck are also intentionally absent from the current scan.
+    if runtime_status != "starting" and checked and checked < expected_checked:
         findings.append(finding(
             "monitor_source_count",
             "Основной монитор проверяет не все источники",
-            f"В последней итерации проверено {checked} из {expected_primary} источников основного режима.",
+            f"В последней итерации проверено {checked} из {expected_checked} "
+            f"источников, готовых к проверке (всего настроено {expected_primary}).",
             severity="critical",
         ))
     if checked and reachable == 0:
