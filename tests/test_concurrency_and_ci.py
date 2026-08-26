@@ -325,12 +325,14 @@ class ConcurrentStateTests(unittest.TestCase):
             notification_integrity_v2.release_delivery(digest, path)
 
     def test_all_tracked_json_has_an_owner_and_compatible_schema(self) -> None:
-        self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 30)
+        self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 29)
         self.assertEqual(monitor_data.validate_json_state_contracts(ROOT), [])
 
     def test_single_source_base_has_no_automatic_tier_writer(self) -> None:
         self.assertFalse((ROOT / ".github/workflows/nightly-discovery.yml").exists())
         self.assertFalse((ROOT / ".github/workflows/source-tier-maintenance.yml").exists())
+        self.assertNotIn("source_tier_state.json", monitor_data.JSON_STATE_CONTRACTS)
+        self.assertFalse(hasattr(monitor_data, "NIGHTLY_SOURCES_PATH"))
         intelligence = (ROOT / ".github/workflows/source-intelligence.yml").read_text(
             encoding="utf-8"
         )
