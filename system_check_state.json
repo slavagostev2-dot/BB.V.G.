@@ -1,9 +1,9 @@
 {
-  "active_incidents": 10,
+  "active_incidents": 8,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-08-26T15:52:07.216250+00:00",
-    "started_at": "2026-08-26T14:56:37.083578+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-08-26T19:11:48.502620+00:00",
+    "started_at": "2026-08-26T17:15:30.513218+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -12,31 +12,29 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 4,
-    "decision_id": "ea6291dde2b947b09d2af66f91b4a452",
-    "finding_count": 8,
+    "critical_count": 3,
+    "decision_id": "dfc52cab1cff472f94711e332ad117fa",
+    "finding_count": 6,
     "finding_kinds": [
       "discovery_domain",
       "discovery_stale_поиск",
-      "monitor_stale",
       "source_empty_public_feed",
-      "source_health_missing",
       "source_tier_maintenance_stale",
       "source_tier_policy_stale",
       "sources_quarantined"
     ],
-    "generated_at": "2026-08-26T15:55:29.365908+00:00",
-    "impact": "Автоматизация остановлена, данные не обновляются, мониторинг не функционирует, что приводит к потере актуальности всех источников.",
+    "generated_at": "2026-08-26T19:12:11.522305+00:00",
+    "impact": "Нарушена работа источников (неверный домен, пустые ленты) и не подтверждены политики обслуживания, что блокирует автоматическое пополнение ночного списка.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "recommended_action": "Открыть файл system_check_state.json и список активных инцидентов для ручной верификации первопричин и сброса статусов обслуживания.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 4 критические ошибки, включая отказ основного монитора (heartbeat не обновлялся более 30 дней) и сбои в проверке источников.",
+    "summary": "Система находится в критическом состоянии: зафиксировано 3 критические ошибки и 3 предупреждения, нарушающие целостность сбора данных.",
     "used_fallback": false,
     "version": 1,
-    "warning_count": 4
+    "warning_count": 3
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -66,14 +64,14 @@
     "discovery": "failed",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "failed",
+    "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-08-26T15:55:27.594674+00:00",
+  "checked_at": "2026-08-26T19:12:09.140040+00:00",
   "discovery": {
     "active_size": 0,
     "candidate_count": 0,
@@ -111,28 +109,14 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 8,
+  "finding_count": 6,
   "findings": [
-    {
-      "detail": "Последний heartbeat был 45876 минут назад.",
-      "kind": "monitor_stale",
-      "severity": "critical",
-      "subject": "",
-      "title": "Основной монитор давно не обновлялся"
-    },
     {
       "detail": "публичная страница открылась, но сообщений не найдено",
       "kind": "source_empty_public_feed",
       "severity": "critical",
       "subject": "wfksiris",
       "title": "Источник @wfksiris не проверяется"
-    },
-    {
-      "detail": "Нет записей для 1 источников: @propperinho.",
-      "kind": "source_health_missing",
-      "severity": "warning",
-      "subject": "",
-      "title": "Не для всех источников есть данные здоровья"
     },
     {
       "detail": "В карантине: 1. Источники остаются в общем пуле и будут перепроверяться.",
@@ -171,20 +155,20 @@
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 10,
-    "bot_panel_heartbeat": "2026-08-26T15:52:07.216250+00:00",
-    "checked_sources": 169,
+    "active_incidents": 8,
+    "bot_panel_heartbeat": "2026-08-26T19:11:48.502620+00:00",
+    "checked_sources": 171,
     "configured_sources": 172,
     "domain": "telegram.me",
-    "reachable_sources": 169,
+    "reachable_sources": 171,
     "single_source": "system_check_state.json",
     "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-08-26T14:54:38.175140+00:00",
+      "last_checked_at": "2026-08-26T18:57:44.042247+00:00",
       "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-      "last_success_at": "2026-08-26T14:54:38.175140+00:00",
+      "last_success_at": "2026-08-26T18:57:44.042247+00:00",
       "status": "ok"
     }
   },
@@ -193,10 +177,10 @@
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
     "messages_attempted": 1,
-    "opened": 4,
-    "resolved": 0
+    "opened": 0,
+    "resolved": 2
   },
-  "incident_sequence": 160,
+  "incident_sequence": 162,
   "inventory": {
     "configured": 172,
     "configured_total": 172,
@@ -219,43 +203,41 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 169,
-    "checks_delta": 169,
-    "checks_total": 943113,
-    "compatibility_epoch": "durable-event-ledger-v1",
+    "checked_sources": 171,
+    "checks_delta": 172,
+    "checks_total": 7417388,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "event_ledger_schema_version": 2,
-    "head_sha": "1a105a711851ae732b8a1dc9b348bb845d795992",
-    "iteration": 166,
-    "last_iteration_at": "2026-07-25T19:19:18.656741+00:00",
-    "last_iteration_duration_seconds": 30,
+    "head_sha": "4d513983dfebebfb5cb52b19020047b5578c3423",
+    "iteration": 102,
+    "last_iteration_at": "2026-08-26T19:07:46.095430+00:00",
+    "last_iteration_duration_seconds": 47,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-07-25T19:19:18.656741+00:00",
-    "last_successful_checks_total": 943113,
-    "last_successful_iteration_at": "2026-07-25T19:19:18.656741+00:00",
+    "last_process_heartbeat_at": "2026-08-26T19:07:46.095430+00:00",
+    "last_successful_checks_total": 7417388,
+    "last_successful_iteration_at": "2026-08-26T19:07:46.095430+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 169,
+    "reachable_sources": 171,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "32983329039",
-    "run_started_at": "2026-08-26T14:59:44.200372083Z",
+    "run_id": "32993317321",
+    "run_started_at": "2026-08-26T17:19:41.026803+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
-    "status": "starting",
+    "status": "running",
     "version": 3,
-    "workflow_run_id": "32983329039"
+    "workflow_run_id": "32993317321"
   },
-  "monitor_age_minutes": 45876,
-  "monitor_effective_heartbeat_at": "2026-07-25T19:19:18.656741+00:00",
+  "monitor_age_minutes": 4,
+  "monitor_effective_heartbeat_at": "2026-08-26T19:07:46.095430+00:00",
   "monitor_source_expectation": {
     "configured": 172,
-    "due_for_check": 172
+    "due_for_check": 171
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 13,
+    "entry_count": 21,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -283,17 +265,15 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 816,
+    "personal_vote_records": 817,
     "policy": "personal_votes_v1",
-    "rated_sources": 46,
+    "rated_sources": 47,
     "score_mismatches": [],
-    "valid_personal_votes": 816
+    "valid_personal_votes": 817
   },
   "source_health_summary": {
-    "configured_records": 171,
-    "missing_sources": [
-      "propperinho"
-    ],
+    "configured_records": 172,
+    "missing_sources": [],
     "nightly_pending_first_check": [],
     "problem_details": [
       {
@@ -306,10 +286,10 @@
     "problem_sources": [
       "wfksiris"
     ],
-    "records": 171,
-    "required_primary_records": 171,
+    "records": 172,
+    "required_primary_records": 172,
     "statuses": {
-      "ok": 170,
+      "ok": 171,
       "quarantined": 1
     },
     "transport_failure_types": {
@@ -333,9 +313,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-08-26T14:54:38.175140+00:00",
+    "last_checked_at": "2026-08-26T18:57:44.042247+00:00",
     "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-    "last_success_at": "2026-08-26T14:54:38.175140+00:00",
+    "last_success_at": "2026-08-26T18:57:44.042247+00:00",
     "status": "ok"
   }
 }
