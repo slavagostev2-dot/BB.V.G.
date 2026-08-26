@@ -1,50 +1,28 @@
 {
-  "active_incidents": 5,
+  "active_incidents": 9,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-08-26T14:18:54.045481+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-08-26T14:54:21.717019+00:00",
     "started_at": "2026-08-26T12:16:46.668691+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
-    "cached": false,
-    "confidence": 0.0,
-    "critical_count": 3,
-    "decision_id": "006739a16c864ee6b6d26ca5f995cb38",
-    "finding_count": 5,
-    "finding_kinds": [
-      "monitor_source_count",
-      "source_empty_public_feed",
-      "source_health_missing",
-      "source_transport_smoke",
-      "sources_quarantined"
-    ],
-    "generated_at": "2026-08-26T14:20:59.644840+00:00",
-    "impact": "Мониторинг работает не в полном объеме: часть источников (@wfksiris) не возвращает данные, а общая проверка охватывает 169 из 171 настроенного источника, что ведет к потере актуальности данных.",
-    "mode": "ai",
-    "model": "gemini-3.1-flash-lite",
-    "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 3 критические ошибки и 2 предупреждения, связанные с неполным охватом источников мониторинга и проблемами в транспортной проверке.",
-    "used_fallback": false,
-    "version": 1,
-    "warning_count": 2
+    "ai_status": "deployment_grace",
+    "mode": "suppressed",
+    "reason": "system-health started from a code push"
   },
   "automation_state": {
-    "expected_nightly_sources": 1,
-    "expected_primary_sources": 171,
+    "expected_nightly_sources": 0,
+    "expected_primary_sources": 172,
     "expected_total_sources": 172,
     "missing_sources": 0,
     "recorded_configured_sources": 171,
     "recorded_nightly_sources": 1,
     "recorded_primary_sources": 170,
-    "source_tier_last_run_at": "2026-08-25T21:15:09.944613+00:00",
-    "source_tier_policy": "manual_nightly_only",
+    "source_tier_last_run_at": null,
+    "source_tier_policy": null,
     "transport_accounted_sources": 171,
     "transport_checked_at": "2026-08-25T20:57:48.223215+00:00",
     "transport_domain": "telegram.me",
@@ -60,7 +38,7 @@
   "check_matrix": {
     "automations": "failed",
     "bot_panel": "ok",
-    "discovery": "ok",
+    "discovery": "failed",
     "inventory": "ok",
     "miniapp": "ok",
     "monitor": "failed",
@@ -70,14 +48,14 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-08-26T14:20:57.618051+00:00",
+  "checked_at": "2026-08-26T14:55:50.144852+00:00",
   "discovery": {
-    "active_size": 170,
+    "active_size": 0,
     "candidate_count": 0,
-    "catalog_size": 1,
+    "catalog_size": 0,
     "discovery_errors": 0,
-    "discovery_last_run_at": "2026-08-25T20:53:59.320084+00:00",
-    "domain": "telegram.me",
+    "discovery_last_run_at": null,
+    "domain": null,
     "intelligence_domain": "telegram.me",
     "intelligence_last_run_at": "2026-08-26T13:33:19.985328+00:00",
     "intelligence_summary": {
@@ -93,11 +71,7 @@
       "unique_candidates": 175,
       "verified_candidates": 150,
       "workers": 12
-    },
-    "inventory_confirmation_window_hours": 6,
-    "inventory_registry_generated_at": "2026-08-26T13:03:35.195524+00:00",
-    "inventory_sync_age_minutes": 77,
-    "inventory_sync_state": "waiting_for_discovery_after_inventory_change"
+    }
   },
   "domain_compliance": {
     "checked_files": [
@@ -112,10 +86,10 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 5,
+  "finding_count": 9,
   "findings": [
     {
-      "detail": "В последней итерации проверено 169 из 170 источников, готовых к проверке (всего настроено 171).",
+      "detail": "В последней итерации проверено 169 из 171 источников, готовых к проверке (всего настроено 172).",
       "kind": "monitor_source_count",
       "severity": "critical",
       "subject": "",
@@ -143,7 +117,35 @@
       "title": "Источники попали в карантин"
     },
     {
-      "detail": "status=success; domain=telegram.me; primary=170/171; nightly=1/1; accounted=171/172; reachable=170/172; errors=0; missing=0.",
+      "detail": "Ожидался telegram.me, записано нет данных.",
+      "kind": "discovery_domain",
+      "severity": "critical",
+      "subject": "",
+      "title": "Поиск источников использует неверный домен"
+    },
+    {
+      "detail": "нет времени запуска",
+      "kind": "discovery_stale_поиск",
+      "severity": "warning",
+      "subject": "",
+      "title": "Давно не обновлялся поиск кандидатов"
+    },
+    {
+      "detail": "Состояние обслуживания должно запрещать автоматическое пополнение ночного списка.",
+      "kind": "source_tier_policy_stale",
+      "severity": "critical",
+      "subject": "",
+      "title": "Не подтверждён ручной режим ночных источников"
+    },
+    {
+      "detail": "Нет свежего запуска за последние 36 часов.",
+      "kind": "source_tier_maintenance_stale",
+      "severity": "warning",
+      "subject": "",
+      "title": "Давно не запускалось обслуживание режимов источников"
+    },
+    {
+      "detail": "status=success; domain=telegram.me; primary=170/172; nightly=1/0; accounted=171/172; reachable=170/172; errors=0; missing=0.",
       "kind": "source_transport_smoke",
       "severity": "critical",
       "subject": "",
@@ -151,8 +153,8 @@
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 5,
-    "bot_panel_heartbeat": "2026-08-26T14:18:54.045481+00:00",
+    "active_incidents": 9,
+    "bot_panel_heartbeat": "2026-08-26T14:54:21.717019+00:00",
     "checked_sources": 169,
     "configured_sources": 172,
     "domain": "telegram.me",
@@ -162,33 +164,36 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-08-26T14:19:34.562976+00:00",
+      "last_checked_at": "2026-08-26T14:54:38.175140+00:00",
       "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-      "last_success_at": "2026-08-26T14:19:34.562976+00:00",
+      "last_success_at": "2026-08-26T14:54:38.175140+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
-    "messages_attempted": 1,
+    "digest_sent": false,
+    "health_inspector_mode": "suppressed",
+    "health_inspector_status": "deployment_grace",
+    "messages_attempted": 0,
     "opened": 2,
-    "resolved": 0
+    "resolved": 0,
+    "suppressed": true,
+    "suppressed_reason": "code_update_push_grace"
   },
-  "incident_sequence": 155,
+  "incident_sequence": 159,
   "inventory": {
-    "configured": 171,
+    "configured": 172,
     "configured_total": 172,
     "domain": "telegram.me",
     "duplicates": 0,
     "expected": 172,
-    "nightly": 1,
-    "nightly_configured": 1,
-    "nightly_operational": 1,
-    "operational": 171,
-    "primary_configured": 171,
-    "primary_operational": 171,
+    "nightly": 0,
+    "nightly_configured": 0,
+    "nightly_operational": 0,
+    "nightly_policy": "optional_empty",
+    "operational": 172,
+    "primary_configured": 172,
+    "primary_operational": 172,
     "total": 172
   },
   "miniapp": {
@@ -200,17 +205,17 @@
     "brand": "BB V.G.",
     "checked_sources": 169,
     "checks_delta": 170,
-    "checks_total": 7382712,
+    "checks_total": 7387812,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "77eb99028aa8b8e757585e6d3740daa066cba4d1",
-    "iteration": 36,
-    "last_iteration_at": "2026-08-26T14:14:55.592739+00:00",
-    "last_iteration_duration_seconds": 39,
+    "iteration": 66,
+    "last_iteration_at": "2026-08-26T14:50:02.921072+00:00",
+    "last_iteration_duration_seconds": 40,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-08-26T14:14:55.592739+00:00",
-    "last_successful_checks_total": 7382712,
-    "last_successful_iteration_at": "2026-08-26T14:14:55.592739+00:00",
+    "last_process_heartbeat_at": "2026-08-26T14:50:02.921072+00:00",
+    "last_successful_checks_total": 7387812,
+    "last_successful_iteration_at": "2026-08-26T14:50:02.921072+00:00",
     "pending_wheels": 0,
     "reachable_sources": 169,
     "restart_recommended": false,
@@ -223,11 +228,11 @@
     "version": 3,
     "workflow_run_id": "32974533803"
   },
-  "monitor_age_minutes": 6,
-  "monitor_effective_heartbeat_at": "2026-08-26T14:14:55.592739+00:00",
+  "monitor_age_minutes": 5,
+  "monitor_effective_heartbeat_at": "2026-08-26T14:50:02.921072+00:00",
   "monitor_source_expectation": {
-    "configured": 171,
-    "due_for_check": 170
+    "configured": 172,
+    "due_for_check": 171
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
@@ -284,7 +289,7 @@
       "wfksiris"
     ],
     "records": 171,
-    "required_primary_records": 170,
+    "required_primary_records": 171,
     "statuses": {
       "ok": 170,
       "quarantined": 1
@@ -310,9 +315,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-08-26T14:19:34.562976+00:00",
+    "last_checked_at": "2026-08-26T14:54:38.175140+00:00",
     "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-    "last_success_at": "2026-08-26T14:19:34.562976+00:00",
+    "last_success_at": "2026-08-26T14:54:38.175140+00:00",
     "status": "ok"
   }
 }
