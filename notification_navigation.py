@@ -4,6 +4,7 @@ import copy
 import html
 from typing import Any, Callable
 
+import betboom_wheel_api_semantics
 import telegram_wheel_metadata_hotfix
 
 
@@ -67,8 +68,9 @@ def notification_markup(
 
 
 def install(monitor_module: Any) -> None:
-    """Install metadata recovery and navigation decoration."""
+    """Install server semantics, metadata recovery and navigation decoration."""
 
+    betboom_wheel_api_semantics.install(monitor_module)
     telegram_wheel_metadata_hotfix.install(monitor_module)
     if getattr(monitor_module, "_bbvg_notification_navigation_installed", False):
         return
@@ -122,6 +124,7 @@ def self_test() -> None:
     duplicate_text = str(duplicate)
     assert duplicate_text.count(ACTIVE_LIST_CALLBACK) == 1
     assert duplicate_text.count(MAIN_MENU_CALLBACK) == 1
+    betboom_wheel_api_semantics.self_test()
     telegram_wheel_metadata_hotfix.self_test()
     print("notification navigation self-test passed")
 
