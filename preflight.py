@@ -62,6 +62,13 @@ def main() -> None:
         "PLAN_RU.md",
         "CHANGES_RU.md",
         "EXPORT_ANALYSIS_RU.md",
+        "nightly_discovery.py",
+        "nightly_discovery_entry.py",
+        "source_catalog.txt",
+        "source_tier_maintenance.py",
+        "source_tier_maintenance_v2.py",
+        ".github/workflows/nightly-discovery.yml",
+        ".github/workflows/source-tier-maintenance.yml",
         ".github/workflows/activate-66-sources.yml",
         ".github/workflows/migrate-all-sources.yml",
         ".github/workflows/v22-checks.yml",
@@ -254,9 +261,17 @@ def main() -> None:
             "class TelegramPanelRuntime",
         ),
     )
-    require_text("nightly_discovery.py", ("import monitor", "def main()"))
-    require_text("nightly_discovery_entry.py", ("telegram_transport.install", "fetch_page_on_primary_domain"))
-    require_text("source_intelligence_entry.py", ("telegram_transport.install", "source_intelligence.main"))
+    require_text(
+        "source_intelligence.py",
+        ("ACTIVE_PATH = ROOT / \"public_sources.txt\"", "def known_sources", "def main()"),
+    )
+    intelligence_source = (ROOT / "source_intelligence.py").read_text(encoding="utf-8")
+    if "source_catalog.txt" in intelligence_source or "NIGHTLY_PATH" in intelligence_source:
+        raise SystemExit("PRECHECK ERROR: source intelligence still references removed nightly inventory")
+    require_text(
+        "source_intelligence_entry.py",
+        ("telegram_transport.install", "source_intelligence_alerts.run"),
+    )
     require_text(
         "daily_report.py",
         ("Ежедневная", "Еженедельная", "Ежемесячная", "Публикаций с колёсами", "def main()"),
@@ -264,7 +279,6 @@ def main() -> None:
     require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
     require_text("self_test.py", ("import monitor", "def main()"))
     require_text("public_sources.txt", ("narodCast", "kolesaBB", "betboomteamcs2"))
-    require_text("source_catalog.txt", ("Ночной мониторинг", "вручную одобренные"))
     require_text(
         ".github/workflows/daily-report.yml",
         ("BB V.G. summaries", "period:", "daily_report.py"),
@@ -291,7 +305,6 @@ def main() -> None:
 
     active_domain_files = (
         "monitor.py",
-        "nightly_discovery.py",
         "bbvg/bot/foundation.py",
         "bbvg/bot/source_requests.py",
         "bbvg/bot/users.py",
@@ -381,31 +394,22 @@ def main() -> None:
         raise SystemExit("PRECHECK ERROR: source rating epoch was not reset")
 
     configured_values = source_values("public_sources.txt")
-    nightly_values = source_values("source_catalog.txt")
-    all_values = configured_values + nightly_values
-    configured_keys = [item.casefold() for item in all_values]
+    configured_keys = [item.casefold() for item in configured_values]
     configured_total = len(set(configured_keys))
     if not configured_values:
-        raise SystemExit("PRECHECK ERROR: primary inventory must be explicit")
-    if len(configured_keys) != len(set(configured_keys)):
-        raise SystemExit("PRECHECK ERROR: source tiers contain duplicate or overlapping sources")
+        raise SystemExit("PRECHECK ERROR: unified source inventory must be explicit")
+    if len(configured_keys) != configured_total:
+        raise SystemExit("PRECHECK ERROR: unified source inventory contains duplicates")
 
-    fast = {
+    approved = {
         item.casefold()
         for item in data_store.operational_sources(configured_values, "fast")
     }
-    nightly = {
-        item.casefold()
-        for item in data_store.operational_sources(nightly_values, "nightly")
-    }
-    approved = fast | nightly
     if len(approved) != configured_total:
         raise SystemExit(
-            "PRECHECK ERROR: operational source union does not match the current configured inventory: "
+            "PRECHECK ERROR: operational source set does not match the configured inventory: "
             f"configured={configured_total}, operational={len(approved)}"
         )
-    if fast & nightly:
-        raise SystemExit("PRECHECK ERROR: primary and nightly source tiers overlap")
 
     forbidden = {"frixa_betboom", "gazazor"}
     stale = sorted(approved & forbidden)
@@ -423,7 +427,7 @@ def main() -> None:
 
     print(
         f"BB V.G. preflight checks passed: {len(approved)} approved telegram.me sources "
-        f"({len(fast)} primary, {len(nightly)} nightly)."
+        "in one unified inventory."
     )
 
 
