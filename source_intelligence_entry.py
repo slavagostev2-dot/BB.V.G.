@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import bot_notification_state
 import monitor
-import nightly_discovery
 import notification_navigation
 import notification_router
 import telegram_transport
@@ -12,42 +11,26 @@ notification_router.install(monitor)
 notification_navigation.install(monitor)
 telegram_transport.install(monitor)
 
-_original_fetch_page = nightly_discovery.fetch_public_channel_page
-
-
-def fetch_page_on_primary_domain(
-    username: str,
-    before: int | None = None,
-    *,
-    attempts: int = 2,
-    timeout: int | None = None,
-):
-    messages = _original_fetch_page(
-        username, before, attempts=attempts, timeout=timeout
-    )
-    return [
-        monitor.Message(
-            source=message.source,
-            message_id=message.message_id,
-            date=message.date,
-            text=telegram_transport.rewrite_telegram_text(message.text),
-            message_url=telegram_transport.public_message_url(
-                message.source or username, message.message_id
-            ),
-        )
-        for message in messages
-    ]
-
-
-nightly_discovery.fetch_public_channel_page = fetch_page_on_primary_domain
-
 import source_intelligence  # noqa: E402
 import source_intelligence_alerts  # noqa: E402
 import source_intelligence_retention  # noqa: E402
 
-# source_intelligence.main still performs the broad discovery scan first.
-# Speculative candidates exist only in memory for the current run; persistent
-# intelligence keeps only channels where a direct BetBoom wheel was observed.
+
+def unified_known_sources() -> tuple[list[str], set[str]]:
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for source in monitor.read_list(source_intelligence.ACTIVE_PATH):
+        clean = str(source or "").strip().lstrip("@")
+        key = clean.casefold()
+        if clean and key not in seen:
+            seen.add(key)
+            ordered.append(clean)
+    return ordered, seen
+
+
+# source_intelligence.main still performs the background discovery scan, but
+# the only approved source inventory is public_sources.txt.
+source_intelligence.known_sources = unified_known_sources
 source_intelligence_retention.install(
     source_intelligence,
     source_intelligence_alerts,

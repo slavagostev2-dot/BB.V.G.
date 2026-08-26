@@ -8,8 +8,9 @@ on:
       - "source_intelligence.py"
       - "source_intelligence_entry.py"
       - "source_intelligence_alerts.py"
+      - "source_intelligence_retention.py"
+      - "source_intelligence_reminder.py"
       - "bbvg/monitor/source_discovery.py"
-      - "nightly_discovery.py"
       - "telegram_transport.py"
       - "notification_integrity_v2.py"
       - "bot_private_state.py"
@@ -19,6 +20,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "17 18 * * *"
+    - cron: "7,22,37,52 * * * *"
 
 permissions:
   contents: read
@@ -56,15 +58,17 @@ jobs:
           BOT_STATE_KEY: "test-state-key"
           BOT_CHAT_ID: "1"
         run: |
-          python -m py_compile monitor.py monitor_data.py nightly_discovery.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py bbvg/monitor/source_discovery.py telegram_transport.py notification_router.py notification_integrity_v2.py bot_notification_state.py bot_private_state.py privacy_retention.py
+          python -m py_compile monitor.py monitor_data.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py source_intelligence_retention.py source_intelligence_reminder.py bbvg/monitor/source_discovery.py telegram_transport.py notification_router.py notification_integrity_v2.py bot_notification_state.py bot_private_state.py privacy_retention.py
           python telegram_transport.py
           python notification_integrity_v2.py --self-test
           python bot_notification_state.py
           python source_intelligence_alerts.py
+          python source_intelligence_retention.py
           python -m json.tool notification_delivery_state.json >/dev/null
           python self_test.py
 
       - name: Scan Telegram source network
+        if: ${{ github.event_name != 'schedule' || github.event.schedule == '17 18 * * *' }}
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
@@ -76,6 +80,16 @@ jobs:
           INTELLIGENCE_CANDIDATE_LIMIT: "200"
           INTELLIGENCE_VERIFY_LIMIT: "150"
         run: python source_intelligence_entry.py
+
+      - name: Repeat unresolved source alerts after 24 hours
+        if: ${{ github.event_name == 'schedule' && github.event.schedule == '7,22,37,52 * * * *' }}
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_STATE_KEY: ${{ secrets.BOT_STATE_KEY }}
+          BOT_CHAT_ID: ${{ secrets.BOT_CHAT_ID }}
+          TELEGRAM_WEB_DOMAIN: telegram.me
+          DISPLAY_TIMEZONE: Asia/Barnaul
+        run: python source_intelligence_reminder.py
 
       - name: Save intelligence state
         shell: bash

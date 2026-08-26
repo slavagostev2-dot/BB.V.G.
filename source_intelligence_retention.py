@@ -45,7 +45,12 @@ def wheel_candidate_rows(
     state: dict[str, Any],
     known_sources: set[str] | None = None,
 ) -> list[tuple[str, dict[str, Any]]]:
-    """Return every new public source where a BetBoom wheel was actually found."""
+    """Return new public sources with direct BetBoom wheel evidence.
+
+    This remains the stable selector used by tests and alerting. It no longer
+    exposes speculative discovery candidates because those are pruned before
+    persistence.
+    """
 
     known = {str(value).casefold() for value in (known_sources or set())}
     candidates = state.get("candidates")
@@ -60,8 +65,6 @@ def wheel_candidate_rows(
             not source
             or source.casefold().endswith("bot")
             or source.casefold() in known
-            or raw.get("recommendation_alerted_at")
-            or raw.get("admin_alerted_at")
             or raw.get("public") is not True
         ):
             continue

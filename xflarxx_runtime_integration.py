@@ -3,9 +3,10 @@ from __future__ import annotations
 import copy
 from typing import Any, Callable
 
+import source_model_simplification
 from bbvg.bot.users import UserSettingsMixin
 
-INTEGRATION_VERSION = 3
+INTEGRATION_VERSION = 4
 AUTO_NOTIFICATION_KEY = "auto_participation"
 AUTO_NOTIFICATION_LABEL = "🤖 Автоучастие"
 AUTO_NOTIFICATION_DESCRIPTION = "Итоги автоматического участия в колёсах"
@@ -127,9 +128,17 @@ def install(panel_class: type[Any]) -> None:
     panel_class.render_page = render_page
     panel_class._bbvg_xflarxx_runtime_integration_installed = True
 
+    # This hook runs on the actual production panel class after all inherited
+    # legacy layers have been composed, so removed source tiers and analytics
+    # cannot leak back into the live Telegram interface.
+    if hasattr(panel_class, "source_menu_rows") and hasattr(
+        panel_class, "compact_menu_rows"
+    ):
+        source_model_simplification.install(panel_class)
+
 
 def self_test() -> None:
-    assert INTEGRATION_VERSION == 3
+    assert INTEGRATION_VERSION == 4
     markup = {
         "inline_keyboard": [
             [{"text": "Уведомления", "callback_data": "page:notifications"}],

@@ -328,18 +328,14 @@ class ConcurrentStateTests(unittest.TestCase):
         self.assertEqual(len(monitor_data.JSON_STATE_CONTRACTS), 30)
         self.assertEqual(monitor_data.validate_json_state_contracts(ROOT), [])
 
-    def test_only_discovery_is_an_automatic_source_catalog_writer(self) -> None:
-        discovery = (ROOT / ".github/workflows/nightly-discovery.yml").read_text(
+    def test_single_source_base_has_no_automatic_tier_writer(self) -> None:
+        self.assertFalse((ROOT / ".github/workflows/nightly-discovery.yml").exists())
+        self.assertFalse((ROOT / ".github/workflows/source-tier-maintenance.yml").exists())
+        intelligence = (ROOT / ".github/workflows/source-intelligence.yml").read_text(
             encoding="utf-8"
         )
-        tier = (ROOT / ".github/workflows/source-tier-maintenance.yml").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("group: bb-vg-source-catalog-writer", discovery)
-        self.assertIn("public_sources.txt source_catalog.txt", discovery)
-        self.assertIn("group: bb-vg-source-tier-audit", tier)
-        self.assertIn("files=(source_tier_state.json)", tier)
-        self.assertNotIn("files=(public_sources.txt source_catalog.txt", tier)
+        self.assertNotIn("source_catalog.txt", intelligence)
+        self.assertNotIn("source-tier", intelligence)
         panel = (ROOT / ".github/workflows/admin-bot.yml").read_text(encoding="utf-8")
         self.assertNotIn("files=(bot_private_state.enc.json)", panel)
         self.assertIn("python migrate_bot_private_state.py --check", panel)

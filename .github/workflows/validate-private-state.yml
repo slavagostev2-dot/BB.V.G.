@@ -19,13 +19,14 @@ on:
       - "bbvg_monitor_main.py"
       - "wheel_*.py"
       - "personal_reminder_filter.py"
-      - "daily_report.py"
       - "source_intelligence_alerts.py"
-      - "source_tier_maintenance_v2.py"
+      - "source_intelligence_retention.py"
+      - "source_model_simplification.py"
       - "system_checks_v2.py"
       - "sitecustomize.py"
       - "SECURITY_RU.md"
       - "tests/production_acceptance.py"
+      - "tests/test_single_source_model.py"
       - "MINI_APP_ARCHIVED.md"
       - ".github/workflows/**"
   workflow_dispatch:
@@ -80,8 +81,9 @@ jobs:
             admin_panel_runtime_v41.py telegram_ui.py \
             bbvg_monitor_main.py recurring_wheel_events.py wheel_event_runtime.py \
             wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py \
-            personal_reminder_filter.py daily_report.py source_intelligence_alerts.py \
-            source_tier_maintenance_v2.py system_checks_v2.py sitecustomize.py
+            personal_reminder_filter.py source_intelligence_alerts.py \
+            source_intelligence_retention.py source_model_simplification.py \
+            system_checks_v2.py sitecustomize.py
           python -m bbvg.bot.storage
           python -m bbvg.bot.users
           python -m bbvg.bot.runtime --self-test
@@ -96,6 +98,14 @@ jobs:
           python notification_preferences_v2.py
           python test_bot_state_fixture.py
           python admin_panel_runtime_v41.py --self-test
+          python - <<'PY'
+          import tests.test_single_source_model as single
+          single.test_production_panel_uses_single_source_model()
+          single.test_summary_notification_controls_are_removed_from_live_panel()
+          single.test_only_public_sources_contains_operational_inventory()
+          single.test_discovery_alert_has_one_add_path_and_24_hour_threshold()
+          print("Single source model private-state checks passed")
+          PY
           python tests/production_acceptance.py --section interface
 
       - name: Validate privacy, role and delivery invariants
