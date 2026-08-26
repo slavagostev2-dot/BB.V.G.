@@ -1,38 +1,17 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-08-26T11:37:16.496765+00:00",
-    "started_at": "2026-08-26T09:56:19.073709+00:00",
+    "age_minutes": 6,
+    "last_heartbeat_at": "2026-08-26T12:00:02.876758+00:00",
+    "started_at": "2026-08-26T11:44:49.962275+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
-    "cached": false,
-    "confidence": 0.0,
-    "critical_count": 2,
-    "decision_id": "2a61b203916742b1974b976dfeb96c97",
-    "finding_count": 4,
-    "finding_kinds": [
-      "monitor_source_count",
-      "source_empty_public_feed",
-      "source_health_missing",
-      "sources_quarantined"
-    ],
-    "generated_at": "2026-08-26T11:40:56.722609+00:00",
-    "impact": "Нарушена целостность сбора данных: часть источников (@wfksiris) не проверяется, а общее количество активных источников меньше целевого (168 из 170).",
-    "mode": "ai",
-    "model": "gemini-3.1-flash-lite",
-    "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 2 критические ошибки и 2 предупреждения, мониторинг охватывает не все источники.",
-    "used_fallback": false,
-    "version": 1,
-    "warning_count": 2
+    "ai_status": "deployment_grace",
+    "mode": "suppressed",
+    "reason": "system-health started from a code push"
   },
   "automation_state": {
     "expected_nightly_sources": 1,
@@ -69,7 +48,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-08-26T11:40:54.188029+00:00",
+  "checked_at": "2026-08-26T12:06:48.290685+00:00",
   "discovery": {
     "active_size": 170,
     "candidate_count": 1007,
@@ -107,10 +86,10 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 4,
+  "finding_count": 3,
   "findings": [
     {
-      "detail": "В последней итерации проверено 168 из 170 источников основного режима.",
+      "detail": "В последней итерации проверено 168 из 169 источников, готовых к проверке (всего настроено 170).",
       "kind": "monitor_source_count",
       "severity": "critical",
       "subject": "",
@@ -124,13 +103,6 @@
       "title": "Источник @wfksiris не проверяется"
     },
     {
-      "detail": "Нет записей для 1 источников: @newdota.",
-      "kind": "source_health_missing",
-      "severity": "warning",
-      "subject": "",
-      "title": "Не для всех источников есть данные здоровья"
-    },
-    {
       "detail": "В карантине: 1. Источники остаются в общем пуле и будут перепроверяться.",
       "kind": "sources_quarantined",
       "severity": "warning",
@@ -140,7 +112,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-08-26T11:37:16.496765+00:00",
+    "bot_panel_heartbeat": "2026-08-26T12:00:02.876758+00:00",
     "checked_sources": 168,
     "configured_sources": 171,
     "domain": "telegram.me",
@@ -158,11 +130,13 @@
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "suppressed",
+    "health_inspector_status": "deployment_grace",
     "messages_attempted": 0,
-    "opened": 0,
-    "resolved": 0
+    "opened": 3,
+    "resolved": 0,
+    "suppressed": true,
+    "suppressed_reason": "code_update_push_grace"
   },
   "incident_sequence": 152,
   "inventory": {
@@ -187,32 +161,36 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 168,
-    "checks_delta": 169,
-    "checks_total": 7364019,
+    "checks_delta": 170,
+    "checks_total": 7367072,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "a4e14077942091ecd072e56adba4998ff3676211",
-    "iteration": 101,
-    "last_iteration_at": "2026-08-26T11:31:56.002856+00:00",
+    "head_sha": "f39c5c5d9c658e7dfa32c50596baeb5e1f3ec81e",
+    "iteration": 11,
+    "last_iteration_at": "2026-08-26T11:59:58.253677+00:00",
     "last_iteration_duration_seconds": 28,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-08-26T11:31:56.002856+00:00",
-    "last_successful_checks_total": 7364019,
-    "last_successful_iteration_at": "2026-08-26T11:31:56.002856+00:00",
+    "last_process_heartbeat_at": "2026-08-26T11:59:58.253677+00:00",
+    "last_successful_checks_total": 7367072,
+    "last_successful_iteration_at": "2026-08-26T11:59:58.253677+00:00",
     "pending_wheels": 0,
     "reachable_sources": 168,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "32953830147",
-    "run_started_at": "2026-08-26T09:39:06.475886+00:00",
+    "run_id": "32964875838",
+    "run_started_at": "2026-08-26T11:48:16.910792+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "32953830147"
+    "workflow_run_id": "32964875838"
   },
-  "monitor_age_minutes": 8,
-  "monitor_effective_heartbeat_at": "2026-08-26T11:31:56.002856+00:00",
+  "monitor_age_minutes": 6,
+  "monitor_effective_heartbeat_at": "2026-08-26T11:59:58.253677+00:00",
+  "monitor_source_expectation": {
+    "configured": 170,
+    "due_for_check": 169
+  },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
@@ -251,10 +229,8 @@
     "valid_personal_votes": 816
   },
   "source_health_summary": {
-    "configured_records": 170,
-    "missing_sources": [
-      "newdota"
-    ],
+    "configured_records": 171,
+    "missing_sources": [],
     "nightly_pending_first_check": [],
     "problem_details": [
       {
@@ -267,10 +243,10 @@
     "problem_sources": [
       "wfksiris"
     ],
-    "records": 170,
-    "required_primary_records": 169,
+    "records": 171,
+    "required_primary_records": 170,
     "statuses": {
-      "ok": 169,
+      "ok": 170,
       "quarantined": 1
     },
     "transport_failure_types": {
