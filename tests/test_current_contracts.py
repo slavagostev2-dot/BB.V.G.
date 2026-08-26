@@ -228,6 +228,19 @@ def _source_block(path: str, start: str, end: str) -> str:
     return source.split(start, 1)[1].split(end, 1)[0]
 
 
+def test_system_health_loads_large_runtime_snapshots_from_git() -> None:
+    workflow = Path(".github/workflows/system-health.yml").read_text(
+        encoding="utf-8"
+    )
+    loader = workflow.split("load_snapshot() {", 1)[1].split(
+        "for file in monitor_status.json", 1
+    )[0]
+    assert 'git show "origin/${branch}:${file}" > "$temporary"' in loader
+    assert '[[ ! -s "$temporary" ]]' in loader
+    assert 'SNAPSHOT_FILE="$temporary" python' in loader
+    assert "--jq '.content' | base64 -d" not in loader
+
+
 def test_auto_participation_event_is_durable_before_notification_delivery() -> None:
     new_wheel = _source_block("monitor.py", "def notify_new_link(", "def notify_activation(")
     activation = _source_block("monitor.py", "def notify_activation(", "def fetch_all_sources(")
