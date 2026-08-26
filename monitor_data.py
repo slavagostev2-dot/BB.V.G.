@@ -18,7 +18,6 @@ SOURCE_HEALTH_PATH = ROOT / "source_health.json"
 SOURCE_STATS_PATH = ROOT / "source_stats.json"
 UNKNOWN_TIMER_PATH = ROOT / "unknown_timer_samples.json"
 PUBLIC_SOURCES_PATH = ROOT / "public_sources.txt"
-NIGHTLY_SOURCES_PATH = ROOT / "source_catalog.txt"
 CORRELATED_TRANSPORT_QUARANTINE_MIN_SOURCES = 3
 CORRELATED_TRANSPORT_QUARANTINE_WINDOW_MINUTES = 10
 TRANSIENT_TRANSPORT_FAILURE_CODES = {
@@ -134,11 +133,6 @@ JSON_STATE_CONTRACTS: dict[str, dict[str, Any]] = {
     "source_stats.json": {
         "category": "authoritative",
         "owner": "monitor",
-        "schema": ("version", (1,)),
-    },
-    "source_tier_state.json": {
-        "category": "diagnostic",
-        "owner": "source-tier-maintenance",
         "schema": ("version", (1,)),
     },
     "source_transport_state.json": {
@@ -379,11 +373,10 @@ def flatten_partner_channels(catalog: dict[str, Any] | None = None) -> dict[str,
 
 
 def operational_sources(values: list[str], mode: str) -> list[str]:
-    """Return enabled sources from the requested operational text list.
+    """Return enabled sources from the unified operational source list.
 
-    The two text files are the live tier assignment. Catalog metadata describes
-    a source, but must not pin it to a tier: otherwise an automatic seven-day
-    move would be silently undone on the next monitor iteration.
+    ``public_sources.txt`` is the sole live inventory. Catalog metadata may
+    describe a source, but it must not assign that source to a second tier.
     """
     metadata = flatten_partner_channels()
     result: list[str] = []
@@ -425,9 +418,8 @@ def _read_source_values(path: Path) -> list[str]:
 
 
 def configured_source_keys() -> set[str]:
-    """Return every currently operational fast/nightly source."""
-    configured = operational_sources(_read_source_values(PUBLIC_SOURCES_PATH), "fast")
-    configured += operational_sources(_read_source_values(NIGHTLY_SOURCES_PATH), "nightly")
+    """Return every source in the unified operational inventory."""
+    configured = operational_sources(_read_source_values(PUBLIC_SOURCES_PATH), "primary")
     return {clean_username(value).casefold() for value in configured if clean_username(value)}
 
 
@@ -442,7 +434,7 @@ def _prune_source_mapping(value: object, allowed: set[str]) -> dict[str, Any]:
 
 
 def prune_unconfigured_runtime_sources(data: dict[str, Any]) -> None:
-    """Remove stale source records after a channel is removed from both bases."""
+    """Remove stale source records after a channel leaves the unified inventory."""
     allowed = configured_source_keys()
     if not allowed:
         return
