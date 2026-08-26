@@ -4,6 +4,10 @@ from datetime import timedelta
 from typing import Any
 
 
+RECENT_CLOSED_PROBE_AGE = timedelta(hours=2)
+RECENT_CLOSED_PROBE_LIMIT = 3
+
+
 def _positive_int(value: Any) -> int | None:
     try:
         parsed = int(value)
@@ -76,6 +80,25 @@ def classify_info(monitor_module: Any, info: dict[str, Any], *, current=None):
         server_start_at=start,
         verification_status=monitor_module.WHEEL_VERIFICATION_CONFIRMED,
     )
+
+
+def _recent_closed_keys(monitor_module: Any, state: dict[str, Any]) -> list[str]:
+    current = monitor_module.now_utc()
+    history = state.get("wheel_action_history")
+    if not isinstance(history, dict):
+        return []
+    rows: list[tuple[Any, str]] = []
+    for key, raw in history.items():
+        if not isinstance(raw, dict):
+            continue
+        if str(raw.get("state") or "").casefold() not in {"closed", "inactive", "finished"}:
+            continue
+        seen = monitor_module.parse_datetime(raw.get("closed_at") or raw.get("seen_at"))
+        if seen is None or seen > current or current - seen > RECENT_CLOSED_PROBE_AGE:
+            continue
+        rows.append((seen, str(key).casefold()))
+    rows.sort(reverse=True)
+    return [key for _, key in rows[:RECENT_CLOSED_PROBE_LIMIT]]
 
 
 def install(monitor_module: Any) -> None:
@@ -162,6 +185,26 @@ def install(monitor_module: Any) -> None:
         return result
 
     monitor_module.inspect_wheel_page = inspect_wheel_page_authoritative
+
+    original_main = monitor_module.main
+
+    def main_with_recent_closed_probe(*args: Any, **kwargs: Any):
+        try:
+            state = monitor_module.load_state()
+            for key in _recent_closed_keys(monitor_module, state):
+                result = inspect_wheel_page_authoritative(
+                    f"https://betboom.ru/freestream/{key}"
+                )
+                print(
+                    "BetBoom recent-closed probe: "
+                    f"wheel={key} status={result.status} "
+                    f"deadline={result.deadline.isoformat() if result.deadline else '-'}"
+                )
+        except Exception as exc:
+            print(f"WARNING BetBoom recent-closed probe: {type(exc).__name__}: {exc}")
+        return original_main(*args, **kwargs)
+
+    monitor_module.main = main_with_recent_closed_probe
     monitor_module._bbvg_betboom_wheel_api_semantics_installed = True
 
 
@@ -237,6 +280,20 @@ def self_test() -> None:
     )
     assert timed_active.status == "active"
     assert timed_active.deadline == datetime(2026, 8, 26, 16, 45, tzinfo=utc)
+
+    state = {
+        "wheel_action_history": {
+            "zonertg13": {
+                "state": "closed",
+                "seen_at": "2026-08-26T15:59:00+00:00",
+            },
+            "old": {
+                "state": "closed",
+                "seen_at": "2026-08-26T12:00:00+00:00",
+            },
+        }
+    }
+    assert _recent_closed_keys(fake, state) == ["zonertg13"]
 
     print("BetBoom wheel API semantics self-test passed")
 
