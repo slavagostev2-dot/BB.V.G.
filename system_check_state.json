@@ -1,40 +1,17 @@
 {
-  "active_incidents": 8,
+  "active_incidents": 7,
   "admin_panel": {
-    "age_minutes": 0,
-    "last_heartbeat_at": "2026-08-26T19:11:48.502620+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-08-26T20:22:38.807171+00:00",
     "started_at": "2026-08-26T17:15:30.513218+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
-    "cached": false,
-    "confidence": 0.0,
-    "critical_count": 3,
-    "decision_id": "dfc52cab1cff472f94711e332ad117fa",
-    "finding_count": 6,
-    "finding_kinds": [
-      "discovery_domain",
-      "discovery_stale_поиск",
-      "source_empty_public_feed",
-      "source_tier_maintenance_stale",
-      "source_tier_policy_stale",
-      "sources_quarantined"
-    ],
-    "generated_at": "2026-08-26T19:12:11.522305+00:00",
-    "impact": "Нарушена работа источников (неверный домен, пустые ленты) и не подтверждены политики обслуживания, что блокирует автоматическое пополнение ночного списка.",
-    "mode": "ai",
-    "model": "gemini-3.1-flash-lite",
-    "provider": "gemini",
-    "recommended_action": "Открыть файл system_check_state.json и список активных инцидентов для ручной верификации первопричин и сброса статусов обслуживания.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 3 критические ошибки и 3 предупреждения, нарушающие целостность сбора данных.",
-    "used_fallback": false,
-    "version": 1,
-    "warning_count": 3
+    "ai_status": "deployment_grace",
+    "mode": "suppressed",
+    "reason": "system-health started from a code push"
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -71,7 +48,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-08-26T19:12:09.140040+00:00",
+  "checked_at": "2026-08-26T20:23:39.044182+00:00",
   "discovery": {
     "active_size": 0,
     "candidate_count": 0,
@@ -106,10 +83,12 @@
       "docs/bbvg-controls.js",
       "docs/views-secondary.js"
     ],
-    "legacy_url_offenders": [],
+    "legacy_url_offenders": [
+      "nightly_discovery.py: отсутствует"
+    ],
     "primary": "telegram.me"
   },
-  "finding_count": 6,
+  "finding_count": 7,
   "findings": [
     {
       "detail": "публичная страница открылась, но сообщений не найдено",
@@ -140,6 +119,13 @@
       "title": "Давно не обновлялся поиск кандидатов"
     },
     {
+      "detail": "nightly_discovery.py: отсутствует",
+      "kind": "legacy_domain_in_runtime",
+      "severity": "critical",
+      "subject": "",
+      "title": "В рабочем коде остались ссылки на заблокированный домен"
+    },
+    {
       "detail": "Состояние обслуживания должно запрещать автоматическое пополнение ночного списка.",
       "kind": "source_tier_policy_stale",
       "severity": "critical",
@@ -155,8 +141,8 @@
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 8,
-    "bot_panel_heartbeat": "2026-08-26T19:11:48.502620+00:00",
+    "active_incidents": 7,
+    "bot_panel_heartbeat": "2026-08-26T20:22:38.807171+00:00",
     "checked_sources": 171,
     "configured_sources": 172,
     "domain": "telegram.me",
@@ -173,14 +159,16 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 0,
-    "resolved": 2
+    "digest_sent": false,
+    "health_inspector_mode": "suppressed",
+    "health_inspector_status": "deployment_grace",
+    "messages_attempted": 0,
+    "opened": 1,
+    "resolved": 1,
+    "suppressed": true,
+    "suppressed_reason": "code_update_push_grace"
   },
-  "incident_sequence": 162,
+  "incident_sequence": 165,
   "inventory": {
     "configured": 172,
     "configured_total": 172,
@@ -205,31 +193,31 @@
     "brand": "BB V.G.",
     "checked_sources": 171,
     "checks_delta": 172,
-    "checks_total": 7417388,
+    "checks_total": 7428224,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "4d513983dfebebfb5cb52b19020047b5578c3423",
-    "iteration": 102,
-    "last_iteration_at": "2026-08-26T19:07:46.095430+00:00",
-    "last_iteration_duration_seconds": 47,
+    "iteration": 11,
+    "last_iteration_at": "2026-08-26T20:21:19.437977+00:00",
+    "last_iteration_duration_seconds": 34,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-08-26T19:07:46.095430+00:00",
-    "last_successful_checks_total": 7417388,
-    "last_successful_iteration_at": "2026-08-26T19:07:46.095430+00:00",
+    "last_process_heartbeat_at": "2026-08-26T20:21:19.437977+00:00",
+    "last_successful_checks_total": 7428224,
+    "last_successful_iteration_at": "2026-08-26T20:21:19.437977+00:00",
     "pending_wheels": 0,
     "reachable_sources": 171,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "32993317321",
-    "run_started_at": "2026-08-26T17:19:41.026803+00:00",
+    "run_id": "33008973864",
+    "run_started_at": "2026-08-26T20:10:20.059379+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "32993317321"
+    "workflow_run_id": "33008973864"
   },
-  "monitor_age_minutes": 4,
-  "monitor_effective_heartbeat_at": "2026-08-26T19:07:46.095430+00:00",
+  "monitor_age_minutes": 2,
+  "monitor_effective_heartbeat_at": "2026-08-26T20:21:19.437977+00:00",
   "monitor_source_expectation": {
     "configured": 172,
     "due_for_check": 171
