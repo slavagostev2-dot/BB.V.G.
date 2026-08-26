@@ -206,18 +206,30 @@ jobs:
             local branch="$1"
             local file="$2"
             local temporary="${file}.runtime.tmp"
-            for attempt in 1 2 3; do
-              if gh api \
-                "/repos/${GITHUB_REPOSITORY}/contents/${file}?ref=${branch}" \
-                --jq '.content' | base64 -d > "$temporary"; then
-                mv "$temporary" "$file"
-                return 0
-              fi
+
+            # The Contents API omits inline content once a file is larger than
+            # 1 MiB. The full-history checkout already contains both runtime
+            # branches, so read the authoritative blob directly from Git.
+            if ! git show "origin/${branch}:${file}" > "$temporary"; then
               rm -f "$temporary"
-              sleep "$attempt"
-            done
-            echo "Unable to load authoritative ${file} from ${branch}." >&2
-            return 1
+              echo "Unable to load authoritative ${file} from ${branch}." >&2
+              return 1
+            fi
+            if [[ ! -s "$temporary" ]]; then
+              rm -f "$temporary"
+              echo "Authoritative ${file} from ${branch} is empty." >&2
+              return 1
+            fi
+            SNAPSHOT_FILE="$temporary" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["SNAPSHOT_FILE"])
+          value = json.loads(path.read_text(encoding="utf-8"))
+          assert isinstance(value, dict), f"{path.name} must contain a JSON object"
+          PY
+            mv "$temporary" "$file"
           }
 
           for file in monitor_status.json admin_panel_status.json; do

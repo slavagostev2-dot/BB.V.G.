@@ -126,7 +126,7 @@ def test_old_personal_hide_does_not_hide_reused_zonertw5_generation() -> None:
         hidden={
             "zonertw5": {
                 "hidden_at": "2026-07-23T19:10:00+00:00",
-                "expires_at": "2026-08-22T19:10:00+00:00",
+                "expires_at": "2099-08-22T19:10:00+00:00",
             }
         }
     )
