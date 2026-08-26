@@ -4,6 +4,8 @@ import copy
 import html
 from typing import Any, Callable
 
+import telegram_wheel_metadata_hotfix
+
 
 MAIN_MENU_CALLBACK = "page:menu"
 ACTIVE_LIST_CALLBACK = "bb:l:active"
@@ -65,8 +67,9 @@ def notification_markup(
 
 
 def install(monitor_module: Any) -> None:
-    """Install navigation decoration after the notification router."""
+    """Install metadata recovery and navigation decoration."""
 
+    telegram_wheel_metadata_hotfix.install(monitor_module)
     if getattr(monitor_module, "_bbvg_notification_navigation_installed", False):
         return
     original: Callable = monitor_module.send_message
@@ -119,6 +122,7 @@ def self_test() -> None:
     duplicate_text = str(duplicate)
     assert duplicate_text.count(ACTIVE_LIST_CALLBACK) == 1
     assert duplicate_text.count(MAIN_MENU_CALLBACK) == 1
+    telegram_wheel_metadata_hotfix.self_test()
     print("notification navigation self-test passed")
 
 
