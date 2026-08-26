@@ -43,8 +43,15 @@ nightly_discovery.fetch_public_channel_page = fetch_page_on_primary_domain
 
 import source_intelligence  # noqa: E402
 import source_intelligence_alerts  # noqa: E402
+import source_intelligence_retention  # noqa: E402
 
-# source_intelligence.main is executed first by the alert wrapper, then new
-# wheel-bearing candidates are sent to administrators for a decision.
+# Broad discovery still scans and verifies thematic references, but speculative
+# candidates exist only in memory for the current run. Persistent intelligence
+# keeps only channels where a direct BetBoom wheel link was actually observed.
+source_intelligence_retention.install(
+    source_intelligence,
+    source_intelligence_alerts,
+)
+
 if __name__ == "__main__":
     raise SystemExit(source_intelligence_alerts.run(source_intelligence))
