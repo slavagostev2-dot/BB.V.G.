@@ -62,50 +62,30 @@ def status_reason(entry: dict[str, Any], checked: bool, available: bool) -> str:
 
 def build_registry(root: Path = ROOT, generated_at: datetime | None = None) -> dict[str, Any]:
     generated_at = generated_at or datetime.now(timezone.utc)
-    primary = read_sources(root / "public_sources.txt")
-    nightly = read_sources(root / "source_catalog.txt")
-
-    configured: dict[str, dict[str, str]] = {}
-    for tier, values in (("primary", primary), ("nightly", nightly)):
-        for username in values:
-            configured.setdefault(username.casefold(), {"username": username, "tier": tier})
-
+    configured = read_sources(root / "public_sources.txt")
     health = load_json(root / "source_health.json", {"sources": {}})
-    discovery = load_json(root / "discovery_state.json", {})
     stats = load_json(root / "source_stats.json", {"sources": {}})
     health_sources = health.get("sources") if isinstance(health.get("sources"), dict) else {}
-    discovery_sources = discovery.get("health_sources")
-    if not isinstance(discovery_sources, dict):
-        discovery_sources = discovery.get("sources") if isinstance(discovery.get("sources"), dict) else {}
     stats_sources = stats.get("sources") if isinstance(stats.get("sources"), dict) else {}
 
     rows: list[dict[str, Any]] = []
-    for item in configured.values():
-        username = item["username"]
-        direct_health = mapping_entry(health_sources, username)
-        discovery_health = mapping_entry(discovery_sources, username)
-        source_health = direct_health or discovery_health
+    for username in configured:
+        source_health = mapping_entry(health_sources, username)
         source_stats = mapping_entry(stats_sources, username)
         checks = int(source_health.get("checks", source_stats.get("checks", 0)) or 0)
         last_checked_at = str(
             source_health.get("last_checked_at")
-            or source_health.get("checked_at")
             or source_stats.get("last_checked_at")
             or ""
         )
         checked = bool(checks or last_checked_at)
         raw_status = str(source_health.get("status") or "unknown").casefold()
         available = raw_status == "ok"
-        if available:
-            public_status = "available"
-        elif checked:
-            public_status = "unavailable"
-        else:
-            public_status = "pending"
+        public_status = "available" if available else ("unavailable" if checked else "pending")
         rows.append(
             {
                 "username": username,
-                "tier": item["tier"],
+                "tier": "primary",
                 "status": public_status,
                 "raw_status": raw_status,
                 "checked": checked,
@@ -121,11 +101,11 @@ def build_registry(root: Path = ROOT, generated_at: datetime | None = None) -> d
             }
         )
 
-    rows.sort(key=lambda row: (row["tier"] != "primary", str(row["username"]).casefold()))
+    rows.sort(key=lambda row: str(row["username"]).casefold())
     summary = {
         "total": len(rows),
-        "primary": sum(row["tier"] == "primary" for row in rows),
-        "nightly": sum(row["tier"] == "nightly" for row in rows),
+        "primary": len(rows),
+        "nightly": 0,
         "checked": sum(bool(row["checked"]) for row in rows),
         "available": sum(bool(row["available"]) for row in rows),
         "unavailable": sum(row["status"] == "unavailable" for row in rows),
@@ -159,7 +139,6 @@ def self_test() -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary)
         (root / "public_sources.txt").write_text("Alpha\nBeta\n", encoding="utf-8")
-        (root / "source_catalog.txt").write_text("Gamma\n", encoding="utf-8")
         (root / "source_health.json").write_text(
             json.dumps(
                 {
@@ -171,29 +150,29 @@ def self_test() -> None:
             ),
             encoding="utf-8",
         )
-        (root / "discovery_state.json").write_text("{}", encoding="utf-8")
         (root / "source_stats.json").write_text(
             json.dumps({"sources": {"Alpha": {"quality_score": 40}}}),
             encoding="utf-8",
         )
         value = build_registry(root, datetime(2026, 7, 14, tzinfo=timezone.utc))
         assert value["summary"] == {
-            "total": 3,
+            "total": 2,
             "primary": 2,
-            "nightly": 1,
+            "nightly": 0,
             "checked": 2,
             "available": 1,
             "unavailable": 1,
-            "pending": 1,
+            "pending": 0,
         }
         assert value["sources"][0]["quality_score"] == 40
+        assert {row["tier"] for row in value["sources"]} == {"primary"}
         value["generated_at"] = "2026-07-14T00:00:00+00:00"
         (root / "source_registry.json").write_text(
             json.dumps(value, ensure_ascii=False), encoding="utf-8"
         )
         stable = write_registry(root)
         assert stable["generated_at"] == "2026-07-14T00:00:00+00:00"
-    print("source_registry unified inventory self-test passed")
+    print("source_registry single inventory self-test passed")
 
 
 def main() -> int:
