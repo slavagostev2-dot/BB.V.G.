@@ -88,6 +88,20 @@ def _deployment_notification_suppressed() -> bool:
     return os.getenv("GITHUB_EVENT_NAME", "").strip().casefold() == "push"
 
 
+def _active_incidents_for_ai(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return only incidents that still describe the current deterministic state."""
+
+    incidents = state.get("incidents") if isinstance(state.get("incidents"), dict) else {}
+    return [
+        entry
+        for entry in incidents.values()
+        if isinstance(entry, dict)
+        and entry.get("status") == "active"
+        and entry.get("scope") == legacy.SCOPE
+        and not bool(entry.get("recovery_confirmation_pending"))
+    ]
+
+
 def deliver_pending_notifications_with_ai(
     state: dict[str, Any], details: dict[str, Any]
 ) -> None:
@@ -121,14 +135,7 @@ def deliver_pending_notifications_with_ai(
         details["incident_delivery"] = delivery
         return
 
-    incidents = state.get("incidents") if isinstance(state.get("incidents"), dict) else {}
-    active_findings = [
-        entry
-        for entry in incidents.values()
-        if isinstance(entry, dict)
-        and entry.get("status") == "active"
-        and entry.get("scope") == legacy.SCOPE
-    ]
+    active_findings = _active_incidents_for_ai(state)
     try:
         insight = ai_health_inspector.inspect(details, active_findings)
     except Exception as exc:
@@ -280,6 +287,32 @@ def self_test() -> None:
             os.environ.pop("GITHUB_EVENT_NAME", None)
         else:
             os.environ["GITHUB_EVENT_NAME"] = previous_event
+
+    filtered = _active_incidents_for_ai(
+        {
+            "incidents": {
+                "current": {
+                    "kind": "source_empty_public_feed",
+                    "scope": legacy.SCOPE,
+                    "status": "active",
+                },
+                "recovering": {
+                    "kind": "monitor_source_count",
+                    "scope": legacy.SCOPE,
+                    "status": "active",
+                    "recovery_confirmation_pending": True,
+                },
+                "other_scope": {
+                    "kind": "unrelated",
+                    "scope": "other",
+                    "status": "active",
+                },
+            }
+        }
+    )
+    assert [entry.get("kind") for entry in filtered] == [
+        "source_empty_public_feed"
+    ]
 
     assert legacy.check_inventory is check_inventory_allow_empty_nightly
     assert legacy.deliver_pending_notifications is deliver_pending_notifications_with_ai
