@@ -1,8 +1,8 @@
 {
   "active_incidents": 3,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-08-26T12:26:58.114224+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-08-26T12:32:01.416477+00:00",
     "started_at": "2026-08-26T12:16:46.668691+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -10,25 +10,24 @@
   },
   "ai_health_inspector": {
     "ai_status": "ok",
-    "cached": true,
+    "cached": false,
     "confidence": 0.0,
-    "critical_count": 2,
-    "decision_id": "a22bd9d990be4e2799546f60d7badda4",
-    "finding_count": 3,
+    "critical_count": 1,
+    "decision_id": "47c788b760674486ad1f274e87856d0e",
+    "finding_count": 2,
     "finding_kinds": [
-      "monitor_source_count",
       "source_empty_public_feed",
       "sources_quarantined"
     ],
-    "generated_at": "2026-08-26T12:30:23.196299+00:00",
-    "impact": "Мониторинг не охватывает все настроенные источники, что приводит к потере данных из канала @wfksiris и потенциальным пропускам обновлений.",
+    "generated_at": "2026-08-26T12:32:52.962897+00:00",
+    "impact": "Данные из источника @wfksiris не поступают, что приводит к отсутствию обновлений на публичной странице.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
+    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система мониторинга работает частично: зафиксировано 2 критические ошибки (пропуск источников и пустой фид @wfksiris) и 1 предупреждение о карантине.",
+    "summary": "Система находится в критическом состоянии: обнаружен 1 критический инцидент (источник @wfksiris пуст) и 1 предупреждение (источник в карантине).",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -68,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-08-26T12:30:18.866793+00:00",
+  "checked_at": "2026-08-26T12:32:50.935166+00:00",
   "discovery": {
     "active_size": 170,
     "candidate_count": 1007,
@@ -125,7 +124,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 3,
-    "bot_panel_heartbeat": "2026-08-26T12:26:58.114224+00:00",
+    "bot_panel_heartbeat": "2026-08-26T12:32:01.416477+00:00",
     "checked_sources": 169,
     "configured_sources": 171,
     "domain": "telegram.me",
@@ -196,7 +195,7 @@
     "version": 3,
     "workflow_run_id": "32967691690"
   },
-  "monitor_age_minutes": 4,
+  "monitor_age_minutes": 6,
   "monitor_effective_heartbeat_at": "2026-08-26T12:26:15.565447+00:00",
   "monitor_source_expectation": {
     "configured": 170,
