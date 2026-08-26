@@ -99,15 +99,7 @@ def _generation_aware_hidden(
     chat_id: str,
     wheel_key: str,
 ) -> bool:
-    # Tests and recovery self-checks may install the guard more than once in
-    # one process. Always unwrap to the original personal-hide predicate so a
-    # previous generation-aware wrapper cannot filter the same event twice.
-    base_hidden = getattr(
-        original_hidden,
-        "_bbvg_generation_hidden_base",
-        original_hidden,
-    )
-    if not base_hidden(config, chat_id, wheel_key):
+    if not original_hidden(config, chat_id, wheel_key):
         return False
 
     event_anchor = getattr(_context, "event_anchor", None)
@@ -290,11 +282,6 @@ def install(monitor_module: Any) -> None:
             else:
                 _context.event_anchor = previous_anchor
 
-    hidden_for_current_generation._bbvg_generation_hidden_base = getattr(  # type: ignore[attr-defined]
-        original_hidden,
-        "_bbvg_generation_hidden_base",
-        original_hidden,
-    )
     notification_router.hidden_for_chat = hidden_for_current_generation
     monitor_module.send_message = send_with_receipt
     monitor_module._bbvg_notification_delivery_guard_installed = True
