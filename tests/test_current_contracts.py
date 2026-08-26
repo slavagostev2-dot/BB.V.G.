@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import inspect
+import json
 import threading
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from tests._bootstrap import install_optional_dependency_stubs
@@ -203,6 +206,66 @@ class CurrentProductionContractTests(unittest.TestCase):
         system_checks_v2.self_test()
         system_checks_v3.self_test()
 
+    def test_monitor_health_ignores_stale_periodic_summary(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state_path = root / "state.json"
+            health_path = root / "source_health.json"
+            stats_path = root / "source_stats.json"
+            state_path.write_text(
+                json.dumps(
+                    {
+                        "last_heartbeat_at": "2026-08-26T00:00:00+00:00",
+                        "last_run_summary": {
+                            "checked_sources": 168,
+                            "reachable_sources": 168,
+                            "source_errors": 0,
+                        },
+                        "pending_posts": {},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            health_path.write_text(
+                json.dumps(
+                    {
+                        "sources": {
+                            "one": {
+                                "last_checked_at": "2026-08-26T12:00:05+00:00",
+                                "last_success_at": "2026-08-26T12:00:05+00:00",
+                            },
+                            "two": {
+                                "last_checked_at": "2026-08-26T12:00:06+00:00",
+                                "last_success_at": "2026-08-26T12:00:06+00:00",
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            stats_path.write_text(
+                json.dumps(
+                    {
+                        "sources": {
+                            "one": {"checks": 10},
+                            "two": {"checks": 20},
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with (
+                patch.object(monitor_health, "STATE_PATH", state_path),
+                patch.object(monitor_health, "HEALTH_PATH", health_path),
+                patch.object(monitor_health, "STATS_PATH", stats_path),
+            ):
+                snapshot = monitor_health.runtime_snapshot(
+                    since=datetime(2026, 8, 26, 12, tzinfo=timezone.utc)
+                )
+            self.assertEqual(snapshot["checked_sources"], 2)
+            self.assertEqual(snapshot["reachable_sources"], 2)
+            self.assertEqual(snapshot["source_errors"], 0)
+
     def test_notification_preferences_and_personal_filters(self) -> None:
         notification_preferences_v2.self_test()
         notification_navigation.self_test()
@@ -226,6 +289,16 @@ if __name__ == "__main__":
 def _source_block(path: str, start: str, end: str) -> str:
     source = Path(path).read_text(encoding="utf-8")
     return source.split(start, 1)[1].split(end, 1)[0]
+
+
+def test_system_health_counts_only_sources_due_for_current_scan() -> None:
+    source = Path("system_checks.py").read_text(encoding="utf-8")
+    block = source.split("def check_monitor_runtime(", 1)[1].split(
+        "def check_wheel_api_health(", 1
+    )[0]
+    assert "source_due_for_check(health, source)" in block
+    assert "checked < expected_checked" in block
+    assert "checked < expected_primary" not in block
 
 
 def test_system_health_loads_large_runtime_snapshots_from_git() -> None:
