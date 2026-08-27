@@ -211,6 +211,7 @@ def _failure_reason(record: dict[str, Any]) -> str:
         record.get("bot_failure_status") or record.get("status") or ""
     ).casefold()
     labels = {
+        "authorization_required": "сессия BetBoom истекла — требуется повторная авторизация",
         "button_not_found": "кнопка участия не найдена",
         "participation_closed": "участие уже закрыто",
         "not_eligible": "аккаунт не подходит",
@@ -233,6 +234,9 @@ def _message(
 ) -> tuple[str, dict[str, Any]]:
     identifier = html.escape(str(item.get("identifier") or key))
     label = html.escape(str(record.get("account_label") or DEFAULT_ACCOUNT_LABEL))
+    raw_status = str(
+        record.get("bot_failure_status") or record.get("status") or ""
+    ).casefold()
     result_status = canonical_account_status(
         record.get("bot_failure_status") or record.get("status"),
         record.get("confirmation") or record.get("confirmation_method"),
@@ -243,6 +247,13 @@ def _message(
             "✅ <b>Участие принято</b>\n\n"
             f"Колесо: <code>{identifier}</code>\n"
             f"Аккаунт: <b>{label}</b>"
+        )
+    elif raw_status == "authorization_required":
+        text = (
+            "🔐 <b>Требуется авторизация BetBoom</b>\n\n"
+            f"Колесо: <code>{identifier}</code>\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            "Сессия аккаунта истекла. Автоповторы остановлены до обновления авторизации."
         )
     elif result_status == "referral_ineligible":
         text = (
@@ -427,6 +438,20 @@ def self_test() -> None:
         "server_start_at": "2026-07-22T12:00:00+00:00",
     }
     assert _account_event_token(item).endswith("#account:xflarxx_primary")
+    assert "authorization_required" in TERMINAL_FAILURE_STATUSES
+    auth_text, _auth_markup = _message(
+        "wheel",
+        {"identifier": "wheel"},
+        {
+            "account_label": DEFAULT_ACCOUNT_LABEL,
+            "status": "authorization_required",
+            "detail": "страница показывает вход/авторизацию",
+        },
+        False,
+    )
+    assert "Требуется авторизация BetBoom" in auth_text
+    assert "Автоповторы остановлены" in auth_text
+    assert "Повторная проверка запланирована" not in auth_text
     assert _notification_enabled({"notification_preferences": {}})
     assert not _notification_enabled(
         {"notification_preferences": {"auto_participation": False}}

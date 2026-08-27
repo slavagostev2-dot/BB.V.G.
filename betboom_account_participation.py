@@ -33,6 +33,7 @@ TRANSIENT_STATUSES = {
     "technical_error",
 }
 TERMINAL_FAILURE_STATUSES = {
+    "authorization_required",
     "referral_ineligible",
     "participation_closed",
     "not_eligible",
@@ -373,13 +374,22 @@ def _pending_account_events(
 def _short_message(
     success: bool, key: str, item: dict[str, Any], record: dict[str, Any]
 ) -> tuple[str, dict[str, Any]]:
-    title = "✅ <b>Участие принято</b>" if success else "⚠️ <b>Участие не принято</b>"
+    status = str(record.get("bot_failure_status") or record.get("status") or "").casefold()
+    if success:
+        title = "✅ <b>Участие принято</b>"
+        suffix = ""
+    elif status == "authorization_required":
+        title = "🔐 <b>Требуется авторизация BetBoom</b>"
+        suffix = "\nСессия аккаунта истекла. Автоповторы остановлены до обновления авторизации."
+    else:
+        title = "⚠️ <b>Участие не принято</b>"
+        suffix = ""
     label = html.escape(str(record.get("account_label") or DEFAULT_ACCOUNT_LABEL))
     identifier = html.escape(str(item.get("identifier") or key))
     return (
         f"{title}\n\n"
         f"Аккаунт: <b>{label}</b>\n"
-        f"Колесо: <code>{identifier}</code>",
+        f"Колесо: <code>{identifier}</code>{suffix}",
         {
             "inline_keyboard": [
                 [
@@ -524,8 +534,12 @@ def self_test() -> None:
     }
     assert _base_event_token(item).startswith("evt:")
     assert _account_event_token(item).endswith("#account:vyacheslav_secondary")
+    assert "authorization_required" in TERMINAL_FAILURE_STATUSES
     assert not _should_attempt(
         {"status": "participated"}, datetime(2026, 7, 22, tzinfo=UTC)
+    )
+    assert not _should_attempt(
+        {"status": "authorization_required"}, datetime(2026, 7, 22, tzinfo=UTC)
     )
     assert _should_attempt(
         {
@@ -558,4 +572,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

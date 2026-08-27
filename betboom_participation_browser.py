@@ -233,6 +233,28 @@ def _detail_with_page_hint(page: Any, detail: str) -> str:
     return f"{hint}; {detail}" if hint else detail
 
 
+def _authorization_failure(
+    page: Any,
+    url: str,
+    detail: str,
+) -> auto.ParticipationResult:
+    """Return a terminal session-expired result instead of retryable button_not_found."""
+
+    rendered = _detail_with_page_hint(page, detail)
+    artifact = _save_diagnostics(
+        page,
+        url,
+        "authorization_required",
+        rendered,
+    )
+    return auto.ParticipationResult(
+        False,
+        "authorization_required",
+        rendered[:300],
+        artifact,
+    )
+
+
 def _click_in_root(root: Any, timeout_ms: int) -> tuple[bool, str]:
     """Click only an actionable participation control.
 
@@ -502,6 +524,16 @@ def participate(url: str) -> auto.ParticipationResult:
                     artifact,
                 )
 
+            auth_location = _authentication_required(page)
+            if auth_location:
+                result = _authorization_failure(
+                    page,
+                    url,
+                    f"страница показывает вход/авторизацию ({auth_location})",
+                )
+                browser.close()
+                return result
+
             clicked, location, preparations = _find_and_click(page, timeout_ms)
             if location == "already_participating":
                 detail = _detail_with_page_hint(
@@ -555,12 +587,19 @@ def participate(url: str) -> auto.ParticipationResult:
                         artifact,
                     )
                 body = _all_text(page).casefold()
+                auth_location = _authentication_required(page)
+                if auth_location or any(
+                    value in body for value in ("войти", "авторизоваться", "авторизация")
+                ):
+                    result = _authorization_failure(
+                        page,
+                        url,
+                        "страница показывает вход/авторизацию",
+                    )
+                    browser.close()
+                    return result
                 labels = _diagnostic_labels(page)
-                detail = (
-                    "страница показывает вход/авторизацию"
-                    if any(value in body for value in ("войти", "авторизоваться", "авторизация"))
-                    else "кнопка участия не найдена после закрытия cookie"
-                )
+                detail = "кнопка участия не найдена после закрытия cookie"
                 if preparations:
                     detail += "; подготовка: " + " | ".join(preparations)
                 if labels:
@@ -593,20 +632,13 @@ def participate(url: str) -> auto.ParticipationResult:
                     browser.close()
                     return auto.ParticipationResult(True, "participated", detail[:300])
                 if confirmation.startswith("authentication_required:"):
-                    detail = _detail_with_page_hint(
+                    result = _authorization_failure(
                         page,
+                        url,
                         "страница показывает вход/авторизацию после нажатия участия",
                     )
-                    artifact = _save_diagnostics(
-                        page, url, "button_not_found", detail
-                    )
                     browser.close()
-                    return auto.ParticipationResult(
-                        False,
-                        "button_not_found",
-                        detail[:300],
-                        artifact,
-                    )
+                    return result
                 referral_refusal = _visible_referral_ineligible(page)
                 if referral_refusal:
                     detail = _detail_with_page_hint(
@@ -645,20 +677,13 @@ def participate(url: str) -> auto.ParticipationResult:
                         detail[:300],
                     )
                 if confirmation.startswith("authentication_required:"):
-                    detail = _detail_with_page_hint(
+                    result = _authorization_failure(
                         page,
+                        url,
                         "контрольная перезагрузка показывает вход/авторизацию; участие не подтверждено",
                     )
-                    artifact = _save_diagnostics(
-                        page, url, "button_not_found", detail
-                    )
                     browser.close()
-                    return auto.ParticipationResult(
-                        False,
-                        "button_not_found",
-                        detail[:300],
-                        artifact,
-                    )
+                    return result
                 page.wait_for_timeout(700)
 
             referral_refusal = _visible_referral_ineligible(page)

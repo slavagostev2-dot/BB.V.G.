@@ -28,6 +28,7 @@ SUCCESS_STATUSES = {
     "already_marked_participating",
 }
 FAILURE_LABELS = {
+    "authorization_required": "требуется обновить авторизацию BetBoom",
     "button_not_found": "кнопка участия не найдена",
     "participation_closed": "участие уже закрыто",
     "not_eligible": "аккаунт не подходит",
@@ -389,6 +390,8 @@ def _account_result_status(record: dict[str, Any], success: bool) -> str:
     raw_status = str(
         record.get("bot_failure_status") or record.get("status") or "unconfirmed"
     )
+    if raw_status.strip().casefold() == "authorization_required":
+        return "authorization_required"
     confirmation = str(
         record.get("confirmation")
         or record.get("confirmation_method")
@@ -431,6 +434,11 @@ def _result_message(
         if result_status == "participated":
             lines.append(
                 f"✅ {escaped_label} — {html.escape(_success_description(record))}"
+            )
+        elif result_status == "authorization_required":
+            lines.append(
+                f"🔐 {escaped_label} — требуется обновить авторизацию BetBoom; "
+                "автоповторы остановлены"
             )
         elif result_status == "referral_ineligible":
             lines.append(
@@ -835,6 +843,30 @@ def self_test() -> None:
     )
     assert "⚠️ Аккаунт 2" in text
     assert "✅ Аккаунт 1" in text
+
+    auth_state = copy.deepcopy(failure_state)
+    auth_secondary = auth_state["auto_participation_events"][
+        base + "#account:vyacheslav_secondary"
+    ]
+    auth_secondary.update(
+        {
+            "status": "authorization_required",
+            "bot_failure_status": "authorization_required",
+            "bot_failure_detail": "страница показывает вход/авторизацию",
+        }
+    )
+    auth_groups = _settled_event_groups(
+        auth_state, now=datetime(2026, 7, 22, 12, 10, tzinfo=UTC)
+    )
+    auth_text, _auth_markup = _result_message(
+        "wheel", {"identifier": "wheel"}, auth_groups[base]
+    )
+    assert (
+        "🔐 Аккаунт 2 — требуется обновить авторизацию BetBoom; автоповторы остановлены"
+        in auth_text
+    )
+    assert "Аккаунт 2 — результат не подтверждён" not in auth_text
+
     assert not _notification_enabled(
         {"notification_preferences": {AUTO_NOTIFICATION_KEY: False}}
     )
@@ -957,4 +989,3 @@ def self_test() -> None:
 
 if __name__ == "__main__":
     self_test()
-
