@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "be4a186b7e26fe1096f01e77b4b00bfc993bc454124e6ff67f8d4c0acef5648c",
-      "confidence": 120,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
-      "event_id": "pending:7791f90619557cca8e77",
-      "finished_at": "2026-08-27T14:06:17.958811+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-27T14:06:46.533675+00:00",
-      "started_at": "2026-08-27T14:06:17.958811+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260827T140642016594Z-d27ab8f50afc",
       "attempt_id": "6764a515922ad3acf3a1a3909036c7fb149e2aa81a5b5e049a8dad80ec5a3ad5",
@@ -27,6 +13,20 @@
       "recorded_at": "2026-08-27T14:06:46.534860+00:00",
       "started_at": "2026-08-27T14:06:37.911689+00:00",
       "status": "unconfirmed"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "be4a186b7e26fe1096f01e77b4b00bfc993bc454124e6ff67f8d4c0acef5648c",
+      "confidence": 120,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил участие после нажатия (main:Принять участие; exact_success_label)",
+      "event_id": "pending:7791f90619557cca8e77",
+      "finished_at": "2026-08-27T14:06:17.958811+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-27T14:06:46.533675+00:00",
+      "started_at": "2026-08-27T14:06:17.958811+00:00",
+      "status": "participated"
     },
     {
       "account_key": "xflarxx_primary",
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-27T14:06:17.958811+00:00",
       "status": "participated",
-      "updated_at": "2026-08-27T14:06:46.533675+00:00"
+      "updated_at": "2026-08-27T14:07:02.491681+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-27T14:06:37.911689+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-27T14:06:46.534860+00:00"
+      "updated_at": "2026-08-27T14:07:02.492843+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-27T14:06:42.666419+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-27T14:06:46.535958+00:00"
+      "updated_at": "2026-08-27T14:07:02.494012+00:00"
     }
   ],
   "action_id": null,
@@ -116,6 +116,16 @@
   "source_message_url": "https://telegram.me/aunkereEZ/5194",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "33080060211",
+      "occurred_at": "2026-08-27T14:06:46.530819+00:00",
+      "payload": {
+        "workflow_run_id": "33080060211",
+        "workflow_sha": "5a0f35c05fc91f4d7667dbcaa1bf1f8dc3ff1b60"
+      },
+      "stage": "workflow_started",
+      "transition_id": "097edcc8e722f760c9818330a4f6f94840f5d1d86c695b24ad244250871d150b"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-08-27T14:06:46.527034+00:00",
@@ -146,33 +156,34 @@
       "transition_id": "38111c049d951d8d64de9b22cb6566d2babd214430e63bf1fe9f19103d3ddf11"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-08-27T14:06:46.527034+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:6764a515922ad3acf3a1a3909036c7fb149e2aa81a5b5e049a8dad80ec5a3ad5",
+      "occurred_at": "2026-08-27T14:06:37.911689+00:00",
       "payload": {
-        "action_id": null,
-        "available_at": "",
-        "deadline": "",
-        "discovery_reason": "workflow_payload",
-        "event_id": "pending:7791f90619557cca8e77",
-        "expires_at": "2026-08-27T16:06:37.546795+00:00",
-        "generation_id": "",
-        "identifier": "aunkere2",
-        "message_text": "Сегодня не мой день :(\nЛовите фрибеты, комбэкайте\n(кто также проиграл на виталити)\nКолесо фрибетов:\nhttps://betboom.ru/freestream/aunkere2\n❤\nБесплатная ставка до 10.000₽ по моему промокоду AUNKERE на BETBOOM\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5194\nhttps://betboom.ru/freestream/aunkere2\nhttps://bbsport.su/link/1ZTAe0/?erid=CQH36pWzJqUzRLzcaA8sv8hxDo4KensKmhE2AaDsKmyXSw",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-27T14:02:39.800000+00:00",
-        "source": "aunkereEZ",
-        "source_message_date": "2026-08-27T14:02:11+00:00",
-        "source_message_id": 5194,
-        "source_message_url": "https://telegram.me/aunkereEZ/5194",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/aunkere2",
-        "verification_status": "confirmed",
-        "wheel_key": "aunkere2",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260827T140642016594Z-d27ab8f50afc",
+        "attempt_count": 1,
+        "confirmation": "raw_status:authorization_required; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
       },
-      "stage": "persisted",
-      "transition_id": "e40859b01c310b7eff0577500a216c9dcc21d72e00706b091ce1284c5d22f194"
+      "stage": "account_result",
+      "transition_id": "7bf86efa2c3697036c8da456371619789fd158aafb48dc22a317a2b7e5d094bb"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:be4a186b7e26fe1096f01e77b4b00bfc993bc454124e6ff67f8d4c0acef5648c",
+      "occurred_at": "2026-08-27T14:06:17.958811+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "836b09e333d6dda91c49dbc167195d3d76a933826efea83069da325abcd261b5"
     },
     {
       "dedupe_key": "None:2026-08-27T14:02:39.800000+00:00",
@@ -204,46 +215,6 @@
       "transition_id": "8b8aea60dade27b6cef962b1b198f70617e02dc9529a5b89ac61bb01ed5058a8"
     },
     {
-      "dedupe_key": "33080060211",
-      "occurred_at": "2026-08-27T14:06:46.530819+00:00",
-      "payload": {
-        "workflow_run_id": "33080060211",
-        "workflow_sha": "5a0f35c05fc91f4d7667dbcaa1bf1f8dc3ff1b60"
-      },
-      "stage": "workflow_started",
-      "transition_id": "097edcc8e722f760c9818330a4f6f94840f5d1d86c695b24ad244250871d150b"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:be4a186b7e26fe1096f01e77b4b00bfc993bc454124e6ff67f8d4c0acef5648c",
-      "occurred_at": "2026-08-27T14:06:17.958811+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "836b09e333d6dda91c49dbc167195d3d76a933826efea83069da325abcd261b5"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:6764a515922ad3acf3a1a3909036c7fb149e2aa81a5b5e049a8dad80ec5a3ad5",
-      "occurred_at": "2026-08-27T14:06:37.911689+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260827T140642016594Z-d27ab8f50afc",
-        "attempt_count": 1,
-        "confirmation": "raw_status:authorization_required; workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "7bf86efa2c3697036c8da456371619789fd158aafb48dc22a317a2b7e5d094bb"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:f44310c640fda00fea7ef468f048b768ed6717f230deaf5d4d64951425f11881",
       "occurred_at": "2026-08-27T14:06:42.666419+00:00",
       "payload": {
@@ -257,9 +228,38 @@
       },
       "stage": "account_result",
       "transition_id": "927ee3778a18c6daff48a43065d87be16a384f9d138eb1b044ccba3bf8723894"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-08-27T14:06:46.527034+00:00",
+      "payload": {
+        "action_id": null,
+        "available_at": "",
+        "deadline": "",
+        "discovery_reason": "workflow_payload",
+        "event_id": "pending:7791f90619557cca8e77",
+        "expires_at": "2026-08-27T16:06:37.546795+00:00",
+        "generation_id": "",
+        "identifier": "aunkere2",
+        "message_text": "Сегодня не мой день :(\nЛовите фрибеты, комбэкайте\n(кто также проиграл на виталити)\nКолесо фрибетов:\nhttps://betboom.ru/freestream/aunkere2\n❤\nБесплатная ставка до 10.000₽ по моему промокоду AUNKERE на BETBOOM\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5194\nhttps://betboom.ru/freestream/aunkere2\nhttps://bbsport.su/link/1ZTAe0/?erid=CQH36pWzJqUzRLzcaA8sv8hxDo4KensKmhE2AaDsKmyXSw",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-27T14:02:39.800000+00:00",
+        "source": "aunkereEZ",
+        "source_message_date": "2026-08-27T14:02:11+00:00",
+        "source_message_id": 5194,
+        "source_message_url": "https://telegram.me/aunkereEZ/5194",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/aunkere2",
+        "verification_status": "confirmed",
+        "wheel_key": "aunkere2",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "e40859b01c310b7eff0577500a216c9dcc21d72e00706b091ce1284c5d22f194"
     }
   ],
-  "updated_at": "2026-08-27T14:06:46.530819+00:00",
+  "updated_at": "2026-08-27T14:07:02.489406+00:00",
   "wheel_key": "aunkere2",
   "workflow_started_at": "2026-08-27T14:06:46.530819+00:00"
 }
