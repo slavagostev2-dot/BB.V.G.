@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-27T11:35:44.898398+00:00",
       "status": "participated",
-      "updated_at": "2026-08-27T11:36:06.516436+00:00"
+      "updated_at": "2026-08-27T11:36:20.859468+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-27T11:35:58.763520+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-27T11:36:06.517774+00:00"
+      "updated_at": "2026-08-27T11:36:20.860663+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-27T11:36:02.729155+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-27T11:36:06.520557+00:00"
+      "updated_at": "2026-08-27T11:36:20.863257+00:00"
     }
   ],
   "action_id": null,
@@ -116,6 +116,16 @@
   "source_message_url": "https://telegram.me/overdrivebet/686",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "33067795902",
+      "occurred_at": "2026-08-27T11:36:06.513597+00:00",
+      "payload": {
+        "workflow_run_id": "33067795902",
+        "workflow_sha": "f9a7609545bfec0574fdd2a1944a5c037cd22a8b"
+      },
+      "stage": "workflow_started",
+      "transition_id": "45835ce406ce2953ed4fe6d2198265f75f2693db28f5035637ab25f59f793ccd"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-08-27T11:36:06.509381+00:00",
@@ -204,16 +214,6 @@
       "transition_id": "9f1c3fbacdb5869e8caa681f5f77bacbc4ed4d5065cbdce5dbb6f7f83b4a5b25"
     },
     {
-      "dedupe_key": "33067795902",
-      "occurred_at": "2026-08-27T11:36:06.513597+00:00",
-      "payload": {
-        "workflow_run_id": "33067795902",
-        "workflow_sha": "f9a7609545bfec0574fdd2a1944a5c037cd22a8b"
-      },
-      "stage": "workflow_started",
-      "transition_id": "45835ce406ce2953ed4fe6d2198265f75f2693db28f5035637ab25f59f793ccd"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:18b2af4e8833699ba37bb4f0a6591f525b52b08ccdb7e397c855ab4b32ad327b",
       "occurred_at": "2026-08-27T11:35:44.898398+00:00",
       "payload": {
@@ -229,21 +229,6 @@
       "transition_id": "b7f1ced0d9c35a636e62d28c581540b308a51771179c063e966970438abc8347"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:f25a711f2dcc8bcb5c31995ceb98ce791b6ce269d78fa9d28f8ad10735cae27f",
-      "occurred_at": "2026-08-27T11:35:58.763520+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260827T113602017087Z-007fcf02f864",
-        "attempt_count": 1,
-        "confirmation": "raw_status:authorization_required; workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "dc787bee21d9777a590bcdaf73fa6c1ca2c80ef127d6f99f2516c935cc519441"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:f9c4835667e617bdec6da1d7559c5765015970786ac66b23e4b8031e63486131",
       "occurred_at": "2026-08-27T11:36:02.729155+00:00",
       "payload": {
@@ -257,9 +242,24 @@
       },
       "stage": "account_result",
       "transition_id": "d0a847ac29f54045eaf296afb44a2e653513229ea1a915ab12e1e1dc947ea58a"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:f25a711f2dcc8bcb5c31995ceb98ce791b6ce269d78fa9d28f8ad10735cae27f",
+      "occurred_at": "2026-08-27T11:35:58.763520+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260827T113602017087Z-007fcf02f864",
+        "attempt_count": 1,
+        "confirmation": "raw_status:authorization_required; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "dc787bee21d9777a590bcdaf73fa6c1ca2c80ef127d6f99f2516c935cc519441"
     }
   ],
-  "updated_at": "2026-08-27T11:36:06.513597+00:00",
+  "updated_at": "2026-08-27T11:36:20.856975+00:00",
   "wheel_key": "over",
   "workflow_started_at": "2026-08-27T11:36:06.513597+00:00"
 }
