@@ -129,7 +129,6 @@ def main() -> None:
     monitor.remember_activation(state, link, None)
     assert monitor.is_activation_suppressed(state, link)
 
-
     markup_state = {"button_contexts": {}}
     markup = monitor.wheel_reply_markup(
         markup_state,
@@ -145,7 +144,12 @@ def main() -> None:
     assert "✅ Участвую" in labels
     assert "📋 Активные колёса" in labels
     assert "📨 Пост" in labels
-    for removed_label in ("🔄 Проверить", "✅ Активно", "🚫 Неактивно", "🕒 Нет времени"):
+    for removed_label in (
+        "🔄 Проверить",
+        "✅ Активно",
+        "🚫 Неактивно",
+        "🕒 Нет времени",
+    ):
         assert removed_label not in labels
     assert markup_state["button_contexts"]
 
@@ -172,11 +176,17 @@ def main() -> None:
     assert not monitor.known_reminder_due(known_entry, published + timedelta(hours=1))
     assert monitor.known_reminder_due(known_entry, published + timedelta(hours=2))
     known_entry["known_reminder_sent_at"] = (published + timedelta(hours=2)).isoformat()
-    assert not monitor.known_reminder_due(known_entry, published + timedelta(hours=2, minutes=5))
+    assert not monitor.known_reminder_due(
+        known_entry, published + timedelta(hours=2, minutes=5)
+    )
 
     unknown_entry = {"first_notified_at": published.isoformat()}
-    assert not monitor.unknown_reminder_due(unknown_entry, published + timedelta(minutes=29))
-    assert monitor.unknown_reminder_due(unknown_entry, published + timedelta(minutes=30))
+    assert not monitor.unknown_reminder_due(
+        unknown_entry, published + timedelta(minutes=29)
+    )
+    assert monitor.unknown_reminder_due(
+        unknown_entry, published + timedelta(minutes=30)
+    )
 
     unknown = {"version": 1, "samples": []}
     added = data_store.record_unknown_timer_sample(
@@ -219,34 +229,43 @@ def main() -> None:
     assert "frixa_betboom" not in channels
     assert "gazazor" not in channels
 
-    quick = {
+    approved = {
         item.casefold()
         for item in data_store.operational_sources(
             monitor.read_list(ROOT / "public_sources.txt"), "fast"
         )
     }
-    nightly = {
-        item.casefold()
-        for item in data_store.operational_sources(
-            monitor.read_list(ROOT / "source_catalog.txt"), "nightly"
-        )
-    }
-    approved = quick | nightly
-    assert len(approved) >= 66, "В основном и ночном режимах должны оставаться как минимум 66 утверждённых источников"
-    assert not quick.intersection(nightly), "Быстрый и ночной списки пересекаются"
-    assert "kolesabb" in approved
-    assert "homakolesa" in approved
-    assert "narodcast" in approved
+    assert len(approved) >= 66, (
+        "В единой базе должны оставаться как минимум 66 утверждённых источников"
+    )
+    for required_source in (
+        "kolesabb",
+        "homakolesa",
+        "narodcast",
+        "dartwager",
+        "amam0610",
+        "aunkeretg",
+        "dekocsoff",
+        "ct0mislove",
+        "blindzonexgod",
+        "daynezz",
+    ):
+        assert required_source in approved
     assert "frixa_betboom" not in approved
     assert "gazazor" not in approved
-    assert "dartwager" in approved
-    assert "amam0610" in approved
-    assert "aunkeretg" in approved
-    assert "dekocsoff" in approved
-    assert "ct0mislove" in approved
-    assert "blindzonexgod" in quick
-    assert "daynezz" in quick
     assert monitor.NEW_SOURCE_CATCHUP_MINUTES >= 0
+
+    for obsolete in (
+        "source_catalog.txt",
+        "source_tier_state.json",
+        "nightly_discovery.py",
+        "nightly_discovery_entry.py",
+        "source_tier_maintenance.py",
+        "source_tier_maintenance_v2.py",
+        ".github/workflows/nightly-discovery.yml",
+        ".github/workflows/source-tier-maintenance.yml",
+    ):
+        assert not (ROOT / obsolete).exists(), f"legacy source-tier artifact returned: {obsolete}"
 
     health = {"version": 1, "sources": {}}
     for _ in range(data_store.QUARANTINE_FAILURE_THRESHOLD):
@@ -286,7 +305,6 @@ def main() -> None:
 
     report_text = monitor.source_inactivity_report_text(rows)
     assert "quiet_channel" in report_text
-    assert "ночной режим" in report_text
 
     timezone_stats = {"version": 1, "sources": {}, "daily": {}}
     data_store.increment_stat(
@@ -299,8 +317,19 @@ def main() -> None:
 
     legacy_ratings = {
         "version": 1,
-        "sources": {"test": {"wheel_posts": 3, "quality_score": 40, "last_wheel_post_at": inactivity_now.isoformat()}},
-        "daily": {"2026-07-13": {"sources": {"test": {"wheel_posts": 3}}, "totals": {"wheel_posts": 3}}},
+        "sources": {
+            "test": {
+                "wheel_posts": 3,
+                "quality_score": 40,
+                "last_wheel_post_at": inactivity_now.isoformat(),
+            }
+        },
+        "daily": {
+            "2026-07-13": {
+                "sources": {"test": {"wheel_posts": 3}},
+                "totals": {"wheel_posts": 3},
+            }
+        },
         "admin_wheel_decisions": {"old-wheel": {"decision": "confirmed"}},
     }
     assert data_store.apply_source_rating_epoch(legacy_ratings)
@@ -316,12 +345,14 @@ def main() -> None:
         path.read_text(encoding="utf-8")
         for path in (
             ROOT / "monitor.py",
-            ROOT / "nightly_discovery.py",
+            ROOT / "monitor_data.py",
+            ROOT / "source_intelligence.py",
             ROOT / ".github/workflows/monitor.yml",
         )
     )
     assert "known_freestream_ids" not in project_text
     assert "check_known_links" not in project_text
+    assert "NIGHTLY_SOURCES_PATH" not in project_text
 
     print("Self-test passed.")
 
