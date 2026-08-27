@@ -45,11 +45,11 @@ def wheel_candidate_rows(
     state: dict[str, Any],
     known_sources: set[str] | None = None,
 ) -> list[tuple[str, dict[str, Any]]]:
-    """Return new public sources with direct BetBoom wheel evidence.
+    """Return public wheel-bearing sources for retention-focused callers/tests.
 
-    This remains the stable selector used by tests and alerting. It no longer
-    exposes speculative discovery candidates because those are pruned before
-    persistence.
+    Alert delivery has a richer selector in source_intelligence_alerts that also
+    applies ignored-source and 24-hour reminder policy. Retention must never
+    replace that selector at runtime.
     """
 
     known = {str(value).casefold() for value in (known_sources or set())}
@@ -79,8 +79,8 @@ def wheel_candidate_rows(
     return rows
 
 
-def install(module: Any, alerts: Any) -> None:
-    """Keep broad discovery ephemeral while persisting only wheel-proven sources."""
+def install(module: Any, alerts: Any | None = None) -> None:
+    """Keep broad discovery ephemeral while preserving the alert policy layer."""
 
     if getattr(module, "_bbvg_wheel_only_retention_installed", False):
         return
@@ -94,7 +94,11 @@ def install(module: Any, alerts: Any) -> None:
         original_save(state)
 
     module.save_state = save_wheel_only_state
-    alerts.wheel_candidate_rows = wheel_candidate_rows
+    # Do not monkeypatch alerts.wheel_candidate_rows here. The alert module's
+    # selector owns ignored-source filtering and 24-hour reminder cadence. The
+    # former override used this module's narrower two-argument selector and
+    # caused production source_intelligence_entry.py to fail after a successful
+    # scan when notify_new_candidates passed (state, known, ignored).
     module._bbvg_wheel_only_retention_installed = True
 
 
@@ -114,6 +118,39 @@ def self_test() -> None:
     assert set(state["candidates"]) == {"wheel", "privatewheel"}
     assert set(state["edges"]) == {"a->wheel"}
     assert [source for source, _ in wheel_candidate_rows(state)] == ["Wheel"]
+
+    class Module:
+        _bbvg_wheel_only_retention_installed = False
+
+        def __init__(self) -> None:
+            self.saved: dict[str, Any] | None = None
+
+        def save_state(self, value: dict[str, Any]) -> None:
+            self.saved = value
+
+    class Alerts:
+        @staticmethod
+        def wheel_candidate_rows(
+            value: dict[str, Any],
+            known: set[str] | None = None,
+            ignored: set[str] | None = None,
+        ) -> list[tuple[str, dict[str, Any]]]:
+            return []
+
+    module = Module()
+    selector = Alerts.wheel_candidate_rows
+    install(module, Alerts)
+    assert Alerts.wheel_candidate_rows is selector
+    module.save_state(
+        {
+            "candidates": {
+                "maybe": {"source": "Maybe", "wheel_links_found": 0, "public": True},
+                "wheel": {"source": "Wheel", "wheel_links_found": 1, "public": True},
+            }
+        }
+    )
+    assert module.saved is not None
+    assert set(module.saved["candidates"]) == {"wheel"}
     print("source intelligence wheel-only retention self-test passed")
 
 
