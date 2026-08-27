@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import betboom_participation_browser as browser
 from betboom_participation_browser import (
     CLICK_RE,
     REFERRAL_INELIGIBLE_LABEL_RE,
@@ -96,3 +97,15 @@ def test_referral_ineligible_requires_self_contained_betboom_refusal() -> None:
         "Колесико для рефов",
     )
     assert _visible_referral_ineligible(_Page(["Колесико для рефов"])) == ""
+
+
+def test_authorization_screen_is_terminal_session_outcome(monkeypatch) -> None:
+    monkeypatch.setattr(browser, "_save_diagnostics", lambda *_args, **_kwargs: "")
+    result = browser._authorization_failure(
+        _Page(["Войти"]),
+        "https://betboom.ru/freestream/test",
+        "страница показывает вход/авторизацию",
+    )
+    assert result.success is False
+    assert result.status == "authorization_required"
+    assert "авторизац" in result.detail.casefold()
