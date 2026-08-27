@@ -299,8 +299,6 @@ def _settled_event_groups(
     for token, accounts in observed_groups.items():
         if not expected_keys.issubset(accounts):
             continue
-        if token in settled:
-            continue
         item, _active_matches = _event_item(state, token, accounts)
         if (
             isinstance(item, dict)
