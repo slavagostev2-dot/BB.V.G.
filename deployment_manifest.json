@@ -1,27 +1,27 @@
 {
   "compatibility_epoch": "durable-event-ledger-v1",
-  "compatibility_error": "",
-  "compatible": true,
+  "compatibility_error": "component SHA mismatch or missing runtime status",
+  "compatible": false,
   "components": {
     "browser_worker": {
-      "sha": "dc59cbfe9784262019931661b8ad60ccb148e8e7"
+      "sha": "c4e5803ca0d1fc4eecab82232c66fb186d474ad6"
     },
     "control_center": {
-      "run_id": "33035869870",
+      "run_id": "33051214248",
       "sha": "dc59cbfe9784262019931661b8ad60ccb148e8e7",
-      "started_at": "2026-08-27T03:17:16.378371+00:00"
+      "started_at": "2026-08-27T07:48:22.011275+00:00"
     },
     "dispatcher": {
-      "sha": "dc59cbfe9784262019931661b8ad60ccb148e8e7"
+      "sha": "c4e5803ca0d1fc4eecab82232c66fb186d474ad6"
     },
     "monitor": {
-      "run_id": "33035893617",
-      "sha": "dc59cbfe9784262019931661b8ad60ccb148e8e7",
-      "started_at": "2026-08-27T03:17:35.640228+00:00"
+      "run_id": "33060812727",
+      "sha": "c4e5803ca0d1fc4eecab82232c66fb186d474ad6",
+      "started_at": "2026-08-27T13:44:36.177095+00:00"
     }
   },
   "event_ledger_schema_version": 3,
-  "generated_at": "2026-08-27T03:22:05.477838+00:00",
+  "generated_at": "2026-08-27T14:21:28.210272+00:00",
   "legacy_state_schema_version": "compatibility-json-v1",
   "manifest_schema_version": 1
 }
