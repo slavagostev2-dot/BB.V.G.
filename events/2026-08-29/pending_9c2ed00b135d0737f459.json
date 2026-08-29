@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "",
-      "attempt_id": "d76d0557f2baaeafc26ef6cc86780b7316d326bd547fecfd8cb7c88bd96d8082",
-      "confidence": 110,
-      "confirmation": "raw_status:already_participating; betboom_preexisting",
-      "error_text": "BetBoom уже показывает точное подтверждение участия",
-      "event_id": "pending:9c2ed00b135d0737f459",
-      "finished_at": "2026-08-29T08:38:56.569413+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-08-29T08:39:19.620938+00:00",
-      "started_at": "2026-08-29T08:38:56.569413+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260829T083915235480Z-bc56854c026b",
       "attempt_id": "2b851b04f670ece6ca1ec2870bb3e440fa2e67d681c18aca54ae19dddf8b51f9",
@@ -41,6 +27,20 @@
       "recorded_at": "2026-08-29T08:39:19.623509+00:00",
       "started_at": "2026-08-29T08:39:15.856766+00:00",
       "status": "unconfirmed"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "",
+      "attempt_id": "d76d0557f2baaeafc26ef6cc86780b7316d326bd547fecfd8cb7c88bd96d8082",
+      "confidence": 110,
+      "confirmation": "raw_status:already_participating; betboom_preexisting",
+      "error_text": "BetBoom уже показывает точное подтверждение участия",
+      "event_id": "pending:9c2ed00b135d0737f459",
+      "finished_at": "2026-08-29T08:38:56.569413+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-08-29T08:39:19.620938+00:00",
+      "started_at": "2026-08-29T08:38:56.569413+00:00",
+      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-29T08:38:56.569413+00:00",
       "status": "participated",
-      "updated_at": "2026-08-29T08:39:19.620938+00:00"
+      "updated_at": "2026-08-29T08:39:34.639040+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-29T08:39:11.982160+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-29T08:39:19.622272+00:00"
+      "updated_at": "2026-08-29T08:39:34.640365+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-29T08:39:15.856766+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-29T08:39:19.623509+00:00"
+      "updated_at": "2026-08-29T08:39:34.641586+00:00"
     }
   ],
   "action_id": null,
@@ -116,6 +116,80 @@
   "source_message_url": "https://telegram.me/jestercast/2013",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:2b851b04f670ece6ca1ec2870bb3e440fa2e67d681c18aca54ae19dddf8b51f9",
+      "occurred_at": "2026-08-29T08:39:11.982160+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260829T083915235480Z-bc56854c026b",
+        "attempt_count": 1,
+        "confirmation": "raw_status:authorization_required; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "1ea5d0149daa523356f2a3b130e972c94572d6577128cc11bec27a1a92736e76"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:af592c0c767637e37fe9479ed00aa8744bd83aa00280842090d3645240642475",
+      "occurred_at": "2026-08-29T08:39:15.856766+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260829T083918693596Z-00684e6ddb20",
+        "attempt_count": 1,
+        "confirmation": "raw_status:authorization_required; workflow_state",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "6dc933d489d10906b7373015dcac8aeafbfc2ff367b35ee81c33e4cd93ee01a1"
+    },
+    {
+      "dedupe_key": "None:2026-08-29T08:35:08.313000+00:00",
+      "occurred_at": "2026-08-29T08:39:19.612492+00:00",
+      "payload": {
+        "action_id": null,
+        "available_at": "",
+        "deadline": "2026-08-29T17:34:24+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "pending:9c2ed00b135d0737f459",
+        "expires_at": "2026-08-29T18:04:24+00:00",
+        "generation_id": "",
+        "identifier": "cct1",
+        "message_text": "ХАЛЯВНЫЕ ФРИБЕТЫ — СЕКТОР ПРИЗ НА БАРАБАНЕ!\n⚡️\nКОЛЕСО ФРИБЕТОВ\nот Jestera\n5️⃣\n0️⃣\n0️⃣\n0️⃣\nФРИБЕТОВ\n✔️\nЗаходи по ссылке -\nhttps://betboom.ru/freestream/cct1\n✔️\nПодписаться на канал\nt.me/Jestercast\n🚨\n✔️\nНажимай кнопку\nУчаствовать\nЧерез 9 ЧАСОВ\nКолесо автоматически сделает прокрут\nИ между теми, кто нажал Участвовать разыграются призы!\nДальше, если ты выиграл, в течении 2-3 минут фрибеты будут зачислены на твой аккаунт BetBoom автоматически.\nВсё буду показывать и рассказывать на стриме, заходи:\n✨\ntwitch.tv/Jester_andrew\n✨\ntwitch.tv/Jester_andrew\nДля того, чтобы участвовать в раздаче КОЛЕСО ФРИБЕТОВ, нужно обязательно быть зарегистрированным на BetBoom\n(вносить деньги не обязательно)\n❤️\nЗАРЕГИСТРИРОВАТЬСЯ с промокодом PEPE\nhttps://telegram.me/jestercast\nhttps://telegram.me/jestercast/2013\nhttps://betboom.ru/freestream/cct1\nhttps://telegram.me/Jestercast%F0%9F%9A%A8\nhttp://twitch.tv/Jester_andrew\nhttps://cyberbb.ru/tw/pepe",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-29T08:35:08.313000+00:00",
+        "source": "jestercast",
+        "source_message_date": "2026-08-29T08:34:24+00:00",
+        "source_message_id": 2013,
+        "source_message_url": "https://telegram.me/jestercast/2013",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/cct1",
+        "verification_status": "confirmed",
+        "wheel_key": "cct1",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "75fe0afbe2cda346eb078c01050e253d44c26dd5fe3557ea2f32063b5247f1ea"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:d76d0557f2baaeafc26ef6cc86780b7316d326bd547fecfd8cb7c88bd96d8082",
+      "occurred_at": "2026-08-29T08:38:56.569413+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "raw_status:already_participating; betboom_preexisting",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "83928caae81ec989f7ccb64e95b7c2eee46b11ee4dd3e6e3bf108f3c88542385"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-08-29T08:39:19.612492+00:00",
@@ -175,35 +249,6 @@
       "transition_id": "9515b71de6c739fac495cbb34ff02e6ca2fb41671c7db5eacf78a45d118a6577"
     },
     {
-      "dedupe_key": "None:2026-08-29T08:35:08.313000+00:00",
-      "occurred_at": "2026-08-29T08:39:19.612492+00:00",
-      "payload": {
-        "action_id": null,
-        "available_at": "",
-        "deadline": "2026-08-29T17:34:24+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "pending:9c2ed00b135d0737f459",
-        "expires_at": "2026-08-29T18:04:24+00:00",
-        "generation_id": "",
-        "identifier": "cct1",
-        "message_text": "ХАЛЯВНЫЕ ФРИБЕТЫ — СЕКТОР ПРИЗ НА БАРАБАНЕ!\n⚡️\nКОЛЕСО ФРИБЕТОВ\nот Jestera\n5️⃣\n0️⃣\n0️⃣\n0️⃣\nФРИБЕТОВ\n✔️\nЗаходи по ссылке -\nhttps://betboom.ru/freestream/cct1\n✔️\nПодписаться на канал\nt.me/Jestercast\n🚨\n✔️\nНажимай кнопку\nУчаствовать\nЧерез 9 ЧАСОВ\nКолесо автоматически сделает прокрут\nИ между теми, кто нажал Участвовать разыграются призы!\nДальше, если ты выиграл, в течении 2-3 минут фрибеты будут зачислены на твой аккаунт BetBoom автоматически.\nВсё буду показывать и рассказывать на стриме, заходи:\n✨\ntwitch.tv/Jester_andrew\n✨\ntwitch.tv/Jester_andrew\nДля того, чтобы участвовать в раздаче КОЛЕСО ФРИБЕТОВ, нужно обязательно быть зарегистрированным на BetBoom\n(вносить деньги не обязательно)\n❤️\nЗАРЕГИСТРИРОВАТЬСЯ с промокодом PEPE\nhttps://telegram.me/jestercast\nhttps://telegram.me/jestercast/2013\nhttps://betboom.ru/freestream/cct1\nhttps://telegram.me/Jestercast%F0%9F%9A%A8\nhttp://twitch.tv/Jester_andrew\nhttps://cyberbb.ru/tw/pepe",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-29T08:35:08.313000+00:00",
-        "source": "jestercast",
-        "source_message_date": "2026-08-29T08:34:24+00:00",
-        "source_message_id": 2013,
-        "source_message_url": "https://telegram.me/jestercast/2013",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/cct1",
-        "verification_status": "confirmed",
-        "wheel_key": "cct1",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "75fe0afbe2cda346eb078c01050e253d44c26dd5fe3557ea2f32063b5247f1ea"
-    },
-    {
       "dedupe_key": "33243504966",
       "occurred_at": "2026-08-29T08:39:19.617831+00:00",
       "payload": {
@@ -212,54 +257,9 @@
       },
       "stage": "workflow_started",
       "transition_id": "fc3706f9ba2a07d049587941718e5525b07d5119f7a66027091114e40eeb9c3a"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:d76d0557f2baaeafc26ef6cc86780b7316d326bd547fecfd8cb7c88bd96d8082",
-      "occurred_at": "2026-08-29T08:38:56.569413+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "raw_status:already_participating; betboom_preexisting",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "83928caae81ec989f7ccb64e95b7c2eee46b11ee4dd3e6e3bf108f3c88542385"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:2b851b04f670ece6ca1ec2870bb3e440fa2e67d681c18aca54ae19dddf8b51f9",
-      "occurred_at": "2026-08-29T08:39:11.982160+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260829T083915235480Z-bc56854c026b",
-        "attempt_count": 1,
-        "confirmation": "raw_status:authorization_required; workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "1ea5d0149daa523356f2a3b130e972c94572d6577128cc11bec27a1a92736e76"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:af592c0c767637e37fe9479ed00aa8744bd83aa00280842090d3645240642475",
-      "occurred_at": "2026-08-29T08:39:15.856766+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260829T083918693596Z-00684e6ddb20",
-        "attempt_count": 1,
-        "confirmation": "raw_status:authorization_required; workflow_state",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "6dc933d489d10906b7373015dcac8aeafbfc2ff367b35ee81c33e4cd93ee01a1"
     }
   ],
-  "updated_at": "2026-08-29T08:39:19.617831+00:00",
+  "updated_at": "2026-08-29T08:39:34.636432+00:00",
   "wheel_key": "cct1",
   "workflow_started_at": "2026-08-29T08:39:19.617831+00:00"
 }
