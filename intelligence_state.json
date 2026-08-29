@@ -1,19 +1,84 @@
 {
-  "candidates": {},
-  "edges": {},
+  "candidates": {
+    "brokefc": {
+      "admin_alert_delivery_count": 1,
+      "admin_alerted_at": "2026-08-29T21:01:17.578194+00:00",
+      "candidate_signals": [
+        "колёса и акции",
+        "стримы"
+      ],
+      "context_signals": [
+        "колёса и акции",
+        "стримы"
+      ],
+      "discovered_from": [
+        "risenhaha"
+      ],
+      "evidence": [
+        {
+          "from": "risenhaha",
+          "message_url": "https://telegram.me/risenhaha/8480",
+          "method": "тематическое упоминание или ссылка Telegram",
+          "published_at": "2026-08-29T16:43:04+00:00",
+          "signals": [
+            "колёса и акции",
+            "стримы"
+          ]
+        }
+      ],
+      "first_discovered_at": "2026-08-29T21:01:17.006568+00:00",
+      "last_discovered_at": "2026-08-29T21:01:17.006566+00:00",
+      "last_lifecycle_run": "2026-08-29T21:01:17.008082+00:00",
+      "last_verified_at": "2026-08-29T21:01:17.006570+00:00",
+      "latest_wheel_at": "2026-08-29T17:39:17+00:00",
+      "lifecycle_reason": "канал подтверждён и имеет тематические признаки, требуется накопить доказательства",
+      "lifecycle_status": "observed",
+      "mention_count": 1,
+      "messages_checked": 20,
+      "observation_days": 0,
+      "observation_runs": 1,
+      "public": true,
+      "recommendation_alert_count": 1,
+      "recommendation_alerted_at": "2026-08-29T21:01:17.578194+00:00",
+      "relevance_status": "relevant",
+      "relevant_messages_found": 11,
+      "sample_wheels": [
+        {
+          "identifier": "brokeboys",
+          "message_url": "https://telegram.me/brokefc/25693",
+          "published_at": "2026-08-29T17:39:17+00:00",
+          "url": "https://betboom.ru/freestream/brokeboys"
+        }
+      ],
+      "score": 57,
+      "source": "brokefc",
+      "status": "ok",
+      "username_signals": [],
+      "wheel_links_found": 1
+    }
+  },
+  "edges": {
+    "risenhaha->brokefc": {
+      "count": 1,
+      "first_seen_at": "2026-08-29T21:01:04.849472+00:00",
+      "from": "risenhaha",
+      "last_seen_at": "2026-08-29T21:01:04.849525+00:00",
+      "to": "brokefc"
+    }
+  },
   "last_errors": [],
-  "last_run_at": "2026-08-29T01:49:53.751228+00:00",
+  "last_run_at": "2026-08-29T21:01:17.008082+00:00",
   "last_run_summary": {
     "empty_sources": 2,
     "error_types": {},
     "errors": 0,
     "known_sources": 172,
-    "references_found": 343,
-    "relevant_candidates": 174,
+    "references_found": 326,
+    "relevant_candidates": 167,
     "sources_scanned": 172,
-    "strong_candidates": 5,
+    "strong_candidates": 6,
     "telegram_domain": "telegram.me",
-    "unique_candidates": 174,
+    "unique_candidates": 167,
     "verified_candidates": 150,
     "workers": 12
   },
@@ -92,21 +157,36 @@
       "unique_candidates": 174,
       "verified_candidates": 150,
       "workers": 12
+    },
+    {
+      "at": "2026-08-29T21:01:17.008172+00:00",
+      "empty_sources": 2,
+      "error_types": {},
+      "errors": 0,
+      "known_sources": 172,
+      "references_found": 326,
+      "relevant_candidates": 167,
+      "sources_scanned": 172,
+      "strong_candidates": 6,
+      "telegram_domain": "telegram.me",
+      "unique_candidates": 167,
+      "verified_candidates": 150,
+      "workers": 12
     }
   ],
   "source_discovery_lifecycle": {
     "counts": {
       "approved": 0,
       "candidate": 0,
-      "observed": 0,
+      "observed": 1,
       "recommended": 0,
       "rejected": 0
     },
-    "evaluated_at": "2026-08-29T01:49:53.757096+00:00",
+    "evaluated_at": "2026-08-29T21:01:17.013791+00:00",
     "recommended": 0,
-    "run_marker": "2026-08-29T01:49:53.751228+00:00"
+    "run_marker": "2026-08-29T21:01:17.008082+00:00"
   },
   "telegram_domain": "telegram.me",
-  "updated_at": "2026-08-29T01:49:53.757338+00:00",
+  "updated_at": "2026-08-29T21:01:17.578242+00:00",
   "version": 1
 }
