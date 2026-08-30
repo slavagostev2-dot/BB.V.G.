@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-30T17:10:08.249423+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-30T17:10:53.007536+00:00"
+      "updated_at": "2026-08-30T17:11:10.368544+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-30T17:10:32.837494+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-30T17:10:53.008842+00:00"
+      "updated_at": "2026-08-30T17:11:10.376151+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-30T17:10:48.334680+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-30T17:10:53.009859+00:00"
+      "updated_at": "2026-08-30T17:11:10.377162+00:00"
     }
   ],
   "action_id": null,
@@ -117,33 +117,44 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-08-30T17:10:53.000410+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:7257d67baa48e0d59ac9a01c750351f92d2fb44f672dd28fcd327034959aa86d",
+      "occurred_at": "2026-08-30T17:10:32.837494+00:00",
       "payload": {
-        "action_id": null,
-        "available_at": "",
-        "deadline": "",
-        "discovery_reason": "workflow_payload",
-        "event_id": "pending:a20d472cf202ea4b528c",
-        "expires_at": "2026-08-30T19:10:08.249423+00:00",
-        "generation_id": "",
-        "identifier": "chopperref",
-        "message_text": "КОЛЕСО ДЛЯ РЕФЕРАЛОВ -\nhttps://betboom.ru/freestream/chopperref\nhttps://telegram.me/propperinho\nhttps://betboom.ru/freestream/chopperref\nhttps://telegram.me/propperinho/123",
-        "referral_classification_evidence": "explicit_persisted_referral_restriction",
-        "referral_restricted": true,
-        "server_start_at": "2026-08-30T17:06:30.479000+00:00",
-        "source": "propperinho",
-        "source_message_date": "2026-08-30T17:05:35+00:00",
-        "source_message_id": 123,
-        "source_message_url": "https://telegram.me/propperinho/123",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/chopperref",
-        "verification_status": "confirmed",
-        "wheel_key": "chopperref",
-        "wheel_type": "referral"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260830T171047567321Z-f162b0b45e1d",
+        "attempt_count": 1,
+        "confirmation": "raw_status:authorization_required; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
       },
-      "stage": "source_discovered",
-      "transition_id": "a3d583a45b53703e3fddf4cfe01906935e4122a57164d7265173a103ab7e0d73"
+      "stage": "account_result",
+      "transition_id": "0a437eea4a92d518854ece52ed572526f386bbab84dcb4fec4323707c5e6b9b5"
+    },
+    {
+      "dedupe_key": "33324317956",
+      "occurred_at": "2026-08-30T17:10:53.004653+00:00",
+      "payload": {
+        "workflow_run_id": "33324317956",
+        "workflow_sha": "f0655086ec10382a37754bd45414f741961f0922"
+      },
+      "stage": "workflow_started",
+      "transition_id": "17a0d7d957e6818b90c5aa57a2713d5de6a923aa2d4ab07c954c391f1d3a66ab"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:072ecaeb94895dfa01ed9848e32d62b95fd85a251453908ac002fa9618a89515",
+      "occurred_at": "2026-08-30T17:10:08.249423+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260830T171032272730Z-80ff9f8cdd7d",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "40f924b5aec8185cfad5fa46c55aa1ec897f381afaca21f9ba4b752c69c8a82d"
     },
     {
       "dedupe_key": "durable-event",
@@ -204,44 +215,33 @@
       "transition_id": "960d19e5f7a7cd78100993445df6c0aee50dce4924b255f00ff0dfb9fab0ef94"
     },
     {
-      "dedupe_key": "33324317956",
-      "occurred_at": "2026-08-30T17:10:53.004653+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-08-30T17:10:53.000410+00:00",
       "payload": {
-        "workflow_run_id": "33324317956",
-        "workflow_sha": "f0655086ec10382a37754bd45414f741961f0922"
+        "action_id": null,
+        "available_at": "",
+        "deadline": "",
+        "discovery_reason": "workflow_payload",
+        "event_id": "pending:a20d472cf202ea4b528c",
+        "expires_at": "2026-08-30T19:10:08.249423+00:00",
+        "generation_id": "",
+        "identifier": "chopperref",
+        "message_text": "КОЛЕСО ДЛЯ РЕФЕРАЛОВ -\nhttps://betboom.ru/freestream/chopperref\nhttps://telegram.me/propperinho\nhttps://betboom.ru/freestream/chopperref\nhttps://telegram.me/propperinho/123",
+        "referral_classification_evidence": "explicit_persisted_referral_restriction",
+        "referral_restricted": true,
+        "server_start_at": "2026-08-30T17:06:30.479000+00:00",
+        "source": "propperinho",
+        "source_message_date": "2026-08-30T17:05:35+00:00",
+        "source_message_id": 123,
+        "source_message_url": "https://telegram.me/propperinho/123",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/chopperref",
+        "verification_status": "confirmed",
+        "wheel_key": "chopperref",
+        "wheel_type": "referral"
       },
-      "stage": "workflow_started",
-      "transition_id": "17a0d7d957e6818b90c5aa57a2713d5de6a923aa2d4ab07c954c391f1d3a66ab"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:072ecaeb94895dfa01ed9848e32d62b95fd85a251453908ac002fa9618a89515",
-      "occurred_at": "2026-08-30T17:10:08.249423+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260830T171032272730Z-80ff9f8cdd7d",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "40f924b5aec8185cfad5fa46c55aa1ec897f381afaca21f9ba4b752c69c8a82d"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:7257d67baa48e0d59ac9a01c750351f92d2fb44f672dd28fcd327034959aa86d",
-      "occurred_at": "2026-08-30T17:10:32.837494+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260830T171047567321Z-f162b0b45e1d",
-        "attempt_count": 1,
-        "confirmation": "raw_status:authorization_required; workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "0a437eea4a92d518854ece52ed572526f386bbab84dcb4fec4323707c5e6b9b5"
+      "stage": "source_discovered",
+      "transition_id": "a3d583a45b53703e3fddf4cfe01906935e4122a57164d7265173a103ab7e0d73"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:b0afddceac7b9b3042339c76b3847976e671b7828a61dfb161c3863e141d04c3",
@@ -259,7 +259,7 @@
       "transition_id": "a67c10ea29839af60258066b78c239223625fa6d8f4b0154ce090037c70c53c3"
     }
   ],
-  "updated_at": "2026-08-30T17:10:53.004653+00:00",
+  "updated_at": "2026-08-30T17:11:10.366416+00:00",
   "wheel_key": "chopperref",
   "workflow_started_at": "2026-08-30T17:10:53.004653+00:00"
 }
