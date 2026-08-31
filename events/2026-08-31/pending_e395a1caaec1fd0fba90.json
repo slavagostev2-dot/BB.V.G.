@@ -1,6 +1,20 @@
 {
   "account_attempts": [
     {
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260831T191031096305Z-d7669994bb93",
+      "attempt_id": "0d5f336951f3e9cff46cf12ca97e7e16acdf02b52570ae0e446f90a99652ad61",
+      "confidence": 20,
+      "confirmation": "raw_status:authorization_required; workflow_state",
+      "error_text": "страница показывает вход/авторизацию (main:Авторизоваться)",
+      "event_id": "pending:e395a1caaec1fd0fba90",
+      "finished_at": "2026-08-31T19:10:28.083184+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-08-31T19:10:31.912442+00:00",
+      "started_at": "2026-08-31T19:10:28.083184+00:00",
+      "status": "unconfirmed"
+    },
+    {
       "account_key": "vyacheslav_primary",
       "artifact_url": "",
       "attempt_id": "2a5c39e9c93b40037541811e1a389513d1baf14c97a0a0161e54e286e3a13241",
@@ -27,20 +41,6 @@
       "recorded_at": "2026-08-31T19:10:31.910794+00:00",
       "started_at": "2026-08-31T19:10:24.130198+00:00",
       "status": "unconfirmed"
-    },
-    {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260831T191031096305Z-d7669994bb93",
-      "attempt_id": "0d5f336951f3e9cff46cf12ca97e7e16acdf02b52570ae0e446f90a99652ad61",
-      "confidence": 20,
-      "confirmation": "raw_status:authorization_required; workflow_state",
-      "error_text": "страница показывает вход/авторизацию (main:Авторизоваться)",
-      "event_id": "pending:e395a1caaec1fd0fba90",
-      "finished_at": "2026-08-31T19:10:28.083184+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-08-31T19:10:31.912442+00:00",
-      "started_at": "2026-08-31T19:10:28.083184+00:00",
-      "status": "unconfirmed"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-31T19:10:09.386138+00:00",
       "status": "participated",
-      "updated_at": "2026-08-31T19:10:31.909567+00:00"
+      "updated_at": "2026-08-31T19:10:48.516617+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-08-31T19:10:24.130198+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-31T19:10:31.910794+00:00"
+      "updated_at": "2026-08-31T19:10:48.517863+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-08-31T19:10:28.083184+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-08-31T19:10:31.912442+00:00"
+      "updated_at": "2026-08-31T19:10:48.518920+00:00"
     }
   ],
   "action_id": null,
@@ -175,35 +175,6 @@
       "transition_id": "7f731f37ce68426b79ae5101b9dfc958639188b523d19a9fd4a721d92cdd8a02"
     },
     {
-      "dedupe_key": "None:2026-08-31T19:05:31.331000+00:00",
-      "occurred_at": "2026-08-31T19:10:31.901377+00:00",
-      "payload": {
-        "action_id": null,
-        "available_at": "",
-        "deadline": "2026-08-31T19:34:28+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "pending:e395a1caaec1fd0fba90",
-        "expires_at": "2026-08-31T20:04:28+00:00",
-        "generation_id": "",
-        "identifier": "lent",
-        "message_text": "Колесо на 10.000 Фрибетов\n❤️\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nЧерез 30 минут после публикации — колесо сделает прокрут и раздаст победителям фрибеты разных номиналов\n🪙\n❤️\nЗабирай до 10к фрибетов по промокоду LENT\n❤️\nhttps://telegram.me/zont1x\nhttps://telegram.me/zont1x/35016\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&utm_source=freestream\nhttps://bbsport.su/link/5ouCEj/?erid=KW2aPRYdr5QoPXHUFSBHvZSemE3g6FLnvz2VVtD4DAbaB2YBtcVqqwztKNenqC18t\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&amp;utm_source=freestream",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-08-31T19:05:31.331000+00:00",
-        "source": "zont1x",
-        "source_message_date": "2026-08-31T19:04:28+00:00",
-        "source_message_id": 35016,
-        "source_message_url": "https://telegram.me/zont1x/35016",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/lent",
-        "verification_status": "confirmed",
-        "wheel_key": "lent",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "e520d5a03a9e14f3d9c46261b2d9fdfc2e13532abc460579302b6562d951ce1d"
-    },
-    {
       "dedupe_key": "33428636841",
       "occurred_at": "2026-08-31T19:10:31.905768+00:00",
       "payload": {
@@ -257,9 +228,38 @@
       },
       "stage": "account_result",
       "transition_id": "e51d9e037d891e8efce18e6374fa3138abed23f1003f4c6b62b640d9870fe461"
+    },
+    {
+      "dedupe_key": "None:2026-08-31T19:05:31.331000+00:00",
+      "occurred_at": "2026-08-31T19:10:31.901377+00:00",
+      "payload": {
+        "action_id": null,
+        "available_at": "",
+        "deadline": "2026-08-31T19:34:28+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "pending:e395a1caaec1fd0fba90",
+        "expires_at": "2026-08-31T20:04:28+00:00",
+        "generation_id": "",
+        "identifier": "lent",
+        "message_text": "Колесо на 10.000 Фрибетов\n❤️\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nЧерез 30 минут после публикации — колесо сделает прокрут и раздаст победителям фрибеты разных номиналов\n🪙\n❤️\nЗабирай до 10к фрибетов по промокоду LENT\n❤️\nhttps://telegram.me/zont1x\nhttps://telegram.me/zont1x/35016\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&utm_source=freestream\nhttps://bbsport.su/link/5ouCEj/?erid=KW2aPRYdr5QoPXHUFSBHvZSemE3g6FLnvz2VVtD4DAbaB2YBtcVqqwztKNenqC18t\nhttps://betboom.ru/freestream/lent?utm_content=lebwa&amp;utm_source=freestream",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-08-31T19:05:31.331000+00:00",
+        "source": "zont1x",
+        "source_message_date": "2026-08-31T19:04:28+00:00",
+        "source_message_id": 35016,
+        "source_message_url": "https://telegram.me/zont1x/35016",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/lent",
+        "verification_status": "confirmed",
+        "wheel_key": "lent",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "e520d5a03a9e14f3d9c46261b2d9fdfc2e13532abc460579302b6562d951ce1d"
     }
   ],
-  "updated_at": "2026-08-31T19:10:31.905768+00:00",
+  "updated_at": "2026-08-31T19:10:48.513872+00:00",
   "wheel_key": "lent",
   "workflow_started_at": "2026-08-31T19:10:31.905768+00:00"
 }
