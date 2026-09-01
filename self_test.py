@@ -10,10 +10,11 @@ import monitor_data as data_store
 ROOT = Path(__file__).resolve().parent
 
 
-def fake_api(payload: dict, status_code: int = 200):
+def fake_api(payload: dict, status_code: int = 200, text: str = ""):
     class FakeResponse:
         def __init__(self) -> None:
             self.status_code = status_code
+            self.text = text
 
         def json(self) -> dict:
             return payload
@@ -22,6 +23,24 @@ def fake_api(payload: dict, status_code: int = 200):
             return None
 
     return FakeResponse()
+
+
+def fake_wheel_requests(info: dict):
+    def request(method: str, *args, **kwargs):
+        if method == "GET":
+            return fake_api(
+                {},
+                text=(
+                    '<script id="__NEXT_DATA__" type="application/json">'
+                    '{"props":{"pageProps":{"uid":"action-uid",'
+                    '"hash":"signed-token"}}}</script>'
+                ),
+            )
+        assert kwargs["json"] == {"action_uid": "action-uid"}
+        assert kwargs["headers"]["x-action-signature"] == "signed-token"
+        return fake_api({"code": 200, "status": "OK", "info": info})
+
+    return request
 
 
 def main() -> None:
@@ -38,17 +57,13 @@ def main() -> None:
 
     original_request = monitor.request_with_retries
     try:
-        monitor.request_with_retries = lambda *args, **kwargs: fake_api(
+        monitor.request_with_retries = fake_wheel_requests(
             {
-                "code": 200,
-                "status": "OK",
-                "info": {
-                    "action_id": 866,
-                    "start_dttm": "2026-07-16T14:26:28.209Z",
-                    "duration_min": 15,
-                    "is_ended": True,
-                    "is_early": False,
-                },
+                "action_id": 866,
+                "start_dttm": "2026-07-16T14:26:28.209Z",
+                "duration_min": 15,
+                "is_ended": True,
+                "is_early": False,
             }
         )
         inspection = monitor.inspect_wheel_page(
@@ -58,17 +73,13 @@ def main() -> None:
         assert inspection.action_id == 866
 
         started = monitor.now_utc() - timedelta(minutes=5)
-        monitor.request_with_retries = lambda *args, **kwargs: fake_api(
+        monitor.request_with_retries = fake_wheel_requests(
             {
-                "code": 200,
-                "status": "OK",
-                "info": {
-                    "action_id": 692,
-                    "start_dttm": started.isoformat(),
-                    "duration_min": 600,
-                    "is_ended": False,
-                    "is_early": False,
-                },
+                "action_id": 692,
+                "start_dttm": started.isoformat(),
+                "duration_min": 600,
+                "is_ended": False,
+                "is_early": False,
             }
         )
         inspection = monitor.inspect_wheel_page(
