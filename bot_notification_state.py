@@ -29,6 +29,7 @@ _TRANSIENT_PARTICIPATION_STATUSES = {
     "workflow_dispatch_retry_wait",
 }
 _TERMINAL_PARTICIPATION_FAILURE_STATUSES = {
+    "authorization_required",
     "button_not_found",
     "participation_closed",
     "not_eligible",
@@ -69,6 +70,8 @@ def _transient_participation_failure(
             current.get("auto_participation_error"),
         )
     ).casefold()
+    if status in _TERMINAL_PARTICIPATION_FAILURE_STATUSES:
+        return False
     return status in _TRANSIENT_PARTICIPATION_STATUSES or any(
         marker in detail for marker in _TRANSIENT_PARTICIPATION_MARKERS
     )
@@ -485,6 +488,26 @@ def self_test() -> None:
                     ),
                 )
             ] == ["wheel#action:2:now"]
+
+            authorization_state = {
+                "auto_participation_events": {
+                    "wheel#action:3:now": {
+                        "wheel_key": "wheel",
+                        "status": "authorization_required",
+                        "detail": "страница показывает вход/авторизацию",
+                        "bot_failure_pending_at": "2026-07-21T00:00:00+00:00",
+                    }
+                }
+            }
+            assert [
+                token
+                for token, _record in _pending_failure_events_authoritative(
+                    authorization_state,
+                    now=auto_participation_owner_sync.datetime(
+                        2026, 7, 22, tzinfo=auto_participation_owner_sync.UTC
+                    ),
+                )
+            ] == ["wheel#action:3:now"]
 
             success_text, success_markup = _short_success_message(
                 "wheel", {"identifier": "wheel"}, [], 5, True
