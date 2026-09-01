@@ -108,6 +108,7 @@ def install(monitor_module: Any) -> None:
     def inspect_wheel_page_authoritative(link: str):
         normalized = monitor_module.normalize_url(link)
         try:
+            action_uid, signature = monitor_module.wheel_action_credentials(normalized)
             response = monitor_module.request_with_retries(
                 "POST",
                 monitor_module.BETBOOM_WHEEL_INFO_URL,
@@ -117,10 +118,11 @@ def install(monitor_module: Any) -> None:
                     "Content-Type": "application/json",
                     "User-Agent": monitor_module.USER_AGENT,
                     "x-platform": "web",
+                    "x-action-signature": signature,
                 },
-                json={"streamer_link": normalized},
+                json={"action_uid": action_uid},
             )
-        except monitor_module.requests.RequestException as exc:
+        except (monitor_module.requests.RequestException, ValueError) as exc:
             return monitor_module._wheel_verification_failed(
                 f"{type(exc).__name__}: {exc}"
             )

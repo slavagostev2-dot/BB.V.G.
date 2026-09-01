@@ -33,8 +33,9 @@ class WheelApiVerificationTests(unittest.TestCase):
     class Response:
         status_code = 200
 
-        def __init__(self, payload: dict[str, Any]) -> None:
+        def __init__(self, payload: dict[str, Any], text: str = "") -> None:
             self.payload = payload
+            self.text = text
 
         def json(self) -> dict[str, Any]:
             return self.payload
@@ -53,9 +54,21 @@ class WheelApiVerificationTests(unittest.TestCase):
         monitor.now_utc = self.original_now
 
     def response(self, info: dict[str, Any]) -> None:
-        monitor.request_with_retries = lambda *args, **kwargs: self.Response(
-            {"code": 200, "status": "OK", "info": info}
-        )
+        def request(method: str, *args: Any, **kwargs: Any):
+            if method == "GET":
+                return self.Response(
+                    {},
+                    '<script id="__NEXT_DATA__" type="application/json">'
+                    '{"props":{"pageProps":{"uid":"action-uid",'
+                    '"hash":"signed-token"}}}</script>',
+                )
+            self.assertEqual(kwargs["json"], {"action_uid": "action-uid"})
+            self.assertEqual(
+                kwargs["headers"]["x-action-signature"], "signed-token"
+            )
+            return self.Response({"code": 200, "status": "OK", "info": info})
+
+        monitor.request_with_retries = request
 
     def test_active_action_uses_api_deadline_and_identity(self) -> None:
         self.response(
@@ -144,13 +157,23 @@ class WheelApiVerificationTests(unittest.TestCase):
         self.assertEqual(result.action_id, 866)
 
     def test_not_found_is_a_silent_definitive_rejection(self) -> None:
-        monitor.request_with_retries = lambda *args, **kwargs: self.Response(
-            {
-                "code": 400,
-                "status": "BAD_REQUEST",
-                "error": {"message": "Акция не найдена"},
-            }
-        )
+        def request(method: str, *args: Any, **kwargs: Any):
+            if method == "GET":
+                return self.Response(
+                    {},
+                    '<script id="__NEXT_DATA__" type="application/json">'
+                    '{"props":{"pageProps":{"uid":"missing",'
+                    '"hash":"signed-token"}}}</script>',
+                )
+            return self.Response(
+                {
+                    "code": 400,
+                    "status": "BAD_REQUEST",
+                    "error": {"message": "Акция не найдена"},
+                }
+            )
+
+        monitor.request_with_retries = request
         message = monitor.Message(
             "source",
             1,
