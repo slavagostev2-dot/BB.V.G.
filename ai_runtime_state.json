@@ -1,10 +1,5 @@
 {
-  "cache": {
-    "22e9362417d07849f7feda41cca1b63bc22fa46a248f8f8fee4d32d7a4606b89": {
-      "expires_at": 1788291973.4030914,
-      "text": "{\n  \"summary\": \"Система находится в критическом состоянии: зафиксировано 5 критических ошибок и 4 предупреждения, связанных с неактуальностью источников и ошибками конфигурации доменов.\",\n  \"impact\": \"Нарушена целостность сбора данных: источники не обновляются, критические ссылки на домены не валидны, а автоматизация ночного режима заблокирована из-за отсутствия подтверждения.\",\n  \"recommended_action\": \"Сверить настроенный inventory с последней транспортной проверкой.\",\n  \"confidence\": \"high\"\n}"
-    }
-  },
+  "cache": {},
   "decisions": [
     {
       "cached": false,
@@ -2518,10 +2513,21 @@
       "output_sha256": "a1efc064d864801799b693a28718f570dac61996f7ddf466263284059fcd2115",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1788299869.2322323,
+      "error": "RuntimeError: Gemini HTTP 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n",
+      "feature": "health_inspector",
+      "id": "346dbb9ff5c54cadb2ce7605ac9d89f5",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "5c33ea104f8e3f43d2f54133534d52571234a67262f881ac280fabcbd85c6583",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1788291073.4030914
+    1788299869.2322323
   ],
   "version": 1
 }
