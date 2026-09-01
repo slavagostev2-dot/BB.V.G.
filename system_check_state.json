@@ -1,20 +1,20 @@
 {
-  "active_incidents": 7,
+  "active_incidents": 9,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-08-27T03:17:19.930953+00:00",
-    "started_at": "2026-08-27T03:17:16.378371+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-09-01T16:31:25.855684+00:00",
+    "started_at": "2026-09-01T15:45:59.702902+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
+    "ai_status": "provider_error",
     "cached": false,
-    "confidence": 0.0,
-    "critical_count": 4,
-    "decision_id": "ca08262801c94520a0eef7e807c2f388",
-    "finding_count": 7,
+    "confidence": 1.0,
+    "critical_count": 5,
+    "decision_id": "26df72d09dc3467fb18e3cc57b6d0df9",
+    "finding_count": 9,
     "finding_kinds": [
       "discovery_domain",
       "discovery_stale_поиск",
@@ -22,20 +22,21 @@
       "source_empty_public_feed",
       "source_tier_maintenance_stale",
       "source_tier_policy_stale",
+      "source_transport_stale",
       "sources_quarantined"
     ],
-    "generated_at": "2026-08-27T03:22:15.634543+00:00",
-    "impact": "Нарушена целостность сбора данных: источники не обновляются, критические скрипты отсутствуют, а автоматизация работает с устаревшими или неверными параметрами, что делает невозможным получение актуальной информации.",
-    "mode": "ai",
+    "generated_at": "2026-09-01T16:33:03.780937+00:00",
+    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
+    "mode": "rules",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Открыть файл system_check_state.json и список активных инцидентов для верификации первопричин и ручной корректировки конфигурации доменов.",
+    "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 4 критические ошибки и 3 предупреждения, связанные с некорректной конфигурацией доменов, отсутствием обновлений поиска и нарушением политик обслуживания источников.",
-    "used_fallback": false,
+    "summary": "Система требует внимания: критических проблем — 5, предупреждений — 4. Источники последнего цикла: доступно 170/170, ошибок 0.",
+    "used_fallback": true,
     "version": 1,
-    "warning_count": 3
+    "warning_count": 4
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -72,7 +73,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-08-27T03:22:13.322417+00:00",
+  "checked_at": "2026-09-01T16:33:01.976182+00:00",
   "discovery": {
     "active_size": 0,
     "candidate_count": 0,
@@ -81,18 +82,18 @@
     "discovery_last_run_at": null,
     "domain": null,
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-08-27T03:19:18.868199+00:00",
+    "intelligence_last_run_at": "2026-09-01T06:47:49.186303+00:00",
     "intelligence_summary": {
-      "empty_sources": 1,
+      "empty_sources": 2,
       "error_types": {},
       "errors": 0,
       "known_sources": 172,
-      "references_found": 298,
-      "relevant_candidates": 150,
+      "references_found": 356,
+      "relevant_candidates": 184,
       "sources_scanned": 172,
       "strong_candidates": 5,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 150,
+      "unique_candidates": 184,
       "verified_candidates": 150,
       "workers": 12
     }
@@ -112,8 +113,15 @@
     ],
     "primary": "telegram.me"
   },
-  "finding_count": 7,
+  "finding_count": 9,
   "findings": [
+    {
+      "detail": "публичная страница открылась, но сообщений не найдено",
+      "kind": "source_empty_public_feed",
+      "severity": "critical",
+      "subject": "kolesaBB",
+      "title": "Источник @kolesaBB не проверяется"
+    },
     {
       "detail": "публичная страница открылась, но сообщений не найдено",
       "kind": "source_empty_public_feed",
@@ -122,7 +130,7 @@
       "title": "Источник @wfksiris не проверяется"
     },
     {
-      "detail": "В карантине: 1. Источники остаются в общем пуле и будут перепроверяться.",
+      "detail": "В карантине: 2. Источники остаются в общем пуле и будут перепроверяться.",
       "kind": "sources_quarantined",
       "severity": "warning",
       "subject": "",
@@ -162,35 +170,42 @@
       "severity": "warning",
       "subject": "",
       "title": "Давно не запускалось обслуживание режимов источников"
+    },
+    {
+      "detail": "Нет свежего транспортного прогона для 172 источников за последние 36 часов.",
+      "kind": "source_transport_stale",
+      "severity": "warning",
+      "subject": "",
+      "title": "Давно не выполнялась полная проверка текущего inventory"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 7,
-    "bot_panel_heartbeat": "2026-08-27T03:17:19.930953+00:00",
-    "checked_sources": 171,
+    "active_incidents": 9,
+    "bot_panel_heartbeat": "2026-09-01T16:31:25.855684+00:00",
+    "checked_sources": 170,
     "configured_sources": 172,
     "domain": "telegram.me",
-    "reachable_sources": 171,
+    "reachable_sources": 170,
     "single_source": "system_check_state.json",
     "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-08-26T20:59:21.904431+00:00",
+      "last_checked_at": "2026-09-01T16:31:29.030728+00:00",
       "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-      "last_success_at": "2026-08-26T20:59:21.904431+00:00",
+      "last_success_at": "2026-09-01T16:31:29.030728+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "rules",
+    "health_inspector_status": "provider_error",
     "messages_attempted": 0,
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 165,
+  "incident_sequence": 167,
   "inventory": {
     "configured": 172,
     "configured_total": 172,
@@ -213,41 +228,41 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 171,
-    "checks_delta": 6535851,
-    "checks_total": 7478964,
+    "checked_sources": 170,
+    "checks_delta": 172,
+    "checks_total": 8568049,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "dc59cbfe9784262019931661b8ad60ccb148e8e7",
-    "iteration": 1,
-    "last_iteration_at": "2026-08-27T03:18:06.546695+00:00",
-    "last_iteration_duration_seconds": 31,
+    "head_sha": "7960eb41f2f0a09cd3fe5c4eb7a1d0a41f790d31",
+    "iteration": 211,
+    "last_iteration_at": "2026-09-01T16:27:05.664888+00:00",
+    "last_iteration_duration_seconds": 33,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-08-27T03:18:06.546695+00:00",
-    "last_successful_checks_total": 7478964,
-    "last_successful_iteration_at": "2026-08-27T03:18:06.546695+00:00",
+    "last_process_heartbeat_at": "2026-09-01T16:27:05.664888+00:00",
+    "last_successful_checks_total": 8568049,
+    "last_successful_iteration_at": "2026-09-01T16:27:05.664888+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 171,
+    "reachable_sources": 170,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33035893617",
-    "run_started_at": "2026-08-27T03:17:35.640228+00:00",
+    "run_id": "33506740768",
+    "run_started_at": "2026-09-01T12:16:30.334551+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33035893617"
+    "workflow_run_id": "33506740768"
   },
-  "monitor_age_minutes": 4,
-  "monitor_effective_heartbeat_at": "2026-08-27T03:18:06.546695+00:00",
+  "monitor_age_minutes": 5,
+  "monitor_effective_heartbeat_at": "2026-09-01T16:27:05.664888+00:00",
   "monitor_source_expectation": {
     "configured": 172,
-    "due_for_check": 171
+    "due_for_check": 170
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 21,
+    "entry_count": 36,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -275,11 +290,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 817,
+    "personal_vote_records": 823,
     "policy": "personal_votes_v1",
     "rated_sources": 47,
     "score_mismatches": [],
-    "valid_personal_votes": 817
+    "valid_personal_votes": 823
   },
   "source_health_summary": {
     "configured_records": 172,
@@ -289,24 +304,31 @@
       {
         "failure_code": "empty_public_feed",
         "reason": "публичная страница открылась, но сообщений не найдено",
+        "source": "kolesaBB",
+        "status": "quarantined"
+      },
+      {
+        "failure_code": "empty_public_feed",
+        "reason": "публичная страница открылась, но сообщений не найдено",
         "source": "wfksiris",
         "status": "quarantined"
       }
     ],
     "problem_sources": [
+      "kolesaBB",
       "wfksiris"
     ],
     "records": 172,
     "required_primary_records": 172,
     "statuses": {
-      "ok": 171,
-      "quarantined": 1
+      "ok": 170,
+      "quarantined": 2
     },
     "transport_failure_types": {
       "dns": 0,
       "empty_or_html": 0,
       "http": 0,
-      "other": 1,
+      "other": 2,
       "timeout": 0,
       "tls": 0
     }
@@ -323,9 +345,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-08-26T20:59:21.904431+00:00",
+    "last_checked_at": "2026-09-01T16:31:29.030728+00:00",
     "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-    "last_success_at": "2026-08-26T20:59:21.904431+00:00",
+    "last_success_at": "2026-09-01T16:31:29.030728+00:00",
     "status": "ok"
   }
 }
