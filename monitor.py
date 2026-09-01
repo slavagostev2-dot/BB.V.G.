@@ -601,6 +601,34 @@ def _api_duration_minutes(value: object) -> float | None:
     return parsed if parsed > 0 else None
 
 
+def wheel_action_credentials(link: str) -> tuple[str, str]:
+    """Read the short-lived action identity used by BetBoom's wheel API."""
+
+    response = request_with_retries(
+        "GET",
+        normalize_url(link),
+        attempts=WHEEL_API_ATTEMPTS,
+        timeout=REQUEST_TIMEOUT,
+        headers={"User-Agent": USER_AGENT, "x-platform": "web"},
+        allow_redirects=True,
+    )
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    next_data = soup.select_one("script#__NEXT_DATA__")
+    if next_data is None:
+        raise ValueError("BetBoom page has no __NEXT_DATA__ payload")
+    try:
+        page = json.loads(next_data.get_text())
+        page_props = page["props"]["pageProps"]
+        action_uid = str(page_props["uid"]).strip()
+        signature = str(page_props["hash"]).strip()
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("BetBoom page has no wheel API credentials") from exc
+    if not action_uid or not signature:
+        raise ValueError("BetBoom page returned empty wheel API credentials")
+    return action_uid, signature
+
+
 def inspect_wheel_page(link: str) -> WheelInspection:
     """Classify a new wheel using BetBoom's action-info response.
 
@@ -612,6 +640,7 @@ def inspect_wheel_page(link: str) -> WheelInspection:
 
     normalized = normalize_url(link)
     try:
+        action_uid, signature = wheel_action_credentials(normalized)
         response = request_with_retries(
             "POST",
             BETBOOM_WHEEL_INFO_URL,
@@ -621,10 +650,11 @@ def inspect_wheel_page(link: str) -> WheelInspection:
                 "Content-Type": "application/json",
                 "User-Agent": USER_AGENT,
                 "x-platform": "web",
+                "x-action-signature": signature,
             },
-            json={"streamer_link": normalized},
+            json={"action_uid": action_uid},
         )
-    except requests.RequestException as exc:
+    except (requests.RequestException, ValueError) as exc:
         return _wheel_verification_failed(f"{type(exc).__name__}: {exc}")
 
     try:
