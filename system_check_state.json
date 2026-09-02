@@ -1,40 +1,43 @@
 {
-  "active_incidents": 2,
+  "active_incidents": 5,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-09-02T04:14:56.538786+00:00",
+    "age_minutes": 3,
+    "last_heartbeat_at": "2026-09-02T05:55:40.717753+00:00",
     "started_at": "2026-09-02T02:23:49.627519+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
+    "ai_status": "provider_error",
     "cached": false,
-    "confidence": 0.0,
-    "critical_count": 2,
-    "decision_id": "7dde773449444b16a1210f172c7522f9",
-    "finding_count": 2,
+    "confidence": 1.0,
+    "critical_count": 4,
+    "decision_id": "0a64f945aa8341c28ff470e52546a1a6",
+    "finding_count": 5,
     "finding_kinds": [
-      "source_empty_public_feed"
+      "monitor_source_count",
+      "source_empty_public_feed",
+      "source_health_missing",
+      "source_transport_smoke"
     ],
-    "generated_at": "2026-09-02T04:16:55.453901+00:00",
-    "impact": "Данные из указанных источников не поступают в систему, что приводит к отсутствию обновлений в ленте.",
-    "mode": "ai",
+    "generated_at": "2026-09-02T05:59:22.101327+00:00",
+    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
+    "mode": "rules",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критический сбой: два ключевых источника (@wfksiris и @kolesaBB) доступны, но не содержат новых сообщений.",
-    "used_fallback": false,
+    "summary": "Система требует внимания: критических проблем — 4, предупреждений — 1. Источники последнего цикла: доступно 170/170, ошибок 0.",
+    "used_fallback": true,
     "version": 1,
-    "warning_count": 0
+    "warning_count": 1
   },
   "automation_state": {
     "expected_nightly_sources": 0,
-    "expected_primary_sources": 172,
-    "expected_total_sources": 172,
+    "expected_primary_sources": 177,
+    "expected_total_sources": 177,
     "missing_sources": 0,
     "recorded_configured_sources": 172,
     "recorded_nightly_sources": 0,
@@ -53,19 +56,19 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "ok",
+    "automations": "failed",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "ok",
+    "monitor": "failed",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-02T04:16:53.837155+00:00",
+  "checked_at": "2026-09-02T05:59:00.982448+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -97,8 +100,15 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 2,
+  "finding_count": 5,
   "findings": [
+    {
+      "detail": "В последней итерации проверено 170 из 175 источников, готовых к проверке (всего настроено 177).",
+      "kind": "monitor_source_count",
+      "severity": "critical",
+      "subject": "",
+      "title": "Основной монитор проверяет не все источники"
+    },
     {
       "detail": "публичная страница открылась, но сообщений не найдено",
       "kind": "source_empty_public_feed",
@@ -112,13 +122,27 @@
       "severity": "critical",
       "subject": "wfksiris",
       "title": "Источник @wfksiris не проверяется"
+    },
+    {
+      "detail": "Нет записей для 5 источников: @wearethearsenal, @snewscsgo, @betboom_3boys, @RachelRcsgo, @roganov_hockey.",
+      "kind": "source_health_missing",
+      "severity": "warning",
+      "subject": "",
+      "title": "Не для всех источников есть данные здоровья"
+    },
+    {
+      "detail": "status=success; domain=telegram.me; primary=172/177; nightly=0/0; accounted=172/177; reachable=170/177; errors=0; missing=0.",
+      "kind": "source_transport_smoke",
+      "severity": "critical",
+      "subject": "",
+      "title": "Транспортная проверка текущего inventory не подтверждена"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-09-02T04:14:56.538786+00:00",
+    "active_incidents": 5,
+    "bot_panel_heartbeat": "2026-09-02T05:55:40.717753+00:00",
     "checked_sources": 170,
-    "configured_sources": 172,
+    "configured_sources": 177,
     "domain": "telegram.me",
     "reachable_sources": 170,
     "single_source": "system_check_state.json",
@@ -134,27 +158,27 @@
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "rules",
+    "health_inspector_status": "provider_error",
     "messages_attempted": 0,
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 174,
+  "incident_sequence": 177,
   "inventory": {
-    "configured": 172,
-    "configured_total": 172,
+    "configured": 177,
+    "configured_total": 177,
     "domain": "telegram.me",
     "duplicates": 0,
-    "expected": 172,
+    "expected": 177,
     "nightly": 0,
     "nightly_configured": 0,
     "nightly_operational": 0,
     "nightly_policy": "optional_empty",
-    "operational": 172,
-    "primary_configured": 172,
-    "primary_operational": 172,
-    "total": 172
+    "operational": 177,
+    "primary_configured": 177,
+    "primary_operational": 177,
+    "total": 177
   },
   "miniapp": {
     "checked": false,
@@ -165,17 +189,17 @@
     "brand": "BB V.G.",
     "checked_sources": 170,
     "checks_delta": 172,
-    "checks_total": 8675549,
+    "checks_total": 8691889,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
-    "iteration": 101,
-    "last_iteration_at": "2026-09-02T04:16:06.075258+00:00",
-    "last_iteration_duration_seconds": 33,
+    "iteration": 196,
+    "last_iteration_at": "2026-09-02T05:53:57.877752+00:00",
+    "last_iteration_duration_seconds": 32,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-02T04:16:06.075258+00:00",
-    "last_successful_checks_total": 8675549,
-    "last_successful_iteration_at": "2026-09-02T04:16:06.075258+00:00",
+    "last_process_heartbeat_at": "2026-09-02T05:53:57.877752+00:00",
+    "last_successful_checks_total": 8691889,
+    "last_successful_iteration_at": "2026-09-02T05:53:57.877752+00:00",
     "pending_wheels": 0,
     "reachable_sources": 170,
     "restart_recommended": false,
@@ -188,11 +212,11 @@
     "version": 3,
     "workflow_run_id": "33583555823"
   },
-  "monitor_age_minutes": 0,
-  "monitor_effective_heartbeat_at": "2026-09-02T04:16:06.075258+00:00",
+  "monitor_age_minutes": 5,
+  "monitor_effective_heartbeat_at": "2026-09-02T05:53:57.877752+00:00",
   "monitor_source_expectation": {
-    "configured": 172,
-    "due_for_check": 170
+    "configured": 177,
+    "due_for_check": 175
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
@@ -233,7 +257,13 @@
   },
   "source_health_summary": {
     "configured_records": 172,
-    "missing_sources": [],
+    "missing_sources": [
+      "wearethearsenal",
+      "snewscsgo",
+      "betboom_3boys",
+      "RachelRcsgo",
+      "roganov_hockey"
+    ],
     "nightly_pending_first_check": [],
     "problem_details": [
       {

@@ -2549,10 +2549,21 @@
       "output_sha256": "35b4923ce12d7372243edbaf77e46c6da45a4c49f89810bce9742430f4b5d5b8",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1788328742.0276854,
+      "error": "ReadTimeout: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=20)",
+      "feature": "health_inspector",
+      "id": "0a64f945aa8341c28ff470e52546a1a6",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "072e4f562788fbf8efbc62f0cc48aec5006377e44f78dc43c5f9dcccb3045660",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1788322614.7833798
+    1788328742.0276854
   ],
   "version": 1
 }
