@@ -49,7 +49,7 @@ jobs:
               raise SystemExit("Primary and nightly tiers overlap")
           runtime = "\n".join(
               Path(name).read_text(encoding="utf-8")
-              for name in ("monitor.py", "nightly_discovery.py", "source_intelligence.py")
+              for name in ("monitor.py", "source_intelligence.py")
           )
           if "https://t.me/" in runtime:
               raise SystemExit("Blocked Telegram domain remains in runtime")

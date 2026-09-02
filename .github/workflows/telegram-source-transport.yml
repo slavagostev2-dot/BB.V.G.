@@ -9,6 +9,8 @@ on:
       - "public_sources.txt"
       - "source_catalog.txt"
   workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
   workflow_run:
     workflows: ["Telegram candidate discovery"]
     types: [completed]

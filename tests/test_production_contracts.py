@@ -260,13 +260,8 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
             public = root / "public_sources.txt"
             nightly = root / "source_catalog.txt"
             transport = root / "source_transport_state.json"
-            tier = root / "source_tier_state.json"
             public.write_text("alpha\nbeta\n", encoding="utf-8")
             nightly.write_text("gamma\n", encoding="utf-8")
-            tier.write_text(json.dumps({
-                "policy": "manual_nightly_only",
-                "last_run_at": (fixed - timedelta(hours=1)).isoformat(),
-            }), encoding="utf-8")
             transport.write_text(json.dumps({
                 "status": "success",
                 "domain": "telegram.me",
@@ -284,14 +279,12 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
                 system_checks.PUBLIC_SOURCES_PATH,
                 system_checks.NIGHTLY_SOURCES_PATH,
                 system_checks.SOURCE_TRANSPORT_STATE_PATH,
-                system_checks.SOURCE_TIER_STATE_PATH,
             )
             original_now = system_checks.now_utc
             try:
                 system_checks.PUBLIC_SOURCES_PATH = public
                 system_checks.NIGHTLY_SOURCES_PATH = nightly
                 system_checks.SOURCE_TRANSPORT_STATE_PATH = transport
-                system_checks.SOURCE_TIER_STATE_PATH = tier
                 system_checks.now_utc = lambda: fixed
                 details = {
                     "monitor": {
@@ -335,7 +328,6 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
                     system_checks.PUBLIC_SOURCES_PATH,
                     system_checks.NIGHTLY_SOURCES_PATH,
                     system_checks.SOURCE_TRANSPORT_STATE_PATH,
-                    system_checks.SOURCE_TIER_STATE_PATH,
                 ) = original
                 system_checks.now_utc = original_now
 
