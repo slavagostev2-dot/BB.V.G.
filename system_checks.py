@@ -22,7 +22,6 @@ STATUS_PATH = ROOT / "monitor_status.json"
 ADMIN_PANEL_STATUS_PATH = ROOT / "admin_panel_status.json"
 HEALTH_PATH = ROOT / "source_health.json"
 CHECK_STATE_PATH = ROOT / "system_check_state.json"
-SOURCE_TIER_STATE_PATH = ROOT / "source_tier_state.json"
 SOURCE_TRANSPORT_STATE_PATH = ROOT / "source_transport_state.json"
 SOURCE_STATS_PATH = ROOT / "source_stats.json"
 RUNTIME_STATE_PATH = ROOT / "state.json"
@@ -37,7 +36,6 @@ MINIAPP_CONTROLS_PATH = ROOT / "docs" / "bbvg-controls.js"
 MINIAPP_STYLES_PATH = ROOT / "docs" / "styles.css"
 ACTIVE_DOMAIN_FILES = (
     ROOT / "monitor.py",
-    ROOT / "nightly_discovery.py",
     ROOT / "bbvg" / "bot" / "source_requests.py",
     ROOT / "bbvg" / "bot" / "users.py",
     ROOT / "docs" / "app.js",
@@ -557,51 +555,21 @@ def check_source_health(details: dict[str, Any], findings: list[dict[str, Any]])
             "Не для всех источников есть данные здоровья",
             f"Нет записей для {len(missing)} источников: {', '.join('@' + item for item in missing[:15])}.",
         ))
-    quarantined = statuses.get("quarantined", 0)
-    if quarantined:
-        findings.append(finding(
-            "sources_quarantined",
-            "Источники попали в карантин",
-            f"В карантине: {quarantined}. Источники остаются в общем пуле и будут перепроверяться.",
-        ))
-
-
 def check_discovery_runtime(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
-    discovery = load_json(DISCOVERY_PATH, {})
     intelligence = load_json(INTELLIGENCE_PATH, {})
     summary: dict[str, Any] = {
-        "domain": discovery.get("telegram_domain") if isinstance(discovery, dict) else None,
-        "active_size": int(discovery.get("active_size", 0) or 0) if isinstance(discovery, dict) else 0,
-        "catalog_size": int(discovery.get("catalog_size", 0) or 0) if isinstance(discovery, dict) else 0,
-        "discovery_errors": int(discovery.get("error_count", 0) or 0) if isinstance(discovery, dict) else 0,
-        "discovery_last_run_at": discovery.get("last_run_at") if isinstance(discovery, dict) else None,
         "intelligence_last_run_at": intelligence.get("last_run_at") if isinstance(intelligence, dict) else None,
         "intelligence_domain": intelligence.get("telegram_domain") if isinstance(intelligence, dict) else None,
         "candidate_count": len(intelligence.get("candidates", {})) if isinstance(intelligence, dict) and isinstance(intelligence.get("candidates"), dict) else 0,
         "intelligence_summary": intelligence.get("last_run_summary", {}) if isinstance(intelligence, dict) and isinstance(intelligence.get("last_run_summary"), dict) else {},
     }
     details["discovery"] = summary
-    if summary["domain"] != telegram_transport.PRIMARY_DOMAIN:
-        findings.append(finding(
-            "discovery_domain",
-            "Поиск источников использует неверный домен",
-            f"Ожидался {telegram_transport.PRIMARY_DOMAIN}, записано {summary['domain'] or 'нет данных'}.",
-            severity="critical",
-        ))
     if summary["intelligence_domain"] != telegram_transport.PRIMARY_DOMAIN:
         findings.append(finding(
             "intelligence_domain",
             "Разведка новых источников использует неверный домен",
             f"Ожидался {telegram_transport.PRIMARY_DOMAIN}, записано {summary['intelligence_domain'] or 'нет данных'}.",
             severity="critical",
-        ))
-    expected_total = len(source_inventory_snapshot()["operational_union"])
-    discovered_pool = summary["active_size"] + summary["catalog_size"]
-    if discovered_pool and discovered_pool < expected_total:
-        findings.append(finding(
-            "discovery_inventory",
-            "Ночная проверка видит не весь утверждённый пул",
-            f"В состоянии поиска записано {discovered_pool}, текущий inventory содержит {expected_total}.",
         ))
     intelligence_summary = summary["intelligence_summary"]
     scanned = int(intelligence_summary.get("sources_scanned", 0) or 0)
@@ -620,18 +588,14 @@ def check_discovery_runtime(details: dict[str, Any], findings: list[dict[str, An
             f"Поиск должен выполняться через {telegram_transport.PRIMARY_DOMAIN}.",
             severity="critical",
         ))
-    for label, raw in (
-        ("поиск кандидатов", summary["discovery_last_run_at"]),
-        ("разведка упоминаний", summary["intelligence_last_run_at"]),
-    ):
-        timestamp = parse_datetime(raw)
-        if timestamp is None or now_utc() - timestamp > timedelta(hours=DISCOVERY_MAX_AGE_HOURS):
-            age_text = "нет времени запуска" if timestamp is None else f"старше {DISCOVERY_MAX_AGE_HOURS} ч."
-            findings.append(finding(
-                f"discovery_stale_{label.split()[0]}",
-                f"Давно не обновлялся {label}",
-                age_text,
-            ))
+    timestamp = parse_datetime(summary["intelligence_last_run_at"])
+    if timestamp is None or now_utc() - timestamp > timedelta(hours=DISCOVERY_MAX_AGE_HOURS):
+        age_text = "нет времени запуска" if timestamp is None else f"старше {DISCOVERY_MAX_AGE_HOURS} ч."
+        findings.append(finding(
+            "discovery_stale_разведка",
+            "Давно не обновлялась разведка упоминаний",
+            age_text,
+        ))
 
 
 def check_domain_compliance(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
@@ -762,9 +726,7 @@ def check_notification_routing(details: dict[str, Any], findings: list[dict[str,
 
 
 def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any]]) -> None:
-    tier = load_json(SOURCE_TIER_STATE_PATH, {})
     transport = load_json(SOURCE_TRANSPORT_STATE_PATH, {})
-    tier_at = parse_datetime(tier.get("last_run_at") if isinstance(tier, dict) else None)
     transport_at = parse_datetime(transport.get("checked_at") if isinstance(transport, dict) else None)
     inventory = source_inventory_snapshot()
     expected_primary = len(inventory["primary_operational"])
@@ -804,8 +766,7 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
         and int(monitor_summary.get("source_errors", 0) or 0) == 0
     )
     details["automation_state"] = {
-        "source_tier_policy": tier.get("policy") if isinstance(tier, dict) else None,
-        "source_tier_last_run_at": tier.get("last_run_at") if isinstance(tier, dict) else None,
+        "source_policy": "single_public_inventory",
         "transport_status": transport.get("status") if isinstance(transport, dict) else None,
         "transport_checked_at": transport.get("checked_at") if isinstance(transport, dict) else None,
         "transport_domain": transport.get("domain") if isinstance(transport, dict) else None,
@@ -821,19 +782,6 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
         "recorded_configured_sources": configured_total,
         "missing_sources": len(missing),
     }
-    if tier.get("policy") != "manual_nightly_only":
-        findings.append(finding(
-            "source_tier_policy_stale",
-            "Не подтверждён ручной режим ночных источников",
-            "Состояние обслуживания должно запрещать автоматическое пополнение ночного списка.",
-            severity="critical",
-        ))
-    if tier_at is None or now_utc() - tier_at > timedelta(hours=36):
-        findings.append(finding(
-            "source_tier_maintenance_stale",
-            "Давно не запускалось обслуживание режимов источников",
-            "Нет свежего запуска за последние 36 часов.",
-        ))
     transport_matches_inventory = (
         transport.get("status") in {"success", "degraded"}
         and transport.get("domain") == telegram_transport.PRIMARY_DOMAIN
