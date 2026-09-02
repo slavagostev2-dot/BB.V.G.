@@ -1,42 +1,17 @@
 {
-  "active_incidents": 9,
+  "active_incidents": 6,
   "admin_panel": {
-    "age_minutes": 0,
-    "last_heartbeat_at": "2026-09-01T23:59:16.643142+00:00",
-    "started_at": "2026-09-01T20:16:46.681939+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-09-02T02:29:08.945420+00:00",
+    "started_at": "2026-09-02T02:23:49.627519+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
-    "cached": false,
-    "confidence": 0.0,
-    "critical_count": 5,
-    "decision_id": "2af27f62c8e84e29bd85e9137ffa1459",
-    "finding_count": 9,
-    "finding_kinds": [
-      "discovery_domain",
-      "discovery_stale_поиск",
-      "legacy_domain_in_runtime",
-      "source_empty_public_feed",
-      "source_tier_maintenance_stale",
-      "source_tier_policy_stale",
-      "source_transport_stale",
-      "sources_quarantined"
-    ],
-    "generated_at": "2026-09-01T23:59:28.234687+00:00",
-    "impact": "Нарушена целостность сбора данных: источники не обновляются, критические домены недоступны, а автоматизация ночного режима заблокирована из-за отсутствия подтверждения.",
-    "mode": "ai",
-    "model": "gemini-3.1-flash-lite",
-    "provider": "gemini",
-    "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 5 критических ошибок и 4 предупреждения, связанных с неактуальностью источников и ошибками конфигурации доменов.",
-    "used_fallback": false,
-    "version": 1,
-    "warning_count": 4
+    "ai_status": "deployment_grace",
+    "mode": "suppressed",
+    "reason": "system-health started from a code push"
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -46,13 +21,12 @@
     "recorded_configured_sources": 172,
     "recorded_nightly_sources": 0,
     "recorded_primary_sources": 172,
-    "source_tier_last_run_at": null,
-    "source_tier_policy": null,
+    "source_policy": "single_public_inventory",
     "transport_accounted_sources": 172,
-    "transport_checked_at": "2026-08-26T20:26:37.659903+00:00",
+    "transport_checked_at": "2026-09-02T02:27:26.516567+00:00",
     "transport_domain": "telegram.me",
     "transport_error_sources": [],
-    "transport_reachable_sources": 171,
+    "transport_reachable_sources": 170,
     "transport_recovered_by_newer_monitor": false,
     "transport_status": "success"
   },
@@ -61,9 +35,9 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "failed",
+    "automations": "ok",
     "bot_panel": "ok",
-    "discovery": "failed",
+    "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
     "monitor": "ok",
@@ -73,14 +47,9 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-01T23:59:26.411467+00:00",
+  "checked_at": "2026-09-02T02:31:37.042901+00:00",
   "discovery": {
-    "active_size": 0,
     "candidate_count": 0,
-    "catalog_size": 0,
-    "discovery_errors": 0,
-    "discovery_last_run_at": null,
-    "domain": null,
     "intelligence_domain": "telegram.me",
     "intelligence_last_run_at": "2026-09-01T21:08:34.549925+00:00",
     "intelligence_summary": {
@@ -101,19 +70,16 @@
   "domain_compliance": {
     "checked_files": [
       "monitor.py",
-      "nightly_discovery.py",
       "bbvg/bot/source_requests.py",
       "bbvg/bot/users.py",
       "docs/app.js",
       "docs/bbvg-controls.js",
       "docs/views-secondary.js"
     ],
-    "legacy_url_offenders": [
-      "nightly_discovery.py: отсутствует"
-    ],
+    "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 9,
+  "finding_count": 2,
   "findings": [
     {
       "detail": "публичная страница открылась, но сообщений не найдено",
@@ -128,60 +94,11 @@
       "severity": "critical",
       "subject": "wfksiris",
       "title": "Источник @wfksiris не проверяется"
-    },
-    {
-      "detail": "В карантине: 2. Источники остаются в общем пуле и будут перепроверяться.",
-      "kind": "sources_quarantined",
-      "severity": "warning",
-      "subject": "",
-      "title": "Источники попали в карантин"
-    },
-    {
-      "detail": "Ожидался telegram.me, записано нет данных.",
-      "kind": "discovery_domain",
-      "severity": "critical",
-      "subject": "",
-      "title": "Поиск источников использует неверный домен"
-    },
-    {
-      "detail": "нет времени запуска",
-      "kind": "discovery_stale_поиск",
-      "severity": "warning",
-      "subject": "",
-      "title": "Давно не обновлялся поиск кандидатов"
-    },
-    {
-      "detail": "nightly_discovery.py: отсутствует",
-      "kind": "legacy_domain_in_runtime",
-      "severity": "critical",
-      "subject": "",
-      "title": "В рабочем коде остались ссылки на заблокированный домен"
-    },
-    {
-      "detail": "Состояние обслуживания должно запрещать автоматическое пополнение ночного списка.",
-      "kind": "source_tier_policy_stale",
-      "severity": "critical",
-      "subject": "",
-      "title": "Не подтверждён ручной режим ночных источников"
-    },
-    {
-      "detail": "Нет свежего запуска за последние 36 часов.",
-      "kind": "source_tier_maintenance_stale",
-      "severity": "warning",
-      "subject": "",
-      "title": "Давно не запускалось обслуживание режимов источников"
-    },
-    {
-      "detail": "Нет свежего транспортного прогона для 172 источников за последние 36 часов.",
-      "kind": "source_transport_stale",
-      "severity": "warning",
-      "subject": "",
-      "title": "Давно не выполнялась полная проверка текущего inventory"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 9,
-    "bot_panel_heartbeat": "2026-09-01T23:59:16.643142+00:00",
+    "active_incidents": 6,
+    "bot_panel_heartbeat": "2026-09-02T02:29:08.945420+00:00",
     "checked_sources": 170,
     "configured_sources": 172,
     "domain": "telegram.me",
@@ -199,13 +116,15 @@
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "suppressed",
+    "health_inspector_status": "deployment_grace",
     "messages_attempted": 0,
     "opened": 0,
-    "resolved": 0
+    "resolved": 3,
+    "suppressed": true,
+    "suppressed_reason": "code_update_push_grace"
   },
-  "incident_sequence": 167,
+  "incident_sequence": 170,
   "inventory": {
     "configured": 172,
     "configured_total": 172,
@@ -230,31 +149,31 @@
     "brand": "BB V.G.",
     "checked_sources": 170,
     "checks_delta": 172,
-    "checks_total": 8634441,
+    "checks_total": 8658177,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "7960eb41f2f0a09cd3fe5c4eb7a1d0a41f790d31",
-    "iteration": 36,
-    "last_iteration_at": "2026-09-01T23:57:55.525192+00:00",
-    "last_iteration_duration_seconds": 34,
+    "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
+    "iteration": 6,
+    "last_iteration_at": "2026-09-02T02:29:52.151322+00:00",
+    "last_iteration_duration_seconds": 25,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-01T23:57:55.525192+00:00",
-    "last_successful_checks_total": 8634441,
-    "last_successful_iteration_at": "2026-09-01T23:57:55.525192+00:00",
+    "last_process_heartbeat_at": "2026-09-02T02:29:52.151322+00:00",
+    "last_successful_checks_total": 8658177,
+    "last_successful_iteration_at": "2026-09-02T02:29:52.151322+00:00",
     "pending_wheels": 0,
     "reachable_sources": 170,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33570428443",
-    "run_started_at": "2026-09-01T23:19:06.277916+00:00",
+    "run_id": "33583051095",
+    "run_started_at": "2026-09-02T02:24:20.359648+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33570428443"
+    "workflow_run_id": "33583051095"
   },
   "monitor_age_minutes": 1,
-  "monitor_effective_heartbeat_at": "2026-09-01T23:57:55.525192+00:00",
+  "monitor_effective_heartbeat_at": "2026-09-02T02:29:52.151322+00:00",
   "monitor_source_expectation": {
     "configured": 172,
     "due_for_check": 170
