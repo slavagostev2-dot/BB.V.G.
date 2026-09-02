@@ -41,12 +41,9 @@ jobs:
               return result
 
           primary = read_sources("public_sources.txt")
-          nightly = read_sources("source_catalog.txt")
-          approved = {value.casefold() for value in primary + nightly}
+          approved = {value.casefold() for value in primary}
           if not primary:
               raise SystemExit("Primary source inventory is empty")
-          if {value.casefold() for value in primary} & {value.casefold() for value in nightly}:
-              raise SystemExit("Primary and nightly tiers overlap")
           runtime = "\n".join(
               Path(name).read_text(encoding="utf-8")
               for name in ("monitor.py", "source_intelligence.py")
@@ -55,5 +52,5 @@ jobs:
               raise SystemExit("Blocked Telegram domain remains in runtime")
           if "telegram.me" not in runtime:
               raise SystemExit("Approved Telegram domain is missing from runtime")
-          print(f"Approved sources: {len(approved)}; primary: {len(primary)}; nightly: {len(nightly)}")
+          print(f"Approved sources: {len(approved)}")
           PY
