@@ -7,7 +7,6 @@ on:
       - ".github/workflows/telegram-source-transport.yml"
       - "source_transport_smoke.py"
       - "public_sources.txt"
-      - "source_catalog.txt"
   workflow_dispatch:
   schedule:
     - cron: "17 3 * * *"

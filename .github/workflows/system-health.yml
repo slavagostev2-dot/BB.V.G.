@@ -383,6 +383,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${files[@]}"
           git commit -m "Update BB V.G. incident state [skip ci]" || exit 0
+          # Authoritative runtime snapshots are diagnostic inputs only. Restore
+          # them before a retry so an unrelated main update cannot make
+          # `git pull --rebase` reject the incident-state commit as dirty.
+          git restore --worktree -- .
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
               exit 0

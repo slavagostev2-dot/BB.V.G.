@@ -41,6 +41,17 @@ def test_system_health_does_not_diagnose_from_stale_main_source_health() -> None
     assert "Authoritative runtime-status and runtime-state snapshots loaded" in workflow
 
 
+def test_system_health_cleans_diagnostic_snapshots_before_rebase_retry() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    commit_position = workflow.index(
+        'git commit -m "Update BB V.G. incident state [skip ci]"'
+    )
+    restore_position = workflow.index("git restore --worktree -- .")
+    rebase_position = workflow.index("git pull --rebase origin main")
+    assert commit_position < restore_position < rebase_position
+
+
 def test_optional_ai_provider_cannot_block_deterministic_health() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
@@ -61,6 +72,17 @@ def test_transport_verification_has_a_recurring_schedule() -> None:
     ).read_text(encoding="utf-8")
     assert "schedule:" in workflow
     assert 'cron: "17 3 * * *"' in workflow
+
+
+def test_source_workflows_do_not_require_removed_secondary_inventory() -> None:
+    domain_workflow = (
+        ROOT / ".github" / "workflows" / "telegram-domain-policy.yml"
+    ).read_text(encoding="utf-8")
+    transport_workflow = (
+        ROOT / ".github" / "workflows" / "telegram-source-transport.yml"
+    ).read_text(encoding="utf-8")
+    assert 'read_sources("source_catalog.txt")' not in domain_workflow
+    assert '      - "source_catalog.txt"' not in transport_workflow
 
 
 def test_health_reads_current_intelligence_without_removed_discovery_state() -> None:
