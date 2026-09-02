@@ -1,6 +1,17 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import vk_start_welcome
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_monitor_cycle_does_not_dispatch_vk_welcome_workflow() -> None:
+    source = (ROOT / "monitor_entry.py").read_text(encoding="utf-8")
+    assert "import vk_start_welcome" not in source
+    assert "dispatch_start_welcome_workflow" not in source
 
 
 def test_start_words_are_recognized() -> None:
