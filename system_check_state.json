@@ -1,17 +1,35 @@
 {
   "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-09-02T02:39:13.620726+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-09-02T04:14:56.538786+00:00",
     "started_at": "2026-09-02T02:23:49.627519+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "deployment_grace",
-    "mode": "suppressed",
-    "reason": "system-health started from a code push"
+    "ai_status": "ok",
+    "cached": false,
+    "confidence": 0.0,
+    "critical_count": 2,
+    "decision_id": "7dde773449444b16a1210f172c7522f9",
+    "finding_count": 2,
+    "finding_kinds": [
+      "source_empty_public_feed"
+    ],
+    "generated_at": "2026-09-02T04:16:55.453901+00:00",
+    "impact": "Данные из указанных источников не поступают в систему, что приводит к отсутствию обновлений в ленте.",
+    "mode": "ai",
+    "model": "gemini-3.1-flash-lite",
+    "provider": "gemini",
+    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
+    "requires_human_attention": true,
+    "severity": "critical",
+    "summary": "Критический сбой: два ключевых источника (@wfksiris и @kolesaBB) доступны, но не содержат новых сообщений.",
+    "used_fallback": false,
+    "version": 1,
+    "warning_count": 0
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -47,7 +65,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-02T02:42:17.202335+00:00",
+  "checked_at": "2026-09-02T04:16:53.837155+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -98,7 +116,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-09-02T02:39:13.620726+00:00",
+    "bot_panel_heartbeat": "2026-09-02T04:14:56.538786+00:00",
     "checked_sources": 170,
     "configured_sources": 172,
     "domain": "telegram.me",
@@ -116,13 +134,11 @@
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "suppressed",
-    "health_inspector_status": "deployment_grace",
+    "health_inspector_mode": "ai",
+    "health_inspector_status": "ok",
     "messages_attempted": 0,
     "opened": 0,
-    "resolved": 7,
-    "suppressed": true,
-    "suppressed_reason": "code_update_push_grace"
+    "resolved": 0
   },
   "incident_sequence": 174,
   "inventory": {
@@ -149,17 +165,17 @@
     "brand": "BB V.G.",
     "checked_sources": 170,
     "checks_delta": 172,
-    "checks_total": 8659209,
+    "checks_total": 8675549,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
-    "iteration": 6,
-    "last_iteration_at": "2026-09-02T02:38:25.410990+00:00",
+    "iteration": 101,
+    "last_iteration_at": "2026-09-02T04:16:06.075258+00:00",
     "last_iteration_duration_seconds": 33,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-02T02:38:25.410990+00:00",
-    "last_successful_checks_total": 8659209,
-    "last_successful_iteration_at": "2026-09-02T02:38:25.410990+00:00",
+    "last_process_heartbeat_at": "2026-09-02T04:16:06.075258+00:00",
+    "last_successful_checks_total": 8675549,
+    "last_successful_iteration_at": "2026-09-02T04:16:06.075258+00:00",
     "pending_wheels": 0,
     "reachable_sources": 170,
     "restart_recommended": false,
@@ -172,8 +188,8 @@
     "version": 3,
     "workflow_run_id": "33583555823"
   },
-  "monitor_age_minutes": 3,
-  "monitor_effective_heartbeat_at": "2026-09-02T02:38:25.410990+00:00",
+  "monitor_age_minutes": 0,
+  "monitor_effective_heartbeat_at": "2026-09-02T04:16:06.075258+00:00",
   "monitor_source_expectation": {
     "configured": 172,
     "due_for_check": 170
