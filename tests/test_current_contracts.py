@@ -88,7 +88,7 @@ class CurrentProductionContractTests(unittest.TestCase):
             root / ".github/workflows/telegram-source-transport.yml"
         ).read_text(encoding="utf-8")
         self.assertIn('"public_sources.txt"', workflow)
-        self.assertIn('"source_catalog.txt"', workflow)
+        self.assertNotIn('"source_catalog.txt"', workflow)
         self.assertNotIn("Check all 66 sources", workflow)
         self.assertIn(
             'workflows: ["Telegram candidate discovery"]', workflow
@@ -389,4 +389,3 @@ def test_auto_participation_outcome_always_creates_a_new_message() -> None:
     assert [method for method, _payload in calls] == ["sendMessage"]
     assert panel._edit_message_id == 777
     assert not bool(getattr(panel._force_new_message_context, "active", False))
-
