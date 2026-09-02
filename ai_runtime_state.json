@@ -1,8 +1,8 @@
 {
   "cache": {
-    "bdbf508c3d4ab0baafb37dd67db4ffc135616cc8e0787f17ac273fab3c6de082": {
-      "expires_at": 1788323514.7833798,
-      "text": "{\n  \"summary\": \"Критический сбой: два ключевых источника (@wfksiris и @kolesaBB) доступны, но не содержат новых сообщений.\",\n  \"impact\": \"Данные из указанных источников не поступают в систему, что приводит к отсутствию обновлений в ленте.\",\n  \"recommended_action\": \"Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.\",\n  \"confidence\": \"high\"\n}"
+    "581fe2800d943a23d762f7a3ab580da288ad1877c413e70262ad60d52cf0bdf2": {
+      "expires_at": 1788339883.6252453,
+      "text": "{\n  \"summary\": \"Система мониторинга работает, но 3 критических источника не передают данные, а 5 источников не имеют статуса здоровья.\",\n  \"impact\": \"Часть целевых каналов (@wfksiris, @kolesaBB и другие) не обновляется, что приводит к потере актуальной информации в мониторинге.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин отсутствия данных в указанных источниках.\",\n  \"confidence\": \"high\"\n}"
     }
   },
   "decisions": [
@@ -2560,10 +2560,20 @@
       "output_sha256": "072e4f562788fbf8efbc62f0cc48aec5006377e44f78dc43c5f9dcccb3045660",
       "provider": "gemini",
       "status": "provider_error"
+    },
+    {
+      "cached": false,
+      "created_at": 1788338983.6252453,
+      "feature": "health_inspector",
+      "id": "dec167d3579d4fffac6cc9848a07f811",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "da805273c9eaf5b3ee73a4daf87b0aea7757b5724e420adc69ea16cb128c4bfe",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788328742.0276854
+    1788338983.6252453
   ],
   "version": 1
 }

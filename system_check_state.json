@@ -2,35 +2,34 @@
   "active_incidents": 5,
   "admin_panel": {
     "age_minutes": 3,
-    "last_heartbeat_at": "2026-09-02T05:55:40.717753+00:00",
-    "started_at": "2026-09-02T02:23:49.627519+00:00",
+    "last_heartbeat_at": "2026-09-02T08:46:02.740479+00:00",
+    "started_at": "2026-09-02T06:54:41.228965+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "provider_error",
+    "ai_status": "ok",
     "cached": false,
-    "confidence": 1.0,
-    "critical_count": 4,
-    "decision_id": "0a64f945aa8341c28ff470e52546a1a6",
-    "finding_count": 5,
+    "confidence": 0.0,
+    "critical_count": 3,
+    "decision_id": "dec167d3579d4fffac6cc9848a07f811",
+    "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
       "source_empty_public_feed",
-      "source_health_missing",
-      "source_transport_smoke"
+      "source_health_missing"
     ],
-    "generated_at": "2026-09-02T05:59:22.101327+00:00",
-    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
-    "mode": "rules",
+    "generated_at": "2026-09-02T08:49:44.683676+00:00",
+    "impact": "Часть целевых каналов (@wfksiris, @kolesaBB и другие) не обновляется, что приводит к потере актуальной информации в мониторинге.",
+    "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин отсутствия данных в указанных источниках.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система требует внимания: критических проблем — 4, предупреждений — 1. Источники последнего цикла: доступно 170/170, ошибок 0.",
-    "used_fallback": true,
+    "summary": "Система мониторинга работает, но 3 критических источника не передают данные, а 5 источников не имеют статуса здоровья.",
+    "used_fallback": false,
     "version": 1,
     "warning_count": 1
   },
@@ -39,15 +38,15 @@
     "expected_primary_sources": 177,
     "expected_total_sources": 177,
     "missing_sources": 0,
-    "recorded_configured_sources": 172,
+    "recorded_configured_sources": 177,
     "recorded_nightly_sources": 0,
-    "recorded_primary_sources": 172,
+    "recorded_primary_sources": 177,
     "source_policy": "single_public_inventory",
-    "transport_accounted_sources": 172,
-    "transport_checked_at": "2026-09-02T02:35:37.087523+00:00",
+    "transport_accounted_sources": 177,
+    "transport_checked_at": "2026-09-02T07:57:05.325514+00:00",
     "transport_domain": "telegram.me",
     "transport_error_sources": [],
-    "transport_reachable_sources": 170,
+    "transport_reachable_sources": 175,
     "transport_recovered_by_newer_monitor": false,
     "transport_status": "success"
   },
@@ -56,7 +55,7 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "failed",
+    "automations": "ok",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
@@ -68,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-02T05:59:00.982448+00:00",
+  "checked_at": "2026-09-02T08:49:42.558041+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -100,7 +99,7 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 5,
+  "finding_count": 4,
   "findings": [
     {
       "detail": "В последней итерации проверено 170 из 175 источников, готовых к проверке (всего настроено 177).",
@@ -129,18 +128,11 @@
       "severity": "warning",
       "subject": "",
       "title": "Не для всех источников есть данные здоровья"
-    },
-    {
-      "detail": "status=success; domain=telegram.me; primary=172/177; nightly=0/0; accounted=172/177; reachable=170/177; errors=0; missing=0.",
-      "kind": "source_transport_smoke",
-      "severity": "critical",
-      "subject": "",
-      "title": "Транспортная проверка текущего inventory не подтверждена"
     }
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 5,
-    "bot_panel_heartbeat": "2026-09-02T05:55:40.717753+00:00",
+    "bot_panel_heartbeat": "2026-09-02T08:46:02.740479+00:00",
     "checked_sources": 170,
     "configured_sources": 177,
     "domain": "telegram.me",
@@ -157,11 +149,11 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "health_inspector_mode": "rules",
-    "health_inspector_status": "provider_error",
-    "messages_attempted": 0,
-    "opened": 0,
+    "digest_sent": true,
+    "health_inspector_mode": "ai",
+    "health_inspector_status": "ok",
+    "messages_attempted": 1,
+    "opened": 2,
     "resolved": 0
   },
   "incident_sequence": 177,
@@ -189,31 +181,31 @@
     "brand": "BB V.G.",
     "checked_sources": 170,
     "checks_delta": 172,
-    "checks_total": 8691889,
+    "checks_total": 8719581,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
-    "iteration": 196,
-    "last_iteration_at": "2026-09-02T05:53:57.877752+00:00",
-    "last_iteration_duration_seconds": 32,
+    "iteration": 161,
+    "last_iteration_at": "2026-09-02T08:44:55.106978+00:00",
+    "last_iteration_duration_seconds": 28,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-02T05:53:57.877752+00:00",
-    "last_successful_checks_total": 8691889,
-    "last_successful_iteration_at": "2026-09-02T05:53:57.877752+00:00",
+    "last_process_heartbeat_at": "2026-09-02T08:44:55.106978+00:00",
+    "last_successful_checks_total": 8719581,
+    "last_successful_iteration_at": "2026-09-02T08:44:55.106978+00:00",
     "pending_wheels": 0,
     "reachable_sources": 170,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33583555823",
-    "run_started_at": "2026-09-02T02:32:44.160782+00:00",
+    "run_id": "33596907651",
+    "run_started_at": "2026-09-02T05:59:56.940039+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33583555823"
+    "workflow_run_id": "33596907651"
   },
-  "monitor_age_minutes": 5,
-  "monitor_effective_heartbeat_at": "2026-09-02T05:53:57.877752+00:00",
+  "monitor_age_minutes": 4,
+  "monitor_effective_heartbeat_at": "2026-09-02T08:44:55.106978+00:00",
   "monitor_source_expectation": {
     "configured": 177,
     "due_for_check": 175
