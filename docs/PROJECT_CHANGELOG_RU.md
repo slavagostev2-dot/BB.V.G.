@@ -15,6 +15,17 @@
 `backup/2026-09-02-before-health-vk-repair` →
 `9ed8a7bfb31f663dce8fce1942275a9ccf973c44`.
 
+## Follow-up: сохранение health-state после конкурентного runtime-коммита
+
+- Domain-policy больше не открывает удалённый `source_catalog.txt`.
+- Перед повторным `git pull --rebase` health-workflow очищает только локальные
+  копии диагностических snapshot-файлов; созданный incident-state commit
+  сохраняется и может быть безопасно перебазирован на актуальный `main`.
+
+**Backup перед follow-up:**
+`backup/2026-09-02-before-health-workflow-race-repair` →
+`77cfe1cd6df124a8c4b3a0f9f5f2a624b60b8990`.
+
 # 2026-07-26 — live runtime snapshot, active revalidation и terminal outcomes
 
 - Вкладка «Работа системы» читает heartbeat Monitor из `runtime-status` и сохраняет последний проверенный результат при временной ошибке.
