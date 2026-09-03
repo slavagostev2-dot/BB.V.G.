@@ -1,8 +1,8 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-02T21:58:26.749026+00:00",
+    "age_minutes": 3,
+    "last_heartbeat_at": "2026-09-02T23:59:21.856615+00:00",
     "started_at": "2026-09-02T20:27:43.771132+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,14 +13,14 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 3,
-    "decision_id": "d4fa16707a0a4ccea43fc9948925f219",
+    "decision_id": "ee34d187e54642e4bb85a1eacb5e44d1",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
       "source_empty_public_feed",
       "source_health_missing"
     ],
-    "generated_at": "2026-09-02T22:00:31.355232+00:00",
+    "generated_at": "2026-09-03T00:03:09.364283+00:00",
     "impact": "Часть целевых каналов (@wfksiris, @kolesaBB и другие) не обновляется, что приводит к потере актуальных данных в мониторинге.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -67,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-02T22:00:27.839115+00:00",
+  "checked_at": "2026-09-03T00:03:05.484185+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -132,7 +132,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-02T21:58:26.749026+00:00",
+    "bot_panel_heartbeat": "2026-09-02T23:59:21.856615+00:00",
     "checked_sources": 170,
     "configured_sources": 177,
     "domain": "telegram.me",
@@ -181,17 +181,17 @@
     "brand": "BB V.G.",
     "checked_sources": 170,
     "checks_delta": 172,
-    "checks_total": 8822437,
+    "checks_total": 8841357,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
-    "iteration": 121,
-    "last_iteration_at": "2026-09-02T21:59:55.601061+00:00",
+    "iteration": 231,
+    "last_iteration_at": "2026-09-03T00:01:24.222463+00:00",
     "last_iteration_duration_seconds": 33,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-02T21:59:55.601061+00:00",
-    "last_successful_checks_total": 8822437,
-    "last_successful_iteration_at": "2026-09-02T21:59:55.601061+00:00",
+    "last_process_heartbeat_at": "2026-09-03T00:01:24.222463+00:00",
+    "last_successful_checks_total": 8841357,
+    "last_successful_iteration_at": "2026-09-03T00:01:24.222463+00:00",
     "pending_wheels": 0,
     "reachable_sources": 170,
     "restart_recommended": false,
@@ -204,8 +204,8 @@
     "version": 3,
     "workflow_run_id": "33675344952"
   },
-  "monitor_age_minutes": 0,
-  "monitor_effective_heartbeat_at": "2026-09-02T21:59:55.601061+00:00",
+  "monitor_age_minutes": 1,
+  "monitor_effective_heartbeat_at": "2026-09-03T00:01:24.222463+00:00",
   "monitor_source_expectation": {
     "configured": 177,
     "due_for_check": 175
