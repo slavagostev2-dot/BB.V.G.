@@ -1,9 +1,9 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-04T17:30:27.245300+00:00",
-    "started_at": "2026-09-04T13:08:11.602583+00:00",
+    "age_minutes": 5,
+    "last_heartbeat_at": "2026-09-04T18:04:10.592675+00:00",
+    "started_at": "2026-09-04T17:33:32.805776+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -12,26 +12,24 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 3,
-    "decision_id": "60fb949792d4493198d15b04d2c8f2f3",
-    "finding_count": 4,
+    "critical_count": 2,
+    "decision_id": "80c3b87c445a4fb18612502a37b6afdb",
+    "finding_count": 2,
     "finding_kinds": [
-      "monitor_source_count",
-      "source_empty_public_feed",
-      "source_health_missing"
+      "source_empty_public_feed"
     ],
-    "generated_at": "2026-09-04T17:32:53.377879+00:00",
-    "impact": "Нарушена целостность сбора данных: ключевые источники (@wfksiris, @kolesaBB) не обновляются, что приводит к потере актуальной информации.",
+    "generated_at": "2026-09-04T18:09:35.477921+00:00",
+    "impact": "Данные из указанных источников не поступают в систему, что приводит к отсутствию обновлений в ленте.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
+    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: 3 источника не отдают данные, а основной монитор пропускает 7 источников из 177.",
+    "summary": "Система находится в критическом состоянии: два ключевых источника (@wfksiris и @kolesaBB) перестали отдавать данные, несмотря на доступность страниц.",
     "used_fallback": false,
     "version": 1,
-    "warning_count": 1
+    "warning_count": 0
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -60,14 +58,14 @@
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "failed",
+    "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
     "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-04T17:32:47.282725+00:00",
+  "checked_at": "2026-09-04T18:09:32.119522+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -99,15 +97,8 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 4,
+  "finding_count": 2,
   "findings": [
-    {
-      "detail": "В последней итерации проверено 170 из 175 источников, готовых к проверке (всего настроено 177).",
-      "kind": "monitor_source_count",
-      "severity": "critical",
-      "subject": "",
-      "title": "Основной монитор проверяет не все источники"
-    },
     {
       "detail": "публичная страница открылась, но сообщений не найдено",
       "kind": "source_empty_public_feed",
@@ -121,30 +112,23 @@
       "severity": "critical",
       "subject": "wfksiris",
       "title": "Источник @wfksiris не проверяется"
-    },
-    {
-      "detail": "Нет записей для 5 источников: @wearethearsenal, @snewscsgo, @betboom_3boys, @RachelRcsgo, @roganov_hockey.",
-      "kind": "source_health_missing",
-      "severity": "warning",
-      "subject": "",
-      "title": "Не для всех источников есть данные здоровья"
     }
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-04T17:30:27.245300+00:00",
-    "checked_sources": 170,
+    "bot_panel_heartbeat": "2026-09-04T18:04:10.592675+00:00",
+    "checked_sources": 175,
     "configured_sources": 177,
     "domain": "telegram.me",
-    "reachable_sources": 170,
+    "reachable_sources": 175,
     "single_source": "system_check_state.json",
     "status": "degraded",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-04T17:31:04.851430+00:00",
+      "last_checked_at": "2026-09-04T18:08:58.423678+00:00",
       "last_failure_at": "2026-09-04T17:17:24.378856+00:00",
-      "last_success_at": "2026-09-04T17:31:04.851430+00:00",
+      "last_success_at": "2026-09-04T18:08:58.423678+00:00",
       "status": "ok"
     }
   },
@@ -179,33 +163,33 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 170,
-    "checks_delta": 172,
-    "checks_total": 9225433,
+    "checked_sources": 175,
+    "checks_delta": 8287610,
+    "checks_total": 9230723,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
-    "iteration": 76,
-    "last_iteration_at": "2026-09-04T17:26:51.099060+00:00",
-    "last_iteration_duration_seconds": 39,
+    "head_sha": "8b398e51090d11d27c772e18a0c5a9868777c5be",
+    "iteration": 1,
+    "last_iteration_at": "2026-09-04T18:09:01.712518+00:00",
+    "last_iteration_duration_seconds": 59,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-04T17:26:51.099060+00:00",
-    "last_successful_checks_total": 9225433,
-    "last_successful_iteration_at": "2026-09-04T17:26:51.099060+00:00",
+    "last_process_heartbeat_at": "2026-09-04T18:09:01.712518+00:00",
+    "last_successful_checks_total": 9230723,
+    "last_successful_iteration_at": "2026-09-04T18:09:01.712518+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 170,
+    "reachable_sources": 175,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33892352824",
-    "run_started_at": "2026-09-04T15:57:21.054179+00:00",
+    "run_id": "33904190864",
+    "run_started_at": "2026-09-04T18:08:02.762553+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33892352824"
+    "workflow_run_id": "33904190864"
   },
-  "monitor_age_minutes": 5,
-  "monitor_effective_heartbeat_at": "2026-09-04T17:26:51.099060+00:00",
+  "monitor_age_minutes": 0,
+  "monitor_effective_heartbeat_at": "2026-09-04T18:09:01.712518+00:00",
   "monitor_source_expectation": {
     "configured": 177,
     "due_for_check": 175
@@ -213,7 +197,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 45,
+    "entry_count": 64,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -241,21 +225,15 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 839,
+    "personal_vote_records": 841,
     "policy": "personal_votes_v1",
     "rated_sources": 47,
     "score_mismatches": [],
-    "valid_personal_votes": 839
+    "valid_personal_votes": 841
   },
   "source_health_summary": {
-    "configured_records": 172,
-    "missing_sources": [
-      "wearethearsenal",
-      "snewscsgo",
-      "betboom_3boys",
-      "RachelRcsgo",
-      "roganov_hockey"
-    ],
+    "configured_records": 177,
+    "missing_sources": [],
     "nightly_pending_first_check": [],
     "problem_details": [
       {
@@ -275,10 +253,10 @@
       "kolesaBB",
       "wfksiris"
     ],
-    "records": 172,
-    "required_primary_records": 172,
+    "records": 177,
+    "required_primary_records": 177,
     "statuses": {
-      "ok": 170,
+      "ok": 175,
       "quarantined": 2
     },
     "transport_failure_types": {
@@ -302,9 +280,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-04T17:31:04.851430+00:00",
+    "last_checked_at": "2026-09-04T18:08:58.423678+00:00",
     "last_failure_at": "2026-09-04T17:17:24.378856+00:00",
-    "last_success_at": "2026-09-04T17:31:04.851430+00:00",
+    "last_success_at": "2026-09-04T18:08:58.423678+00:00",
     "status": "ok"
   }
 }
