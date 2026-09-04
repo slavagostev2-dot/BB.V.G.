@@ -33,6 +33,7 @@ ALLOWED_ACTIONS = {
     "set_deadline",
     "remove_active",
     "recheck_wheel",
+    "submit_wheel",
     "clear_quarantine",
 }
 COMMAND_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{8,64}$")
@@ -92,6 +93,34 @@ def _safe_value(action: str, value: str) -> str:
         normalized = personal_wheel_voting.normalize_vote_payload(payload)
         clean = json.dumps(
             normalized,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+    elif action == "submit_wheel":
+        try:
+            payload = json.loads(clean)
+        except json.JSONDecodeError as exc:
+            raise ValueError("Некорректный JSON ручной подачи колеса") from exc
+        if not isinstance(payload, dict):
+            raise ValueError("Некорректная ручная подача колеса")
+        url = str(payload.get("url") or "").strip()
+        if not re.fullmatch(
+            r"https://betboom\.ru/freestream/[A-Za-z0-9._~-]+", url, re.I
+        ):
+            raise ValueError("Нужна прямая ссылка BetBoom Freestream")
+        submitted_at = str(payload.get("submitted_at") or "").strip()
+        try:
+            parsed_at = datetime.fromisoformat(submitted_at.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError("Некорректное время ручной подачи") from exc
+        if parsed_at.tzinfo is None:
+            raise ValueError("Время ручной подачи должно содержать часовой пояс")
+        clean = json.dumps(
+            {
+                "submitted_at": parsed_at.astimezone(UTC).isoformat(),
+                "url": url,
+            },
             ensure_ascii=False,
             separators=(",", ":"),
             sort_keys=True,
