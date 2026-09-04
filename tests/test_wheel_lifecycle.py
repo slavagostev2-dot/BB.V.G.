@@ -239,7 +239,7 @@ class Chapter5LifecycleTests(unittest.TestCase):
         )
         self.assertEqual(available_at, now + timedelta(hours=2))
 
-    def test_referral_restriction_is_visible_in_notification_and_active_list(self) -> None:
+    def test_telegram_referral_copy_does_not_classify_wheel(self) -> None:
         restricted = (
             "Участие доступно только пользователям, зарегистрированным "
             "по промокоду автора. https://betboom.ru/freestream/ref-wheel"
@@ -248,7 +248,7 @@ class Chapter5LifecycleTests(unittest.TestCase):
             "Новое колесо BetBoom и промокод на бонус. "
             "https://betboom.ru/freestream/regular-wheel"
         )
-        self.assertTrue(wheel_publications_v2.is_referral_restricted(restricted))
+        self.assertFalse(wheel_publications_v2.is_referral_restricted(restricted))
         self.assertFalse(wheel_publications_v2.is_referral_restricted(regular))
 
         message = monitor.Message(
@@ -273,8 +273,12 @@ class Chapter5LifecycleTests(unittest.TestCase):
             "test",
         )
         entry = state["active_wheels"]["ref-wheel"]
-        self.assertTrue(entry["referral_restricted"])
-        self.assertIn("только для рефералов", monitor.active_wheels_text(state).casefold())
+        self.assertEqual(
+            wheel_publications_v2.referral_classification(entry),
+            wheel_publications_v2.WHEEL_TYPE_NORMAL,
+        )
+        self.assertIsNot(entry.get("referral_restricted"), True)
+        self.assertNotIn("реферальное колесо", monitor.active_wheels_text(state).casefold())
 
         sent: list[str] = []
         original_send = monitor.send_message
@@ -289,8 +293,8 @@ class Chapter5LifecycleTests(unittest.TestCase):
             )
         finally:
             monitor.send_message = original_send
-        self.assertIn("Реферальное колесо", sent[0])
-        self.assertIn("отдельно для каждого аккаунта", sent[0])
+        self.assertNotIn("Реферальное колесо", sent[0])
+        self.assertNotIn("Предположительно реферальное", sent[0])
 
         panel_messages: list[str] = []
         panel = WheelInteractionRuntime.__new__(WheelInteractionRuntime)
@@ -303,7 +307,7 @@ class Chapter5LifecycleTests(unittest.TestCase):
         panel.with_nav = lambda rows=None: {"inline_keyboard": rows or []}  # type: ignore[method-assign]
         panel.send = lambda text, **kwargs: panel_messages.append(text) or {}  # type: ignore[method-assign]
         panel.show_active()
-        self.assertIn("Колесо только для рефералов", panel_messages[0])
+        self.assertNotIn("реферальное колесо", panel_messages[0].casefold())
 
     def test_event_identity_stays_stable_when_a_second_source_is_merged(self) -> None:
         now = datetime(2026, 7, 15, 12, 0, tzinfo=UTC)

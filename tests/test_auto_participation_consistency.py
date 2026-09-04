@@ -223,6 +223,10 @@ def test_referral_success_on_one_account_sends_one_honest_owner_result() -> None
         "event_id": "1393d78ddd6274d3103d",
         "message_text": "Колесико для рефов",
         "referral_restricted": True,
+        "wheel_type": wheel_publications_v2.WHEEL_TYPE_REFERRAL,
+        "referral_classification_evidence": (
+            wheel_publications_v2.STRONG_REFERRAL_EVIDENCE
+        ),
     }
     state = {
         "active_wheels": {"kekw2": item},
@@ -361,14 +365,14 @@ def test_referral_outcomes_are_independent_for_all_three_accounts() -> None:
     assert text.count("BetBoom подтвердил реферальное ограничение") == 1
 
 
-def test_suspected_referral_and_technical_error_stay_cautious() -> None:
+def test_telegram_referral_hint_stays_normal_and_account_results_stay_cautious() -> None:
     item = {
         "identifier": "hint",
         "message_text": "Реферальный розыгрыш BetBoom",
     }
     assert (
         wheel_publications_v2.referral_classification(item)
-        == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
+        == wheel_publications_v2.WHEEL_TYPE_NORMAL
     )
     accounts = {
         "vyacheslav_primary": (
@@ -403,7 +407,8 @@ def test_suspected_referral_and_technical_error_stay_cautious() -> None:
     text, _ = auto_participation_notifications._result_message(
         "hint", item, accounts
     )
-    assert "Предположительно реферальное колесо" in text
+    assert "Предположительно реферальное колесо" not in text
+    assert "реферальное колесо" not in text.casefold()
     assert "🛠 Аккаунт 1 — техническая ошибка" in text
     assert "⚠️ Аккаунт 2 — результат не подтверждён" in text
     assert "✅ xFLARXx" in text
@@ -416,7 +421,7 @@ def test_suspected_referral_and_technical_error_stay_cautious() -> None:
     assert "реферальное колесо" not in ordinary_text.casefold()
 
 
-def test_identifier_history_makes_later_generation_suspected_referral() -> None:
+def test_identifier_history_does_not_classify_later_generation() -> None:
     state = {
         "auto_participation_events": {
             "evt:old": {
@@ -428,9 +433,18 @@ def test_identifier_history_makes_later_generation_suspected_referral() -> None:
                     "message_date": "2026-07-30T12:45:41+00:00",
                     "message_text": "Колесико для рефов",
                     "referral_restricted": True,
+                    "wheel_type": "referral",
                 },
             }
-        }
+        },
+        "referral_identifier_history": {
+            "kekw2": {
+                "identifier": "kekw2",
+                "classification": "referral",
+                "evidence": "legacy_identifier_history",
+                "last_seen_at": "2026-07-30T12:45:41+00:00",
+            }
+        },
     }
     current = {
         "wheel_key": "kekw2",
@@ -444,18 +458,15 @@ def test_identifier_history_makes_later_generation_suspected_referral() -> None:
         observed_at=datetime(2026, 8, 2, 7, 0, tzinfo=UTC),
     )
 
-    assert classification == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
-    assert current["referral_suspected"] is True
+    assert classification == wheel_publications_v2.WHEEL_TYPE_NORMAL
+    assert current["wheel_type"] == wheel_publications_v2.WHEEL_TYPE_NORMAL
     assert current.get("referral_restricted") is not True
-    assert current["referral_classification_evidence"] == (
-        "identifier_history_explicit_referral"
-    )
-    assert state["referral_identifier_history"]["kekw2"]["classification"] == (
-        wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
-    )
+    assert current.get("referral_suspected") is not True
+    assert "referral_classification_evidence" not in current
+    assert state["referral_identifier_history"]["kekw2"]["classification"] == "referral"
 
 
-def test_explicit_page_banner_is_referral_but_failure_is_not_eligibility_proof() -> None:
+def test_page_banner_hint_does_not_classify_without_account_refusal() -> None:
     state: dict = {}
     current = {
         "wheel_key": "banner-wheel",
@@ -473,12 +484,13 @@ def test_explicit_page_banner_is_referral_but_failure_is_not_eligibility_proof()
         browser_detail=detail,
     )
 
-    assert classification == wheel_publications_v2.WHEEL_TYPE_REFERRAL
-    assert current["referral_restricted"] is True
-    assert "referral_ineligible" not in current
+    assert classification == wheel_publications_v2.WHEEL_TYPE_NORMAL
+    assert current["wheel_type"] == wheel_publications_v2.WHEEL_TYPE_NORMAL
+    assert current.get("referral_restricted") is not True
+    assert "referral_classification_evidence" not in current
 
 
-def test_new_action_does_not_inherit_exact_referral_flag_from_old_generation(
+def test_new_action_does_not_inherit_referral_from_old_generation(
     monkeypatch,
 ) -> None:
     now = datetime(2026, 8, 2, 7, 0, tzinfo=UTC)
@@ -493,6 +505,9 @@ def test_new_action_does_not_inherit_exact_referral_flag_from_old_generation(
                 "message_text": "Колесико для рефов",
                 "referral_restricted": True,
                 "wheel_type": "referral",
+                "referral_classification_evidence": (
+                    wheel_publications_v2.STRONG_REFERRAL_EVIDENCE
+                ),
             }
         },
         "participating_wheels": {},
@@ -517,12 +532,13 @@ def test_new_action_does_not_inherit_exact_referral_flag_from_old_generation(
     )
 
     current = state["active_wheels"]["kekw2"]
-    assert current["wheel_type"] == "suspected_referral"
-    assert current["referral_restricted"] is False
-    assert current["referral_suspected"] is True
+    assert current["wheel_type"] == wheel_publications_v2.WHEEL_TYPE_NORMAL
+    assert current.get("referral_restricted") is not True
+    assert current.get("referral_suspected") is not True
+    assert "referral_classification_evidence" not in current
 
 
-def test_initial_notification_uses_identifier_history_indicator(monkeypatch) -> None:
+def test_initial_notification_ignores_identifier_history_referral_hint(monkeypatch) -> None:
     now = datetime(2026, 8, 2, 7, 0, tzinfo=UTC)
     monkeypatch.setattr(monitor, "now_utc", lambda: now)
     delivered: list[str] = []
@@ -572,7 +588,8 @@ def test_initial_notification_uses_identifier_history_indicator(monkeypatch) -> 
     )
 
     assert len(delivered) == 1
-    assert "Предположительно реферальное колесо" in delivered[0]
+    assert "Предположительно реферальное колесо" not in delivered[0]
+    assert "Реферальное колесо" not in delivered[0]
 
 
 def test_notification_persists_exact_event_before_dispatch(monkeypatch) -> None:
@@ -706,4 +723,3 @@ def test_legacy_bot_only_success_is_rearmed_and_verified(monkeypatch) -> None:
     assert item["auto_participation_rearm_reason"] == (
         "bot_mark_requires_betboom_verification"
     )
-
