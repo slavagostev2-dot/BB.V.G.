@@ -302,7 +302,6 @@ class TelegramPanelRuntime(
         """Compatibility alias retained while old tests and workflows are migrated."""
         return cls._simplify_active_payload(text, reply_markup)
 
-
     def _registry_snapshot(self, snap: Any) -> dict[str, Any]:
         registry = self.load_source_registry()
         if not registry.get("sources"):
@@ -517,15 +516,24 @@ class TelegramPanelRuntime(
             self.navigation[str(self.current_user_id or "guest")] = ["menu"]
         role = self.role_for(self.current_user_id)
         admin = role in {"owner", "admin"}
-        rows = [
-            [
-                dict(button)
-                for button in row
-                if str(button.get("callback_data") or "") != "page:status"
+        if admin:
+            rows: list[list[dict[str, Any]]] = [
+                [
+                    {"text": "🎡 Колёса", "callback_data": "page:active"},
+                    {"text": "➕ Добавить колесо", "callback_data": "wheel:add"},
+                ],
+                [
+                    {"text": "📡 Источники", "callback_data": "page:sources"},
+                    {"text": "⚙️ Настройки", "callback_data": "page:settings"},
+                ],
+                [{"text": "🛠 Управление", "callback_data": "page:control"}],
             ]
-            for row in self.compact_menu_rows(admin)
-        ]
-        rows = [row for row in rows if row]
+        else:
+            rows = [
+                [{"text": "🎡 Колёса", "callback_data": "page:active"}],
+                [{"text": "🔔 Уведомления", "callback_data": "page:notifications"}],
+                [{"text": "✅ Состояние системы", "callback_data": "page:status"}],
+            ]
         text = (
             "🎡 <b>BB V.G.</b>\n\n"
             "Находит колёса BetBoom, показывает время прокрутки и хранит отметки участия.\n\n"
@@ -683,7 +691,7 @@ def _configured_panel(
     panel._joined_wheel_keys = lambda snap: set()  # type: ignore[method-assign]
     panel._personal_participating_wheels = lambda: set()  # type: ignore[method-assign]
     panel._sources_for_item = lambda snap, key, item: ["source", "second"]  # type: ignore[method-assign]
-    panel._collect_current_wheels = lambda: [  # type: ignore[method-assign]
+    panel._collect_current_wheels = lambda: [
         {
             "_key": "wheel-a",
             "identifier": "wheel-a",
@@ -740,18 +748,45 @@ def self_test() -> None:
     panel.send = lambda text, **kwargs: captured.append((text, kwargs)) or {}  # type: ignore[method-assign]
     panel.show_menu()
     assert "Ваша роль: <b>Администратор</b>" in captured[-1][0]
+    admin_markup = captured[-1][1]["reply_markup"]
+    admin_callbacks = {
+        str(button.get("callback_data") or "")
+        for row in admin_markup.get("inline_keyboard", [])
+        for button in row
+    }
+    assert admin_callbacks == {
+        "page:active",
+        "wheel:add",
+        "page:sources",
+        "page:settings",
+        "page:control",
+    }
+    panel.role_for = lambda user_id: "user"  # type: ignore[method-assign]
+    panel.role_name = lambda role: "Пользователь"  # type: ignore[method-assign]
+    panel.show_menu()
+    user_markup = captured[-1][1]["reply_markup"]
+    user_callbacks = {
+        str(button.get("callback_data") or "")
+        for row in user_markup.get("inline_keyboard", [])
+        for button in row
+    }
+    assert user_callbacks == {
+        "page:active",
+        "page:notifications",
+        "page:status",
+    }
     panel.show_disabled_features()
     assert "Ручное указание времени" in captured[-1][0]
 
     callback_calls: list[tuple[str, Any]] = []
     panel._prepare_callback_user = lambda query: callback_calls.append(("prepare", query))  # type: ignore[method-assign]
-    panel.snapshot = lambda force=False: SimpleNamespace(  # type: ignore[method-assign]
+    panel.snapshot = lambda force=False: SimpleNamespace(
         state={"button_contexts": {"token": {"wheel_key": "wheel-a"}}}
     )
     panel.mark_personal_participation = lambda key: {"changed": True}  # type: ignore[method-assign]
     panel.answer = lambda query_id, text: callback_calls.append(("answer", text))  # type: ignore[method-assign]
     panel.show_menu = lambda clear_stack=True: callback_calls.append(("menu", clear_stack))  # type: ignore[method-assign]
-    panel._delete_callback_message = lambda query: callback_calls.append(  # type: ignore[method-assign]
+    panel._delete_callback_message = lambda query: callback_calls.append(
         ("delete", str(query.get("data") or ""))
     )
     panel.handle_callback(
