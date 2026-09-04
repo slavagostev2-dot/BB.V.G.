@@ -1,35 +1,17 @@
 {
-  "active_incidents": 4,
+  "active_incidents": 3,
   "admin_panel": {
-    "age_minutes": 5,
-    "last_heartbeat_at": "2026-09-04T18:04:10.592675+00:00",
-    "started_at": "2026-09-04T17:33:32.805776+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-09-04T18:21:28.788550+00:00",
+    "started_at": "2026-09-04T18:11:21.527497+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
-    "cached": false,
-    "confidence": 0.0,
-    "critical_count": 2,
-    "decision_id": "80c3b87c445a4fb18612502a37b6afdb",
-    "finding_count": 2,
-    "finding_kinds": [
-      "source_empty_public_feed"
-    ],
-    "generated_at": "2026-09-04T18:09:35.477921+00:00",
-    "impact": "Данные из указанных источников не поступают в систему, что приводит к отсутствию обновлений в ленте.",
-    "mode": "ai",
-    "model": "gemini-3.1-flash-lite",
-    "provider": "gemini",
-    "recommended_action": "Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Система находится в критическом состоянии: два ключевых источника (@wfksiris и @kolesaBB) перестали отдавать данные, несмотря на доступность страниц.",
-    "used_fallback": false,
-    "version": 1,
-    "warning_count": 0
+    "ai_status": "deployment_grace",
+    "mode": "suppressed",
+    "reason": "system-health started from a code push"
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -60,12 +42,12 @@
     "miniapp": "ok",
     "monitor": "ok",
     "notifications": "ok",
-    "ratings": "ok",
+    "ratings": "failed",
     "source_health": "failed",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-04T18:09:32.119522+00:00",
+  "checked_at": "2026-09-04T18:25:49.341730+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -97,7 +79,7 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 2,
+  "finding_count": 3,
   "findings": [
     {
       "detail": "публичная страница открылась, но сообщений не найдено",
@@ -112,11 +94,18 @@
       "severity": "critical",
       "subject": "wfksiris",
       "title": "Источник @wfksiris не проверяется"
+    },
+    {
+      "detail": "Количество несовпадений: 1.",
+      "kind": "rating_score_mismatch",
+      "severity": "critical",
+      "subject": "",
+      "title": "Рейтинг источников не совпадает с личными голосами"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-04T18:04:10.592675+00:00",
+    "active_incidents": 3,
+    "bot_panel_heartbeat": "2026-09-04T18:21:28.788550+00:00",
     "checked_sources": 175,
     "configured_sources": 177,
     "domain": "telegram.me",
@@ -126,21 +115,23 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-04T18:08:58.423678+00:00",
+      "last_checked_at": "2026-09-04T18:24:03.865934+00:00",
       "last_failure_at": "2026-09-04T17:17:24.378856+00:00",
-      "last_success_at": "2026-09-04T18:08:58.423678+00:00",
+      "last_success_at": "2026-09-04T18:24:03.865934+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "suppressed",
+    "health_inspector_status": "deployment_grace",
     "messages_attempted": 0,
     "opened": 0,
-    "resolved": 0
+    "resolved": 2,
+    "suppressed": true,
+    "suppressed_reason": "code_update_push_grace"
   },
-  "incident_sequence": 180,
+  "incident_sequence": 183,
   "inventory": {
     "configured": 177,
     "configured_total": 177,
@@ -164,32 +155,32 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 175,
-    "checks_delta": 8287610,
-    "checks_total": 9230723,
+    "checks_delta": 177,
+    "checks_total": 9232847,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "8b398e51090d11d27c772e18a0c5a9868777c5be",
-    "iteration": 1,
-    "last_iteration_at": "2026-09-04T18:09:01.712518+00:00",
-    "last_iteration_duration_seconds": 59,
+    "head_sha": "9987f1a1f9eb0619717de725da14bfd0b0c4bd5e",
+    "iteration": 11,
+    "last_iteration_at": "2026-09-04T18:23:19.827470+00:00",
+    "last_iteration_duration_seconds": 36,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-04T18:09:01.712518+00:00",
-    "last_successful_checks_total": 9230723,
-    "last_successful_iteration_at": "2026-09-04T18:09:01.712518+00:00",
+    "last_process_heartbeat_at": "2026-09-04T18:23:19.827470+00:00",
+    "last_successful_checks_total": 9232847,
+    "last_successful_iteration_at": "2026-09-04T18:23:19.827470+00:00",
     "pending_wheels": 0,
     "reachable_sources": 175,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33904190864",
-    "run_started_at": "2026-09-04T18:08:02.762553+00:00",
+    "run_id": "33904451103",
+    "run_started_at": "2026-09-04T18:10:50.734853+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33904190864"
+    "workflow_run_id": "33904451103"
   },
-  "monitor_age_minutes": 0,
-  "monitor_effective_heartbeat_at": "2026-09-04T18:09:01.712518+00:00",
+  "monitor_age_minutes": 2,
+  "monitor_effective_heartbeat_at": "2026-09-04T18:23:19.827470+00:00",
   "monitor_source_expectation": {
     "configured": 177,
     "due_for_check": 175
@@ -197,7 +188,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 64,
+    "entry_count": 75,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -225,11 +216,13 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 841,
+    "personal_vote_records": 847,
     "policy": "personal_votes_v1",
-    "rated_sources": 47,
-    "score_mismatches": [],
-    "valid_personal_votes": 841
+    "rated_sources": 48,
+    "score_mismatches": [
+      "bbvg_manual"
+    ],
+    "valid_personal_votes": 847
   },
   "source_health_summary": {
     "configured_records": 177,
@@ -280,9 +273,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-04T18:08:58.423678+00:00",
+    "last_checked_at": "2026-09-04T18:24:03.865934+00:00",
     "last_failure_at": "2026-09-04T17:17:24.378856+00:00",
-    "last_success_at": "2026-09-04T18:08:58.423678+00:00",
+    "last_success_at": "2026-09-04T18:24:03.865934+00:00",
     "status": "ok"
   }
 }
