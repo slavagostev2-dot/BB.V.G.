@@ -31,30 +31,33 @@ class SourceRegistryRuntime(UserManagementRuntime):
 
     @staticmethod
     def source_menu_rows(admin: bool) -> list[list[dict[str, Any]]]:
-        rows: list[list[dict[str, Any]]] = [
-            [{"text": "🏆 Рейтинг источников", "callback_data": "page:ranking"}]
-        ]
+        """Expose the simple product paths while keeping legacy routes alive."""
+
         if admin:
-            rows.extend(
-                [
-                    [
-                        {"text": "⚡ Основные источники", "callback_data": "source_list:primary:0"},
-                        {"text": "🌙 Ночное наблюдение", "callback_data": "page:discovery"},
-                    ],
-                    [
-                        {"text": "🛰️ Разведка источников", "callback_data": "page:intelligence"},
-                        {"text": "➕ Добавить источник", "callback_data": "source:add"},
-                    ],
-                ]
-            )
-        else:
-            rows.append(
-                [
-                    {"text": "📋 Основные источники", "callback_data": "source_list:primary:0"},
-                    {"text": "➕ Предложить источник", "callback_data": "source:request"},
-                ]
-            )
-        return rows
+            return [
+                [{"text": "📋 Все источники", "callback_data": "source_list:all:0"}],
+                [{"text": "➕ Добавить источник", "callback_data": "source:add"}],
+                [{"text": "🔎 Найденные источники", "callback_data": "page:intelligence"}],
+            ]
+        return [
+            [{"text": "📋 Все источники", "callback_data": "source_list:all:0"}],
+            [{"text": "➕ Предложить источник", "callback_data": "source:request"}],
+        ]
+
+    def source_sets(self, snap: Any) -> dict[str, list[str]]:
+        """Add one de-duplicated user-facing list over the legacy source modes."""
+
+        groups = dict(super().source_sets(snap))
+        ordered: list[str] = []
+        seen: set[str] = set()
+        for source in [*snap.fast, *snap.nightly]:
+            value = str(source or "").strip().lstrip("@")
+            key = value.casefold()
+            if value and key not in seen:
+                seen.add(key)
+                ordered.append(value)
+        groups["all"] = sorted(ordered, key=str.casefold)
+        return groups
 
     @staticmethod
     def ranked_sources(stats: dict[str, Any]) -> list[tuple[str, int, int]]:
@@ -75,6 +78,7 @@ class SourceRegistryRuntime(UserManagementRuntime):
     @staticmethod
     def source_mode_name(mode: str) -> str:
         return {
+            "all": "Все источники",
             "primary": "Основная проверка",
             "reserve": "Ночное наблюдение",
             "paused": "Временно приостановлены",
@@ -208,19 +212,25 @@ class SourceRegistryRuntime(UserManagementRuntime):
 
 
 def self_test() -> None:
+    assert SourceRegistryRuntime.source_mode_name("all") == "Все источники"
     assert SourceRegistryRuntime.source_mode_name("primary") == "Основная проверка"
     assert SourceRegistryRuntime.source_mode_name("reserve") == "Ночное наблюдение"
     assert SourceRegistryRuntime.miniapp_url_for_chat is PanelFoundationMixin.miniapp_url_for_chat
     assert MINIAPP_RELEASE == "5.11.0"
     assert MINIAPP_URL.startswith("https://")
-    menu_text = str(SourceRegistryRuntime.source_menu_rows(True))
-    assert "Обновить реестр" not in menu_text
-    assert "page:ranking" in menu_text
+    admin_menu = SourceRegistryRuntime.source_menu_rows(True)
+    admin_menu_text = str(admin_menu)
+    assert "source_list:all:0" in admin_menu_text
+    assert "source:add" in admin_menu_text
+    assert "page:intelligence" in admin_menu_text
+    assert "page:ranking" not in admin_menu_text
+    assert "page:discovery" not in admin_menu_text
 
     panel = object.__new__(SourceRegistryRuntime)
     snap = SimpleNamespace(
-        fast=["Primary"],
-        nightly=["Nightly"],
+        fast=["Primary", "Duplicate"],
+        nightly=["Nightly", "duplicate"],
+        stats={"sources": {}},
         health={
             "sources": {
                 "Primary": {"status": "ok", "last_checked_at": "2026-07-16T00:00:00Z"},
@@ -228,6 +238,9 @@ def self_test() -> None:
             }
         },
     )
+    groups = panel.source_sets(snap)
+    assert groups["all"] == ["Duplicate", "Nightly", "Primary"]
+
     panel.get_json_file = lambda path, fallback: {  # type: ignore[method-assign]
         "sources": {
             "Primary": {"mode": "paused", "manual_override": True},
@@ -243,13 +256,13 @@ def self_test() -> None:
     panel.get_json_file = lambda path, fallback: fallback  # type: ignore[method-assign]
     fallback = panel.source_registry_fallback()
     assert fallback["summary"] == {
-        "total": 2,
-        "primary": 1,
+        "total": 3,
+        "primary": 2,
         "nightly": 1,
         "checked": 2,
         "available": 1,
         "unavailable": 1,
-        "pending": 0,
+        "pending": 1,
     }
     assert fallback["generated_at"] == "2026-07-16T00:00:00Z"
     assert panel.load_source_registry() == _EMPTY_REGISTRY

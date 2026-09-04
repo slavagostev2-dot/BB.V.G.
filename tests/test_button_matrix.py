@@ -132,16 +132,16 @@ class ButtonMatrixTests(unittest.TestCase):
 
         self.assertEqual([item["_key"] for item in items], ["future"])
 
-    def test_source_buttons_keep_pre_update_order_and_actions(self) -> None:
+    def test_source_buttons_expose_simple_entry_points_and_keep_legacy_routes(self) -> None:
         expected = {
             False: [
-                ["page:ranking"],
-                ["source_list:primary:0", "source:request"],
+                ["source_list:all:0"],
+                ["source:request"],
             ],
             True: [
-                ["page:ranking"],
-                ["source_list:primary:0", "page:discovery"],
-                ["page:intelligence", "source:add"],
+                ["source_list:all:0"],
+                ["source:add"],
+                ["page:intelligence"],
             ],
         }
         for admin in (False, True):
@@ -159,6 +159,7 @@ class ButtonMatrixTests(unittest.TestCase):
                 }
             }
             panel.source_sets = lambda snap: {  # type: ignore[method-assign]
+                "all": ["main", "nightly", "paused"],
                 "primary": ["main"],
                 "reserve": ["nightly"],
                 "paused": ["paused"],
@@ -172,6 +173,18 @@ class ButtonMatrixTests(unittest.TestCase):
                 for row in rows
             ]
             self.assertEqual(callback_rows, expected[admin])
+
+        panel, calls = self.panel(admin=True)
+        panel.show_ranking = lambda: calls.append(("legacy", "ranking"))  # type: ignore[method-assign]
+        panel.show_discovery = lambda: calls.append(("legacy", "discovery"))  # type: ignore[method-assign]
+        panel.show_source_list = lambda group, page=0: calls.append(  # type: ignore[method-assign]
+            ("legacy", group, page)
+        )
+        for callback in ("page:ranking", "page:discovery", "source_list:primary:0"):
+            panel.handle_callback(self.query(callback))
+        self.assertIn(("legacy", "ranking"), calls)
+        self.assertIn(("legacy", "discovery"), calls)
+        self.assertIn(("legacy", "primary", 0), calls)
 
     def test_source_intelligence_overview_findings_and_detail_are_routable(self) -> None:
         panel, calls = self.panel(admin=True)
