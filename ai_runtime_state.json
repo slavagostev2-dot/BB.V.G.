@@ -1,10 +1,5 @@
 {
-  "cache": {
-    "876491c23c62e38d870170d14480bc91688dfa6510c6b5d4c82ab0df2fdf09c1": {
-      "expires_at": 1788497866.396806,
-      "text": "{\n  \"summary\": \"Система мониторинга BB V.G. находится в критическом состоянии: 3 источника не отдают данные, а основной монитор пропускает 7 источников из 177.\",\n  \"impact\": \"Часть целевых каналов (@wfksiris, @kolesaBB и другие) не обновляется, что приводит к потере актуальных данных в мониторинге.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.\",\n  \"confidence\": \"high\"\n}"
-    }
-  },
+  "cache": {},
   "decisions": [
     {
       "cached": false,
@@ -2700,10 +2695,21 @@
       "output_sha256": "46a5f95ea2601b4cd6add22878671d74f2fc49eeff5bd5a5de63ad456b627f5a",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1788512792.8491442,
+      "error": "RuntimeError: Gemini HTTP 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n",
+      "feature": "health_inspector",
+      "id": "f24155b9ec8748abbd05b4765e4555df",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "ede2b13cc5e663049222ccb035f5aaec5db39110234cb443695f1bd1ab480259",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1788496966.396806
+    1788512792.8491442
   ],
   "version": 1
 }
