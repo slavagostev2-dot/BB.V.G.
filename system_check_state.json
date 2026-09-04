@@ -1,8 +1,8 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-09-04T13:23:22.159299+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-09-04T17:00:12.565798+00:00",
     "started_at": "2026-09-04T13:08:11.602583+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,14 +13,14 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 3,
-    "decision_id": "e786beded6d94a78bfeeb61fab002cd9",
+    "decision_id": "5dbe056c0959443e801b27a6a3820769",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
       "source_empty_public_feed",
       "source_health_missing"
     ],
-    "generated_at": "2026-09-04T13:27:35.602730+00:00",
+    "generated_at": "2026-09-04T17:00:58.637389+00:00",
     "impact": "Часть целевых каналов (@wfksiris, @kolesaBB и другие) не обновляется, что приводит к потере актуальных данных в мониторинге.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
@@ -67,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-04T13:27:32.158876+00:00",
+  "checked_at": "2026-09-04T17:00:52.928843+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -132,7 +132,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-04T13:23:22.159299+00:00",
+    "bot_panel_heartbeat": "2026-09-04T17:00:12.565798+00:00",
     "checked_sources": 170,
     "configured_sources": 177,
     "domain": "telegram.me",
@@ -142,9 +142,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-04T13:25:32.756718+00:00",
+      "last_checked_at": "2026-09-04T17:00:28.189937+00:00",
       "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-      "last_success_at": "2026-09-04T13:25:32.756718+00:00",
+      "last_success_at": "2026-09-04T17:00:28.189937+00:00",
       "status": "ok"
     }
   },
@@ -181,31 +181,31 @@
     "brand": "BB V.G.",
     "checked_sources": 170,
     "checks_delta": 172,
-    "checks_total": 9190517,
+    "checks_total": 9221133,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
-    "iteration": 156,
-    "last_iteration_at": "2026-09-04T13:27:17.416770+00:00",
-    "last_iteration_duration_seconds": 41,
+    "iteration": 51,
+    "last_iteration_at": "2026-09-04T16:57:06.731621+00:00",
+    "last_iteration_duration_seconds": 38,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-04T13:27:17.416770+00:00",
-    "last_successful_checks_total": 9190517,
-    "last_successful_iteration_at": "2026-09-04T13:27:17.416770+00:00",
+    "last_process_heartbeat_at": "2026-09-04T16:57:06.731621+00:00",
+    "last_successful_checks_total": 9221133,
+    "last_successful_iteration_at": "2026-09-04T16:57:06.731621+00:00",
     "pending_wheels": 0,
     "reachable_sources": 170,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33863115783",
-    "run_started_at": "2026-09-04T10:25:29.380462+00:00",
+    "run_id": "33892352824",
+    "run_started_at": "2026-09-04T15:57:21.054179+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33863115783"
+    "workflow_run_id": "33892352824"
   },
-  "monitor_age_minutes": 0,
-  "monitor_effective_heartbeat_at": "2026-09-04T13:27:17.416770+00:00",
+  "monitor_age_minutes": 3,
+  "monitor_effective_heartbeat_at": "2026-09-04T16:57:06.731621+00:00",
   "monitor_source_expectation": {
     "configured": 177,
     "due_for_check": 175
@@ -213,7 +213,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 8,
+    "entry_count": 36,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -241,11 +241,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 831,
+    "personal_vote_records": 837,
     "policy": "personal_votes_v1",
     "rated_sources": 47,
     "score_mismatches": [],
-    "valid_personal_votes": 831
+    "valid_personal_votes": 837
   },
   "source_health_summary": {
     "configured_records": 172,
@@ -302,9 +302,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-04T13:25:32.756718+00:00",
+    "last_checked_at": "2026-09-04T17:00:28.189937+00:00",
     "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-    "last_success_at": "2026-09-04T13:25:32.756718+00:00",
+    "last_success_at": "2026-09-04T17:00:28.189937+00:00",
     "status": "ok"
   }
 }
