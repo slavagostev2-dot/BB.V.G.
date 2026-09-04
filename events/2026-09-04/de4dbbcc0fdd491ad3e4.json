@@ -10,7 +10,7 @@
       "event_id": "evt:de4dbbcc0fdd491ad3e4",
       "finished_at": "2026-09-04T18:49:33.893208+00:00",
       "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-04T18:49:42.790204+00:00",
+      "recorded_at": "2026-09-04T18:55:21.036031+00:00",
       "started_at": "2026-09-04T18:49:33.893208+00:00",
       "status": "participated"
     },
@@ -24,7 +24,7 @@
       "event_id": "evt:de4dbbcc0fdd491ad3e4",
       "finished_at": "2026-09-04T18:49:25.745659+00:00",
       "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-04T18:49:42.786434+00:00",
+      "recorded_at": "2026-09-04T18:55:21.034187+00:00",
       "started_at": "2026-09-04T18:49:25.745659+00:00",
       "status": "participated"
     },
@@ -38,7 +38,7 @@
       "event_id": "evt:de4dbbcc0fdd491ad3e4",
       "finished_at": "2026-09-04T18:49:38.697840+00:00",
       "owner_id": "xflarxx",
-      "recorded_at": "2026-09-04T18:49:42.791408+00:00",
+      "recorded_at": "2026-09-04T18:55:21.037999+00:00",
       "started_at": "2026-09-04T18:49:38.697840+00:00",
       "status": "participated"
     }
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-04T18:49:25.745659+00:00",
       "status": "participated",
-      "updated_at": "2026-09-04T18:50:02.791890+00:00"
+      "updated_at": "2026-09-04T18:55:21.034187+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-04T18:49:33.893208+00:00",
       "status": "participated",
-      "updated_at": "2026-09-04T18:50:02.793144+00:00"
+      "updated_at": "2026-09-04T18:55:21.036031+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,14 +87,15 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-04T18:49:38.697840+00:00",
       "status": "participated",
-      "updated_at": "2026-09-04T18:50:02.794462+00:00"
+      "updated_at": "2026-09-04T18:55:21.037999+00:00"
     }
   ],
   "action_id": 1789,
   "aliases": [
     "lolly18#action:1789:2026-09-04T18:43:27.513000+00:00",
     "lolly18#event:de4dbbcc0fdd491ad3e4",
-    "lolly18#seen:2026-09-04T18:43:48+00:00"
+    "lolly18#seen:2026-09-04T18:43:48+00:00",
+    "lolly18#seen:2026-09-04T18:44:34.864905+00:00"
   ],
   "api_confirmed_at": "2026-09-04T18:49:42.775851+00:00",
   "browser_started_at": null,
@@ -116,7 +117,7 @@
   "source_message_date": "2026-09-04T18:43:48+00:00",
   "source_message_id": 154,
   "source_message_url": "https://telegram.me/whylollybet/154",
-  "status": "preliminary",
+  "status": "unknown",
   "transitions": [
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:6c0a2ed66a0135f2aa42246c1e15b73d78fa3f81fc3df97f79fe24cd2b1d4adb",
@@ -145,7 +146,7 @@
     },
     {
       "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-04T18:49:42.775851+00:00",
+      "occurred_at": "2026-09-04T18:55:21.026426+00:00",
       "payload": {
         "action_id": 1789,
         "available_at": "",
@@ -163,7 +164,7 @@
         "source_message_date": "2026-09-04T18:43:48+00:00",
         "source_message_id": 154,
         "source_message_url": "https://telegram.me/whylollybet/154",
-        "status": "preliminary",
+        "status": "unknown",
         "url": "https://betboom.ru/freestream/LOLLY18",
         "verification_status": "confirmed",
         "wheel_key": "lolly18",
@@ -174,7 +175,7 @@
     },
     {
       "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-04T18:49:42.775851+00:00",
+      "occurred_at": "2026-09-04T18:55:21.026426+00:00",
       "payload": {
         "action_id": 1789,
         "available_at": "",
@@ -192,7 +193,7 @@
         "source_message_date": "2026-09-04T18:43:48+00:00",
         "source_message_id": 154,
         "source_message_url": "https://telegram.me/whylollybet/154",
-        "status": "preliminary",
+        "status": "unknown",
         "url": "https://betboom.ru/freestream/LOLLY18",
         "verification_status": "confirmed",
         "wheel_key": "lolly18",
@@ -232,8 +233,18 @@
       "transition_id": "6a275918321e162104a0f1872c8637c64048ebac5fa1f1ba4122fb9b9f5512ee"
     },
     {
+      "dedupe_key": "33908066662",
+      "occurred_at": "2026-09-04T18:55:21.031244+00:00",
+      "payload": {
+        "workflow_run_id": "33908066662",
+        "workflow_sha": "1fe9c9ebd88aa304ddc113fea34b70360c3fb8e2"
+      },
+      "stage": "workflow_started",
+      "transition_id": "b6d9edc4b81fcec356432ad2c4146d2a22d486c533605372a57efcdcadd16f92"
+    },
+    {
       "dedupe_key": "1789:2026-09-04T18:43:27.513000+00:00",
-      "occurred_at": "2026-09-04T18:49:42.775851+00:00",
+      "occurred_at": "2026-09-04T18:55:21.026426+00:00",
       "payload": {
         "action_id": 1789,
         "available_at": "",
@@ -251,7 +262,7 @@
         "source_message_date": "2026-09-04T18:43:48+00:00",
         "source_message_id": 154,
         "source_message_url": "https://telegram.me/whylollybet/154",
-        "status": "preliminary",
+        "status": "unknown",
         "url": "https://betboom.ru/freestream/LOLLY18",
         "verification_status": "confirmed",
         "wheel_key": "lolly18",
@@ -261,7 +272,7 @@
       "transition_id": "de684e534b890d3f450c2e7b92c81e9432d6ab341e56d49b152318aec26fa6df"
     }
   ],
-  "updated_at": "2026-09-04T18:50:02.788929+00:00",
+  "updated_at": "2026-09-04T18:55:21.031244+00:00",
   "wheel_key": "lolly18",
   "workflow_started_at": "2026-09-04T18:49:42.783319+00:00"
 }
