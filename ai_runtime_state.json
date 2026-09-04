@@ -1,8 +1,8 @@
 {
   "cache": {
-    "3c2b6b45a70fcd478fa37ce7eed9f0c3abc477adf53fd652cc7876482afb802a": {
-      "expires_at": 1788080565.3265886,
-      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post explicitly states that wheels will be present during every game of the ongoing Blast Open Porto event.\"\n}"
+    "93c476cf9013a93eb2886c1bac8a2414464c111ae79039cd65bcdfd2f20700ab": {
+      "expires_at": 1788530436.0262246,
+      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly confirms the presence of a wheel ('Колеса будут? — Будут') in the context of a live stream event.\"\n}"
     }
   },
   "decisions": [
@@ -1725,10 +1725,23 @@
       "provider": "gemini",
       "reason": "The post explicitly states that wheels will be present during every game of the ongoing Blast Open Porto event.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "active_wheel",
+      "confidence": 0.95,
+      "created_at": 1788529536.0262246,
+      "feature": "suspicious_post_analysis",
+      "id": "660b27ab1ce64e72a890cd136978847f",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "6b099ac58052ecf86dc9d91c31d30d3697a124419b9128a34b05cf3a73599185",
+      "provider": "gemini",
+      "reason": "The post explicitly confirms the presence of a wheel ('Колеса будут? — Будут') in the context of a live stream event.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788079665.3265886
+    1788529536.0262246
   ],
   "version": 1
 }
