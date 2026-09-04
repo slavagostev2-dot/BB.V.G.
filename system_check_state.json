@@ -1,35 +1,35 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-09-04T09:02:43.805537+00:00",
-    "started_at": "2026-09-04T08:37:28.798336+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-09-04T13:23:22.159299+00:00",
+    "started_at": "2026-09-04T13:08:11.602583+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "provider_error",
+    "ai_status": "ok",
     "cached": false,
-    "confidence": 1.0,
+    "confidence": 0.0,
     "critical_count": 3,
-    "decision_id": "f24155b9ec8748abbd05b4765e4555df",
+    "decision_id": "e786beded6d94a78bfeeb61fab002cd9",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
       "source_empty_public_feed",
       "source_health_missing"
     ],
-    "generated_at": "2026-09-04T09:06:35.198269+00:00",
-    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
-    "mode": "rules",
+    "generated_at": "2026-09-04T13:27:35.602730+00:00",
+    "impact": "Часть целевых каналов (@wfksiris, @kolesaBB и другие) не обновляется, что приводит к потере актуальных данных в мониторинге.",
+    "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система требует внимания: критических проблем — 3, предупреждений — 1. Источники последнего цикла: доступно 170/170, ошибок 0.",
-    "used_fallback": true,
+    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: 3 источника не отдают данные, а основной монитор пропускает 7 источников из 177.",
+    "used_fallback": false,
     "version": 1,
     "warning_count": 1
   },
@@ -67,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-04T09:06:31.527055+00:00",
+  "checked_at": "2026-09-04T13:27:32.158876+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -132,7 +132,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-04T09:02:43.805537+00:00",
+    "bot_panel_heartbeat": "2026-09-04T13:23:22.159299+00:00",
     "checked_sources": 170,
     "configured_sources": 177,
     "domain": "telegram.me",
@@ -142,16 +142,16 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-03T19:43:06.464668+00:00",
+      "last_checked_at": "2026-09-04T13:25:32.756718+00:00",
       "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-      "last_success_at": "2026-09-03T19:43:06.464668+00:00",
+      "last_success_at": "2026-09-04T13:25:32.756718+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "rules",
-    "health_inspector_status": "provider_error",
+    "health_inspector_mode": "ai",
+    "health_inspector_status": "ok",
     "messages_attempted": 0,
     "opened": 0,
     "resolved": 0
@@ -181,31 +181,31 @@
     "brand": "BB V.G.",
     "checked_sources": 170,
     "checks_delta": 172,
-    "checks_total": 9150785,
+    "checks_total": 9190517,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "058f2339d66e6240e47c6dde3cbe9295ada72fd8",
-    "iteration": 231,
-    "last_iteration_at": "2026-09-04T09:02:23.177338+00:00",
-    "last_iteration_duration_seconds": 37,
+    "iteration": 156,
+    "last_iteration_at": "2026-09-04T13:27:17.416770+00:00",
+    "last_iteration_duration_seconds": 41,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-04T09:02:23.177338+00:00",
-    "last_successful_checks_total": 9150785,
-    "last_successful_iteration_at": "2026-09-04T09:02:23.177338+00:00",
+    "last_process_heartbeat_at": "2026-09-04T13:27:17.416770+00:00",
+    "last_successful_checks_total": 9190517,
+    "last_successful_iteration_at": "2026-09-04T13:27:17.416770+00:00",
     "pending_wheels": 0,
     "reachable_sources": 170,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33838528625",
-    "run_started_at": "2026-09-04T04:54:44.194261+00:00",
+    "run_id": "33863115783",
+    "run_started_at": "2026-09-04T10:25:29.380462+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33838528625"
+    "workflow_run_id": "33863115783"
   },
-  "monitor_age_minutes": 4,
-  "monitor_effective_heartbeat_at": "2026-09-04T09:02:23.177338+00:00",
+  "monitor_age_minutes": 0,
+  "monitor_effective_heartbeat_at": "2026-09-04T13:27:17.416770+00:00",
   "monitor_source_expectation": {
     "configured": 177,
     "due_for_check": 175
@@ -241,11 +241,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 829,
+    "personal_vote_records": 831,
     "policy": "personal_votes_v1",
     "rated_sources": 47,
     "score_mismatches": [],
-    "valid_personal_votes": 829
+    "valid_personal_votes": 831
   },
   "source_health_summary": {
     "configured_records": 172,
@@ -302,9 +302,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-03T19:43:06.464668+00:00",
+    "last_checked_at": "2026-09-04T13:25:32.756718+00:00",
     "last_failure_at": "2026-08-21T16:42:07.771682+00:00",
-    "last_success_at": "2026-09-03T19:43:06.464668+00:00",
+    "last_success_at": "2026-09-04T13:25:32.756718+00:00",
     "status": "ok"
   }
 }
