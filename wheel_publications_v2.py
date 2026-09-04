@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import re
 from typing import Any, Callable
 
 
@@ -9,137 +8,88 @@ UTC = timezone.utc
 
 WHEEL_TYPE_NORMAL = "normal"
 WHEEL_TYPE_REFERRAL = "referral"
+# Compatibility-only name for old callers. New classification never emits it.
 WHEEL_TYPE_SUSPECTED_REFERRAL = "suspected_referral"
 WHEEL_TYPES = {
     WHEEL_TYPE_NORMAL,
     WHEEL_TYPE_REFERRAL,
-    WHEEL_TYPE_SUSPECTED_REFERRAL,
 }
 REFERRAL_IDENTIFIER_HISTORY_KEY = "referral_identifier_history"
 REFERRAL_IDENTIFIER_HISTORY_LIMIT = 500
-PAGE_REFERRAL_HINT_RE = re.compile(
-    r"(?:^|[;\s])page_referral_hint="
-    r"(?P<classification>referral|suspected_referral)(?:;|$)",
-    re.IGNORECASE,
-)
+STRONG_REFERRAL_EVIDENCE = "betboom_referral_ineligible"
+_REFERRAL_INELIGIBLE_DETAIL_MARKER = "referral_ineligible_exact_text:"
 
 REFERRAL_RESTRICTED_NOTICE_TEXT = (
-    "Колесо только для рефералов. Для участия аккаунт должен быть зарегистрирован "
-    "по реферальной ссылке или промокоду автора."
+    "Колесо только для рефералов. BetBoom подтвердил реферальное ограничение "
+    "для одного из проверенных аккаунтов."
 )
 REFERRAL_RESTRICTED_NOTICE_HTML = (
-    "⚠️ <b>Колесо только для рефералов</b>\n"
-    "Для участия аккаунт должен быть зарегистрирован по реферальной ссылке "
-    "или промокоду автора."
+    "⚠️ <b>Реферальное колесо</b>\n"
+    "BetBoom подтвердил реферальное ограничение для одного из проверенных аккаунтов."
 )
-REFERRAL_RESTRICTED_SHORT_HTML = "⚠️ <b>Колесо только для рефералов</b>"
+REFERRAL_RESTRICTED_SHORT_HTML = "⚠️ <b>Реферальное колесо</b>"
+# Kept until the follow-up cleanup removes old presentation branches.
 SUSPECTED_REFERRAL_SHORT_HTML = "🟡 <b>Предположительно реферальное колесо</b>"
-_REFERRAL_RESTRICTION_PATTERNS = (
-    re.compile(r"\bтолько\s+(?:для\s+)?реф(?:ерал\w*|ов)\b", re.IGNORECASE),
-    re.compile(r"\b(?:для|моим?|нашим?)\s+реферал\w*\b", re.IGNORECASE),
-    re.compile(r"\b(?:колес\w*\s+)?для\s+рефов\b", re.IGNORECASE),
-    re.compile(
-        r"\b(?:участ\w*|доступ\w*|колес\w*)[^.\n]{0,140}"
-        r"\b(?:только|лишь|исключительно)[^.\n]{0,140}"
-        r"\b(?:реферал\w*|реферальн\w*\s+ссылк\w*|промокод\w*)",
-        re.IGNORECASE,
-    ),
-    re.compile(
-        r"\b(?:участ\w*|доступ\w*)[^.\n]{0,140}"
-        r"\b(?:зарегистрирован\w*|регистрац\w*)[^.\n]{0,120}"
-        r"\b(?:по|через)\s+(?:моей\s+|наш\w*\s+)?"
-        r"(?:реферальн\w*\s+)?(?:ссылк\w*|промокод\w*)",
-        re.IGNORECASE,
-    ),
-    re.compile(r"\b(?:only\s+for\s+referrals?|referral[-\s]?only)\b", re.IGNORECASE),
-)
-_REFERRAL_HINT_RE = re.compile(
-    r"\b(?:реф(?:ерал\w*|ов|ы)?|referral\w*)\b",
-    re.IGNORECASE,
-)
 
 
 def is_referral_restricted(text: str) -> bool:
-    """Recognize an explicit referral/promo eligibility restriction in a post."""
+    """Legacy publication-text hook; Telegram text is never referral proof."""
 
-    value = " ".join(str(text or "").split())
-    return bool(
-        value and any(pattern.search(value) for pattern in _REFERRAL_RESTRICTION_PATTERNS)
-    )
+    return False
+
+
+def _persisted_referral_is_confirmed(entry: Any) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    classification = str(
+        entry.get("wheel_type") or entry.get("referral_classification") or ""
+    ).strip().casefold()
+    evidence = str(entry.get("referral_classification_evidence") or "").strip()
+    return classification == WHEEL_TYPE_REFERRAL and evidence == STRONG_REFERRAL_EVIDENCE
 
 
 def entry_is_referral_restricted(entry: Any) -> bool:
-    if not isinstance(entry, dict):
-        return False
-    if entry.get("referral_restricted") is True:
-        return True
-    return is_referral_restricted(str(entry.get("message_text") or ""))
+    """Return true only for a persisted, strongly confirmed BetBoom restriction."""
+
+    return _persisted_referral_is_confirmed(entry)
 
 
 def referral_classification(value: Any) -> str:
-    """Classify referral scope without inferring per-account eligibility.
+    """Classify referral scope using strong BetBoom evidence only.
 
-    ``referral`` requires explicit publication/state evidence. A weaker referral
-    mention is kept as ``suspected_referral`` and must never be promoted to an
-    account-level ``referral_ineligible`` result.
+    Telegram publication text, generic page text, old ``referral_restricted`` flags,
+    identifier history and ``suspected_referral`` are intentionally not evidence.
     """
 
-    if isinstance(value, dict):
-        if entry_is_referral_restricted(value):
-            return WHEEL_TYPE_REFERRAL
-        explicit = str(
-            value.get("wheel_type")
-            or value.get("referral_classification")
-            or ""
-        ).strip().casefold()
-        if explicit in WHEEL_TYPES:
-            return explicit
-        if value.get("referral_suspected") is True:
-            return WHEEL_TYPE_SUSPECTED_REFERRAL
-        text = str(value.get("message_text") or "")
-    else:
-        text = str(value or "")
-
-    if is_referral_restricted(text):
-        return WHEEL_TYPE_REFERRAL
-    normalized = " ".join(text.split())
-    if normalized and _REFERRAL_HINT_RE.search(normalized):
-        return WHEEL_TYPE_SUSPECTED_REFERRAL
-    return WHEEL_TYPE_NORMAL
+    return (
+        WHEEL_TYPE_REFERRAL
+        if _persisted_referral_is_confirmed(value)
+        else WHEEL_TYPE_NORMAL
+    )
 
 
 def referral_classification_evidence(value: Any) -> str:
-    classification = referral_classification(value)
-    if classification == WHEEL_TYPE_REFERRAL:
-        if isinstance(value, dict) and value.get("referral_restricted") is True:
-            return "explicit_persisted_referral_restriction"
-        return "explicit_publication_referral_restriction"
-    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
-        if isinstance(value, dict):
-            explicit = str(value.get("referral_classification_evidence") or "").strip()
-            if explicit:
-                return explicit
-        return "publication_referral_hint_without_explicit_restriction"
-    return ""
+    return (
+        STRONG_REFERRAL_EVIDENCE
+        if referral_classification(value) == WHEEL_TYPE_REFERRAL
+        else ""
+    )
 
 
 def page_referral_hint(text: str) -> str:
-    """Return a privacy-safe machine hint for referral evidence on BetBoom."""
+    """Keep page text diagnostic-only; it must never classify a wheel."""
 
-    classification = referral_classification(str(text or ""))
-    if classification == WHEEL_TYPE_REFERRAL:
-        return "page_referral_hint=referral;page_explicit_referral_restriction"
-    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
-        return "page_referral_hint=suspected_referral;page_referral_banner_hint"
     return ""
 
 
 def page_referral_classification_from_detail(detail: Any) -> str:
-    match = PAGE_REFERRAL_HINT_RE.search(str(detail or ""))
-    if not match:
-        return WHEEL_TYPE_NORMAL
-    value = str(match.group("classification") or "").casefold()
-    return value if value in WHEEL_TYPES else WHEEL_TYPE_NORMAL
+    """Recognize only the internal marker created by explicit BetBoom refusal."""
+
+    return (
+        WHEEL_TYPE_REFERRAL
+        if _REFERRAL_INELIGIBLE_DETAIL_MARKER in str(detail or "")
+        else WHEEL_TYPE_NORMAL
+    )
 
 
 def _entry_identifier(entry: Any, fallback: Any = "") -> str:
@@ -150,87 +100,44 @@ def _entry_identifier(entry: Any, fallback: Any = "") -> str:
     ).strip().casefold()
 
 
-def _history_signal_from_state(
-    state: dict[str, Any],
-    identifier: str,
-) -> tuple[str, str, str]:
-    """Find prior referral evidence for one identifier without using failures."""
+def _same_generation(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    if _entry_identifier(left) != _entry_identifier(right):
+        return False
 
-    history = state.get(REFERRAL_IDENTIFIER_HISTORY_KEY)
-    stored = history.get(identifier) if isinstance(history, dict) else None
-    if isinstance(stored, dict):
-        classification = str(stored.get("classification") or "").casefold()
-        if classification in {
-            WHEEL_TYPE_REFERRAL,
-            WHEEL_TYPE_SUSPECTED_REFERRAL,
-        }:
-            return (
-                classification,
-                str(stored.get("evidence") or "identifier_history"),
-                str(stored.get("last_seen_at") or ""),
-            )
+    for field in ("canonical_event_id", "event_id", "generation_id"):
+        left_value = str(left.get(field) or "").strip()
+        right_value = str(right.get(field) or "").strip()
+        if left_value and right_value:
+            return left_value == right_value
 
-    candidates: list[dict[str, Any]] = []
-    for collection_name in (
-        "active_wheels",
-        "recently_completed_wheels",
-        "inactive_wheels",
-    ):
-        collection = state.get(collection_name)
-        if not isinstance(collection, dict):
-            continue
-        for raw_key, raw in collection.items():
-            if isinstance(raw, dict) and _entry_identifier(raw, raw_key) == identifier:
-                candidates.append(raw)
+    left_action = str(left.get("action_id") or "").strip()
+    right_action = str(right.get("action_id") or "").strip()
+    if left_action and right_action and left_action != right_action:
+        return False
 
-    events = state.get("auto_participation_events")
-    if isinstance(events, dict):
-        for raw in events.values():
-            if not isinstance(raw, dict):
-                continue
-            context = raw.get("event_context")
-            if isinstance(context, dict) and _entry_identifier(context) == identifier:
-                candidates.append(context)
+    left_start = str(left.get("server_start_at") or "").strip()
+    right_start = str(right.get("server_start_at") or "").strip()
+    if left_start and right_start and left_start != right_start:
+        return False
 
-    suspected: tuple[str, str, str] | None = None
-    for candidate in candidates:
-        classification = referral_classification(candidate)
-        observed_at = str(
-            candidate.get("message_date")
-            or candidate.get("server_start_at")
-            or candidate.get("last_checked_at")
-            or ""
-        )
-        if classification == WHEEL_TYPE_REFERRAL:
-            return (
-                classification,
-                "identifier_history_explicit_referral",
-                observed_at,
-            )
-        if classification == WHEEL_TYPE_SUSPECTED_REFERRAL and suspected is None:
-            suspected = (
-                classification,
-                "identifier_history_suspected_referral",
-                observed_at,
-            )
-    return suspected or (WHEEL_TYPE_NORMAL, "", "")
+    # Secondary-account candidates are copies of the current active entry. If
+    # neither side has a complete server identity, matching identifier plus every
+    # available identity component is the safest compatibility fallback.
+    return bool(_entry_identifier(left))
 
 
-def _prune_identifier_history(state: dict[str, Any]) -> None:
-    history = state.get(REFERRAL_IDENTIFIER_HISTORY_KEY)
-    if not isinstance(history, dict) or len(history) <= REFERRAL_IDENTIFIER_HISTORY_LIMIT:
-        return
-    ordered = sorted(
-        history,
-        key=lambda key: str(
-            history.get(key, {}).get("last_seen_at")
-            if isinstance(history.get(key), dict)
-            else ""
-        ),
-        reverse=True,
-    )
-    for key in ordered[REFERRAL_IDENTIFIER_HISTORY_LIMIT:]:
-        history.pop(key, None)
+def _mark_confirmed_referral(entry: dict[str, Any]) -> None:
+    entry["wheel_type"] = WHEEL_TYPE_REFERRAL
+    entry["referral_restricted"] = True
+    entry["referral_classification_evidence"] = STRONG_REFERRAL_EVIDENCE
+    entry.pop("referral_suspected", None)
+
+
+def _mark_normal_referral_state(entry: dict[str, Any]) -> None:
+    entry["wheel_type"] = WHEEL_TYPE_NORMAL
+    entry.pop("referral_restricted", None)
+    entry.pop("referral_suspected", None)
+    entry.pop("referral_classification_evidence", None)
 
 
 def apply_referral_context(
@@ -240,86 +147,32 @@ def apply_referral_context(
     observed_at: Any = None,
     browser_detail: Any = "",
 ) -> str:
-    """Classify current evidence and cautiously remember identifier history."""
+    """Persist referral only after an explicit BetBoom account-level refusal."""
 
+    del observed_at  # retained in the call contract for compatibility
     identifier = _entry_identifier(entry)
-    direct = referral_classification(entry)
-    page = page_referral_classification_from_detail(browser_detail)
-    history_classification, history_evidence, history_seen_at = (
-        _history_signal_from_state(state, identifier)
-        if identifier
-        else (WHEEL_TYPE_NORMAL, "", "")
+    confirmed = _persisted_referral_is_confirmed(entry) or (
+        page_referral_classification_from_detail(browser_detail)
+        == WHEEL_TYPE_REFERRAL
     )
 
-    if direct == WHEEL_TYPE_REFERRAL:
-        classification = WHEEL_TYPE_REFERRAL
-        evidence = referral_classification_evidence(entry)
-    elif page == WHEEL_TYPE_REFERRAL:
-        classification = WHEEL_TYPE_REFERRAL
-        evidence = "explicit_betboom_page_referral_restriction"
-        entry["referral_restricted"] = True
-    elif direct == WHEEL_TYPE_SUSPECTED_REFERRAL:
-        classification = WHEEL_TYPE_SUSPECTED_REFERRAL
-        evidence = referral_classification_evidence(entry)
-    elif page == WHEEL_TYPE_SUSPECTED_REFERRAL:
-        classification = WHEEL_TYPE_SUSPECTED_REFERRAL
-        evidence = "betboom_page_referral_banner_hint"
-    elif history_classification in {
-        WHEEL_TYPE_REFERRAL,
-        WHEEL_TYPE_SUSPECTED_REFERRAL,
-    }:
-        classification = WHEEL_TYPE_SUSPECTED_REFERRAL
-        evidence = history_evidence or "identifier_history"
-    else:
-        classification = WHEEL_TYPE_NORMAL
-        evidence = ""
+    if not confirmed:
+        _mark_normal_referral_state(entry)
+        return WHEEL_TYPE_NORMAL
 
-    entry["wheel_type"] = classification
-    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
-        entry["referral_suspected"] = True
-    else:
-        entry.pop("referral_suspected", None)
-    if evidence:
-        entry["referral_classification_evidence"] = evidence
-    else:
-        entry.pop("referral_classification_evidence", None)
+    _mark_confirmed_referral(entry)
 
-    if identifier and classification in {
-        WHEEL_TYPE_REFERRAL,
-        WHEEL_TYPE_SUSPECTED_REFERRAL,
-    }:
-        history = state.setdefault(REFERRAL_IDENTIFIER_HISTORY_KEY, {})
-        previous = history.get(identifier)
-        record = dict(previous) if isinstance(previous, dict) else {}
-        previous_classification = str(record.get("classification") or "")
-        stored_classification = (
-            WHEEL_TYPE_REFERRAL
-            if WHEEL_TYPE_REFERRAL in {previous_classification, classification}
-            else WHEEL_TYPE_SUSPECTED_REFERRAL
-        )
-        when = str(observed_at or history_seen_at or datetime.now(UTC).isoformat())
-        record.update(
-            {
-                "identifier": identifier,
-                "classification": stored_classification,
-                "evidence": evidence,
-                "last_seen_at": when,
-            }
-        )
-        record.setdefault("first_seen_at", when)
-        history[identifier] = record
-        _prune_identifier_history(state)
-    return classification
+    active = state.get("active_wheels")
+    current = active.get(identifier) if isinstance(active, dict) and identifier else None
+    if isinstance(current, dict) and current is not entry and _same_generation(entry, current):
+        _mark_confirmed_referral(current)
+    return WHEEL_TYPE_REFERRAL
 
 
 def referral_restriction_notice(text: str, *, html_mode: bool = True) -> str:
-    if not is_referral_restricted(text):
-        return ""
-    return (
-        REFERRAL_RESTRICTED_NOTICE_HTML
-        if html_mode
-        else REFERRAL_RESTRICTED_NOTICE_TEXT
-    )
+    """Publication text alone no longer produces a referral notice."""
+
+    return ""
 
 
 def referral_classification_notice(value: Any, *, html_mode: bool = True) -> str:
@@ -327,16 +180,10 @@ def referral_classification_notice(value: Any, *, html_mode: bool = True) -> str
     if classification == WHEEL_TYPE_REFERRAL:
         return (
             "🎯 <b>Реферальное колесо</b>\n"
-            "Доступность будет проверена отдельно для каждого аккаунта."
+            "BetBoom подтвердил реферальное ограничение; доступность проверяется "
+            "отдельно для каждого аккаунта."
             if html_mode
-            else "Реферальное колесо. Доступность проверяется отдельно для каждого аккаунта."
-        )
-    if classification == WHEEL_TYPE_SUSPECTED_REFERRAL:
-        return (
-            "🟡 <b>Предположительно реферальное колесо</b>\n"
-            "Ограничение ещё не подтверждено BetBoom."
-            if html_mode
-            else "Предположительно реферальное колесо. Ограничение ещё не подтверждено BetBoom."
+            else "Реферальное колесо. BetBoom подтвердил ограничение; доступность проверяется отдельно для каждого аккаунта."
         )
     return ""
 
@@ -589,18 +436,60 @@ def install(monitor_module: Any, runtime_module: Any) -> None:
 
 
 def self_test() -> None:
-    assert is_referral_restricted(
-        "Колесо для рефов на BetBoom https://betboom.ru/freestream/CTOM13"
-    )
-    assert "Колесо только для рефералов" in referral_restriction_notice(
-        "Колесо для рефов"
-    )
-    assert referral_classification("Колесо для рефов") == WHEEL_TYPE_REFERRAL
-    assert (
-        referral_classification("Реферальный розыгрыш BetBoom")
-        == WHEEL_TYPE_SUSPECTED_REFERRAL
-    )
+    referral_post = "Колесо для рефов на BetBoom https://betboom.ru/freestream/CTOM13"
+    assert not is_referral_restricted(referral_post)
+    assert referral_restriction_notice(referral_post) == ""
+    assert referral_classification(referral_post) == WHEEL_TYPE_NORMAL
+    assert referral_classification("Реферальный розыгрыш BetBoom") == WHEEL_TYPE_NORMAL
     assert referral_classification("Колесо для всех") == WHEEL_TYPE_NORMAL
+    assert page_referral_hint("реферальное колесо только для рефералов") == ""
+    assert page_referral_classification_from_detail(
+        "page_referral_hint=referral;page_explicit_referral_restriction"
+    ) == WHEEL_TYPE_NORMAL
+
+    confirmed = {
+        "identifier": "confirmed",
+        "wheel_type": WHEEL_TYPE_REFERRAL,
+        "referral_restricted": True,
+        "referral_classification_evidence": STRONG_REFERRAL_EVIDENCE,
+    }
+    assert entry_is_referral_restricted(confirmed)
+    assert referral_classification(confirmed) == WHEEL_TYPE_REFERRAL
+
+    active = {
+        "wheel_key": "ref-one",
+        "identifier": "ref-one",
+        "action_id": 42,
+        "server_start_at": "2026-09-05T00:00:00+00:00",
+        "message_text": "обычная публикация",
+    }
+    state = {"active_wheels": {"ref-one": active}}
+    candidate = dict(active)
+    classification = apply_referral_context(
+        state,
+        candidate,
+        browser_detail=(
+            "referral_ineligible_exact_text:main:"
+            "Ваш аккаунт не является рефералом"
+        ),
+    )
+    assert classification == WHEEL_TYPE_REFERRAL
+    assert referral_classification(candidate) == WHEEL_TYPE_REFERRAL
+    assert referral_classification(active) == WHEEL_TYPE_REFERRAL
+    assert active["referral_classification_evidence"] == STRONG_REFERRAL_EVIDENCE
+
+    legacy = {
+        "identifier": "legacy",
+        "message_text": "Колесо только для рефералов",
+        "referral_restricted": True,
+        "wheel_type": WHEEL_TYPE_SUSPECTED_REFERRAL,
+        "referral_suspected": True,
+        "referral_classification_evidence": "identifier_history_explicit_referral",
+    }
+    assert apply_referral_context({}, legacy) == WHEEL_TYPE_NORMAL
+    assert legacy["wheel_type"] == WHEEL_TYPE_NORMAL
+    assert "referral_restricted" not in legacy
+    assert "referral_suspected" not in legacy
 
     first = [
         {
