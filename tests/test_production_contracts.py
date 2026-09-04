@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import unittest
+from unittest import mock
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -15,6 +16,7 @@ from tests._bootstrap import install_optional_dependency_stubs
 install_optional_dependency_stubs()
 
 import admin_action_queue
+import admin_action_v3
 import admin_panel_v2
 import bbvg_monitor_main
 import incident_manager
@@ -345,6 +347,10 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
             "confirm_finished_global": "wheel-a|admin",
             "set_deadline": f"wheel-a|{future}", "remove_active": "wheel-a",
             "recheck_wheel": "wheel-a", "clear_quarantine": "source-a",
+            "submit_wheel": json.dumps({
+                "submitted_at": datetime.now(timezone.utc).isoformat(),
+                "url": "https://betboom.ru/freestream/manual-wheel",
+            }),
         }
         self.assertEqual(set(commands), admin_action_queue.ALLOWED_ACTIONS)
         for index, (action, value) in enumerate(commands.items(), start=1):
@@ -374,9 +380,34 @@ class Chapter3BehavioralContractTests(unittest.TestCase):
                     admin_action_queue.default_queue(), action, value,
                     command_id=f"chapter3-{index:02d}-command",
                 )
-                first = admin_action_queue.process_pending(state, health, stats, queue=queue)
+                submit_result = {
+                    "action": "submit_wheel", "value": value,
+                    "state_changed": True, "health_changed": False,
+                    "stats_changed": False, "detail": "accepted",
+                }
+                if action == "submit_wheel":
+                    with mock.patch.object(
+                        admin_action_v3,
+                        "submit_wheel_action",
+                        return_value=submit_result,
+                    ):
+                        first = admin_action_queue.process_pending(
+                            state, health, stats, queue=queue
+                        )
+                else:
+                    first = admin_action_queue.process_pending(state, health, stats, queue=queue)
                 stable_snapshot = deepcopy((state, health, stats))
-                second = admin_action_queue.process_pending(state, health, stats, queue=queue)
+                if action == "submit_wheel":
+                    with mock.patch.object(
+                        admin_action_v3,
+                        "submit_wheel_action",
+                        return_value=submit_result,
+                    ):
+                        second = admin_action_queue.process_pending(
+                            state, health, stats, queue=queue
+                        )
+                else:
+                    second = admin_action_queue.process_pending(state, health, stats, queue=queue)
                 self.assertEqual(first["applied"], 1)
                 self.assertEqual(second["applied"], 0)
                 self.assertIn(command_id, state["applied_admin_actions"])

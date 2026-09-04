@@ -83,6 +83,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
     @staticmethod
     def control_menu_rows() -> list[list[dict[str, Any]]]:
         return [
+            [{"text": "➕ Добавить колесо", "callback_data": "wheel:add"}],
             [{"text": "▶️ Проверить источники сейчас", "callback_data": "control:monitor"}],
             [{"text": "✅ Проверить работу системы", "callback_data": "page:status"}],
             [{"text": "🔍 Почему не пришло колесо?", "callback_data": "page:diagnostic"}],
@@ -532,18 +533,17 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             if isinstance(entry, dict)
         }
         if not items:
+            rows: list[list[dict[str, str]]] = []
+            if self.is_admin():
+                rows.append(
+                    [{"text": "➕ Добавить колесо", "callback_data": "wheel:add"}]
+                )
+            rows.append(
+                [{"text": "🔄 Обновить список", "callback_data": "refresh:active"}]
+            )
             self.send(
                 "🔥 <b>Действующих колёс сейчас нет.</b>",
-                reply_markup=self.with_nav(
-                    [
-                        [
-                            {
-                                "text": "🔄 Обновить список",
-                                "callback_data": "refresh:active",
-                            }
-                        ]
-                    ]
-                ),
+                reply_markup=self.with_nav(rows),
             )
             return
 
@@ -553,6 +553,11 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
             identifier = str(item.get("identifier") or item.get("_key") or "колесо")
             key = str(item.get("_key") or identifier)
             source = str(item.get("source") or "неизвестно")
+            source_text = (
+                "📡 Добавлено через бот BB V.G."
+                if source == "bbvg_manual"
+                else f"📡 @{html.escape(source)}"
+            )
             deadline = self.parse_dt(item.get("deadline"))
             participates = (
                 identifier.casefold() in participating or key.casefold() in participating
@@ -561,7 +566,7 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
                 [
                     f"<b>{index}. <code>{html.escape(identifier)}</code></b>",
                     f"⏳ {html.escape(self.remaining(deadline) if deadline else 'время не определено')}",
-                    f"📡 @{html.escape(source)}",
+                    source_text,
                     "✅ Участие отмечено" if participates else "❌ Участие не отмечено",
                     "",
                 ]
@@ -585,6 +590,10 @@ class PanelInterfaceRuntime(PanelFoundationMixin, TelegramPanelV2):
                         }
                     ]
                 )
+        if self.is_admin():
+            buttons.append(
+                [{"text": "➕ Добавить колесо", "callback_data": "wheel:add"}]
+            )
         buttons.append(
             [{"text": "🔄 Обновить список", "callback_data": "refresh:active"}]
         )

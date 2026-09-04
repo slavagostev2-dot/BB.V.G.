@@ -108,6 +108,8 @@ def wheel_sources(state: dict[str, Any], key: str, context: dict[str, Any] | Non
     unique: list[str] = []
     for value in result:
         clean = value.strip().lstrip("@")
+        if clean.casefold() == monitor.MANUAL_SUBMISSION_SOURCE.casefold():
+            continue
         if clean and clean.casefold() not in seen:
             seen.add(clean.casefold())
             unique.append(clean)

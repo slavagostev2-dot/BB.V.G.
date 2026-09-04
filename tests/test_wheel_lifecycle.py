@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+import json
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import Any
@@ -62,6 +63,131 @@ def event_state(*, message_id: int, message_date: datetime) -> dict[str, Any]:
 
 
 class Chapter5LifecycleTests(unittest.TestCase):
+    def test_manual_submission_uses_standard_notification_and_deduplication(self) -> None:
+        now = datetime(2026, 9, 4, 12, 0, tzinfo=UTC)
+        deadline = now + timedelta(minutes=20)
+        payload = json.dumps({
+            "submitted_at": now.isoformat(),
+            "url": "https://betboom.ru/freestream/ManualWheel",
+        })
+        state: dict[str, Any] = {
+            "active_wheels": {},
+            "participating_wheels": {},
+            "pending_posts": {},
+            "seen": {},
+            "button_contexts": {},
+            "manual_overrides": {},
+            "url_alerts": {},
+            "activation_alerts": {},
+            "wheel_publications": {},
+        }
+        notifications: list[str] = []
+        assessment = monitor.WheelAssessment(
+            True,
+            deadline,
+            "активность и таймер подтверждены BetBoom",
+            "active",
+            action_id=701,
+            verification_status=monitor.WHEEL_VERIFICATION_CONFIRMED,
+            server_start_at=now,
+        )
+
+        def notify(message, url, deadline_value, method, mappings, state_value, page_excerpt="", **metadata):
+            notifications.append(url)
+            monitor.remember_active_wheel(
+                state_value,
+                message,
+                url,
+                deadline_value,
+                "active",
+                method,
+                page_excerpt,
+                **metadata,
+            )
+
+        original_assess = monitor.assess_new_wheel
+        original_notify = monitor.notify_new_link
+        original_mappings = monitor.load_identifier_sources
+        original_activation_suppressed = monitor.is_activation_suppressed
+        monitor.assess_new_wheel = lambda message, url, state_value=None: assessment
+        monitor.notify_new_link = notify
+        monitor.load_identifier_sources = lambda: []
+        monitor.is_activation_suppressed = lambda state_value, url: bool(
+            state_value.get("activation_alerts", {}).get(monitor.wheel_key(url))
+        )
+        try:
+            first = admin_action_v3.apply_action_v3(
+                state, {"sources": {}}, {}, "submit_wheel", payload
+            )
+            second = admin_action_v3.apply_action_v3(
+                state, {"sources": {}}, {}, "submit_wheel", payload
+            )
+        finally:
+            monitor.assess_new_wheel = original_assess
+            monitor.notify_new_link = original_notify
+            monitor.load_identifier_sources = original_mappings
+            monitor.is_activation_suppressed = original_activation_suppressed
+
+        self.assertTrue(first["notified"])
+        self.assertFalse(second["notified"])
+        self.assertEqual(notifications, ["https://betboom.ru/freestream/ManualWheel"])
+        self.assertEqual(state["active_wheels"]["manualwheel"]["action_id"], 701)
+        self.assertEqual(
+            state["active_wheels"]["manualwheel"]["source"],
+            monitor.MANUAL_SUBMISSION_SOURCE,
+        )
+        self.assertEqual(
+            WheelInteractionRuntime._sources_for_item(
+                SimpleNamespace(state=state),
+                "manualwheel",
+                state["active_wheels"]["manualwheel"],
+            ),
+            [],
+        )
+
+    def test_bot_accepts_one_manual_wheel_link_and_rejects_ambiguous_input(self) -> None:
+        panel = object.__new__(WheelInteractionRuntime)
+        panel.current_user_id = "42"
+        panel.current_chat_id = "42"
+        panel.current_role = "admin"
+        panel.pending_input = {42: {"kind": "wheel_submit"}}
+        actions: list[tuple[str, str]] = []
+        dispatches: list[tuple[str, Any]] = []
+        messages: list[str] = []
+        panel.set_context = lambda chat_id, user_id: setattr(panel, "current_user_id", str(user_id))
+        panel.role_for = lambda user_id=None: "admin"
+        panel.is_admin = lambda: True
+        panel.with_nav = lambda rows=None: {"inline_keyboard": rows or []}
+        panel.send = lambda text, **kwargs: messages.append(text) or {}
+        panel.dispatch_admin_action = lambda action, value: actions.append((action, value)) or {}
+        panel.dispatch = lambda workflow, inputs=None: dispatches.append((workflow, inputs)) or {}
+
+        panel.handle_message({
+            "chat": {"id": 42, "type": "private"},
+            "from": {"id": 42},
+            "text": "https://betboom.ru/freestream/HOOCH08?utm_source=test",
+        })
+
+        self.assertEqual(actions[0][0], "submit_wheel")
+        submitted = json.loads(actions[0][1])
+        self.assertEqual(submitted["url"], "https://betboom.ru/freestream/HOOCH08")
+        self.assertNotIn("actor", submitted)
+        self.assertEqual(dispatches[0][0], "monitor.yml")
+        self.assertNotIn(42, panel.pending_input)
+
+        panel.pending_input[42] = {"kind": "wheel_submit"}
+        panel.handle_message({
+            "chat": {"id": 42, "type": "private"},
+            "from": {"id": 42},
+            "text": (
+                "https://betboom.ru/freestream/one "
+                "https://betboom.ru/freestream/two"
+            ),
+        })
+        self.assertEqual(len(actions), 1)
+        self.assertIn(42, panel.pending_input)
+        self.assertIn("одну прямую ссылку", messages[-1])
+
     def test_formal_transition_table_covers_every_required_terminal_path(self) -> None:
         transitions = set(wheel_lifecycle_v2.LIFECYCLE_TRANSITIONS)
         self.assertIn(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from typing import Any
@@ -12,6 +13,142 @@ import wheel_lifecycle_v2
 
 legacy = admin_action_v2.legacy
 _original_apply_action = legacy.apply_action
+
+
+def submit_wheel_action(
+    state: dict[str, Any],
+    value: str,
+) -> dict[str, Any]:
+    """Feed an administrator-submitted URL through the normal wheel lifecycle."""
+
+    try:
+        payload = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise ValueError("Некорректная ручная подача колеса") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("Некорректная ручная подача колеса")
+    url = legacy.monitor.normalize_url(str(payload.get("url") or ""))
+    if not legacy.monitor.LINK_RE.fullmatch(url):
+        raise ValueError("Нужна прямая ссылка BetBoom Freestream")
+    submitted_at = legacy.monitor.parse_datetime(payload.get("submitted_at"))
+    if submitted_at is None:
+        raise ValueError("Время ручной подачи не распознано")
+    message_digest = hashlib.sha256(
+        f"{submitted_at.isoformat()}\x1f{url}".encode("utf-8")
+    ).hexdigest()
+    message = legacy.monitor.Message(
+        source=legacy.monitor.MANUAL_SUBMISSION_SOURCE,
+        message_id=int(message_digest[:12], 16),
+        date=submitted_at,
+        text=url,
+        message_url=url,
+    )
+    post_key = legacy.monitor.notification_key(message, url)
+    assessment = legacy.monitor.assess_new_wheel(message, url, state)
+    notified = False
+    duplicate = False
+
+    if assessment.status == "active":
+        if legacy.monitor.is_participating(state, url):
+            legacy.monitor.remember_active_wheel(
+                state,
+                message,
+                url,
+                assessment.deadline,
+                "active",
+                assessment.method,
+                assessment.page_excerpt,
+                action_id=assessment.action_id,
+                available_at=assessment.available_at,
+                verification_status=assessment.verification_status,
+                server_start_at=assessment.server_start_at,
+            )
+        elif legacy.monitor.is_activation_suppressed(state, url):
+            duplicate = True
+        else:
+            legacy.monitor.notify_new_link(
+                message,
+                url,
+                assessment.deadline,
+                assessment.method,
+                legacy.monitor.load_identifier_sources(),
+                state,
+                assessment.page_excerpt,
+                action_id=assessment.action_id,
+                available_at=assessment.available_at,
+                verification_status=assessment.verification_status,
+                server_start_at=assessment.server_start_at,
+            )
+            legacy.monitor.remember_activation(state, url, assessment.deadline)
+            legacy.monitor.remember_alert(state, url, assessment.deadline)
+            notified = True
+        state.setdefault("seen", {})[post_key] = legacy.monitor.now_utc().isoformat()
+    else:
+        initial_notified = False
+        if assessment.should_notify and legacy.monitor.is_participating(state, url):
+            legacy.monitor.remember_active_wheel(
+                state,
+                message,
+                url,
+                assessment.deadline,
+                assessment.status,
+                assessment.method,
+                assessment.page_excerpt,
+                action_id=assessment.action_id,
+                available_at=assessment.available_at,
+                verification_status=assessment.verification_status,
+                server_start_at=assessment.server_start_at,
+            )
+            state.setdefault("seen", {})[post_key] = legacy.monitor.now_utc().isoformat()
+        else:
+            if assessment.should_notify and not legacy.monitor.is_suppressed(state, url):
+                legacy.monitor.notify_new_link(
+                    message,
+                    url,
+                    assessment.deadline,
+                    assessment.method,
+                    legacy.monitor.load_identifier_sources(),
+                    state,
+                    assessment.page_excerpt,
+                    action_id=assessment.action_id,
+                    available_at=assessment.available_at,
+                    verification_status=assessment.verification_status,
+                    server_start_at=assessment.server_start_at,
+                )
+                legacy.monitor.remember_alert(state, url, assessment.deadline)
+                initial_notified = True
+                notified = True
+            legacy.monitor.remember_pending(
+                state,
+                post_key,
+                message,
+                url,
+                assessment.status,
+                assessment.method,
+                initial_notified=initial_notified,
+            )
+
+    if duplicate:
+        detail = "Колесо уже было обнаружено; повторное уведомление подавлено"
+    elif notified:
+        detail = "Колесо проверено и передано в штатный цикл уведомлений"
+    elif assessment.status == "not_started":
+        detail = "Колесо принято и будет проверяться до начала"
+    elif assessment.status == "inactive":
+        detail = "BetBoom подтвердил, что колесо уже неактивно"
+    else:
+        detail = "Колесо принято в штатный цикл повторной проверки"
+    return {
+        "action": "submit_wheel",
+        "value": url,
+        "state_changed": True,
+        "health_changed": False,
+        "stats_changed": False,
+        "detail": detail,
+        "status": assessment.status,
+        "notified": notified,
+        "duplicate": duplicate,
+    }
 
 
 def confirm_finished_global(
@@ -152,6 +289,8 @@ def apply_action_v3(
         return record_personal_vote_action(state, stats, value)
     if action == "confirm_finished_global":
         return confirm_finished_global(state, stats, value)
+    if action == "submit_wheel":
+        return submit_wheel_action(state, value)
     result = _original_apply_action(state, health, stats, action, value)
     if action == "mark_inactive_global":
         key, _ = legacy.split_action_value(value)

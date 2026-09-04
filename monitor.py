@@ -106,6 +106,7 @@ USER_AGENT = (
 BETBOOM_WHEEL_INFO_URL = "https://betboom.ru/api/streamer-wheel/action/get-info"
 WHEEL_VERIFICATION_CONFIRMED = "confirmed"
 WHEEL_VERIFICATION_FAILED = "failed"
+MANUAL_SUBMISSION_SOURCE = "bbvg_manual"
 
 # Telegram can display the domain without a protocol and can hide it behind a button.
 LINK_RE = re.compile(
@@ -1981,10 +1982,17 @@ def notify_new_link(
     )
     referral_line = f"{referral_notice}\n" if referral_notice else ""
 
+    source_line = (
+        "Источник: <b>добавлено через бот BB V.G.</b>"
+        if message.source == MANUAL_SUBMISSION_SOURCE
+        else (
+            f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
+            f"@{html.escape(message.source)}</a>"
+        )
+    )
     response = send_message(
         "🎡 <b>Новое колесо BetBoom</b>\n\n"
-        f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
-        f"@{html.escape(message.source)}</a>\n"
+        f"{source_line}\n"
         f"Идентификатор: <code>{identifier}</code>\n"
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
         f"{verification}"
@@ -2061,10 +2069,17 @@ def notify_activation(
     )
     referral_line = f"{referral_notice}\n" if referral_notice else ""
 
+    source_line = (
+        "Источник: <b>добавлено через бот BB V.G.</b>"
+        if message.source == MANUAL_SUBMISSION_SOURCE
+        else (
+            f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
+            f"@{html.escape(message.source)}</a>"
+        )
+    )
     response = send_message(
         "✅ <b>Колесо BetBoom стало активно</b>\n\n"
-        f'Источник: <a href="{html.escape(message.message_url, quote=True)}">'
-        f"@{html.escape(message.source)}</a>\n"
+        f"{source_line}\n"
         f"Идентификатор: <code>{identifier}</code>\n"
         f"Пост: {published:%d.%m.%Y %H:%M}\n"
         f"{verification}"

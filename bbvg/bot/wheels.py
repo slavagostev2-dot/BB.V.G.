@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import hashlib
+import json
 import re
 from datetime import datetime, timedelta
 from typing import Any
@@ -15,6 +16,11 @@ from bbvg.bot.foundation import BRAND_NAME
 UTC = legacy.UTC
 HIDDEN_WHEEL_DAYS = 30
 _SAFE_CALLBACK_TOKEN_RE = re.compile(r"^[A-Za-z0-9_.~-]+$")
+_MANUAL_WHEEL_LINK_RE = re.compile(
+    r"(?:https?://)?(?:www\.)?betboom\.ru/freestream/[A-Za-z0-9._~-]+",
+    re.IGNORECASE,
+)
+_MANUAL_SUBMISSION_SOURCE = "bbvg_manual"
 
 
 class WheelInteractionRuntime(SourceRequestRuntime):
@@ -41,6 +47,8 @@ class WheelInteractionRuntime(SourceRequestRuntime):
         seen: set[str] = set()
         unique: list[str] = []
         for source in result:
+            if source.casefold() == _MANUAL_SUBMISSION_SOURCE.casefold():
+                continue
             if source and source.casefold() not in seen:
                 seen.add(source.casefold())
                 unique.append(source)
@@ -236,11 +244,17 @@ class WheelInteractionRuntime(SourceRequestRuntime):
         snap = self.snapshot()
         participating = self._joined_wheel_keys(snap)
         if not items:
+            rows: list[list[dict[str, str]]] = []
+            if self.is_admin():
+                rows.append(
+                    [{"text": "➕ Добавить колесо", "callback_data": "wheel:add"}]
+                )
+            rows.append(
+                [{"text": "🔄 Обновить список", "callback_data": "refresh:active"}]
+            )
             self.send(
                 f"🔥 <b>{BRAND_NAME}: активных колёс сейчас нет.</b>",
-                reply_markup=self.with_nav(
-                    [[{"text": "🔄 Обновить список", "callback_data": "refresh:active"}]]
-                ),
+                reply_markup=self.with_nav(rows),
             )
             return
 
@@ -251,6 +265,11 @@ class WheelInteractionRuntime(SourceRequestRuntime):
             identifier = str(item.get("identifier") or item.get("_key") or "колесо")
             key = str(item.get("_key") or identifier).casefold()
             source = str(item.get("source") or "неизвестно")
+            source_text = (
+                "📡 Добавлено через бот BB V.G."
+                if source == _MANUAL_SUBMISSION_SOURCE
+                else f"📡 @{html.escape(source)}"
+            )
             deadline = self.parse_dt(item.get("deadline"))
             joined = identifier.casefold() in participating or key in participating
             if deadline:
@@ -264,7 +283,7 @@ class WheelInteractionRuntime(SourceRequestRuntime):
                     f"<b>{index}. <code>{html.escape(identifier)}</code></b>",
                     status_text,
                     f"⏳ {html.escape(time_text)}",
-                    f"📡 @{html.escape(source)}",
+                    source_text,
                     *(
                         [wheel_publications_v2.REFERRAL_RESTRICTED_SHORT_HTML]
                         if wheel_publications_v2.entry_is_referral_restricted(item)
@@ -299,6 +318,10 @@ class WheelInteractionRuntime(SourceRequestRuntime):
                         }
                     ]
                 )
+        if admin:
+            buttons.append(
+                [{"text": "➕ Добавить колесо", "callback_data": "wheel:add"}]
+            )
         buttons.append(
             [{"text": "🔄 Обновить список", "callback_data": "refresh:active"}]
         )
@@ -431,6 +454,21 @@ class WheelInteractionRuntime(SourceRequestRuntime):
             reply_markup=self.with_nav(),
         )
 
+    def request_wheel_submission(self) -> None:
+        if not self.is_admin():
+            raise PermissionError("Только администратор может добавлять колёса")
+        self.pending_input[int(self.current_user_id or 0)] = {
+            "kind": "wheel_submit",
+        }
+        self.send(
+            "➕ <b>Добавить колесо</b>\n\n"
+            "Отправьте прямую ссылку вида:\n"
+            "<code>https://betboom.ru/freestream/example</code>\n\n"
+            "Бот проверит её через BetBoom API и проведёт через тот же цикл, "
+            "что и колесо из Telegram-источника. Для отмены отправьте <code>/cancel</code>.",
+            reply_markup=self.with_nav(),
+        )
+
     def _delete_callback_message(self, query: dict[str, Any]) -> None:
         message = query.get("message") if isinstance(query, dict) else None
         chat = message.get("chat") if isinstance(message, dict) else None
@@ -454,6 +492,60 @@ class WheelInteractionRuntime(SourceRequestRuntime):
             sender.get("id") if isinstance(sender, dict) else None,
         )
         pending = self.pending_input.get(int(self.current_user_id or 0))
+        if isinstance(pending, dict) and pending.get("kind") == "wheel_submit":
+            self.current_role = self.role_for(self.current_user_id)
+            if not self.is_admin():
+                self.pending_input.pop(int(self.current_user_id or 0), None)
+                self.send("Недостаточно прав.")
+                return
+            text = str(message.get("text") or "").strip()
+            if text.casefold() == "/cancel":
+                self.pending_input.pop(int(self.current_user_id or 0), None)
+                self.send("Добавление колеса отменено.", reply_markup=self.with_nav())
+                return
+            matches: dict[str, str] = {}
+            for match in _MANUAL_WHEEL_LINK_RE.finditer(text):
+                raw_url = re.sub(
+                    r"^(?:https?://)?(?:www\.)?",
+                    "",
+                    match.group(0),
+                    flags=re.IGNORECASE,
+                )
+                matches.setdefault(raw_url.casefold(), raw_url)
+            if len(matches) != 1:
+                self.send(
+                    "Отправьте одну прямую ссылку BetBoom Freestream. "
+                    "Например: <code>https://betboom.ru/freestream/example</code>."
+                )
+                return
+            url = "https://" + next(iter(matches.values()))
+            payload = json.dumps(
+                {
+                    "submitted_at": datetime.now(UTC).isoformat(),
+                    "url": url,
+                },
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+            self.dispatch_admin_action("submit_wheel", payload)
+            self.pending_input.pop(int(self.current_user_id or 0), None)
+            try:
+                self.dispatch(
+                    "monitor.yml",
+                    {"continuous": "true", "replace": "true"},
+                )
+            except Exception as exc:
+                print(
+                    "WARNING manual wheel monitor dispatch: "
+                    f"{type(exc).__name__}: {exc}"
+                )
+            self.send(
+                "✅ Ссылка принята. Бот проверит её через BetBoom API и, если колесо "
+                "действует или ожидает запуска, обработает его как обычную находку из источника.",
+                reply_markup=self.with_nav(),
+            )
+            return
         if isinstance(pending, dict) and pending.get("kind") == "wheel_time":
             self.current_role = self.role_for(self.current_user_id)
             if not self.is_admin():
@@ -501,6 +593,12 @@ class WheelInteractionRuntime(SourceRequestRuntime):
             if data == "page:pending":
                 self.answer(query_id, "Раздел удалён")
                 self.show_stats(1)
+                return
+            if data == "wheel:add":
+                if not self.is_admin():
+                    raise PermissionError
+                self.answer(query_id, "Жду ссылку")
+                self.request_wheel_submission()
                 return
             if data.startswith("bb:t:") or data.startswith("wheel:time:"):
                 if not self.is_admin():
