@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-04T18:07:59.084173+00:00",
       "status": "participated",
-      "updated_at": "2026-09-04T18:08:20.745837+00:00"
+      "updated_at": "2026-09-04T18:08:36.774276+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-04T18:08:13.162516+00:00",
       "status": "participated",
-      "updated_at": "2026-09-04T18:08:20.747044+00:00"
+      "updated_at": "2026-09-04T18:08:36.775465+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-04T18:08:17.330169+00:00",
       "status": "participated",
-      "updated_at": "2026-09-04T18:08:20.748189+00:00"
+      "updated_at": "2026-09-04T18:08:36.776584+00:00"
     }
   ],
   "action_id": 1964,
@@ -119,62 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-04T18:08:20.740172+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:e7ec9bb5a0b8cf0ac5cbcde1de97b5f24d0e985d925736ae5ef42f8ee403254a",
+      "occurred_at": "2026-09-04T18:08:17.330169+00:00",
       "payload": {
-        "action_id": 1964,
-        "available_at": "",
-        "deadline": "2026-09-04T18:16:03.035000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:203fe5b631296ce9af4b",
-        "expires_at": "2026-09-04T18:46:03.035000+00:00",
-        "generation_id": "203fe5b631296ce9af4b",
-        "identifier": "deko2",
-        "message_text": "https://betboom.ru/freestream/deko2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-04T17:56:03.035000+00:00",
-        "source": "bbvg_manual",
-        "source_message_date": "2026-09-04T18:01:59.895469+00:00",
-        "source_message_id": 21186938386597,
-        "source_message_url": "https://betboom.ru/freestream/deko2",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/deko2",
-        "verification_status": "confirmed",
-        "wheel_key": "deko2",
-        "wheel_type": "normal"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "c54b4d20abe7bc25f138735e6c978800e12afbf7e70e0e3b5a0fe6c1d2e47be2"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-04T18:08:20.740172+00:00",
-      "payload": {
-        "action_id": 1964,
-        "available_at": "",
-        "deadline": "2026-09-04T18:16:03.035000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:203fe5b631296ce9af4b",
-        "expires_at": "2026-09-04T18:46:03.035000+00:00",
-        "generation_id": "203fe5b631296ce9af4b",
-        "identifier": "deko2",
-        "message_text": "https://betboom.ru/freestream/deko2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-04T17:56:03.035000+00:00",
-        "source": "bbvg_manual",
-        "source_message_date": "2026-09-04T18:01:59.895469+00:00",
-        "source_message_id": 21186938386597,
-        "source_message_url": "https://betboom.ru/freestream/deko2",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/deko2",
-        "verification_status": "confirmed",
-        "wheel_key": "deko2",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "662bb3ed2acba3d02d8a5ed0b1cddd6bcf3466d90265eedd2500377eeb002f52"
+      "stage": "account_result",
+      "transition_id": "05d06d3532c3d9fd2304af286f5bed3fc7687adf16c00cdbce8a7f4d521d6499"
     },
     {
       "dedupe_key": "1964:2026-09-04T17:56:03.035000+00:00",
@@ -206,16 +163,6 @@
       "transition_id": "096289c9b068757702936f81e9ef7707ae5c53ae78a649a878757b4d2eb5d885"
     },
     {
-      "dedupe_key": "33903841693",
-      "occurred_at": "2026-09-04T18:08:20.743976+00:00",
-      "payload": {
-        "workflow_run_id": "33903841693",
-        "workflow_sha": "e7fbce24ec9c0e774158e4914a65274778bd2678"
-      },
-      "stage": "workflow_started",
-      "transition_id": "8431412e3a189e3a1e86c8ca03d6e5ff1fb430971236a233d3104ba3d849bc32"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:34dec00d2b43d635efc81b8f387d7d99882c067295564ad2b6e2405f72fe857d",
       "occurred_at": "2026-09-04T18:07:59.084173+00:00",
       "payload": {
@@ -229,6 +176,45 @@
       },
       "stage": "account_result",
       "transition_id": "2aa847541f24358677841e0e03d595a7fcb81327cae39db68c701b87f36c356e"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-04T18:08:20.740172+00:00",
+      "payload": {
+        "action_id": 1964,
+        "available_at": "",
+        "deadline": "2026-09-04T18:16:03.035000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:203fe5b631296ce9af4b",
+        "expires_at": "2026-09-04T18:46:03.035000+00:00",
+        "generation_id": "203fe5b631296ce9af4b",
+        "identifier": "deko2",
+        "message_text": "https://betboom.ru/freestream/deko2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-04T17:56:03.035000+00:00",
+        "source": "bbvg_manual",
+        "source_message_date": "2026-09-04T18:01:59.895469+00:00",
+        "source_message_id": 21186938386597,
+        "source_message_url": "https://betboom.ru/freestream/deko2",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/deko2",
+        "verification_status": "confirmed",
+        "wheel_key": "deko2",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "662bb3ed2acba3d02d8a5ed0b1cddd6bcf3466d90265eedd2500377eeb002f52"
+    },
+    {
+      "dedupe_key": "33903841693",
+      "occurred_at": "2026-09-04T18:08:20.743976+00:00",
+      "payload": {
+        "workflow_run_id": "33903841693",
+        "workflow_sha": "e7fbce24ec9c0e774158e4914a65274778bd2678"
+      },
+      "stage": "workflow_started",
+      "transition_id": "8431412e3a189e3a1e86c8ca03d6e5ff1fb430971236a233d3104ba3d849bc32"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:b4f76dcb8591c711ba2c7476c1be44eed9b21de92a9ee99e722440a33b291fda",
@@ -246,22 +232,36 @@
       "transition_id": "b3efe8f1d2e1606f47fb01acf85bab9c51b952aa320d591ac4fee20e05c16f58"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:e7ec9bb5a0b8cf0ac5cbcde1de97b5f24d0e985d925736ae5ef42f8ee403254a",
-      "occurred_at": "2026-09-04T18:08:17.330169+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-04T18:08:20.740172+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
+        "action_id": 1964,
+        "available_at": "",
+        "deadline": "2026-09-04T18:16:03.035000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:203fe5b631296ce9af4b",
+        "expires_at": "2026-09-04T18:46:03.035000+00:00",
+        "generation_id": "203fe5b631296ce9af4b",
+        "identifier": "deko2",
+        "message_text": "https://betboom.ru/freestream/deko2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-04T17:56:03.035000+00:00",
+        "source": "bbvg_manual",
+        "source_message_date": "2026-09-04T18:01:59.895469+00:00",
+        "source_message_id": 21186938386597,
+        "source_message_url": "https://betboom.ru/freestream/deko2",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/deko2",
+        "verification_status": "confirmed",
+        "wheel_key": "deko2",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "05d06d3532c3d9fd2304af286f5bed3fc7687adf16c00cdbce8a7f4d521d6499"
+      "stage": "source_discovered",
+      "transition_id": "c54b4d20abe7bc25f138735e6c978800e12afbf7e70e0e3b5a0fe6c1d2e47be2"
     }
   ],
-  "updated_at": "2026-09-04T18:08:20.743976+00:00",
+  "updated_at": "2026-09-04T18:08:36.772586+00:00",
   "wheel_key": "deko2",
   "workflow_started_at": "2026-09-04T18:08:20.743976+00:00"
 }
