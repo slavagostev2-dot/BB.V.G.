@@ -146,13 +146,30 @@ assert "callback_data" not in colorizer
 assert "Находит колёса BetBoom" in home
 assert "Ваша роль" in home
 assert notification_router._bbvg_notification_integrity_v2_installed is True
-ranking = [
-    button["text"]
+
+user_sources = [
+    (button["text"], button.get("callback_data"))
     for row in TelegramPanelRuntime.source_menu_rows(False)
     for button in row
-    if button.get("callback_data") == "page:ranking"
 ]
-assert ranking == ["🏆 Рейтинг источников"]
+admin_sources = [
+    (button["text"], button.get("callback_data"))
+    for row in TelegramPanelRuntime.source_menu_rows(True)
+    for button in row
+]
+assert user_sources == [
+    ("📋 Все источники", "source_list:all:0"),
+    ("➕ Предложить источник", "source:request"),
+]
+assert admin_sources == [
+    ("📋 Все источники", "source_list:all:0"),
+    ("➕ Добавить источник", "source:add"),
+    ("🔎 Найденные источники", "page:intelligence"),
+]
+assert callable(TelegramPanelRuntime.show_ranking)
+assert callable(TelegramPanelRuntime.show_discovery)
+assert callable(TelegramPanelRuntime.show_source_list)
+
 assert "summary:send" not in inspect.getsource(TelegramPanelRuntime.show_analytics)
 assert "подтвержд.)" not in inspect.getsource(TelegramPanelRuntime.show_ranking)
 assert telegram_ui.TELEGRAM_CALLBACK_LIMIT == 64
