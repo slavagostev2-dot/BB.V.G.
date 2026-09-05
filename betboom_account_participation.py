@@ -41,6 +41,7 @@ TERMINAL_FAILURE_STATUSES = {
 }
 RETRY_DELAY_MINUTES = 2
 MAX_COMPLETED_EVENTS = 500
+LEGACY_WEAK_CONFIRMATION_MARKER = "post_click_layout:"
 
 
 def account_label() -> str:
@@ -157,11 +158,21 @@ def _candidate_rows(
     return list(rows.values())
 
 
+def _legacy_weak_success(previous: Any) -> bool:
+    if not isinstance(previous, dict):
+        return False
+    status = str(previous.get("status") or "").casefold()
+    detail = str(previous.get("detail") or "").casefold()
+    return status == "participated" and LEGACY_WEAK_CONFIRMATION_MARKER in detail
+
+
 def _should_attempt(previous: Any, current: datetime) -> bool:
     if not isinstance(previous, dict):
         return True
     status = str(previous.get("status") or "").casefold()
-    if status in {"participated", "already_participating"}:
+    if status == "participated":
+        return _legacy_weak_success(previous)
+    if status == "already_participating":
         return False
     if status in TERMINAL_FAILURE_STATUSES:
         return False
@@ -171,13 +182,31 @@ def _should_attempt(previous: Any, current: datetime) -> bool:
     return status in TRANSIENT_STATUSES or not status
 
 
+def _reject_weak_browser_success(
+    result: primary_auto.ParticipationResult,
+) -> primary_auto.ParticipationResult:
+    detail = str(result.detail or "")
+    if not result.success or LEGACY_WEAK_CONFIRMATION_MARKER not in detail.casefold():
+        return result
+    return primary_auto.ParticipationResult(
+        False,
+        "unconfirmed",
+        (
+            "BetBoom не показал явного подтверждения участия; "
+            f"старый layout-only сигнал отклонён ({detail})"
+        )[:300],
+        result.artifact_url,
+    )
+
+
 def _participate_with_storage(
     url: str, state_value: dict[str, Any]
 ) -> primary_auto.ParticipationResult:
     original_storage = primary_auto._storage_state
     primary_auto._storage_state = lambda: state_value
     try:
-        return betboom_participation_browser.participate(url)
+        result = betboom_participation_browser.participate(url)
+        return _reject_weak_browser_success(result)
     finally:
         primary_auto._storage_state = original_storage
 
@@ -532,22 +561,43 @@ def self_test() -> None:
         "action_id": 42,
         "server_start_at": "2026-07-22T12:00:00+00:00",
     }
+    now = datetime(2026, 7, 22, tzinfo=UTC)
     assert _base_event_token(item).startswith("evt:")
     assert _account_event_token(item).endswith("#account:vyacheslav_secondary")
     assert "authorization_required" in TERMINAL_FAILURE_STATUSES
-    assert not _should_attempt(
-        {"status": "participated"}, datetime(2026, 7, 22, tzinfo=UTC)
+    assert not _should_attempt({"status": "participated"}, now)
+    assert _should_attempt(
+        {
+            "status": "participated",
+            "detail": "BetBoom подтвердил участие (post_click_layout:main:Об акции)",
+        },
+        now,
     )
-    assert not _should_attempt(
-        {"status": "authorization_required"}, datetime(2026, 7, 22, tzinfo=UTC)
-    )
+    assert not _should_attempt({"status": "already_participating"}, now)
+    assert not _should_attempt({"status": "authorization_required"}, now)
     assert _should_attempt(
         {
             "status": "browser_error",
             "retry_after_at": "2026-07-21T00:00:00+00:00",
         },
-        datetime(2026, 7, 22, tzinfo=UTC),
+        now,
     )
+    weak = primary_auto.ParticipationResult(
+        True,
+        "participated",
+        "BetBoom подтвердил участие (post_click_layout:main:Об акции)",
+        "artifact",
+    )
+    rejected = _reject_weak_browser_success(weak)
+    assert rejected.success is False
+    assert rejected.status == "unconfirmed"
+    exact = primary_auto.ParticipationResult(
+        True,
+        "participated",
+        "BetBoom подтвердил участие после нажатия (exact_success_label)",
+        "",
+    )
+    assert _reject_weak_browser_success(exact) is exact
     install_owner_sync()
     assert auto_participation_owner_sync._bbvg_account_sync_installed is True
     print("secondary BetBoom account self-test passed")
