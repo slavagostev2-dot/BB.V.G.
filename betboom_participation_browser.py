@@ -53,6 +53,7 @@ REFERRAL_INELIGIBLE_LABEL_RE = re.compile(
     r"[.!]?",
     re.IGNORECASE,
 )
+PRECLICK_EXACT_CONFIRMATION_MARKER = "preclick_exact_success_label"
 
 
 def _normalized_label(value: object) -> str:
@@ -63,10 +64,16 @@ def _matches_full_label(pattern: re.Pattern[str], value: object) -> bool:
     return bool(pattern.fullmatch(_normalized_label(value)))
 
 
-def _matches_success_label(value: object) -> bool:
+def _matches_success_label(
+    value: object,
+    *,
+    allow_embedded: bool = False,
+) -> bool:
     label = _normalized_label(value)
     if _matches_full_label(SUCCESS_LABEL_RE, label):
         return True
+    if not allow_embedded:
+        return False
     return bool(
         label
         and len(label) <= 500
@@ -191,8 +198,13 @@ def _visible_referral_ineligible(page: Any) -> str:
     return ""
 
 
-def _success(page: Any) -> bool:
-    """Accept only a visible confirmation while the account is authenticated."""
+def _success(page: Any, *, allow_embedded: bool = False) -> bool:
+    """Return a visible account-state confirmation.
+
+    Before clicking, only a self-contained BetBoom status is authoritative. An
+    embedded success phrase is accepted only by the post-click path, where our
+    click provides the causal evidence that the surrounding promo card changed.
+    """
 
     if _authentication_required(page):
         return False
@@ -216,7 +228,10 @@ def _success(page: Any) -> bool:
                     candidate = locator.nth(index)
                     if not candidate.is_visible():
                         continue
-                    if _matches_success_label(candidate.inner_text(timeout=1000)):
+                    if _matches_success_label(
+                        candidate.inner_text(timeout=1000),
+                        allow_embedded=allow_embedded,
+                    ):
                         return True
                 except Exception:
                     continue
@@ -343,6 +358,8 @@ def _post_click_confirmed(page: Any) -> tuple[bool, str]:
         return False, f"authentication_required:{auth_location}"[:180]
     if _success(page):
         return True, "exact_success_label"
+    if _success(page, allow_embedded=True):
+        return True, "embedded_success_label"
     participation_location = _visible_control_location(page, CLICK_RE)
     promo_location = _visible_control_location(page, PROMO_DETAILS_RE)
     if _accepted_post_click_layout(
@@ -523,7 +540,10 @@ def participate(url: str) -> auto.ParticipationResult:
 
             clicked, location, preparations = _find_and_click(page, timeout_ms)
             if location == "already_participating":
-                detail = "BetBoom уже показывает точное подтверждение участия"
+                detail = (
+                    "BetBoom уже показывает самостоятельный статус участия "
+                    f"({PRECLICK_EXACT_CONFIRMATION_MARKER})"
+                )
                 browser.close()
                 return auto.ParticipationResult(
                     True,
@@ -542,7 +562,10 @@ def participate(url: str) -> auto.ParticipationResult:
                     if item not in preparations:
                         preparations.append(item)
                 if location == "already_participating":
-                    detail = "BetBoom показывает точное подтверждение после повторной загрузки"
+                    detail = (
+                        "BetBoom показывает самостоятельный статус участия после "
+                        f"повторной загрузки ({PRECLICK_EXACT_CONFIRMATION_MARKER})"
+                    )
                     browser.close()
                     return auto.ParticipationResult(
                         True,
@@ -716,6 +739,12 @@ def self_test() -> None:
         SUCCESS_LABEL_RE,
         "Если вы участвуете, дождитесь окончания таймера",
     )
+    embedded = (
+        "ПОДГОН ОТ DEKO\n"
+        "Отлично! Теперь ты участвуешь в розыгрыше. Скоро узнаешь результат."
+    )
+    assert not _matches_success_label(embedded)
+    assert _matches_success_label(embedded, allow_embedded=True)
     assert _matches_full_label(COOKIE_RE, "Окей")
     assert _matches_full_label(PROMO_DETAILS_RE, "Об акции")
     assert _matches_full_label(AUTH_RE, "Войти")
