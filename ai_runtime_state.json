@@ -1,5 +1,10 @@
 {
-  "cache": {},
+  "cache": {
+    "62598dc8391255b9f3f912ceaed1cf1bab06938c9f3a4b1e4129727c70891224": {
+      "expires_at": 1788640962.2683847,
+      "text": "{\n  \"summary\": \"Система мониторинга BB V.G. находится в критическом состоянии: 3 источника данных не обновляются, а общее количество проверяемых источников ниже нормы (175 из 178).\",\n  \"impact\": \"Данные от ключевых источников (@wfksiris, @kolesaBB) не поступают в систему, что приводит к потере актуальности информации и неполноте мониторинга.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.\",\n  \"confidence\": \"high\"\n}"
+    }
+  },
   "decisions": [
     {
       "cached": false,
@@ -2817,10 +2822,20 @@
       "output_sha256": "6a5497e75130a7b5cec700180f69ccb152e9e0cccf605dcef9c73c9be2dd7b05",
       "provider": "gemini",
       "status": "provider_error"
+    },
+    {
+      "cached": false,
+      "created_at": 1788640062.2683847,
+      "feature": "health_inspector",
+      "id": "1673c36f60614125bf7b1c7e16900851",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "a0d7693a1bee2f98427df9e1f3676ecff34798621319c284e701cf493857c32c",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788631744.7861834
+    1788640062.2683847
   ],
   "version": 1
 }

@@ -1,35 +1,35 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-09-05T18:04:49.875394+00:00",
+    "age_minutes": 1,
+    "last_heartbeat_at": "2026-09-05T20:25:59.950297+00:00",
     "started_at": "2026-09-05T17:19:23.977474+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "provider_error",
+    "ai_status": "ok",
     "cached": false,
-    "confidence": 1.0,
+    "confidence": 0.0,
     "critical_count": 3,
-    "decision_id": "c0bf55feffb747369154146fb64f7ef6",
+    "decision_id": "1673c36f60614125bf7b1c7e16900851",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
       "source_empty_public_feed",
       "source_health_missing"
     ],
-    "generated_at": "2026-09-05T18:09:24.855869+00:00",
-    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
-    "mode": "rules",
+    "generated_at": "2026-09-05T20:27:43.567547+00:00",
+    "impact": "Данные от ключевых источников (@wfksiris, @kolesaBB) не поступают в систему, что приводит к потере актуальности информации и неполноте мониторинга.",
+    "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система требует внимания: критических проблем — 3, предупреждений — 1. Источники последнего цикла: доступно 175/175, ошибок 0.",
-    "used_fallback": true,
+    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: 3 источника данных не обновляются, а общее количество проверяемых источников ниже нормы (175 из 178).",
+    "used_fallback": false,
     "version": 1,
     "warning_count": 1
   },
@@ -67,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-05T18:09:03.677350+00:00",
+  "checked_at": "2026-09-05T20:27:41.175197+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -102,7 +102,7 @@
   "finding_count": 4,
   "findings": [
     {
-      "detail": "В последней итерации проверено 175 из 176 источников, готовых к проверке (всего настроено 178).",
+      "detail": "В последней итерации проверено 175 из 177 источников, готовых к проверке (всего настроено 178).",
       "kind": "monitor_source_count",
       "severity": "critical",
       "subject": "",
@@ -132,7 +132,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-05T18:04:49.875394+00:00",
+    "bot_panel_heartbeat": "2026-09-05T20:25:59.950297+00:00",
     "checked_sources": 175,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -142,18 +142,18 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-05T18:08:43.664964+00:00",
-      "last_failure_at": "2026-09-05T14:45:48.744270+00:00",
-      "last_success_at": "2026-09-05T18:08:43.664964+00:00",
+      "last_checked_at": "2026-09-05T20:26:20.507194+00:00",
+      "last_failure_at": "2026-09-05T18:43:16.785720+00:00",
+      "last_success_at": "2026-09-05T20:26:20.507194+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
-    "health_inspector_mode": "rules",
-    "health_inspector_status": "provider_error",
-    "messages_attempted": 1,
-    "opened": 2,
+    "digest_sent": false,
+    "health_inspector_mode": "ai",
+    "health_inspector_status": "ok",
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 188,
@@ -181,17 +181,17 @@
     "brand": "BB V.G.",
     "checked_sources": 175,
     "checks_delta": 177,
-    "checks_total": 9451619,
+    "checks_total": 9471974,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "cd7903e7f2f0612da6d27d1c1be1d866712b7f62",
-    "iteration": 94,
-    "last_iteration_at": "2026-09-05T18:08:46.567188+00:00",
-    "last_iteration_duration_seconds": 34,
+    "iteration": 209,
+    "last_iteration_at": "2026-09-05T20:22:52.515860+00:00",
+    "last_iteration_duration_seconds": 32,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-05T18:08:46.567188+00:00",
-    "last_successful_checks_total": 9451619,
-    "last_successful_iteration_at": "2026-09-05T18:08:46.567188+00:00",
+    "last_process_heartbeat_at": "2026-09-05T20:22:52.515860+00:00",
+    "last_successful_checks_total": 9471974,
+    "last_successful_iteration_at": "2026-09-05T20:22:52.515860+00:00",
     "pending_wheels": 0,
     "reachable_sources": 175,
     "restart_recommended": false,
@@ -204,16 +204,16 @@
     "version": 3,
     "workflow_run_id": "33977478199"
   },
-  "monitor_age_minutes": 0,
-  "monitor_effective_heartbeat_at": "2026-09-05T18:08:46.567188+00:00",
+  "monitor_age_minutes": 4,
+  "monitor_effective_heartbeat_at": "2026-09-05T20:22:52.515860+00:00",
   "monitor_source_expectation": {
     "configured": 178,
-    "due_for_check": 176
+    "due_for_check": 177
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 183,
+    "entry_count": 136,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -298,9 +298,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-05T18:08:43.664964+00:00",
-    "last_failure_at": "2026-09-05T14:45:48.744270+00:00",
-    "last_success_at": "2026-09-05T18:08:43.664964+00:00",
+    "last_checked_at": "2026-09-05T20:26:20.507194+00:00",
+    "last_failure_at": "2026-09-05T18:43:16.785720+00:00",
+    "last_success_at": "2026-09-05T20:26:20.507194+00:00",
     "status": "ok"
   }
 }
