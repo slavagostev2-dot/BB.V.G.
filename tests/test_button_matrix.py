@@ -320,7 +320,7 @@ class ButtonMatrixTests(unittest.TestCase):
             panel.handle_callback(self.query("bb:l:active", user_id=user_id))
 
             self.assertIn(("show_active", 0), calls)
-            self.assertIn(("answer", "Открываю активные колёса"), calls)
+            self.assertIn(("answer", "Открываю колёса"), calls)
             self.assertFalse(
                 any(row[0] == "answer" and row[1] == "Неизвестная команда" for row in calls)
             )
@@ -409,7 +409,7 @@ class ButtonMatrixTests(unittest.TestCase):
             self.assertTrue(any("BetBoom API" in value for value in answers))
             self.assertTrue(any("указание времени отключено" in value for value in answers))
 
-    def test_active_list_renders_only_open_and_personal_controls(self) -> None:
+    def test_active_list_renders_only_open_and_navigation_controls(self) -> None:
         for admin in (False, True):
             panel = TelegramPanelRuntime()
             captured: list[dict[str, Any]] = []
@@ -435,8 +435,10 @@ class ButtonMatrixTests(unittest.TestCase):
             panel.show_active()
             payload = captured[-1]
             markup = str(payload["reply_markup"])
+            self.assertIn("🎡 <b>Колёса — 1</b>", payload["text"])
             self.assertIn("@mechanogun, @second", payload["text"])
-            self.assertIn("wheel:part:wheel-a", markup)
+            self.assertIn("https://betboom.ru/freestream/wheel-a", markup)
+            self.assertNotIn("wheel:part:wheel-a", markup)
             self.assertNotIn("wheel:inactive:wheel-a", markup)
             self.assertNotIn("wheel:finished:wheel-a", markup)
             self.assertNotIn("wheel:time:wheel-a", markup)
