@@ -287,9 +287,6 @@ class WheelInteractionRuntime(SourceRequestRuntime):
                     *(
                         [wheel_publications_v2.REFERRAL_RESTRICTED_SHORT_HTML]
                         if wheel_publications_v2.entry_is_referral_restricted(item)
-                        else [wheel_publications_v2.SUSPECTED_REFERRAL_SHORT_HTML]
-                        if wheel_publications_v2.referral_classification(item)
-                        == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
                         else []
                     ),
                     "✅ Участие отмечено" if joined else "❌ Участие не отмечено",
