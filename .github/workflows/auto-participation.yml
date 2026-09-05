@@ -37,9 +37,7 @@ jobs:
       - name: Refresh latest monitor state without full Git history
         shell: bash
         run: |
-          git fetch --no-tags --depth=1 origin \
-            +refs/heads/main:refs/remotes/origin/main \
-            +refs/heads/runtime-state:refs/remotes/origin/runtime-state
+          git fetch origin main runtime-state --depth=1 --no-tags
           git reset --hard origin/main
           git show origin/runtime-state:state.json > state.json
 
@@ -83,7 +81,7 @@ jobs:
           git pull --rebase origin main
           git push origin HEAD:main
 
-      - name: Validate all participation paths
+      - name: Validate auto participation
         if: ${{ steps.mode.outputs.probe != 'true' }}
         env:
           BETBOOM_AUTO_PARTICIPATE: "true"
