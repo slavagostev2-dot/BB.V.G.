@@ -17,6 +17,7 @@ import rating_policy
 import recurring_wheel_events
 import restart_duplicate_guard
 import telegram_post_links_v2
+import telegram_private_sources
 import telegram_transport
 import vk_wheel_notifications
 import wheel_lifecycle_v2
@@ -33,6 +34,7 @@ personal_wheel_voting.install_notification_router(notification_router)
 recurring_wheel_events.install(monitor, runtime.base_runtime)
 telegram_transport.install(monitor)
 telegram_post_links_v2.install(monitor)
+telegram_private_sources.install(monitor)
 wheel_event_runtime.install(monitor, runtime)
 wheel_metadata_quality.install(monitor, runtime)
 wheel_publications_v2.install(monitor, runtime)
