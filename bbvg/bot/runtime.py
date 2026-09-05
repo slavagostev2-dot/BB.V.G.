@@ -200,7 +200,7 @@ class TelegramPanelRuntime(
             self._edit_message_id = int(message.get("message_id") or 0) or None
             try:
                 self._prepare_callback_user(query)
-                self.answer(query_id, "Открываю активные колёса")
+                self.answer(query_id, "Открываю колёса")
                 self.open_page("active")
             finally:
                 self._edit_message_id = previous_edit_message_id
@@ -536,7 +536,7 @@ class TelegramPanelRuntime(
             ]
         text = (
             "🎡 <b>BB V.G.</b>\n\n"
-            "Находит колёса BetBoom, показывает время прокрутки и хранит отметки участия.\n\n"
+            "Находит колёса BetBoom и показывает время прокрутки.\n\n"
             f"Ваша роль: <b>{html.escape(self.role_name(role))}</b>\n\n"
             "Выберите раздел."
         )
@@ -722,7 +722,8 @@ def self_test() -> None:
     active_text, active_kwargs = captured[-1]
     active_markup = str(active_kwargs["reply_markup"])
     assert "@source, @second" in active_text
-    assert "wheel:part:wheel-a" in active_markup
+    assert "🎡 <b>Колёса — 1</b>" in active_text
+    assert "wheel:part:wheel-a" not in active_markup
     assert "wheel:time:wheel-a" not in active_markup
     assert "wheel:finished:" not in active_markup
     assert "wheel:inactive:" not in active_markup

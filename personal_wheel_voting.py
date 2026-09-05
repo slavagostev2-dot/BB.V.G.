@@ -589,7 +589,6 @@ class PersonalWheelVotingMixin:
     def show_active(self, page: int = 0) -> None:
         snap = self.snapshot(force=True)
         items = self._collect_current_wheels()
-        joined = self._personal_participating_wheels()
         status = self._monitor_status()
         checked_at = status.get("last_successful_iteration_at")
         if not items:
@@ -599,23 +598,24 @@ class PersonalWheelVotingMixin:
                 else "Ожидаются данные проверки"
             )
             self.send(
-                f"🔥 <b>Активных колёс сейчас нет.</b>\n\n{state_line}",
+                f"🎡 <b>Колёс сейчас нет.</b>\n\n{state_line}",
                 reply_markup=self.with_nav(
                     [[{"text": "🔄 Обновить", "callback_data": "refresh:active:0"}]]
                 ),
             )
             return
 
-        page_size = 6
+        page_size = 15
         pages = max(1, (len(items) + page_size - 1) // page_size)
         page = max(0, min(int(page), pages - 1))
         start = page * page_size
         visible = items[start : start + page_size]
-        lines = [f"🔥 <b>Активные колёса: {len(items)}</b>"]
+        lines = [f"🎡 <b>Колёса — {len(items)}</b>"]
         if pages > 1:
             lines.append(f"Страница: <b>{page + 1} из {pages}</b>")
         lines.append("")
         buttons: list[list[dict[str, str]]] = []
+        current = datetime.now(UTC)
 
         for offset, item in enumerate(visible):
             index = start + offset + 1
@@ -625,40 +625,27 @@ class PersonalWheelVotingMixin:
             available_at = self.parse_dt(item.get("available_at"))
             sources = self._sources_for_item(snap, key, item)
             source_text = ", ".join(f"@{source}" for source in sources) or "источник неизвестен"
-            if available_at and available_at > datetime.now(UTC):
+            if available_at and available_at > current:
+                state_text = "🟠 Ожидает запуска"
                 timing = f"Участие откроется через {self.remaining(available_at)}"
             elif deadline:
+                state_text = "🟢 Время прокрутки известно"
                 timing = self.remaining(deadline)
             else:
-                timing = "Время прокрутки неизвестно"
-            participating = self._item_joined(item, joined)
+                state_text = "🟡 Время уточняется"
+                timing = "Бот продолжает проверять BetBoom"
             lines.extend(
                 [
                     f"<b>{index}. <code>{html.escape(identifier[:100])}</code></b>",
+                    state_text,
                     f"⏳ {html.escape(timing)}",
                     f"📡 {html.escape(source_text)}",
-                    "Участвуете ✅" if participating else "Участие не отмечено",
                     "",
                 ]
             )
             url = str(item.get("url") or "")
             if url:
                 buttons.append([{"text": f"🎡 {index} · Открыть", "url": url}])
-            if not participating:
-                buttons.append(
-                    [{
-                        "text": f"✅ {index} · Участвую",
-                        "callback_data": self._wheel_callback("part", key),
-                    }]
-                )
-            if self.is_admin():
-                label = "Изменить время" if deadline else "Указать время"
-                buttons.append(
-                    [{
-                        "text": f"⏱ {index} · {label}",
-                        "callback_data": self._wheel_callback("time", key),
-                    }]
-                )
 
         pager: list[dict[str, str]] = []
         if page > 0:

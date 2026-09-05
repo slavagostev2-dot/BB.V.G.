@@ -15,7 +15,7 @@ import telegram_ui
 from bbvg.bot.runtime import TelegramPanelRuntime
 
 ACCESS_PAGE_SIZE = 8
-ACTIVE_PAGE_SIZE = 6
+ACTIVE_PAGE_SIZE = 15
 
 
 UTC = timezone.utc
@@ -97,9 +97,9 @@ class Chapter4InterfaceTests(unittest.TestCase):
         panel.show_active(1)
         text, kwargs = captured[-1]
         self.assertIn("Страница: <b>2 из 3</b>", text)
-        self.assertIn("wheel-06", text)
-        self.assertIn("wheel-11", text)
-        self.assertNotIn("wheel-12", text)
+        self.assertIn("wheel-15", text)
+        self.assertIn("wheel-29", text)
+        self.assertNotIn("wheel-30", text)
         markup = kwargs["reply_markup"]
         self.assertFalse(telegram_ui.markup_issues(markup))
         self.assertIn("page:active:0", str(markup))
@@ -124,10 +124,11 @@ class Chapter4InterfaceTests(unittest.TestCase):
         panel._monitor_status = lambda: {}  # type: ignore[method-assign]
         panel.show_active()
         text, _ = captured[-1]
+        self.assertIn("🟠 Ожидает запуска", text)
         self.assertIn("⏳ Участие откроется через", text)
-        self.assertNotIn("🔴 Время прокрутки неизвестно", text)
+        self.assertNotIn("Время уточняется", text)
 
-    def test_long_wheel_key_uses_a_safe_resolvable_callback(self) -> None:
+    def test_long_wheel_key_keeps_legacy_callback_safe_without_rendering_it(self) -> None:
         panel, captured = self.capture_panel(role="owner")
         key = "ключ:" + "очень-длинный-" * 20
         item = {
@@ -144,15 +145,18 @@ class Chapter4InterfaceTests(unittest.TestCase):
         panel._monitor_status = lambda: {}  # type: ignore[method-assign]
         panel.show_active()
         markup = captured[-1][1]["reply_markup"]
-        callbacks = [
+        rendered_callbacks = [
             str(button.get("callback_data"))
             for button in flat_buttons(markup)
             if button.get("callback_data", "").startswith("wheel:")
         ]
-        self.assertTrue(callbacks)
-        self.assertTrue(any(":~" in callback for callback in callbacks))
-        self.assertTrue(all(len(value.encode("utf-8")) <= 64 for value in callbacks))
-        token = next(value.rsplit(":", 1)[1] for value in callbacks if ":~" in value)
+        self.assertFalse(rendered_callbacks)
+        self.assertIn("https://betboom.ru/freestream/long", str(markup))
+
+        callback = panel._wheel_callback("part", key)
+        self.assertLessEqual(len(callback.encode("utf-8")), 64)
+        self.assertIn(":~", callback)
+        token = callback.rsplit(":", 1)[1]
         self.assertEqual(panel._resolve_wheel_token(token), key.casefold())
 
     def test_hashed_wheel_callback_reaches_personal_participation(self) -> None:
