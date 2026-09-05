@@ -809,6 +809,7 @@ def self_test() -> None:
     )
     assert isolated_groups[base][PRIMARY_ACCOUNT_KEY][0] == base
     assert isolated_groups[base][PRIMARY_ACCOUNT_KEY][2] is True
+    assert isolated_groups[base][XFLARXX_ACCOUNT_KEY][2] is False
     assert _should_finalize(
         {},
         {"notified_at": "2026-07-22T12:02:00+00:00"},
