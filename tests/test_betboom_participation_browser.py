@@ -57,22 +57,22 @@ def test_participation_button_requires_complete_label() -> None:
     )
 
 
-def test_success_requires_self_contained_visible_confirmation() -> None:
+def test_success_requires_self_contained_visible_confirmation_before_click() -> None:
     assert _success(_Page(["Вы уже участвуете"])) is True
     assert _success(_Page(["Вы уже участвуете в розыгрыше!"])) is True
     assert (
         _success(_Page(["Если вы участвуете, дождитесь окончания таймера"]))
         is False
     )
-    assert _success(
-        _Page(
-            [
-                "ПОДГОН ОТ DEKO\n"
-                "Отлично! Теперь ты участвуешь в розыгрыше. "
-                "Скоро узнаешь результат."
-            ]
-        )
-    ) is True
+    embedded = _Page(
+        [
+            "ПОДГОН ОТ DEKO\n"
+            "Отлично! Теперь ты участвуешь в розыгрыше. "
+            "Скоро узнаешь результат."
+        ]
+    )
+    assert _success(embedded) is False
+    assert _success(embedded, allow_embedded=True) is True
 
 
 def test_success_confirmation_phrases_are_exact() -> None:
