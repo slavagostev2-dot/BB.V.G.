@@ -14,8 +14,6 @@ WHEEL_TYPES = {
     WHEEL_TYPE_NORMAL,
     WHEEL_TYPE_REFERRAL,
 }
-REFERRAL_IDENTIFIER_HISTORY_KEY = "referral_identifier_history"
-REFERRAL_IDENTIFIER_HISTORY_LIMIT = 500
 STRONG_REFERRAL_EVIDENCE = "betboom_referral_ineligible"
 _REFERRAL_INELIGIBLE_DETAIL_MARKER = "referral_ineligible_exact_text:"
 
