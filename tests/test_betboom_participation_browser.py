@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import betboom_participation_browser as browser
 from betboom_participation_browser import (
+    ACCOUNT_STATUS_RE,
     CLICK_RE,
     REFERRAL_INELIGIBLE_LABEL_RE,
     SUCCESS_LABEL_RE,
     _matches_full_label,
+    _matches_success_label,
     _success,
     _visible_referral_ineligible,
 )
@@ -64,15 +66,30 @@ def test_success_requires_self_contained_visible_confirmation_before_click() -> 
         _success(_Page(["Если вы участвуете, дождитесь окончания таймера"]))
         is False
     )
-    embedded = _Page(
-        [
-            "ПОДГОН ОТ DEKO\n"
-            "Отлично! Теперь ты участвуешь в розыгрыше. "
-            "Скоро узнаешь результат."
-        ]
+
+
+def test_real_deko_status_is_valid_preclick_account_state() -> None:
+    real_status = (
+        "Отлично! Теперь ты участвуешь в розыгрыше. "
+        "Жди завершения таймера, чтобы забрать приз"
     )
-    assert _success(embedded) is False
-    assert _success(embedded, allow_embedded=True) is True
+    assert _matches_full_label(ACCOUNT_STATUS_RE, real_status)
+    assert _matches_success_label(real_status)
+    assert _success(_Page([real_status])) is True
+
+
+def test_promo_ancestor_with_success_words_is_not_preclick_proof() -> None:
+    real_status = (
+        "Отлично! Теперь ты участвуешь в розыгрыше. "
+        "Жди завершения таймера, чтобы забрать приз"
+    )
+    promo_ancestor = "ПОДГОН ОТ DEKO\nПравила акции\n" + real_status
+    assert not _matches_success_label(promo_ancestor)
+    assert _success(_Page([promo_ancestor])) is False
+    # Embedded text is still allowed after our own click, where the click itself
+    # supplies the missing causal evidence.
+    assert _matches_success_label(promo_ancestor, allow_embedded=True)
+    assert _success(_Page([promo_ancestor]), allow_embedded=True) is True
 
 
 def test_success_confirmation_phrases_are_exact() -> None:

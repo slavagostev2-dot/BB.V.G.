@@ -28,16 +28,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout repository
+      - name: Checkout repository shallowly
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: main
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - name: Refresh latest monitor state
+      - name: Refresh latest monitor state without full Git history
+        shell: bash
         run: |
-          sleep 2
-          git fetch origin main runtime-state
+          git fetch origin main runtime-state --depth=1 --no-tags
           git reset --hard origin/main
           git show origin/runtime-state:state.json > state.json
 
@@ -103,8 +103,11 @@ jobs:
           import auto_participation_owner_sync
           import betboom_account_participation
           import betboom_participation_browser
+          import betboom_session_health
           import runtime_state_publish
+          import secondary_account_participation
           import xflarxx_account_participation
+
           required = ("_event_token", "_eligible_for_event_attempt", "process_new_wheel_events")
           missing = [name for name in required if not hasattr(auto, name)]
           if missing:
@@ -123,12 +126,17 @@ jobs:
           auto_participation_recovery.self_test()
           auto_participation_bot_sync.self_test()
           auto_participation_owner_sync.self_test()
+          betboom_participation_browser.self_test()
           betboom_account_participation.self_test()
+          betboom_session_health.self_test()
+          secondary_account_participation.self_test()
           runtime_state_publish.self_test()
           xflarxx_account_participation.self_test()
           print("Auto participation preflight OK for all BetBoom accounts")
           PY
 
+      # Critical path: once the monitor dispatches a concrete wheel, all three
+      # accounts are attempted before the expensive all-source recovery scan.
       - name: Run event-based auto participation
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
@@ -225,7 +233,7 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
         run: |
           test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
-          python betboom_account_participation.py \
+          python secondary_account_participation.py --account account2 \
             --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
 
       - name: Run xFLARXx BetBoom account on fast result
@@ -240,12 +248,11 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
         run: |
           test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
-          python xflarxx_account_participation.py \
+          python secondary_account_participation.py --account account3 \
             --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
 
       - name: Queue fast outcomes for Control Center
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
-        shell: bash
         run: |
           test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
           python auto_participation_bot_sync.py --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
@@ -264,10 +271,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
-        run: >-
-          python runtime_state_publish.py
-          --publish-runtime-state state.json
+        run: python runtime_state_publish.py --publish-runtime-state state.json
 
+      # Recovery is deliberately after all three fast-path attempts. It remains
+      # insurance for missed source events and no longer delays a known wheel.
       - name: Recover fresh active wheels independently of monitor state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
@@ -300,7 +307,7 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
         run: |
           test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
-          python betboom_account_participation.py \
+          python secondary_account_participation.py --account account2 \
             --recovery-result /tmp/bbvg-auto-participation-recovery.json
 
       - name: Run xFLARXx BetBoom account after full recovery
@@ -315,12 +322,11 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
         run: |
           test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
-          python xflarxx_account_participation.py \
+          python secondary_account_participation.py --account account3 \
             --recovery-result /tmp/bbvg-auto-participation-recovery.json
 
-      - name: Queue confirmed participation for Control Center
+      - name: Queue final outcomes for Control Center
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
-        shell: bash
         run: |
           test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
           python auto_participation_bot_sync.py --recovery-result /tmp/bbvg-auto-participation-recovery.json
@@ -349,11 +355,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BBVG_RUNTIME_STATE_BRANCH: runtime-state
-        run: >-
-          python runtime_state_publish.py
-          --publish-runtime-state state.json
+        run: python runtime_state_publish.py --publish-runtime-state state.json
 
       - name: Log runtime checkpoint failure without Telegram delivery
         if: ${{ always() && steps.mode.outputs.probe != 'true' && steps.final_runtime_publish.outcome == 'failure' }}
-        run: >-
-          echo "::warning::Runtime-state checkpoint failed. Account results remain in the event ledger; direct Telegram emergency delivery is disabled."
+        run: echo "::warning::Runtime-state checkpoint failed. Account results remain in the event ledger; direct Telegram emergency delivery is disabled."
