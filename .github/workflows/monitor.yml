@@ -13,6 +13,8 @@ on:
       - "bbvg/monitor/suspicious_posts.py"
       - "telegram_transport.py"
       - "telegram_post_links_v2.py"
+      - "telegram_private_sources.py"
+      - "telegram_private_session_setup.py"
       - "recurring_wheel_events.py"
       - "wheel_event_runtime.py"
       - "wheel_metadata_quality.py"
@@ -224,7 +226,7 @@ jobs:
           ACTIVE_REMOVE_GRACE_MINUTES: "0"
         run: |
           python -m compileall -q bbvg
-          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py recurring_wheel_events.py wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py rating_policy.py admin_action_queue.py monitor_health.py runtime_state_publisher.py incident_manager.py system_checks.py notification_router.py vk_wheel_notifications.py vk_dynamic_subscribers.py vk_start_welcome.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py
+          python -m py_compile monitor.py monitor_entry.py bbvg_monitor_runtime.py bbvg_monitor_main.py telegram_transport.py telegram_post_links_v2.py telegram_private_sources.py telegram_private_session_setup.py recurring_wheel_events.py wheel_event_runtime.py wheel_metadata_quality.py wheel_publications_v2.py wheel_lifecycle_v2.py personal_reminder_filter.py notification_preferences_v2.py notification_navigation.py notification_integrity_v2.py rating_policy.py admin_action_queue.py monitor_health.py runtime_state_publisher.py incident_manager.py system_checks.py notification_router.py vk_wheel_notifications.py vk_dynamic_subscribers.py vk_start_welcome.py bot_notification_state.py bot_private_state.py privacy_retention.py monitor_data.py telegram_monitor.py source_intelligence.py source_intelligence_entry.py source_intelligence_alerts.py
           python notification_router.py
           python vk_wheel_notifications.py --self-test
           python vk_dynamic_subscribers.py --self-test
@@ -236,6 +238,7 @@ jobs:
           python admin_action_queue.py
           python telegram_transport.py
           python telegram_post_links_v2.py
+          python telegram_private_sources.py
           python recurring_wheel_events.py
           python wheel_event_runtime.py
           python wheel_metadata_quality.py
@@ -266,6 +269,7 @@ jobs:
           assert runtime.monitor.telegram_api.__module__ == "personal_reminder_filter"
           assert runtime.monitor.fetch_all_sources.__module__ == "telegram_transport"
           assert runtime.monitor.fetch_public_channel.__module__ == "telegram_post_links_v2"
+          assert runtime.monitor._bbvg_private_telegram_sources_installed is True
           assert runtime.monitor._bbvg_recurring_wheel_events_installed is True
           assert runtime.monitor._bbvg_wheel_event_runtime_installed is True
           assert runtime.monitor._bbvg_wheel_metadata_quality_installed is True
@@ -346,6 +350,11 @@ jobs:
           VK_GROUP_TOKEN: ${{ secrets.VK_GROUP_TOKEN }}
           VK_API_VERSION: "5.199"
           TELEGRAM_WEB_DOMAIN: telegram.me
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          TELEGRAM_USER_SESSION: ${{ secrets.TELEGRAM_USER_SESSION }}
+          TELEGRAM_PRIVATE_SOURCES_JSON: ${{ secrets.TELEGRAM_PRIVATE_SOURCES_JSON }}
+          TELEGRAM_PRIVATE_SOURCE_LIMIT: "40"
           DISPLAY_TIMEZONE: Asia/Barnaul
           REQUEST_TIMEOUT_SECONDS: "10"
           BBVG_AI_ENABLED: "true"
