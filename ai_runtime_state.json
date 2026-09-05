@@ -1,10 +1,5 @@
 {
-  "cache": {
-    "4556ed7ec8859cb5fb96c11fe7d1ac0b56863db1efde4f1a7b9360da1420f8ae": {
-      "expires_at": 1788624730.4224281,
-      "text": "{\n  \"summary\": \"Система находится в критическом состоянии: зафиксировано 3 критические ошибки мониторинга и 1 предупреждение. Основной монитор не охватывает все настроенные источники, а три конкретных канала (@wfksiris, @kolesaBB, @cs3news) не предоставляют данные.\",\n  \"impact\": \"Нарушена целостность сбора данных: часть источников не обновляется, что приводит к потере актуальной информации из критически важных каналов.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.\",\n  \"confidence\": \"high\"\n}"
-    }
-  },
+  "cache": {},
   "decisions": [
     {
       "cached": false,
@@ -2811,10 +2806,21 @@
       "output_sha256": "f20551471df5e1b03763f37fde9cbf07b999b0cacb268bcb0382b48d56b2f2ba",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1788631744.7861834,
+      "error": "ReadTimeout: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=20)",
+      "feature": "health_inspector",
+      "id": "c0bf55feffb747369154146fb64f7ef6",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "6a5497e75130a7b5cec700180f69ccb152e9e0cccf605dcef9c73c9be2dd7b05",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1788623830.4224281
+    1788631744.7861834
   ],
   "version": 1
 }

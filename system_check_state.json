@@ -1,35 +1,35 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-09-05T15:56:09.091038+00:00",
-    "started_at": "2026-09-05T12:48:21.947913+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-09-05T18:04:49.875394+00:00",
+    "started_at": "2026-09-05T17:19:23.977474+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
+    "ai_status": "provider_error",
     "cached": false,
-    "confidence": 0.0,
+    "confidence": 1.0,
     "critical_count": 3,
-    "decision_id": "7735cff0b8da4ee8b1d4b1b19f7f532b",
+    "decision_id": "c0bf55feffb747369154146fb64f7ef6",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
       "source_empty_public_feed",
       "source_health_missing"
     ],
-    "generated_at": "2026-09-05T15:57:12.964693+00:00",
-    "impact": "Нарушена целостность сбора данных: часть источников не обновляется, что приводит к потере актуальной информации из критически важных каналов.",
-    "mode": "ai",
+    "generated_at": "2026-09-05T18:09:24.855869+00:00",
+    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
+    "mode": "rules",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 3 критические ошибки мониторинга и 1 предупреждение. Основной монитор не охватывает все настроенные источники, а три конкретных канала (@wfksiris, @kolesaBB, @cs3news) не предоставляют данные.",
-    "used_fallback": false,
+    "summary": "Система требует внимания: критических проблем — 3, предупреждений — 1. Источники последнего цикла: доступно 175/175, ошибок 0.",
+    "used_fallback": true,
     "version": 1,
     "warning_count": 1
   },
@@ -67,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-05T15:57:09.220916+00:00",
+  "checked_at": "2026-09-05T18:09:03.677350+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -132,7 +132,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-05T15:56:09.091038+00:00",
+    "bot_panel_heartbeat": "2026-09-05T18:04:49.875394+00:00",
     "checked_sources": 175,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -142,18 +142,18 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-05T15:55:39.181553+00:00",
+      "last_checked_at": "2026-09-05T18:08:43.664964+00:00",
       "last_failure_at": "2026-09-05T14:45:48.744270+00:00",
-      "last_success_at": "2026-09-05T15:55:39.181553+00:00",
+      "last_success_at": "2026-09-05T18:08:43.664964+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
-    "messages_attempted": 0,
-    "opened": 0,
+    "digest_sent": true,
+    "health_inspector_mode": "rules",
+    "health_inspector_status": "provider_error",
+    "messages_attempted": 1,
+    "opened": 2,
     "resolved": 0
   },
   "incident_sequence": 188,
@@ -181,31 +181,31 @@
     "brand": "BB V.G.",
     "checked_sources": 175,
     "checks_delta": 177,
-    "checks_total": 9431618,
+    "checks_total": 9451619,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "cd7903e7f2f0612da6d27d1c1be1d866712b7f62",
-    "iteration": 75,
-    "last_iteration_at": "2026-09-05T15:55:42.927499+00:00",
-    "last_iteration_duration_seconds": 33,
+    "iteration": 94,
+    "last_iteration_at": "2026-09-05T18:08:46.567188+00:00",
+    "last_iteration_duration_seconds": 34,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-05T15:55:42.927499+00:00",
-    "last_successful_checks_total": 9431618,
-    "last_successful_iteration_at": "2026-09-05T15:55:42.927499+00:00",
-    "pending_wheels": 1,
+    "last_process_heartbeat_at": "2026-09-05T18:08:46.567188+00:00",
+    "last_successful_checks_total": 9451619,
+    "last_successful_iteration_at": "2026-09-05T18:08:46.567188+00:00",
+    "pending_wheels": 0,
     "reachable_sources": 175,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33971904833",
-    "run_started_at": "2026-09-05T14:28:51.849434+00:00",
+    "run_id": "33977478199",
+    "run_started_at": "2026-09-05T16:19:30.999015+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33971904833"
+    "workflow_run_id": "33977478199"
   },
-  "monitor_age_minutes": 1,
-  "monitor_effective_heartbeat_at": "2026-09-05T15:55:42.927499+00:00",
+  "monitor_age_minutes": 0,
+  "monitor_effective_heartbeat_at": "2026-09-05T18:08:46.567188+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 176
@@ -213,7 +213,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 172,
+    "entry_count": 183,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -241,11 +241,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 869,
+    "personal_vote_records": 870,
     "policy": "personal_votes_v1",
     "rated_sources": 47,
     "score_mismatches": [],
-    "valid_personal_votes": 869
+    "valid_personal_votes": 870
   },
   "source_health_summary": {
     "configured_records": 177,
@@ -298,9 +298,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-05T15:55:39.181553+00:00",
+    "last_checked_at": "2026-09-05T18:08:43.664964+00:00",
     "last_failure_at": "2026-09-05T14:45:48.744270+00:00",
-    "last_success_at": "2026-09-05T15:55:39.181553+00:00",
+    "last_success_at": "2026-09-05T18:08:43.664964+00:00",
     "status": "ok"
   }
 }
