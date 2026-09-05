@@ -8,8 +8,6 @@ UTC = timezone.utc
 
 WHEEL_TYPE_NORMAL = "normal"
 WHEEL_TYPE_REFERRAL = "referral"
-# Compatibility-only name for old callers. New classification never emits it.
-WHEEL_TYPE_SUSPECTED_REFERRAL = "suspected_referral"
 WHEEL_TYPES = {
     WHEEL_TYPE_NORMAL,
     WHEEL_TYPE_REFERRAL,
@@ -26,8 +24,6 @@ REFERRAL_RESTRICTED_NOTICE_HTML = (
     "BetBoom подтвердил реферальное ограничение для одного из проверенных аккаунтов."
 )
 REFERRAL_RESTRICTED_SHORT_HTML = "⚠️ <b>Реферальное колесо</b>"
-# Kept until the follow-up cleanup removes old presentation branches.
-SUSPECTED_REFERRAL_SHORT_HTML = "🟡 <b>Предположительно реферальное колесо</b>"
 
 
 def is_referral_restricted(text: str) -> bool:
@@ -480,7 +476,7 @@ def self_test() -> None:
         "identifier": "legacy",
         "message_text": "Колесо только для рефералов",
         "referral_restricted": True,
-        "wheel_type": WHEEL_TYPE_SUSPECTED_REFERRAL,
+        "wheel_type": "suspected_referral",
         "referral_suspected": True,
         "referral_classification_evidence": "identifier_history_explicit_referral",
     }
