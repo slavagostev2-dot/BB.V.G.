@@ -42,6 +42,10 @@ TERMINAL_FAILURE_STATUSES = {
 RETRY_DELAY_MINUTES = 2
 MAX_COMPLETED_EVENTS = 500
 LEGACY_WEAK_CONFIRMATION_MARKER = "post_click_layout:"
+LEGACY_PRECLICK_CONFIRMATION_DETAILS = {
+    "betboom уже показывает точное подтверждение участия",
+    "betboom показывает точное подтверждение после повторной загрузки",
+}
 
 
 def account_label() -> str:
@@ -163,7 +167,13 @@ def _legacy_weak_success(previous: Any) -> bool:
         return False
     status = str(previous.get("status") or "").casefold()
     detail = str(previous.get("detail") or "").casefold()
-    return status == "participated" and LEGACY_WEAK_CONFIRMATION_MARKER in detail
+    if status != "participated":
+        return False
+    normalized = " ".join(detail.split())
+    return (
+        LEGACY_WEAK_CONFIRMATION_MARKER in normalized
+        or normalized in LEGACY_PRECLICK_CONFIRMATION_DETAILS
+    )
 
 
 def _should_attempt(previous: Any, current: datetime) -> bool:
@@ -570,6 +580,30 @@ def self_test() -> None:
         {
             "status": "participated",
             "detail": "BetBoom подтвердил участие (post_click_layout:main:Об акции)",
+        },
+        now,
+    )
+    assert _should_attempt(
+        {
+            "status": "participated",
+            "detail": "BetBoom уже показывает точное подтверждение участия",
+        },
+        now,
+    )
+    assert _should_attempt(
+        {
+            "status": "participated",
+            "detail": "BetBoom показывает точное подтверждение после повторной загрузки",
+        },
+        now,
+    )
+    assert not _should_attempt(
+        {
+            "status": "participated",
+            "detail": (
+                "BetBoom уже показывает самостоятельный статус участия "
+                "(preclick_exact_success_label)"
+            ),
         },
         now,
     )
