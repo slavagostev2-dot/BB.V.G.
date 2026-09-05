@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from betboom_participation_browser import _click_candidates, _diagnostic_labels, _success
+from betboom_participation_browser import (
+    _authentication_required,
+    _click_candidates,
+    _diagnostic_labels,
+    _success,
+)
 
 
 class Candidate:
@@ -63,6 +68,16 @@ class Page(Root):
 def test_success_confirmation_is_found_inside_child_frame() -> None:
     page = Page(["Об акции"], [Root(["Вы уже участвуете"], url="https://wheel.example/embed")])
     assert _success(page) is True
+
+
+def test_authentication_detection_requires_exact_visible_label() -> None:
+    assert _authentication_required(Page(["Войти"], [])) == "main:Войти"
+    assert (
+        _authentication_required(
+            Page(["Чтобы войти в акцию, прочитайте правила"], [])
+        )
+        == ""
+    )
 
 
 def test_participation_button_is_clicked_inside_child_frame() -> None:

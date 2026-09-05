@@ -564,11 +564,8 @@ def participate(url: str) -> auto.ParticipationResult:
                         detail[:300],
                         artifact,
                     )
-                body = _all_text(page).casefold()
                 auth_location = _authentication_required(page)
-                if auth_location or any(
-                    value in body for value in ("войти", "авторизоваться", "авторизация")
-                ):
+                if auth_location:
                     result = _authorization_failure(
                         page,
                         url,
