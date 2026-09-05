@@ -460,8 +460,6 @@ def _result_message(
     wheel_type = wheel_publications_v2.referral_classification(item)
     if wheel_type == wheel_publications_v2.WHEEL_TYPE_REFERRAL:
         title = "🎡 <b>Реферальное колесо</b>"
-    elif wheel_type == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL:
-        title = "🎡 <b>Предположительно реферальное колесо</b>"
     else:
         title = (
             "✅ <b>Участие принято</b>"
