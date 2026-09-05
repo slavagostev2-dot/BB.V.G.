@@ -104,6 +104,7 @@ jobs:
           import betboom_account_participation
           import betboom_participation_browser
           import runtime_state_publish
+          import secondary_account_participation
           import xflarxx_account_participation
           required = ("_event_token", "_eligible_for_event_attempt", "process_new_wheel_events")
           missing = [name for name in required if not hasattr(auto, name)]
@@ -125,6 +126,7 @@ jobs:
           auto_participation_owner_sync.self_test()
           betboom_account_participation.self_test()
           runtime_state_publish.self_test()
+          secondary_account_participation.self_test()
           xflarxx_account_participation.self_test()
           print("Auto participation preflight OK for all BetBoom accounts")
           PY
@@ -225,7 +227,8 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
         run: |
           test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
-          python betboom_account_participation.py \
+          python secondary_account_participation.py \
+            --account account2 \
             --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
 
       - name: Run xFLARXx BetBoom account on fast result
@@ -240,7 +243,8 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "20000"
         run: |
           test -s /tmp/bbvg-auto-participation-fast-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-fast-recovery.json
-          python xflarxx_account_participation.py \
+          python secondary_account_participation.py \
+            --account account3 \
             --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
 
       - name: Queue fast outcomes for Control Center
@@ -300,7 +304,8 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
         run: |
           test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
-          python betboom_account_participation.py \
+          python secondary_account_participation.py \
+            --account account2 \
             --recovery-result /tmp/bbvg-auto-participation-recovery.json
 
       - name: Run xFLARXx BetBoom account after full recovery
@@ -315,7 +320,8 @@ jobs:
           BETBOOM_PARTICIPATION_TIMEOUT_MS: "30000"
         run: |
           test -s /tmp/bbvg-auto-participation-recovery.json || echo '{}' > /tmp/bbvg-auto-participation-recovery.json
-          python xflarxx_account_participation.py \
+          python secondary_account_participation.py \
+            --account account3 \
             --recovery-result /tmp/bbvg-auto-participation-recovery.json
 
       - name: Queue confirmed participation for Control Center
