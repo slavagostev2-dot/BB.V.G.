@@ -139,7 +139,7 @@ jobs:
 
       # Critical path: once the monitor dispatches a concrete wheel, all three
       # accounts are attempted before the expensive all-source recovery scan.
-      - name: Run primary account on dispatched event
+      - name: Run event-based auto participation
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
@@ -154,7 +154,7 @@ jobs:
           BBVG_EVENT_PAYLOAD_JSON: ${{ inputs.event_payload }}
         run: python auto_participation_worker.py
 
-      - name: Retry current active wheels for primary account
+      - name: Retry current active wheels immediately
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
@@ -223,7 +223,7 @@ jobs:
           }, ensure_ascii=False))
           PY
 
-      - name: Run Account 2 on fast result
+      - name: Run second BetBoom account on fast result
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
@@ -238,7 +238,7 @@ jobs:
           python secondary_account_participation.py --account account2 \
             --recovery-result /tmp/bbvg-auto-participation-fast-recovery.json
 
-      - name: Run Account 3 on fast result
+      - name: Run xFLARXx BetBoom account on fast result
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
@@ -277,7 +277,7 @@ jobs:
 
       # Recovery is deliberately after all three fast-path attempts. It remains
       # insurance for missed source events and no longer delays a known wheel.
-      - name: Recover active wheels independently of monitor state
+      - name: Recover fresh active wheels independently of monitor state
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
@@ -297,7 +297,7 @@ jobs:
           set -o pipefail
           python auto_participation_recovery.py | tee /tmp/bbvg-auto-participation-recovery.json
 
-      - name: Run Account 2 after full recovery
+      - name: Run second BetBoom account after full recovery
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
@@ -312,7 +312,7 @@ jobs:
           python secondary_account_participation.py --account account2 \
             --recovery-result /tmp/bbvg-auto-participation-recovery.json
 
-      - name: Run Account 3 after full recovery
+      - name: Run xFLARXx BetBoom account after full recovery
         if: ${{ always() && steps.mode.outputs.probe != 'true' }}
         continue-on-error: true
         env:
