@@ -1116,9 +1116,6 @@ def active_wheels_text(state: dict) -> str:
         referral = (
             "\n   ⚠️ колесо только для рефералов"
             if wheel_publications_v2.entry_is_referral_restricted(entry)
-            else "\n   🟡 предположительно реферальное колесо"
-            if wheel_publications_v2.referral_classification(entry)
-            == wheel_publications_v2.WHEEL_TYPE_SUSPECTED_REFERRAL
             else ""
         )
         lines.append(
