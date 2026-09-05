@@ -6,9 +6,23 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+import monitor_data as data_store
+import personal_wheel_voting
 from bbvg.storage import EventStore, event_id_from_entry
 
 UTC = timezone.utc
+
+_RATING_FIELDS = (
+    "personal_vote_points",
+    "personal_vote_score",
+    "quality_score",
+    "personal_votes",
+    "user_votes",
+    "admin_votes",
+    "last_vote_at",
+)
+_ORIGINAL_LOAD_STATS = data_store.load_stats
+_ORIGINAL_SAVE_STATS = data_store.save_stats
 
 
 def _parse(value: Any) -> datetime | None:
@@ -22,6 +36,141 @@ def _parse(value: Any) -> datetime | None:
     if result.tzinfo is None:
         result = result.replace(tzinfo=UTC)
     return result.astimezone(UTC)
+
+
+def reconcile_personal_rating_inventory(data: dict[str, Any]) -> bool:
+    """Keep personal rating derived only from valid votes for configured sources.
+
+    Participation votes remain authoritative event history, but synthetic or removed
+    sources must not survive inside their rating payload. Operational source counters
+    are intentionally untouched.
+    """
+
+    if str(data.get("source_rating_policy") or "") != personal_wheel_voting.PERSONAL_RATING_POLICY:
+        return False
+    allowed = data_store.configured_source_keys()
+    if not allowed:
+        return False
+
+    votes = data.get("personal_wheel_votes")
+    votes = votes if isinstance(votes, dict) else {}
+    expected: dict[str, dict[str, Any]] = {}
+    changed = False
+
+    for vote_id, raw_vote in votes.items():
+        if not isinstance(raw_vote, dict):
+            continue
+        try:
+            payload = personal_wheel_voting.normalize_vote_payload(raw_vote)
+        except (TypeError, ValueError):
+            continue
+        filtered = [
+            source for source in payload["sources"]
+            if data_store.clean_username(source).casefold() in allowed
+        ]
+        raw_sources = raw_vote.get("sources")
+        if not isinstance(raw_sources, list) or raw_sources != filtered:
+            raw_vote["sources"] = filtered
+            changed = True
+
+        voted_at = _parse(raw_vote.get("voted_at"))
+        for source in filtered:
+            folded = data_store.clean_username(source).casefold()
+            row = expected.setdefault(
+                folded,
+                {
+                    "source": data_store.clean_username(source),
+                    "points": {},
+                    "personal_votes": 0,
+                    "user_votes": 0,
+                    "admin_votes": 0,
+                    "last_vote_at": None,
+                },
+            )
+            row["points"][str(vote_id)] = int(payload["weight"])
+            row["personal_votes"] += 1
+            metric = "admin_votes" if payload["role"] in {"admin", "owner"} else "user_votes"
+            row[metric] += 1
+            if voted_at is not None and (
+                row["last_vote_at"] is None or voted_at > row["last_vote_at"]
+            ):
+                row["last_vote_at"] = voted_at
+
+    sources = data.setdefault("sources", {})
+    grouped: dict[str, list[str]] = {}
+    for source, entry in sources.items():
+        if isinstance(entry, dict):
+            grouped.setdefault(data_store.clean_username(source).casefold(), []).append(str(source))
+
+    def apply_rating(entry: dict[str, Any], desired: dict[str, Any] | None) -> bool:
+        local_changed = False
+        values: dict[str, Any] = {}
+        if desired is not None:
+            points = dict(desired["points"])
+            score = sum(max(0, int(value or 0)) for value in points.values())
+            values = {
+                "personal_vote_points": points,
+                "personal_vote_score": score,
+                "quality_score": score,
+                "personal_votes": int(desired["personal_votes"]),
+                "user_votes": int(desired["user_votes"]),
+                "admin_votes": int(desired["admin_votes"]),
+            }
+            if desired["last_vote_at"] is not None:
+                values["last_vote_at"] = desired["last_vote_at"].isoformat()
+        for field in _RATING_FIELDS:
+            if field in values:
+                if entry.get(field) != values[field]:
+                    entry[field] = values[field]
+                    local_changed = True
+            elif field in entry:
+                entry.pop(field, None)
+                local_changed = True
+        return local_changed
+
+    handled: set[str] = set()
+    for folded, keys in grouped.items():
+        desired = expected.get(folded)
+        preferred = None
+        if desired is not None:
+            preferred = next(
+                (key for key in keys if key == desired["source"]),
+                sorted(keys, key=lambda value: (value.casefold(), value))[0],
+            )
+        for key in keys:
+            if apply_rating(sources[key], desired if key == preferred else None):
+                changed = True
+        handled.add(folded)
+
+    for folded, desired in expected.items():
+        if folded in handled:
+            continue
+        source = str(desired["source"])
+        entry = sources.setdefault(source, {})
+        if apply_rating(entry, desired):
+            changed = True
+
+    return changed
+
+
+def load_stats_with_personal_rating_reconciliation() -> dict[str, Any]:
+    data = _ORIGINAL_LOAD_STATS()
+    if reconcile_personal_rating_inventory(data):
+        _ORIGINAL_SAVE_STATS(data)
+    return data
+
+
+def save_stats_with_personal_rating_reconciliation(data: dict[str, Any]) -> None:
+    reconcile_personal_rating_inventory(data)
+    _ORIGINAL_SAVE_STATS(data)
+
+
+def install_personal_rating_reconciliation() -> None:
+    if getattr(data_store, "_bbvg_personal_rating_inventory_installed", False):
+        return
+    data_store.load_stats = load_stats_with_personal_rating_reconciliation
+    data_store.save_stats = save_stats_with_personal_rating_reconciliation
+    data_store._bbvg_personal_rating_inventory_installed = True
 
 
 def state_generation_candidates(state: dict[str, Any]) -> list[dict[str, Any]]:
@@ -279,6 +428,9 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(text, end="")
     return 0
+
+
+install_personal_rating_reconciliation()
 
 
 if __name__ == "__main__":
