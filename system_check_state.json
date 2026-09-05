@@ -1,9 +1,9 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-09-05T20:25:59.950297+00:00",
-    "started_at": "2026-09-05T17:19:23.977474+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-09-05T22:10:13.566914+00:00",
+    "started_at": "2026-09-05T21:50:02.204858+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,22 +13,22 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 3,
-    "decision_id": "1673c36f60614125bf7b1c7e16900851",
+    "decision_id": "cd85a1b538cc42fca992d00208addb9b",
     "finding_count": 4,
     "finding_kinds": [
       "monitor_source_count",
       "source_empty_public_feed",
       "source_health_missing"
     ],
-    "generated_at": "2026-09-05T20:27:43.567547+00:00",
-    "impact": "Данные от ключевых источников (@wfksiris, @kolesaBB) не поступают в систему, что приводит к потере актуальности информации и неполноте мониторинга.",
+    "generated_at": "2026-09-05T22:12:59.774980+00:00",
+    "impact": "Нарушена целостность сбора данных: часть источников не обновляется, что приводит к потере актуальной информации в отчетах.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система мониторинга BB V.G. находится в критическом состоянии: 3 источника данных не обновляются, а общее количество проверяемых источников ниже нормы (175 из 178).",
+    "summary": "Система находится в критическом состоянии: зафиксировано 3 критические ошибки мониторинга и 1 предупреждение. Основной монитор не охватывает все настроенные источники, а три конкретных канала (@wfksiris, @kolesaBB, @cs3news) не предоставляют данные.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -67,22 +67,22 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-05T20:27:41.175197+00:00",
+  "checked_at": "2026-09-05T22:12:57.396775+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-09-04T20:52:33.779057+00:00",
+    "intelligence_last_run_at": "2026-09-05T20:30:14.515795+00:00",
     "intelligence_summary": {
       "empty_sources": 2,
       "error_types": {},
       "errors": 0,
-      "known_sources": 177,
-      "references_found": 359,
-      "relevant_candidates": 194,
-      "sources_scanned": 177,
+      "known_sources": 178,
+      "references_found": 342,
+      "relevant_candidates": 182,
+      "sources_scanned": 178,
       "strong_candidates": 3,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 194,
+      "unique_candidates": 182,
       "verified_candidates": 150,
       "workers": 12
     }
@@ -102,7 +102,7 @@
   "finding_count": 4,
   "findings": [
     {
-      "detail": "В последней итерации проверено 175 из 177 источников, готовых к проверке (всего настроено 178).",
+      "detail": "В последней итерации проверено 175 из 176 источников, готовых к проверке (всего настроено 178).",
       "kind": "monitor_source_count",
       "severity": "critical",
       "subject": "",
@@ -132,7 +132,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-05T20:25:59.950297+00:00",
+    "bot_panel_heartbeat": "2026-09-05T22:10:13.566914+00:00",
     "checked_sources": 175,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -142,9 +142,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-05T20:26:20.507194+00:00",
+      "last_checked_at": "2026-09-05T22:11:56.944444+00:00",
       "last_failure_at": "2026-09-05T18:43:16.785720+00:00",
-      "last_success_at": "2026-09-05T20:26:20.507194+00:00",
+      "last_success_at": "2026-09-05T22:11:56.944444+00:00",
       "status": "ok"
     }
   },
@@ -181,34 +181,34 @@
     "brand": "BB V.G.",
     "checked_sources": 175,
     "checks_delta": 177,
-    "checks_total": 9471974,
+    "checks_total": 9487904,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "cd7903e7f2f0612da6d27d1c1be1d866712b7f62",
-    "iteration": 209,
-    "last_iteration_at": "2026-09-05T20:22:52.515860+00:00",
-    "last_iteration_duration_seconds": 32,
+    "iteration": 21,
+    "last_iteration_at": "2026-09-05T22:08:20.470791+00:00",
+    "last_iteration_duration_seconds": 36,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-05T20:22:52.515860+00:00",
-    "last_successful_checks_total": 9471974,
-    "last_successful_iteration_at": "2026-09-05T20:22:52.515860+00:00",
+    "last_process_heartbeat_at": "2026-09-05T22:08:20.470791+00:00",
+    "last_successful_checks_total": 9487904,
+    "last_successful_iteration_at": "2026-09-05T22:08:20.470791+00:00",
     "pending_wheels": 0,
     "reachable_sources": 175,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "33977478199",
-    "run_started_at": "2026-09-05T16:19:30.999015+00:00",
+    "run_id": "33993887670",
+    "run_started_at": "2026-09-05T21:44:29.338026+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "33977478199"
+    "workflow_run_id": "33993887670"
   },
   "monitor_age_minutes": 4,
-  "monitor_effective_heartbeat_at": "2026-09-05T20:22:52.515860+00:00",
+  "monitor_effective_heartbeat_at": "2026-09-05T22:08:20.470791+00:00",
   "monitor_source_expectation": {
     "configured": 178,
-    "due_for_check": 177
+    "due_for_check": 176
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
@@ -232,9 +232,9 @@
     "user_kind_counts": {
       "daily_reports": 0,
       "weekly_reports": 0,
-      "wheels": 5
+      "wheels": 4
     },
-    "user_recipient_count": 5,
+    "user_recipient_count": 4,
     "wheel_with_error_word_kind": "wheels"
   },
   "primary_telegram_domain": "telegram.me",
@@ -298,9 +298,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-05T20:26:20.507194+00:00",
+    "last_checked_at": "2026-09-05T22:11:56.944444+00:00",
     "last_failure_at": "2026-09-05T18:43:16.785720+00:00",
-    "last_success_at": "2026-09-05T20:26:20.507194+00:00",
+    "last_success_at": "2026-09-05T22:11:56.944444+00:00",
     "status": "ok"
   }
 }
