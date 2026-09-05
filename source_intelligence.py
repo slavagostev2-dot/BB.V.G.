@@ -260,6 +260,26 @@ def score_candidate(entry: dict[str, Any]) -> int:
     return max(0, min(100, score))
 
 
+def verification_priority(
+    item: dict[str, Any], previous_candidates: dict[str, Any]
+) -> tuple[int, int, int, str]:
+    """Keep previously proven wheel-bearing candidates inside verification quota."""
+
+    source = str(item.get("source") or "")
+    previous = previous_candidates.get(source.casefold(), {})
+    previous_wheels = (
+        int(previous.get("wheel_links_found", 0) or 0)
+        if isinstance(previous, dict)
+        else 0
+    )
+    return (
+        0 if previous_wheels > 0 else 1,
+        -int(item.get("mention_count", 0) or 0),
+        -len(item.get("discovered_from", set()) or []),
+        source.casefold(),
+    )
+
+
 def main() -> int:
     sources, known = known_sources()
     ignored = ignored_sources()
@@ -329,7 +349,14 @@ def main() -> int:
     )[:CANDIDATE_LIMIT]
 
     verification_results: dict[str, dict[str, Any]] = {}
-    verify_sources = [str(raw["source"]) for raw in ordered[:VERIFY_LIMIT]]
+    previous_candidates = (
+        state.get("candidates") if isinstance(state.get("candidates"), dict) else {}
+    )
+    verification_queue = sorted(
+        ordered,
+        key=lambda item: verification_priority(item, previous_candidates),
+    )
+    verify_sources = [str(raw["source"]) for raw in verification_queue[:VERIFY_LIMIT]]
     with ThreadPoolExecutor(
         max_workers=min(INTELLIGENCE_WORKERS, max(1, len(verify_sources)))
     ) as pool:
