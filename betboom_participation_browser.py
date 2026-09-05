@@ -10,7 +10,6 @@ from typing import Any
 from urllib.parse import urlparse
 
 import betboom_auto_participation as auto
-import wheel_publications_v2
 
 UTC = timezone.utc
 
@@ -224,13 +223,9 @@ def _success(page: Any) -> bool:
     return False
 
 
-def _page_referral_hint(page: Any) -> str:
-    return wheel_publications_v2.page_referral_hint(_all_text(page))
-
-
 def _detail_with_page_hint(page: Any, detail: str) -> str:
-    hint = _page_referral_hint(page)
-    return f"{hint}; {detail}" if hint else detail
+    del page
+    return detail
 
 
 def _authorization_failure(
