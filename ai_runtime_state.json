@@ -1,8 +1,8 @@
 {
   "cache": {
-    "3f1fa5d6bf9e5bb6524eb4bf1b3b3c1a66939bb335906f3b82dc47928e2d8e5b": {
-      "expires_at": 1788614105.8962631,
-      "text": "{\n  \"summary\": \"Критический сбой: два ключевых источника (@wfksiris и @kolesaBB) перестали отдавать данные, несмотря на доступность страниц.\",\n  \"impact\": \"Данные с указанных источников не поступают в систему, что приводит к отсутствию обновлений контента.\",\n  \"recommended_action\": \"Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.\",\n  \"confidence\": \"high\"\n}"
+    "196159502bc271a8d07a9d3fcc9edd5770fd2190e645c6d4ddf9bd4a190c179e": {
+      "expires_at": 1788617794.7422402,
+      "text": "{\n  \"summary\": \"Критический сбой: два ключевых источника (@wfksiris и @kolesaBB) перестали отдавать данные, несмотря на доступность страниц.\",\n  \"impact\": \"Данные из указанных источников не поступают в систему, что приводит к отсутствию обновлений в ленте.\",\n  \"recommended_action\": \"Открыть system_check_state.json и активные инциденты, затем подтвердить первопричину.\",\n  \"confidence\": \"high\"\n}"
     }
   },
   "decisions": [
@@ -2791,10 +2791,20 @@
       "output_sha256": "0ecd4a8f7a3d618b9927555a70e5290a4d074cf233d99c60012bb58237826fff",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1788616894.7422402,
+      "feature": "health_inspector",
+      "id": "7fc4e316a2b94154a14990912be6553c",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "f058714b4b88a4063cae66fdf316bbf1bf203e390ab5761b27b79acb3fd649c5",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788613205.8962631
+    1788616894.7422402
   ],
   "version": 1
 }
