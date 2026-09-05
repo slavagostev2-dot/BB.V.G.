@@ -223,11 +223,6 @@ def _success(page: Any) -> bool:
     return False
 
 
-def _detail_with_page_hint(page: Any, detail: str) -> str:
-    del page
-    return detail
-
-
 def _authorization_failure(
     page: Any,
     url: str,
@@ -235,7 +230,7 @@ def _authorization_failure(
 ) -> auto.ParticipationResult:
     """Return a terminal session-expired result instead of retryable button_not_found."""
 
-    rendered = _detail_with_page_hint(page, detail)
+    rendered = detail
     artifact = _save_diagnostics(
         page,
         url,
@@ -504,10 +499,7 @@ def participate(url: str) -> auto.ParticipationResult:
 
             referral_refusal = _visible_referral_ineligible(page)
             if referral_refusal:
-                detail = _detail_with_page_hint(
-                    page,
-                    f"referral_ineligible_exact_text:{referral_refusal}",
-                )
+                detail = f"referral_ineligible_exact_text:{referral_refusal}"
                 artifact = _save_diagnostics(
                     page, url, "referral_ineligible", detail
                 )
@@ -531,10 +523,7 @@ def participate(url: str) -> auto.ParticipationResult:
 
             clicked, location, preparations = _find_and_click(page, timeout_ms)
             if location == "already_participating":
-                detail = _detail_with_page_hint(
-                    page,
-                    "BetBoom уже показывает точное подтверждение участия",
-                )
+                detail = "BetBoom уже показывает точное подтверждение участия"
                 browser.close()
                 return auto.ParticipationResult(
                     True,
@@ -553,10 +542,7 @@ def participate(url: str) -> auto.ParticipationResult:
                     if item not in preparations:
                         preparations.append(item)
                 if location == "already_participating":
-                    detail = _detail_with_page_hint(
-                        page,
-                        "BetBoom показывает точное подтверждение после повторной загрузки",
-                    )
+                    detail = "BetBoom показывает точное подтверждение после повторной загрузки"
                     browser.close()
                     return auto.ParticipationResult(
                         True,
@@ -567,10 +553,7 @@ def participate(url: str) -> auto.ParticipationResult:
             if not clicked:
                 referral_refusal = _visible_referral_ineligible(page)
                 if referral_refusal:
-                    detail = _detail_with_page_hint(
-                        page,
-                        f"referral_ineligible_exact_text:{referral_refusal}",
-                    )
+                    detail = f"referral_ineligible_exact_text:{referral_refusal}"
                     artifact = _save_diagnostics(
                         page, url, "referral_ineligible", detail
                     )
@@ -599,7 +582,6 @@ def participate(url: str) -> auto.ParticipationResult:
                     detail += "; подготовка: " + " | ".join(preparations)
                 if labels:
                     detail += f"; видимые действия: {labels}"
-                detail = _detail_with_page_hint(page, detail)
                 artifact = _save_diagnostics(
                     page,
                     url,
@@ -623,7 +605,6 @@ def participate(url: str) -> auto.ParticipationResult:
                     )
                     if preparations:
                         detail += "; подготовка: " + " | ".join(preparations)
-                    detail = _detail_with_page_hint(page, detail)
                     browser.close()
                     return auto.ParticipationResult(True, "participated", detail[:300])
                 if confirmation.startswith("authentication_required:"):
@@ -636,10 +617,7 @@ def participate(url: str) -> auto.ParticipationResult:
                     return result
                 referral_refusal = _visible_referral_ineligible(page)
                 if referral_refusal:
-                    detail = _detail_with_page_hint(
-                        page,
-                        f"referral_ineligible_exact_text:{referral_refusal}",
-                    )
+                    detail = f"referral_ineligible_exact_text:{referral_refusal}"
                     artifact = _save_diagnostics(
                         page, url, "referral_ineligible", detail
                     )
@@ -660,10 +638,9 @@ def participate(url: str) -> auto.ParticipationResult:
             for _ in range(10):
                 confirmed, confirmation = _post_click_confirmed(page)
                 if confirmed:
-                    detail = _detail_with_page_hint(
-                        page,
+                    detail = (
                         "BetBoom подтвердил участие после контрольной перезагрузки "
-                        f"({location}; {confirmation})",
+                        f"({location}; {confirmation})"
                     )
                     browser.close()
                     return auto.ParticipationResult(
@@ -683,10 +660,7 @@ def participate(url: str) -> auto.ParticipationResult:
 
             referral_refusal = _visible_referral_ineligible(page)
             if referral_refusal:
-                detail = _detail_with_page_hint(
-                    page,
-                    f"referral_ineligible_exact_text:{referral_refusal}",
-                )
+                detail = f"referral_ineligible_exact_text:{referral_refusal}"
                 artifact = _save_diagnostics(
                     page, url, "referral_ineligible", detail
                 )
@@ -705,7 +679,6 @@ def participate(url: str) -> auto.ParticipationResult:
             labels = _diagnostic_labels(page)
             if labels:
                 detail += f"; видимые действия после клика: {labels}"
-            detail = _detail_with_page_hint(page, detail)
             artifact = _save_diagnostics(page, url, "unconfirmed", detail)
             browser.close()
             return auto.ParticipationResult(
