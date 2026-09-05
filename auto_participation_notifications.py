@@ -900,8 +900,16 @@ def self_test() -> None:
         all_success=False,
         allow_referral_upgrade=True,
     )
-    assert wheel_publications_v2.entry_is_referral_restricted(
+    assert not wheel_publications_v2.entry_is_referral_restricted(
         {"message_text": "Колесо для рефов"}
+    )
+    assert wheel_publications_v2.entry_is_referral_restricted(
+        {
+            "wheel_type": wheel_publications_v2.WHEEL_TYPE_REFERRAL,
+            "referral_classification_evidence": (
+                wheel_publications_v2.STRONG_REFERRAL_EVIDENCE
+            ),
+        }
     )
     recovered_state = {
         "button_contexts": {
@@ -920,7 +928,7 @@ def self_test() -> None:
     recovered_item, active_matches = _event_item(recovered_state, base, groups[base])
     assert active_matches is False
     assert recovered_item and recovered_item["action_id"] == 42
-    assert wheel_publications_v2.entry_is_referral_restricted(recovered_item)
+    assert not wheel_publications_v2.entry_is_referral_restricted(recovered_item)
     zonertg16_state = {
         "active_wheels": {
             "zonertg16": {
