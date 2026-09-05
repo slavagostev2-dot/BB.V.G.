@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-05T10:58:45.857916+00:00",
       "status": "participated",
-      "updated_at": "2026-09-05T10:59:12.625136+00:00"
+      "updated_at": "2026-09-05T10:59:25.974951+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-05T10:59:04.640934+00:00",
       "status": "participated",
-      "updated_at": "2026-09-05T10:59:12.626625+00:00"
+      "updated_at": "2026-09-05T10:59:25.976009+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-05T10:59:08.754235+00:00",
       "status": "participated",
-      "updated_at": "2026-09-05T10:59:12.628116+00:00"
+      "updated_at": "2026-09-05T10:59:25.978944+00:00"
     }
   ],
   "action_id": 1264,
@@ -119,33 +119,44 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-05T10:59:12.611555+00:00",
+      "dedupe_key": "33961920430",
+      "occurred_at": "2026-09-05T10:59:12.616705+00:00",
       "payload": {
-        "action_id": 1264,
-        "available_at": "",
-        "deadline": "2026-09-05T11:13:46.648000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:4f072066cc04ac5c74d1",
-        "expires_at": "2026-09-05T11:43:46.648000+00:00",
-        "generation_id": "4f072066cc04ac5c74d1",
-        "identifier": "smurf",
-        "message_text": "Рубилово за финал в самом разгаре! Запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2198\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-05T10:53:46.648000+00:00",
-        "source": "smurf_gigachad",
-        "source_message_date": "2026-09-05T10:54:04+00:00",
-        "source_message_id": 2198,
-        "source_message_url": "https://telegram.me/smurf_gigachad/2198",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/smurf",
-        "verification_status": "confirmed",
-        "wheel_key": "smurf",
-        "wheel_type": "normal"
+        "workflow_run_id": "33961920430",
+        "workflow_sha": "830558e5999c121b846350c4bc370b742e0fd48c"
       },
-      "stage": "source_discovered",
-      "transition_id": "65715cfbeb7bac46b27fd3ec93ba878dc424a925994c06bc6a3dbeaabfed4b0b"
+      "stage": "workflow_started",
+      "transition_id": "38ab8c836a8d471152b7cbcf071ed4d5b0218c3455224fcc6f2baaf1f5af176d"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:18c31c365df7741ba7326c4fef82f7da35407d2b710ba802a2284db9fe744d30",
+      "occurred_at": "2026-09-05T10:58:45.857916+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "4bcad2758cf2ede4a4b882b4d655cb5cdabf6cc70272f487b2fbea2ede0601e3"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:e539aa4a053cf21fa9c55769ac02c5e8c20465525ffe3baf74b5bc3c08eed212",
+      "occurred_at": "2026-09-05T10:59:08.754235+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "50d25b30b4b24c415a94c0798f70dc72e9ff60dc18b9c669368eeb324010ad22"
     },
     {
       "dedupe_key": "durable-event",
@@ -177,6 +188,35 @@
       "transition_id": "5f5bdd9d27f69b00ae3ee2511fa878f92ad58b3cdb3880424a7f6373dfc59e7a"
     },
     {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-05T10:59:12.611555+00:00",
+      "payload": {
+        "action_id": 1264,
+        "available_at": "",
+        "deadline": "2026-09-05T11:13:46.648000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:4f072066cc04ac5c74d1",
+        "expires_at": "2026-09-05T11:43:46.648000+00:00",
+        "generation_id": "4f072066cc04ac5c74d1",
+        "identifier": "smurf",
+        "message_text": "Рубилово за финал в самом разгаре! Запускаем КОЛЕСО ФРИБЕТОВ ОТ\nBETBOOM\nдля вас\n🥰\nhttps://betboom.ru/freestream/smurf\nОткрывай через браузер, нажимай участвовать и получай Фрибеты\nhttps://telegram.me/smurf_gigachad\nhttps://telegram.me/smurf_gigachad/2198\nhttps://betboom-link.ru/link/jDK499/?erid:KW2aPRYdr5QoPXHUGki5XsnCPRdbMowBCPH484RRyUo9DsMDcXepyqz277vUUJoAw\nhttps://betboom.ru/freestream/smurf",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-05T10:53:46.648000+00:00",
+        "source": "smurf_gigachad",
+        "source_message_date": "2026-09-05T10:54:04+00:00",
+        "source_message_id": 2198,
+        "source_message_url": "https://telegram.me/smurf_gigachad/2198",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/smurf",
+        "verification_status": "confirmed",
+        "wheel_key": "smurf",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "65715cfbeb7bac46b27fd3ec93ba878dc424a925994c06bc6a3dbeaabfed4b0b"
+    },
+    {
       "dedupe_key": "1264:2026-09-05T10:53:46.648000+00:00",
       "occurred_at": "2026-09-05T10:59:12.611555+00:00",
       "payload": {
@@ -206,31 +246,6 @@
       "transition_id": "b7de639cbaafebc92ece2cd9a858ef0f49c05e916e8e99f151ba262a844b277f"
     },
     {
-      "dedupe_key": "33961920430",
-      "occurred_at": "2026-09-05T10:59:12.616705+00:00",
-      "payload": {
-        "workflow_run_id": "33961920430",
-        "workflow_sha": "830558e5999c121b846350c4bc370b742e0fd48c"
-      },
-      "stage": "workflow_started",
-      "transition_id": "38ab8c836a8d471152b7cbcf071ed4d5b0218c3455224fcc6f2baaf1f5af176d"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:18c31c365df7741ba7326c4fef82f7da35407d2b710ba802a2284db9fe744d30",
-      "occurred_at": "2026-09-05T10:58:45.857916+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "4bcad2758cf2ede4a4b882b4d655cb5cdabf6cc70272f487b2fbea2ede0601e3"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:683171dfd3c9885ae5fc67c08220d7d7a0f2686488167c1fdf643936c118c319",
       "occurred_at": "2026-09-05T10:59:04.640934+00:00",
       "payload": {
@@ -244,24 +259,9 @@
       },
       "stage": "account_result",
       "transition_id": "ebba9d1d38183cd94c5b5f9a9adae29b83fc7daaced3ccdd94aec3682cd68bad"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:e539aa4a053cf21fa9c55769ac02c5e8c20465525ffe3baf74b5bc3c08eed212",
-      "occurred_at": "2026-09-05T10:59:08.754235+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "",
-        "attempt_count": 1,
-        "confirmation": "workflow_state",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "50d25b30b4b24c415a94c0798f70dc72e9ff60dc18b9c669368eeb324010ad22"
     }
   ],
-  "updated_at": "2026-09-05T10:59:12.616705+00:00",
+  "updated_at": "2026-09-05T10:59:25.973291+00:00",
   "wheel_key": "smurf",
   "workflow_started_at": "2026-09-05T10:59:12.616705+00:00"
 }
