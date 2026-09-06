@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T09:28:56.432888+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T09:29:11.589413+00:00"
+      "updated_at": "2026-09-06T09:29:28.799600+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T09:29:02.797432+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T09:29:11.590995+00:00"
+      "updated_at": "2026-09-06T09:29:28.800886+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-06T09:29:07.600152+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T09:29:11.592262+00:00"
+      "updated_at": "2026-09-06T09:29:28.802213+00:00"
     }
   ],
   "action_id": 1722,
@@ -118,6 +118,21 @@
   "source_message_url": "https://telegram.me/mechanogun/36350",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:7f6a7023da163e0ccd24151eaf3b026689e370021a37547f663df6ae01af5f1f",
+      "occurred_at": "2026-09-06T09:29:07.600152+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T092910604022Z-f97da2ba7f38",
+        "attempt_count": 1,
+        "confirmation": "raw_status:already_participating; betboom_preexisting",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "01a4dec32daee062d8e6e93fa05c382d0ab3efe7f7e6d68e0c6600778a468e2c"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-06T09:29:11.582174+00:00",
@@ -177,6 +192,16 @@
       "transition_id": "03f42a6604d01c33c4e5e21dc5f3b332d202fdc005386cbc19cfff885c9a006f"
     },
     {
+      "dedupe_key": "34024757313",
+      "occurred_at": "2026-09-06T09:29:11.586825+00:00",
+      "payload": {
+        "workflow_run_id": "34024757313",
+        "workflow_sha": "9117cc77ceb8326c8eae18d12be0e63c81552d92"
+      },
+      "stage": "workflow_started",
+      "transition_id": "1e58c8b943f314ba862769dd907715892d81b89422c9b5263f1772c3502dce5c"
+    },
+    {
       "dedupe_key": "1722:2026-09-06T09:27:54.141000+00:00",
       "occurred_at": "2026-09-06T09:29:11.582174+00:00",
       "payload": {
@@ -204,16 +229,6 @@
       },
       "stage": "api_confirmed",
       "transition_id": "a0aa06947405b0629f44d2a37f952477818c70218e73a35ba116fa0f6175c943"
-    },
-    {
-      "dedupe_key": "34024757313",
-      "occurred_at": "2026-09-06T09:29:11.586825+00:00",
-      "payload": {
-        "workflow_run_id": "34024757313",
-        "workflow_sha": "9117cc77ceb8326c8eae18d12be0e63c81552d92"
-      },
-      "stage": "workflow_started",
-      "transition_id": "1e58c8b943f314ba862769dd907715892d81b89422c9b5263f1772c3502dce5c"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:289897e747c654deb72f6f2bb6f04eae2fda5b59c57124ff5948004f46a98520",
@@ -244,24 +259,9 @@
       },
       "stage": "account_result",
       "transition_id": "d311775ccc6a114d3273685529a5bf6f661c2837d38564b676a5ec90ba0e5a3a"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:7f6a7023da163e0ccd24151eaf3b026689e370021a37547f663df6ae01af5f1f",
-      "occurred_at": "2026-09-06T09:29:07.600152+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T092910604022Z-f97da2ba7f38",
-        "attempt_count": 1,
-        "confirmation": "raw_status:already_participating; betboom_preexisting",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "01a4dec32daee062d8e6e93fa05c382d0ab3efe7f7e6d68e0c6600778a468e2c"
     }
   ],
-  "updated_at": "2026-09-06T09:29:11.586825+00:00",
+  "updated_at": "2026-09-06T09:29:28.797754+00:00",
   "wheel_key": "zonertg11",
   "workflow_started_at": "2026-09-06T09:29:11.586825+00:00"
 }
