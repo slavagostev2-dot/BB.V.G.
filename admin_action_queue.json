@@ -2496,12 +2496,6 @@
       "sequence": 528,
       "value": "{\"actor\":\"vote_6d354213070f7ecae88871feecfd6151\",\"event_key\":\"zonertw7#generation:1af271e7c6b943a7de2b\",\"role\":\"admin\",\"sources\":[\"kolesaBB\"],\"weight\":5,\"wheel_key\":\"zonertw7\"}"
     },
-    "bd8a55feb26643a68b7cb2645f922bc4": {
-      "action": "set_deadline",
-      "created_at": "2026-07-15T12:35:49.746727+00:00",
-      "sequence": 10,
-      "value": "risen|2026-07-16T00:35:49.579770+00:00"
-    },
     "bd8a81dbb9d14a34a62c0ca7a9f4000a": {
       "action": "set_deadline",
       "created_at": "2026-07-16T13:49:54.193107+00:00",
@@ -4404,6 +4398,12 @@
       "sequence": 776,
       "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"chopper1#generation:2d769928fcf57d763aed\",\"role\":\"owner\",\"sources\":[\"kolesaBB\"],\"weight\":5,\"wheel_key\":\"chopper1\"}"
     },
+    "vote-6211de9771a96bc279c1c6973735d463": {
+      "action": "record_personal_vote",
+      "created_at": "2026-09-06T21:54:02.509593+00:00",
+      "sequence": 1010,
+      "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"pandafx#generation:5affc39bbe97c707576e\",\"role\":\"owner\",\"sources\":[\"private_2445382077\"],\"weight\":5,\"wheel_key\":\"pandafx\"}"
+    },
     "vote-62512b899d1edfc73fa5fa42558de416": {
       "action": "record_personal_vote",
       "created_at": "2026-09-04T14:41:24.243843+00:00",
@@ -6002,5 +6002,5 @@
     }
   },
   "format": "bbvg-admin-action-queue-v1",
-  "sequence": 1009
+  "sequence": 1010
 }
