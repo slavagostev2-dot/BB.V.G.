@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import re
 from typing import Any
 
 import monitor_entry as base_runtime
@@ -17,6 +18,26 @@ _original_wheel_reply_markup = monitor.wheel_reply_markup
 _original_assess_new = monitor.assess_new_wheel
 _original_assess_pending = monitor.assess_pending_wheel
 _original_process_active_wheels = monitor.process_active_wheels
+_original_send_message = monitor.send_message
+_PRIVATE_SOURCE_HANDLE_RE = re.compile(r"@private_\d+\b", re.IGNORECASE)
+
+
+def _mask_private_source_handles(text: str) -> str:
+    """Hide transport-only private Telegram aliases from user-facing text."""
+
+    return _PRIVATE_SOURCE_HANDLE_RE.sub("закрытый Telegram-канал", str(text or ""))
+
+
+def send_message_without_private_source_handle(
+    text: str,
+    url: str | None = None,
+    reply_markup: dict | None = None,
+):
+    return _original_send_message(
+        _mask_private_source_handles(text),
+        url=url,
+        reply_markup=reply_markup,
+    )
 
 
 def _wheel_key_from_record(record: Any) -> str:
@@ -367,7 +388,14 @@ def wheel_reply_markup_bbvg(
         rebuilt.append([active_list])
     if post_row and post_row != open_row:
         rebuilt.append(post_row)
-    return {"inline_keyboard": rebuilt}
+    result = {"inline_keyboard": rebuilt}
+    event_id = str(markup.get("_bbvg_event_id") or "").strip().casefold()
+    if event_id:
+        # notification_router strips this internal marker before Telegram.  It
+        # must survive the BB V.G. button rebuild so reposts of one exact
+        # BetBoom generation share one durable notification identity.
+        result["_bbvg_event_id"] = event_id
+    return result
 
 
 def _manual_deadline(state: dict, key: str, entry: dict):
@@ -770,6 +798,7 @@ monitor.remember_pending = remember_without_pending
 monitor.assess_new_wheel = assess_new_without_pending
 monitor.assess_pending_wheel = assess_pending_without_pending
 monitor.wheel_reply_markup = wheel_reply_markup_bbvg
+monitor.send_message = send_message_without_private_source_handle
 monitor.process_active_wheels = process_active_without_page_verdict
 
 

@@ -257,11 +257,34 @@ def _notification_already_recorded(
     return False
 
 
+def _merge_discovered_publications(
+    state: dict[str, Any],
+    key: str,
+    entry: dict[str, Any],
+    incoming: Any,
+) -> list[str]:
+    collection = state.setdefault("wheel_publications", {})
+    merged = wheel_publications_v2.merge_publications(
+        collection.get(key, []),
+        incoming,
+        reset_event=False,
+    )
+    if merged:
+        collection[key] = merged
+    else:
+        collection.pop(key, None)
+    sources = wheel_publications_v2.publication_sources(state, key, entry)
+    if sources:
+        entry["sources"] = sources
+    return sources
+
+
 def _restore_runtime_state(
     state: dict[str, Any],
     active: list[dict[str, Any]],
     attempts: list[dict[str, Any]],
     scanned_at: Any,
+    discovered_publications: dict[str, list[dict[str, Any]]] | None = None,
 ) -> None:
     attempts_by_key = {
         str(item.get("wheel_key") or "").casefold(): item
@@ -341,6 +364,9 @@ def _restore_runtime_state(
                 "needs_manual_time": deadline is None,
             }
         )
+        publication_rows = (discovered_publications or {}).get(key, [])
+        if publication_rows:
+            _merge_discovered_publications(state, key, entry, publication_rows)
         _ensure_button_context(state, entry, item)
 
         attempt = attempts_by_key.get(key)
@@ -479,6 +505,7 @@ def run_recovery() -> dict[str, Any]:
     # another attempt even when the original Telegram post is older than the
     # source-scan cutoff.
     candidates = _persisted_active_candidates(persisted, now)
+    discovered_publications: dict[str, list[dict[str, Any]]] = {}
     for source, messages in results.items():
         if not isinstance(messages, list):
             continue
@@ -501,6 +528,14 @@ def run_recovery() -> dict[str, Any]:
                     "message_url": message.message_url,
                     "message_text": str(message.text or "")[:4000],
                 }
+                discovered_publications.setdefault(key, []).append(
+                    {
+                        "source": source,
+                        "message_id": message.message_id,
+                        "message_date": published.isoformat(),
+                        "message_url": message.message_url,
+                    }
+                )
                 if current is None or record["message_date"] > current["message_date"]:
                     candidates[key] = record
 
@@ -552,7 +587,9 @@ def run_recovery() -> dict[str, Any]:
             }
         )
 
-    _restore_runtime_state(persisted, active, attempts, now)
+    _restore_runtime_state(
+        persisted, active, attempts, now, discovered_publications
+    )
     return {
         "scanned_at": now.isoformat(),
         "sources_total": len(sources),
@@ -652,6 +689,29 @@ def self_test() -> None:
         "old",
         {"message_date": "2026-07-21T10:01:00+00:00"},
     )
+    source_state = {
+        "wheel_publications": {
+            "kekw2": [
+                {"source": "shadowkek", "message_id": 1}
+            ]
+        }
+    }
+    source_entry = {"source": "shadowkek"}
+    sources = _merge_discovered_publications(
+        source_state,
+        "kekw2",
+        source_entry,
+        [
+            {"source": "burdakekw", "message_id": 5911},
+            {"source": "private_2445382077", "message_id": 7805},
+        ],
+    )
+    assert set(sources) == {
+        "shadowkek",
+        "burdakekw",
+        "private_2445382077",
+    }
+    assert set(source_entry["sources"]) == set(sources)
     print("auto participation recovery authoritative-outcome self-test passed")
 
 
