@@ -55,6 +55,26 @@ class WheelInteractionRuntime(SourceRequestRuntime):
         return unique
 
     @staticmethod
+    def _source_text(sources: list[str], primary_source: str) -> str:
+        if primary_source == _MANUAL_SUBMISSION_SOURCE and not sources:
+            return "📡 Добавлено через бот BB V.G."
+        if not sources:
+            return "📡 Источник неизвестен"
+        labels: list[str] = []
+        private_added = False
+        for source in sources:
+            if source.casefold().startswith("private_"):
+                if not private_added:
+                    labels.append("закрытый Telegram-канал")
+                    private_added = True
+                continue
+            labels.append(f"@{html.escape(source)}")
+        if not labels:
+            return "📡 Источник неизвестен"
+        prefix = "Источник" if len(labels) == 1 else "Источники"
+        return f"📡 {prefix}: " + ", ".join(labels)
+
+    @staticmethod
     def _wheel_digest(key: str) -> str:
         normalized = str(key or "").casefold()
         return "~" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:20]
@@ -264,12 +284,9 @@ class WheelInteractionRuntime(SourceRequestRuntime):
         for index, item in enumerate(items[:25], 1):
             identifier = str(item.get("identifier") or item.get("_key") or "колесо")
             key = str(item.get("_key") or identifier).casefold()
-            source = str(item.get("source") or "неизвестно")
-            source_text = (
-                "📡 Добавлено через бот BB V.G."
-                if source == _MANUAL_SUBMISSION_SOURCE
-                else f"📡 @{html.escape(source)}"
-            )
+            primary_source = str(item.get("source") or "")
+            sources = self._sources_for_item(snap, key, item)
+            source_text = self._source_text(sources, primary_source)
             deadline = self.parse_dt(item.get("deadline"))
             joined = identifier.casefold() in participating or key in participating
             if deadline:
@@ -682,6 +699,14 @@ def self_test() -> None:
     assert "На перепроверке" not in WheelInteractionRuntime.show_stats.__code__.co_consts
     assert "wheel_time" in WheelInteractionRuntime.handle_message.__code__.co_consts
     assert "wheel:part:" in WheelInteractionRuntime.handle_callback.__code__.co_consts
+    source_line = panel._source_text(
+        ["shadowkek", "burdakekw", "private_2445382077"],
+        "shadowkek",
+    )
+    assert "@shadowkek" in source_line
+    assert "@burdakekw" in source_line
+    assert "закрытый Telegram-канал" in source_line
+    assert "private_2445382077" not in source_line
     print("BB V.G. wheel interaction subsystem self-test passed")
 
 

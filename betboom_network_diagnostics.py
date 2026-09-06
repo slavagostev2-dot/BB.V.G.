@@ -111,8 +111,7 @@ def _safe_response_body(text: Any, content_type: Any) -> Any:
     try:
         parsed = json.loads(raw)
     except json.JSONDecodeError:
-        sanitized = _TOKENISH_RE.sub("<redacted>", raw)
-        return sanitized[:MAX_BODY_CHARS]
+        return None
     safe = _extract_safe_json(parsed)
     if not safe:
         return None
