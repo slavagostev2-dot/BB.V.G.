@@ -10,6 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import betboom_auto_participation as auto
+import betboom_network_diagnostics as network_diag
 
 UTC = timezone.utc
 
@@ -586,6 +587,7 @@ def participate(
         )
 
     page: Any = None
+    network_trace: list[dict[str, Any]] = []
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -629,6 +631,7 @@ def participate(
                 browser.close()
                 return result
 
+            network_trace = network_diag.attach(page)
             clicked, location, preparations, preexisting = _find_and_click(
                 page, timeout_ms
             )
@@ -740,6 +743,7 @@ def participate(
                         confirmation=confirmation,
                         status="participated",
                     )
+                    network_diag.write_trace(artifact, network_trace)
                     browser.close()
                     return auto.ParticipationResult(
                         True, "participated", detail[:300], artifact
@@ -750,6 +754,7 @@ def participate(
                         url,
                         "страница показывает вход/авторизацию после клика участия",
                     )
+                    network_diag.write_trace(result.artifact_url, network_trace)
                     browser.close()
                     return result
                 referral_refusal = _visible_referral_ineligible(page)
@@ -758,6 +763,7 @@ def participate(
                     artifact = _save_diagnostics(
                         page, url, "referral_ineligible", detail
                     )
+                    network_diag.write_trace(artifact, network_trace)
                     browser.close()
                     return auto.ParticipationResult(
                         False, "referral_ineligible", detail[:300], artifact
@@ -784,6 +790,7 @@ def participate(
                         confirmation=confirmation,
                         status="participated",
                     )
+                    network_diag.write_trace(artifact, network_trace)
                     browser.close()
                     return auto.ParticipationResult(
                         True, "participated", detail[:300], artifact
@@ -794,6 +801,7 @@ def participate(
                         url,
                         "контрольная перезагрузка показывает вход/авторизацию; участие не подтверждено",
                     )
+                    network_diag.write_trace(result.artifact_url, network_trace)
                     browser.close()
                     return result
                 page.wait_for_timeout(700)
@@ -810,6 +818,7 @@ def participate(
                 confirmation="not_found",
                 status="unconfirmed",
             )
+            network_diag.write_trace(artifact, network_trace)
             browser.close()
             return auto.ParticipationResult(
                 False, "unconfirmed", detail[:300], artifact
@@ -817,6 +826,7 @@ def participate(
     except Exception as exc:
         detail = f"{type(exc).__name__}: {exc}"[:300]
         artifact = _save_diagnostics(page, url, "technical_error", detail)
+        network_diag.write_trace(artifact, network_trace)
         return auto.ParticipationResult(
             False, "technical_error", detail, artifact
         )
@@ -846,6 +856,7 @@ def self_test() -> None:
     assert _matches_full_label(PROMO_DETAILS_RE, "Об акции")
     assert _matches_full_label(AUTH_RE, "Войти")
     assert PROMO_DETAILS_RE not in _preparation_patterns()
+    network_diag.self_test()
     injected = {"cookies": [{"name": "session", "value": "injected"}]}
     original_storage = auto._storage_state
     auto._storage_state = lambda: (_ for _ in ()).throw(

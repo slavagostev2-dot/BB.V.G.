@@ -1,6 +1,6 @@
 # BB V.G. — инвентарь кода и данных
 
-Актуально на 26 июля 2026 года. Документ описывает действующих владельцев
+Актуально на 6 сентября 2026 года. Документ описывает действующих владельцев
 ответственности. Исторические детали хранятся в `PROJECT_CHANGELOG_RU.md`, а не
 в отдельных файлах «глава», `changes`, `plan` или versioned-runtime.
 
@@ -62,6 +62,7 @@ compatibility API и запрещены preflight. В production сохраня�
 | Идемпотентность | `notification_integrity_v2.py`, `notification_remote_checkpoint.py`, `bot_notification_state.py` |
 | Идентичность Telegram-источника | `telegram_transport.py`, `personal_wheel_voting.py` |
 | Автоучастие | `auto_participation_worker.py`, `auto_participation_recovery.py`, `auto_participation_dispatch.py` |
+| BetBoom browser proof и безопасная диагностика | `betboom_participation_browser.py`, `betboom_network_diagnostics.py`, `betboom_persistent_participation.py`, `betboom_profile_identity.py`, `betboom_session_health.py` |
 | Итоги | `auto_participation_bot_sync.py` (очередь результата и CAS-публикация в `runtime-state`), `auto_participation_owner_sync.py`, `auto_participation_notifications.py` |
 | Аккаунты | `betboom_account_participation.py`, `xflarxx_account_participation.py`, `xflarxx_runtime_integration.py` |
 | VK | `vk_wheel_notifications.py`, `vk_dynamic_subscribers.py`, `vk_start_welcome.py` |
@@ -101,7 +102,7 @@ compatibility API и запрещены preflight. В production сохраня�
   восстанавливает только `monitor-watchdog.yml`;
 - `monitor-watchdog.yml` — единственный controlled recovery монитора;
 - `auto-participation.yml` — автоучастие владельца;
-- `xflarxx-auto-participation.yml` — отдельный аккаунт xFLARXx;
+- `xflarxx-auto-participation.yml` — отдельный аккаунт xFLARx;
 - `telegram-source-transport.yml` — доступность текущего inventory;
 - `telegram-domain-policy.yml` — политика единственного домена `telegram.me`;
 - `system-health.yml` — полная диагностика;
