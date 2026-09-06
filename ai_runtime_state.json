@@ -1,5 +1,9 @@
 {
   "cache": {
+    "21a7ad1157b483399c2e4ca62eac42ef6096a7bd8f3fc048d1b5846e2451bd1c": {
+      "expires_at": 1788704367.2456691,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that wheels ('колесики') will be available later and includes a BetBoom promotion link.\"\n}"
+    },
     "ae3406b375269e4166aa4614d559857d8c796b8b4675a482710c34c60a38192b": {
       "expires_at": 1788704301.3332121,
       "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that 'wheels' (колесики) will be available later and includes a BetBoom promotional link.\"\n}"
@@ -1751,10 +1755,23 @@
       "provider": "gemini",
       "reason": "The post explicitly mentions that 'wheels' (колесики) will be available later and includes a BetBoom promotional link.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1788703467.2456691,
+      "feature": "suspicious_post_analysis",
+      "id": "a6c0c96b405c43169b29add13e7bdc2b",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "ce81491d273baeecdfcd2281119e18ef23702881a38e71beb9747f5cdabbf26d",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions that wheels ('колесики') will be available later and includes a BetBoom promotion link.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788703401.3332121
+    1788703467.2456691
   ],
   "version": 1
 }
