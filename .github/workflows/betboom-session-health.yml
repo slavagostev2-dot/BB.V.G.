@@ -4,10 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
       - fix/participation-proof-fastpath
+      - fix/session-health-profile-identity
     paths:
       - betboom_session_health.py
       - betboom_participation_browser.py
+      - betboom_profile_identity.py
       - .github/workflows/betboom-session-health.yml
 
 permissions:
@@ -42,6 +45,7 @@ jobs:
         run: |
           python betboom_session_health.py
           python betboom_participation_browser.py
+          python betboom_profile_identity.py
           python secondary_account_participation.py --account account2 --self-test
 
       - name: Probe all three BetBoom sessions
@@ -55,6 +59,49 @@ jobs:
           BETBOOM_BROWSER_CHANNEL: chrome
           BETBOOM_SESSION_HEALTH_TIMEOUT_MS: "20000"
         run: python betboom_session_health.py
+
+      - name: Verify three distinct BetBoom profiles
+        env:
+          BETBOOM_STORAGE_STATE_JSON_PART1: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART1 }}
+          BETBOOM_STORAGE_STATE_JSON_PART2: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART2 }}
+          BETBOOM_STORAGE_STATE_JSON_PART3: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART3 }}
+          BETBOOM_STORAGE_STATE_JSON_PART4: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART4 }}
+          BETBOOM_STORAGE_STATE_JSON_PART5: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART5 }}
+          BETBOOM_STORAGE_STATE_JSON_PART6: ${{ secrets.BETBOOM_STORAGE_STATE_JSON_PART6 }}
+          BETBOOM_BROWSER_CHANNEL: chrome
+          BETBOOM_IDENTITY_TIMEOUT_MS: "20000"
+        run: |
+          python - <<'PY'
+          import betboom_profile_identity as identity
+
+          report = identity.build_identity_report()
+          accounts = report.get("accounts", {})
+          safe_statuses = {
+              key: str(value.get("status") or "")
+              for key, value in accounts.items()
+              if isinstance(value, dict)
+          }
+          collisions = report.get("collision_groups", [])
+          print(
+              "BetBoom session-health identity preflight: "
+              f"status={report.get('status')} "
+              f"account_statuses={safe_statuses} "
+              f"collision_groups={collisions}"
+          )
+          expected = {
+              "vyacheslav_primary",
+              "vyacheslav_secondary",
+              "xflarxx_primary",
+          }
+          if set(safe_statuses) != expected:
+              raise RuntimeError("BetBoom identity preflight did not resolve all three configured account slots")
+          bad = {key: status for key, status in safe_statuses.items() if status != "ok"}
+          if bad:
+              raise RuntimeError(f"BetBoom identity preflight has unhealthy account slots: {bad}")
+          if report.get("status") != "ok" or collisions:
+              raise RuntimeError(f"BetBoom identity preflight detected profile collisions: {collisions}")
+          print("BetBoom identity preflight passed: three distinct authenticated profiles")
+          PY
 
       - name: Upload session-health evidence
         if: ${{ always() }}
