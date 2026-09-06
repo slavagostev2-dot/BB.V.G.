@@ -15,6 +15,20 @@
       "status": "unconfirmed"
     },
     {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133536002397Z-7b4b924948d1",
+      "attempt_id": "33f320624ad54582ca243e72458484cb13e38d555131b3827101d4cf3a382033",
+      "confidence": 20,
+      "confirmation": "workflow_state",
+      "error_text": "кнопка участия нажата ботом, но подтверждение BetBoom не найдено; clicked_by_bot=true; click=main:Принять участие",
+      "event_id": "evt:47748628a65acc2caa3a",
+      "finished_at": "2026-09-06T13:35:29.024798+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-06T13:36:00.891801+00:00",
+      "started_at": "2026-09-06T13:35:29.024798+00:00",
+      "status": "unconfirmed"
+    },
+    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133420339319Z-4d5b69e72dec",
       "attempt_id": "3a8df7ad967436339ef57e3925300d683a0c12dc244ee8d9f77f7dc216eedc8a",
@@ -47,17 +61,17 @@
     {
       "account_key": "vyacheslav_primary",
       "account_label": "Аккаунт 1",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133352613385Z-8d42b9a0f0ed",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133536002397Z-7b4b924948d1",
       "attempt_count": 1,
       "confidence": 20,
       "confirmation": "workflow_state",
       "error_text": "кнопка участия нажата ботом, но подтверждение BetBoom не найдено; clicked_by_bot=true; click=main:Принять участие",
       "event_id": "evt:47748628a65acc2caa3a",
-      "finished_at": "2026-09-06T13:33:48.569070+00:00",
+      "finished_at": "2026-09-06T13:35:29.024798+00:00",
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T13:33:48.569070+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-09-06T13:35:12.760435+00:00"
+      "updated_at": "2026-09-06T13:36:00.891801+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +86,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T13:34:16.451536+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-09-06T13:35:12.761883+00:00"
+      "updated_at": "2026-09-06T13:36:00.893121+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +101,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-06T13:34:44.296878+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-09-06T13:35:12.763132+00:00"
+      "updated_at": "2026-09-06T13:36:00.894381+00:00"
     }
   ],
   "action_id": 1999,
@@ -119,6 +133,35 @@
   "status": "preliminary",
   "transitions": [
     {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-06T13:35:12.753807+00:00",
+      "payload": {
+        "action_id": 1999,
+        "available_at": "",
+        "deadline": "2026-09-06T13:41:32.261000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:47748628a65acc2caa3a",
+        "expires_at": "2026-09-06T14:11:32.261000+00:00",
+        "generation_id": "47748628a65acc2caa3a",
+        "identifier": "CTOM62",
+        "message_text": "Название: КОЛЕСО ФРИБЕТОВ CTOM\nОписание: Твой шанс на фрибет. Жми кнопку «Принять участие» и жди завершения таймера\nСтример: CTOM62\nДата старта: 06.09.2026, 16:21\nЗакончится через: 9 мин 15 сек\nПризы: 500, 1000, 1500, 2000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/CTOM62",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T13:21:32.261000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-06T13:31:29+00:00",
+        "source_message_id": 7803,
+        "source_message_url": "https://telegram.me/c/2445382077/7803",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/CTOM62",
+        "verification_status": "confirmed",
+        "wheel_key": "ctom62",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "18599a7312d2e2be1952d68256d1210cc884fa870cf9aa5676ba57cd0950e43f"
+    },
+    {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-06T13:35:12.753807+00:00",
       "payload": {
@@ -148,33 +191,34 @@
       "transition_id": "1e652a04ad0a31020af7cacbe49fd1077da4216306a9e91c0f5ac0ac78e9da8f"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-06T13:35:12.753807+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:33f320624ad54582ca243e72458484cb13e38d555131b3827101d4cf3a382033",
+      "occurred_at": "2026-09-06T13:35:29.024798+00:00",
       "payload": {
-        "action_id": 1999,
-        "available_at": "",
-        "deadline": "2026-09-06T13:41:32.261000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:47748628a65acc2caa3a",
-        "expires_at": "2026-09-06T14:11:32.261000+00:00",
-        "generation_id": "47748628a65acc2caa3a",
-        "identifier": "CTOM62",
-        "message_text": "Название: КОЛЕСО ФРИБЕТОВ CTOM\nОписание: Твой шанс на фрибет. Жми кнопку «Принять участие» и жди завершения таймера\nСтример: CTOM62\nДата старта: 06.09.2026, 16:21\nЗакончится через: 9 мин 15 сек\nПризы: 500, 1000, 1500, 2000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/CTOM62",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T13:21:32.261000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-06T13:31:29+00:00",
-        "source_message_id": 7803,
-        "source_message_url": "https://telegram.me/c/2445382077/7803",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/CTOM62",
-        "verification_status": "confirmed",
-        "wheel_key": "ctom62",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133536002397Z-7b4b924948d1",
+        "attempt_count": 1,
+        "confirmation": "workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
       },
-      "stage": "persisted",
-      "transition_id": "18599a7312d2e2be1952d68256d1210cc884fa870cf9aa5676ba57cd0950e43f"
+      "stage": "account_result",
+      "transition_id": "2a907645c0701ac99b12525842aaac6befc6b5ba4e47e230c771e3ee387976e8"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:ff1ae0a90a1926ee5574e223cb1bf3ae6ecce7a4d6640d8a9d3cd99d367bc613",
+      "occurred_at": "2026-09-06T13:34:44.296878+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133448570828Z-ff9c1afbc9c9",
+        "attempt_count": 1,
+        "confirmation": "betboom_unconfirmed",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "5fdc428b0d0236b2c4139f43c139141d1394027ccd529c507877156278539b6f"
     },
     {
       "dedupe_key": "1999:2026-09-06T13:21:32.261000+00:00",
@@ -206,14 +250,19 @@
       "transition_id": "6f4180763e73f1c0f921e5dfd60c63d465bd2362aa274e680573d2fbf4ec6a26"
     },
     {
-      "dedupe_key": "34036404820",
-      "occurred_at": "2026-09-06T13:35:12.758244+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:3a8df7ad967436339ef57e3925300d683a0c12dc244ee8d9f77f7dc216eedc8a",
+      "occurred_at": "2026-09-06T13:34:16.451536+00:00",
       "payload": {
-        "workflow_run_id": "34036404820",
-        "workflow_sha": "6d89940626843354b4f2307629b42b94609f3f4d"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133420339319Z-4d5b69e72dec",
+        "attempt_count": 1,
+        "confirmation": "betboom_unconfirmed",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
       },
-      "stage": "workflow_started",
-      "transition_id": "b95dcc45041738f096826e10658cdb21af118af690aebaf4c16ac3d402f79c2e"
+      "stage": "account_result",
+      "transition_id": "7102ba0d4417562995b386402b818d10f98add10e9abb35c7cce49b5041c4054"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:009c9b1caebea629e5ea1e2add3d01d31792a5a9bd43347fdc796d7c89314650",
@@ -231,37 +280,17 @@
       "transition_id": "94b45c50fb28ec93a1a86deb71c07201875dfe74bd3a4ee0b8f71d2b354532b7"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:3a8df7ad967436339ef57e3925300d683a0c12dc244ee8d9f77f7dc216eedc8a",
-      "occurred_at": "2026-09-06T13:34:16.451536+00:00",
+      "dedupe_key": "34036404820",
+      "occurred_at": "2026-09-06T13:35:12.758244+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133420339319Z-4d5b69e72dec",
-        "attempt_count": 1,
-        "confirmation": "betboom_unconfirmed",
-        "owner_id": "vyacheslav",
-        "status": "unconfirmed"
+        "workflow_run_id": "34036404820",
+        "workflow_sha": "6d89940626843354b4f2307629b42b94609f3f4d"
       },
-      "stage": "account_result",
-      "transition_id": "7102ba0d4417562995b386402b818d10f98add10e9abb35c7cce49b5041c4054"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:ff1ae0a90a1926ee5574e223cb1bf3ae6ecce7a4d6640d8a9d3cd99d367bc613",
-      "occurred_at": "2026-09-06T13:34:44.296878+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T133448570828Z-ff9c1afbc9c9",
-        "attempt_count": 1,
-        "confirmation": "betboom_unconfirmed",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "5fdc428b0d0236b2c4139f43c139141d1394027ccd529c507877156278539b6f"
+      "stage": "workflow_started",
+      "transition_id": "b95dcc45041738f096826e10658cdb21af118af690aebaf4c16ac3d402f79c2e"
     }
   ],
-  "updated_at": "2026-09-06T13:35:12.758244+00:00",
+  "updated_at": "2026-09-06T13:36:00.889950+00:00",
   "wheel_key": "ctom62",
   "workflow_started_at": "2026-09-06T13:35:12.758244+00:00"
 }
