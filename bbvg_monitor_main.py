@@ -441,12 +441,14 @@ def process_active_without_unknown_time_spam(state: dict, stats: dict):
 
         local_deadline = deadline.astimezone(monitor.DISPLAY_TZ)
         try:
-            monitor.send_message(
+            notification_router.send_notification(
+                monitor,
                 "🕐 <b>Время прокрутки колеса определено</b>\n\n"
                 f"Идентификатор: <code>{html.escape(str(entry.get('identifier') or key))}</code>\n"
                 f"Время прокрутки: <b>{local_deadline:%d.%m %H:%M}</b>\n"
                 f"⏳ Осталось: <b>{html.escape(monitor.human_remaining(deadline))}</b>\n"
                 "Колесо BetBoom стало активно с точным временем.",
+                kind=notification_preferences_v2.WHEEL_TIME_KNOWN,
                 reply_markup=monitor.wheel_reply_markup(
                     state,
                     message,
