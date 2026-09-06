@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151730954357Z-19e7e8b39da7",
-      "attempt_id": "d3b2b5645f95d9b4a1bcfd1e32d1baa36017abe2a0069837beafe6f8d48073ce",
-      "confidence": 120,
-      "confirmation": "raw_status:already_participating; betboom_preexisting",
-      "error_text": "BetBoom уже показывал участие до клика; clicked_by_bot=false; confirmation=preclick_exact_success_label",
-      "event_id": "evt:84db428c1359fa2e77d9",
-      "finished_at": "2026-09-06T15:17:28.052508+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-06T15:18:03.340980+00:00",
-      "started_at": "2026-09-06T15:17:28.052508+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151615606533Z-c69e25c7a6fb",
       "attempt_id": "1725c4b5b05aa6f4b9beb64cf4d22a405f3634531757c227ca37f772e6fe72cf",
@@ -41,6 +27,20 @@
       "recorded_at": "2026-09-06T15:18:03.433959+00:00",
       "started_at": "2026-09-06T15:16:16.207735+00:00",
       "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151730954357Z-19e7e8b39da7",
+      "attempt_id": "d3b2b5645f95d9b4a1bcfd1e32d1baa36017abe2a0069837beafe6f8d48073ce",
+      "confidence": 120,
+      "confirmation": "raw_status:already_participating; betboom_preexisting",
+      "error_text": "BetBoom уже показывал участие до клика; clicked_by_bot=false; confirmation=preclick_exact_success_label",
+      "event_id": "evt:84db428c1359fa2e77d9",
+      "finished_at": "2026-09-06T15:17:28.052508+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-06T15:18:03.340980+00:00",
+      "started_at": "2026-09-06T15:17:28.052508+00:00",
+      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T15:17:28.052508+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:18:03.340980+00:00"
+      "updated_at": "2026-09-06T15:18:22.482273+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T15:16:07.842079+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:18:03.432152+00:00"
+      "updated_at": "2026-09-06T15:18:22.483564+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-06T15:16:16.207735+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:18:03.433959+00:00"
+      "updated_at": "2026-09-06T15:18:22.484768+00:00"
     }
   ],
   "action_id": 2018,
@@ -119,62 +119,14 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-06T15:18:03.133797+00:00",
+      "dedupe_key": "34041733790",
+      "occurred_at": "2026-09-06T15:18:03.277656+00:00",
       "payload": {
-        "action_id": 2018,
-        "available_at": "",
-        "deadline": "2026-09-06T15:34:39.477000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:84db428c1359fa2e77d9",
-        "expires_at": "2026-09-06T16:04:39.477000+00:00",
-        "generation_id": "84db428c1359fa2e77d9",
-        "identifier": "helin1",
-        "message_text": "Колёсико на\nBETBOOM\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda\nhttps://bbsport.su/link/0UP8LV/\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda/1175",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T15:14:39.477000+00:00",
-        "source": "helin139burmalda",
-        "source_message_date": "2026-09-06T15:14:32+00:00",
-        "source_message_id": 1175,
-        "source_message_url": "https://telegram.me/helin139burmalda/1175",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/helin1",
-        "verification_status": "confirmed",
-        "wheel_key": "helin1",
-        "wheel_type": "normal"
+        "workflow_run_id": "34041733790",
+        "workflow_sha": "fb4e3d4f399b6920ef60e2a3c6ba8679ef01b1a6"
       },
-      "stage": "source_discovered",
-      "transition_id": "dfa79a391006a63c28de6f35a18a73e9d7b7876ef15cebc6a7399690de8b9b06"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-06T15:18:03.133797+00:00",
-      "payload": {
-        "action_id": 2018,
-        "available_at": "",
-        "deadline": "2026-09-06T15:34:39.477000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:84db428c1359fa2e77d9",
-        "expires_at": "2026-09-06T16:04:39.477000+00:00",
-        "generation_id": "84db428c1359fa2e77d9",
-        "identifier": "helin1",
-        "message_text": "Колёсико на\nBETBOOM\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda\nhttps://bbsport.su/link/0UP8LV/\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda/1175",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T15:14:39.477000+00:00",
-        "source": "helin139burmalda",
-        "source_message_date": "2026-09-06T15:14:32+00:00",
-        "source_message_id": 1175,
-        "source_message_url": "https://telegram.me/helin139burmalda/1175",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/helin1",
-        "verification_status": "confirmed",
-        "wheel_key": "helin1",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "a062d07b1c49ffd635a9112b5b81e6a3c66a74aea1f34d6fce7876e6d0be01a1"
+      "stage": "workflow_started",
+      "transition_id": "132a6e68a2b2fdb12832e5faf02e63def0a328f33d793d0304bae827db24348e"
     },
     {
       "dedupe_key": "2018:2026-09-06T15:14:39.477000+00:00",
@@ -206,16 +158,6 @@
       "transition_id": "868445dcb6868ba6bc67ad3a65bec3717555682696de0840f5ebc8c62f4ffa23"
     },
     {
-      "dedupe_key": "34041733790",
-      "occurred_at": "2026-09-06T15:18:03.277656+00:00",
-      "payload": {
-        "workflow_run_id": "34041733790",
-        "workflow_sha": "fb4e3d4f399b6920ef60e2a3c6ba8679ef01b1a6"
-      },
-      "stage": "workflow_started",
-      "transition_id": "132a6e68a2b2fdb12832e5faf02e63def0a328f33d793d0304bae827db24348e"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:d3b2b5645f95d9b4a1bcfd1e32d1baa36017abe2a0069837beafe6f8d48073ce",
       "occurred_at": "2026-09-06T15:17:28.052508+00:00",
       "payload": {
@@ -229,6 +171,50 @@
       },
       "stage": "account_result",
       "transition_id": "8ab4114f2cab2e6cf2628b6ca1f1ffa9b998bf576adcaa9438a3cba1d16f89d4"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-06T15:18:03.133797+00:00",
+      "payload": {
+        "action_id": 2018,
+        "available_at": "",
+        "deadline": "2026-09-06T15:34:39.477000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:84db428c1359fa2e77d9",
+        "expires_at": "2026-09-06T16:04:39.477000+00:00",
+        "generation_id": "84db428c1359fa2e77d9",
+        "identifier": "helin1",
+        "message_text": "Колёсико на\nBETBOOM\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda\nhttps://bbsport.su/link/0UP8LV/\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda/1175",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T15:14:39.477000+00:00",
+        "source": "helin139burmalda",
+        "source_message_date": "2026-09-06T15:14:32+00:00",
+        "source_message_id": 1175,
+        "source_message_url": "https://telegram.me/helin139burmalda/1175",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/helin1",
+        "verification_status": "confirmed",
+        "wheel_key": "helin1",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "a062d07b1c49ffd635a9112b5b81e6a3c66a74aea1f34d6fce7876e6d0be01a1"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:c13926e732c553c2f236f67895e65aa57bdab0a7c9d86bd662197008ce5ead77",
+      "occurred_at": "2026-09-06T15:16:16.207735+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151623841140Z-868b43f98c46",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "c6e317ac3ebc679e42fbebd2bdb3951faa14dda9c860aaf0c7d17d78d15e0a3d"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:1725c4b5b05aa6f4b9beb64cf4d22a405f3634531757c227ca37f772e6fe72cf",
@@ -246,22 +232,36 @@
       "transition_id": "d558ed70f0acf038611cc789d23f1c6857776054a461562d874bfaeebf93e18d"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:c13926e732c553c2f236f67895e65aa57bdab0a7c9d86bd662197008ce5ead77",
-      "occurred_at": "2026-09-06T15:16:16.207735+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-06T15:18:03.133797+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151623841140Z-868b43f98c46",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "xflarxx",
-        "status": "participated"
+        "action_id": 2018,
+        "available_at": "",
+        "deadline": "2026-09-06T15:34:39.477000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:84db428c1359fa2e77d9",
+        "expires_at": "2026-09-06T16:04:39.477000+00:00",
+        "generation_id": "84db428c1359fa2e77d9",
+        "identifier": "helin1",
+        "message_text": "Колёсико на\nBETBOOM\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda\nhttps://bbsport.su/link/0UP8LV/\nhttps://betboom.ru/freestream/helin1\nhttps://telegram.me/helin139burmalda/1175",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T15:14:39.477000+00:00",
+        "source": "helin139burmalda",
+        "source_message_date": "2026-09-06T15:14:32+00:00",
+        "source_message_id": 1175,
+        "source_message_url": "https://telegram.me/helin139burmalda/1175",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/helin1",
+        "verification_status": "confirmed",
+        "wheel_key": "helin1",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "c6e317ac3ebc679e42fbebd2bdb3951faa14dda9c860aaf0c7d17d78d15e0a3d"
+      "stage": "source_discovered",
+      "transition_id": "dfa79a391006a63c28de6f35a18a73e9d7b7876ef15cebc6a7399690de8b9b06"
     }
   ],
-  "updated_at": "2026-09-06T15:18:03.277656+00:00",
+  "updated_at": "2026-09-06T15:18:22.479554+00:00",
   "wheel_key": "helin1",
   "workflow_started_at": "2026-09-06T15:18:03.277656+00:00"
 }
