@@ -22,7 +22,6 @@ _ALLOWED_JSON_KEYS = {
     "reason",
     "detail",
     "description",
-    "result",
 }
 _SENSITIVE_KEY_RE = re.compile(
     r"(?:token|authorization|cookie|session|password|passwd|secret|phone|email|login|jwt|refresh|access[_-]?key)",
@@ -236,13 +235,15 @@ def self_test() -> None:
     assert _betboom_url("https://api.betboom.ru/v1/action?x=1") == "https://api.betboom.ru/v1/action"
     assert _betboom_url("https://example.com/api/test") == ""
     safe = _safe_response_body(
-        '{"success":false,"error":{"message":"denied","token":"secret"},"session":"hidden"}',
+        '{"success":false,"error":{"message":"denied","token":"secret"},"session":"hidden","result":{"user":"alice","message":"retry"}}',
         "application/json",
     )
     encoded = json.dumps(safe, ensure_ascii=False)
     assert "denied" in encoded
+    assert "retry" in encoded
     assert "secret" not in encoded
     assert "hidden" not in encoded
+    assert "alice" not in encoded
     print("BetBoom network diagnostics self-test passed")
 
 
