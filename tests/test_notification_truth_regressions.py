@@ -56,3 +56,70 @@ def test_explicit_notification_kind_has_priority_and_scope_resets() -> None:
     ):
         assert notification_router.resolve_notification_kind(text) == "wheels"
     assert notification_router.resolve_notification_kind(text) == "admin_system"
+
+
+def test_cross_source_wheel_markup_keeps_canonical_event_marker(monkeypatch) -> None:
+    import bbvg_monitor_runtime as runtime
+
+    canonical = "evt:95a8ef357df4144a2ae1"
+
+    def original_markup(state, message, link, **kwargs):
+        token = runtime.monitor.button_context_token(message, link)
+        return {
+            "inline_keyboard": [
+                [{"text": "open", "url": link}],
+                [{"text": "join", "callback_data": f"bb:p:{token}"}],
+                [{"text": "post", "url": message.message_url}],
+            ],
+            "_bbvg_event_id": canonical,
+        }
+
+    monkeypatch.setattr(runtime, "_original_wheel_reply_markup", original_markup)
+    monkeypatch.setattr(runtime.monitor, "infer_deadline", lambda text, date: (None, ""))
+
+    first = runtime.monitor.Message(
+        source="private_2445382077",
+        message_id=7815,
+        date=datetime(2026, 9, 6, 14, 15, 53, tzinfo=UTC),
+        text="https://betboom.ru/freestream/zonertw4",
+        message_url="https://telegram.me/c/2445382077/7815",
+    )
+    second = runtime.monitor.Message(
+        source="amam0610",
+        message_id=72466,
+        date=datetime(2026, 9, 6, 14, 16, 19, tzinfo=UTC),
+        text="https://betboom.ru/freestream/zonertw4",
+        message_url="https://telegram.me/amam0610/72466",
+    )
+    state = {}
+    first_markup = runtime.wheel_reply_markup_bbvg(
+        state, first, first.text, active=False, status="preliminary", method="test"
+    )
+    second_markup = runtime.wheel_reply_markup_bbvg(
+        state, second, second.text, active=False, status="preliminary", method="test"
+    )
+
+    assert first_markup["_bbvg_event_id"] == canonical
+    assert second_markup["_bbvg_event_id"] == canonical
+    first_identity = notification_router.notification_event_identity(
+        notification_router.KIND_WHEELS, first.text, None, first_markup
+    )
+    second_identity = notification_router.notification_event_identity(
+        notification_router.KIND_WHEELS, second.text, None, second_markup
+    )
+    assert first_identity == second_identity
+    assert canonical in first_identity
+
+
+def test_private_transport_alias_is_not_shown_to_user() -> None:
+    import bbvg_monitor_runtime as runtime
+
+    private_text = (
+        'Источник: <a href="https://telegram.me/c/2445382077/7815">'
+        '@private_2445382077</a>'
+    )
+    masked = runtime._mask_private_source_handles(private_text)
+    assert "@private_2445382077" not in masked
+    assert "закрытый Telegram-канал" in masked
+    assert "https://telegram.me/c/2445382077/7815" in masked
+    assert runtime._mask_private_source_handles("Источник: @amam0610") == "Источник: @amam0610"
