@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T15:15:19.993830+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:15:40.975302+00:00"
+      "updated_at": "2026-09-06T15:16:24.748490+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T15:14:09.344002+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:15:40.977311+00:00"
+      "updated_at": "2026-09-06T15:16:24.749691+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-06T15:14:17.831466+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:15:40.979280+00:00"
+      "updated_at": "2026-09-06T15:16:24.750893+00:00"
     }
   ],
   "action_id": 2006,
@@ -119,33 +119,34 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-06T15:15:40.966410+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:0f4ff0cc99287b0cc246f00a2204b9840dec0b25fbf145cce003898ea3a30a67",
+      "occurred_at": "2026-09-06T15:15:19.993830+00:00",
       "payload": {
-        "action_id": 2006,
-        "available_at": "",
-        "deadline": "2026-09-06T15:51:51.273000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:1ea9535cbae96511a9ea",
-        "expires_at": "2026-09-06T16:21:51.273000+00:00",
-        "generation_id": "1ea9535cbae96511a9ea",
-        "identifier": "chopper2",
-        "message_text": "Название: КОЛЕСО БЕЗ БОРОДЫ\nОписание: Прими участие в розыгрыше фрибетов\nСтример: chopper2\nДата старта: 06.09.2026, 18:11\nЗакончится через: 39 мин 35 сек\nПризы: 500, 1000, 1500, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/chopper2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T15:11:51.273000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-06T15:12:15+00:00",
-        "source_message_id": 7824,
-        "source_message_url": "https://telegram.me/c/2445382077/7824",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/chopper2",
-        "verification_status": "confirmed",
-        "wheel_key": "chopper2",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151523404743Z-d018f99ffdce",
+        "attempt_count": 1,
+        "confirmation": "raw_status:already_participating; betboom_preexisting",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "6bf752956241eefe0fabb3eb13c611a9530977f756445d35defc541986bc6a94"
+      "stage": "account_result",
+      "transition_id": "1b088c07d8c349a65d13b259c879517caf7a7c5aacdd7e96d69834a67c18f7d3"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:6562d43cb402efdb0bcef72f2af16da54575dc80630fc86f139dd5ccc0be4ac9",
+      "occurred_at": "2026-09-06T15:14:09.344002+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151417152459Z-d8a1418bdfcf",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "1f078442cbb1a36c2d054523db22c62562352867f3e336eeae3a925027eefac0"
     },
     {
       "dedupe_key": "durable-event",
@@ -206,6 +207,35 @@
       "transition_id": "565e30c708fc7260033197897840570d881ecf42dbfaa586ae682d36a5945218"
     },
     {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-06T15:15:40.966410+00:00",
+      "payload": {
+        "action_id": 2006,
+        "available_at": "",
+        "deadline": "2026-09-06T15:51:51.273000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:1ea9535cbae96511a9ea",
+        "expires_at": "2026-09-06T16:21:51.273000+00:00",
+        "generation_id": "1ea9535cbae96511a9ea",
+        "identifier": "chopper2",
+        "message_text": "Название: КОЛЕСО БЕЗ БОРОДЫ\nОписание: Прими участие в розыгрыше фрибетов\nСтример: chopper2\nДата старта: 06.09.2026, 18:11\nЗакончится через: 39 мин 35 сек\nПризы: 500, 1000, 1500, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/chopper2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T15:11:51.273000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-06T15:12:15+00:00",
+        "source_message_id": 7824,
+        "source_message_url": "https://telegram.me/c/2445382077/7824",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/chopper2",
+        "verification_status": "confirmed",
+        "wheel_key": "chopper2",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "6bf752956241eefe0fabb3eb13c611a9530977f756445d35defc541986bc6a94"
+    },
+    {
       "dedupe_key": "34041604328",
       "occurred_at": "2026-09-06T15:15:40.972160+00:00",
       "payload": {
@@ -214,36 +244,6 @@
       },
       "stage": "workflow_started",
       "transition_id": "96405833f5400e3739822ab33a27b0fd705305cbe467655ed59f8db306cf3e76"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:0f4ff0cc99287b0cc246f00a2204b9840dec0b25fbf145cce003898ea3a30a67",
-      "occurred_at": "2026-09-06T15:15:19.993830+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151523404743Z-d018f99ffdce",
-        "attempt_count": 1,
-        "confirmation": "raw_status:already_participating; betboom_preexisting",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "1b088c07d8c349a65d13b259c879517caf7a7c5aacdd7e96d69834a67c18f7d3"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:6562d43cb402efdb0bcef72f2af16da54575dc80630fc86f139dd5ccc0be4ac9",
-      "occurred_at": "2026-09-06T15:14:09.344002+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T151417152459Z-d8a1418bdfcf",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "1f078442cbb1a36c2d054523db22c62562352867f3e336eeae3a925027eefac0"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:87ce3baf66d54f445b19225f68a6a57536625bd777c2d281e3b3461f2fedf3f1",
@@ -261,7 +261,7 @@
       "transition_id": "a8b1d0d79641385cc41b08b6c8b2debccc197a2f967940dc6e40931609f0d6f4"
     }
   ],
-  "updated_at": "2026-09-06T15:15:40.972160+00:00",
+  "updated_at": "2026-09-06T15:16:24.746547+00:00",
   "wheel_key": "chopper2",
   "workflow_started_at": "2026-09-06T15:15:40.972160+00:00"
 }
