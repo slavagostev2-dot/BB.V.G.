@@ -1,8 +1,8 @@
 {
   "cache": {
-    "93c476cf9013a93eb2886c1bac8a2414464c111ae79039cd65bcdfd2f20700ab": {
-      "expires_at": 1788530436.0262246,
-      "text": "{\n  \"classification\": \"active_wheel\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly confirms the presence of a wheel ('Колеса будут? — Будут') in the context of a live stream event.\"\n}"
+    "ae3406b375269e4166aa4614d559857d8c796b8b4675a482710c34c60a38192b": {
+      "expires_at": 1788704301.3332121,
+      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that 'wheels' (колесики) will be available later and includes a BetBoom promotional link.\"\n}"
     }
   },
   "decisions": [
@@ -1738,10 +1738,23 @@
       "provider": "gemini",
       "reason": "The post explicitly confirms the presence of a wheel ('Колеса будут? — Будут') in the context of a live stream event.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "possible_wheel_announcement",
+      "confidence": 0.95,
+      "created_at": 1788703401.3332121,
+      "feature": "suspicious_post_analysis",
+      "id": "d537a9cd422f4a9aa041127ecd43a2f9",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "08b5bb9bfffc0f4b7bc7cd1b3b906b67ced1d4dac7b7fa0410d1a3e57d25b352",
+      "provider": "gemini",
+      "reason": "The post explicitly mentions that 'wheels' (колесики) will be available later and includes a BetBoom promotional link.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788529536.0262246
+    1788703401.3332121
   ],
   "version": 1
 }
