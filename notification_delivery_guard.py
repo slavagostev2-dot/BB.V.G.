@@ -114,9 +114,6 @@ def _generation_aware_hidden(
     if hidden_at is None:
         return True
 
-    # A personal hide belongs to the wheel generation that existed when the user
-    # pressed the button. Reusing the same BetBoom identifier on a later day must
-    # not hide a new action for another 30 days.
     return event_anchor <= hidden_at.astimezone(monitor_module.UTC)
 
 
@@ -154,9 +151,6 @@ def _completed_for_all(
                 None if event_identity else url,
             )
         except Exception:
-            # A missing audit key must never turn sent=0 into success. The
-            # fallback is only an opaque lookup token; production persistent
-            # delivery still requires BOT_STATE_KEY.
             key = hashlib.sha256(
                 "\x1f".join(
                     (chat_id, kind, event_identity, str(url or ""))
@@ -172,29 +166,35 @@ def _validate_wheel_delivery(
     text: str,
     url: str | None,
     reply_markup: dict | None,
+    kind: str | None = None,
 ) -> None:
     if not _structured_delivery_response(response) or _delivered(response):
         return
 
     result = _result(response)
     reason = str(result.get("reason") or "")
-    kind = notification_router.notification_kind(text)
+    resolved_kind = notification_router.resolve_notification_kind(text, kind)
     wheel_key = notification_router.wheel_key_from_message(text, url, reply_markup)
-    if not wheel_key or not (kind == "wheels" or kind.startswith("wheel_")):
+    if not wheel_key or not (
+        resolved_kind == notification_router.KIND_WHEELS
+        or resolved_kind.startswith("wheel_")
+    ):
         return
 
     config, exists = notification_router.load_config()
-    targets, visible_targets = _eligible_targets(config, exists, kind, wheel_key)
+    targets, visible_targets = _eligible_targets(
+        config, exists, resolved_kind, wheel_key
+    )
 
-    # A deliberate personal hide is a valid silence. Old hides from a previous
-    # generation have already been rejected by the generation-aware wrapper.
     if targets and not visible_targets:
         return
 
     event_identity = notification_router.notification_event_identity(
-        kind, text, url, reply_markup
+        resolved_kind, text, url, reply_markup
     )
-    if _completed_for_all(visible_targets, kind, event_identity, url):
+    if _completed_for_all(
+        visible_targets, resolved_kind, event_identity, url
+    ):
         return
 
     if not targets:
@@ -202,21 +202,23 @@ def _validate_wheel_delivery(
     elif not visible_targets:
         detail = "колесо скрыто всеми получателями"
     else:
-        status_reader = getattr(notification_router, "delivery_reservation_status", None)
+        status_reader = getattr(
+            notification_router, "delivery_reservation_status", None
+        )
         statuses: list[str] = []
         if callable(status_reader) and event_identity:
             for chat_id in visible_targets:
                 try:
                     delivery_key = notification_router.delivery_key(
                         chat_id,
-                        kind,
+                        resolved_kind,
                         event_identity,
                         None,
                     )
                 except Exception:
                     delivery_key = hashlib.sha256(
                         "\x1f".join(
-                            (chat_id, kind, event_identity, "")
+                            (chat_id, resolved_kind, event_identity, "")
                         ).encode("utf-8")
                     ).hexdigest()
                 statuses.append(str(status_reader(delivery_key) or "unknown"))
@@ -253,12 +255,16 @@ def install(monitor_module: Any) -> None:
         url: str | None = None,
         reply_markup: dict | None = None,
     ) -> Any:
-        kind = notification_router.notification_kind(text)
+        kind = notification_router.resolve_notification_kind(text)
         wheel_key = notification_router.wheel_key_from_message(
             text, url, reply_markup
         )
         guarded = bool(
-            wheel_key and (kind == "wheels" or kind.startswith("wheel_"))
+            wheel_key
+            and (
+                kind == notification_router.KIND_WHEELS
+                or kind.startswith("wheel_")
+            )
         )
         previous_anchor = getattr(_context, "event_anchor", None)
         if guarded:
@@ -273,6 +279,7 @@ def install(monitor_module: Any) -> None:
                     text=text,
                     url=url,
                     reply_markup=reply_markup,
+                    kind=kind,
                 )
             return response
         finally:
@@ -294,6 +301,12 @@ def self_test() -> None:
     assert _structured_delivery_response(
         {"result": {"suppressed": True, "kind": "wheels"}}
     )
+    with notification_router.notification_kind_scope(
+        notification_router.KIND_WHEELS
+    ):
+        assert notification_router.resolve_notification_kind(
+            "⚠️ Ошибка в тексте карточки"
+        ) == notification_router.KIND_WHEELS
     print("notification delivery guard self-test passed")
 
 
