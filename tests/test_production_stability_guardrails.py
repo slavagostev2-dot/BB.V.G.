@@ -39,6 +39,7 @@ EXPECTED_MONITOR_INSTALL_ORDER = (
     "recurring_wheel_events.install",
     "telegram_transport.install",
     "telegram_post_links_v2.install",
+    "telegram_private_sources.install",
     "wheel_event_runtime.install",
     "wheel_metadata_quality.install",
     "wheel_publications_v2.install",
