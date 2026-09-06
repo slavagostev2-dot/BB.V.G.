@@ -1,7 +1,7 @@
 {
   "cache": {
     "c8500509770bd5c5f5a6a267ffa3ce2878ed58093bec4c6b7d84c75203fba705": {
-      "expires_at": 1788691436.717607,
+      "expires_at": 1788698272.576276,
       "text": "{\n  \"summary\": \"Система BB V.G. функционирует штатно: все 175 источников доступны, ошибок не зафиксировано.\",\n  \"impact\": \"Отсутствует. Система работает в нормальном режиме.\",\n  \"recommended_action\": \"Вмешательство не требуется, продолжать штатный мониторинг.\",\n  \"confidence\": \"100%\"\n}"
     }
   },
@@ -2892,10 +2892,20 @@
       "output_sha256": "c2e561b6039c2dac6517224ace54ce7499218db600492a9445b79935dd62d1f9",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1788697372.576276,
+      "feature": "health_inspector",
+      "id": "4d263adb0b864c9e87a452f8459a450b",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "c2e561b6039c2dac6517224ace54ce7499218db600492a9445b79935dd62d1f9",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788690536.717607
+    1788697372.576276
   ],
   "version": 1
 }
