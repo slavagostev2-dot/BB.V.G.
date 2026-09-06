@@ -1,6 +1,20 @@
 {
   "account_attempts": [
     {
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T135831866615Z-1debe3efc364",
+      "attempt_id": "a4f290031852074553cea6ec164163124b6e27b957df1d96d785e1b1bb79d682",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:52a80b81fc47b7ab30e1",
+      "finished_at": "2026-09-06T13:58:25.145793+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-09-06T13:58:32.639572+00:00",
+      "started_at": "2026-09-06T13:58:25.145793+00:00",
+      "status": "participated"
+    },
+    {
       "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T135816084250Z-87a5993743a8",
       "attempt_id": "d0f63ef8d806173a59608ca5216ba8e9d81b9d4b327f4e8a46137f22c6150c27",
@@ -27,20 +41,6 @@
       "recorded_at": "2026-09-06T13:58:32.638595+00:00",
       "started_at": "2026-09-06T13:58:17.652610+00:00",
       "status": "participated"
-    },
-    {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T135831866615Z-1debe3efc364",
-      "attempt_id": "a4f290031852074553cea6ec164163124b6e27b957df1d96d785e1b1bb79d682",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:52a80b81fc47b7ab30e1",
-      "finished_at": "2026-09-06T13:58:25.145793+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-09-06T13:58:32.639572+00:00",
-      "started_at": "2026-09-06T13:58:25.145793+00:00",
-      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T13:58:13.230661+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T13:58:32.637540+00:00"
+      "updated_at": "2026-09-06T13:58:50.178852+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T13:58:17.652610+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T13:58:32.638595+00:00"
+      "updated_at": "2026-09-06T13:58:50.179965+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-06T13:58:25.145793+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T13:58:32.639572+00:00"
+      "updated_at": "2026-09-06T13:58:50.180964+00:00"
     }
   ],
   "action_id": 2030,
@@ -148,33 +148,34 @@
       "transition_id": "029d95442c9bd89aaf5a45eaa943936e579fd7add36a10d8568f64a2fd77d38e"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-06T13:58:32.630878+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:f4ea35fd1bece405d60f4664e814f68de77e6e1621d85c94ff52f99bf84a5860",
+      "occurred_at": "2026-09-06T13:58:17.652610+00:00",
       "payload": {
-        "action_id": 2030,
-        "available_at": "",
-        "deadline": "2026-09-06T14:16:23.867000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:52a80b81fc47b7ab30e1",
-        "expires_at": "2026-09-06T14:46:23.867000+00:00",
-        "generation_id": "52a80b81fc47b7ab30e1",
-        "identifier": "deko1",
-        "message_text": "Название: ПОДГОН ОТ DEKO\nОписание: Прими участие в розыгрыше фрибетов\nСтример: deko1\nДата старта: 06.09.2026, 16:56\nЗакончится через: 19 мин 37 сек\nПризы: 500, 1000, 1500, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/deko1",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T13:56:23.867000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-06T13:56:45+00:00",
-        "source_message_id": 7808,
-        "source_message_url": "https://telegram.me/c/2445382077/7808",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/deko1",
-        "verification_status": "confirmed",
-        "wheel_key": "deko1",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T135824635134Z-40b61b064221",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "persisted",
-      "transition_id": "de9812c6b356b6f1a7f92c55d7fee40007b1950a396e79901f6dab6cdcd47215"
+      "stage": "account_result",
+      "transition_id": "24c5f2a10786bdf35c1ac59e387636c450d761cfbea39464c3b368e9e7d23968"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:d0f63ef8d806173a59608ca5216ba8e9d81b9d4b327f4e8a46137f22c6150c27",
+      "occurred_at": "2026-09-06T13:58:13.230661+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T135816084250Z-87a5993743a8",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "4918a1bd97f699b1cb1577e4f55ad760e6623ea3a1fdb6914fb5fb34c7d2d5ca"
     },
     {
       "dedupe_key": "2030:2026-09-06T13:56:23.867000+00:00",
@@ -206,46 +207,6 @@
       "transition_id": "6dcde79cbdabf37d38dbac6b6ec2aae047f0ee75888dd6ba9c3c01f7141e86e2"
     },
     {
-      "dedupe_key": "34037667803",
-      "occurred_at": "2026-09-06T13:58:32.635372+00:00",
-      "payload": {
-        "workflow_run_id": "34037667803",
-        "workflow_sha": "077d90ed399f3e0a482c7da784327ef034362158"
-      },
-      "stage": "workflow_started",
-      "transition_id": "e5d8157e8e23de639e7fdf0eb19b5b39ecc8351345d65f282fc1a196d46feafc"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:d0f63ef8d806173a59608ca5216ba8e9d81b9d4b327f4e8a46137f22c6150c27",
-      "occurred_at": "2026-09-06T13:58:13.230661+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T135816084250Z-87a5993743a8",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "4918a1bd97f699b1cb1577e4f55ad760e6623ea3a1fdb6914fb5fb34c7d2d5ca"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:f4ea35fd1bece405d60f4664e814f68de77e6e1621d85c94ff52f99bf84a5860",
-      "occurred_at": "2026-09-06T13:58:17.652610+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T135824635134Z-40b61b064221",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "24c5f2a10786bdf35c1ac59e387636c450d761cfbea39464c3b368e9e7d23968"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:a4f290031852074553cea6ec164163124b6e27b957df1d96d785e1b1bb79d682",
       "occurred_at": "2026-09-06T13:58:25.145793+00:00",
       "payload": {
@@ -259,9 +220,48 @@
       },
       "stage": "account_result",
       "transition_id": "97ac2455e70830af49a44c806b83161c58e298a0b9528c8eb0ec4ab25b9e16fe"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-06T13:58:32.630878+00:00",
+      "payload": {
+        "action_id": 2030,
+        "available_at": "",
+        "deadline": "2026-09-06T14:16:23.867000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:52a80b81fc47b7ab30e1",
+        "expires_at": "2026-09-06T14:46:23.867000+00:00",
+        "generation_id": "52a80b81fc47b7ab30e1",
+        "identifier": "deko1",
+        "message_text": "Название: ПОДГОН ОТ DEKO\nОписание: Прими участие в розыгрыше фрибетов\nСтример: deko1\nДата старта: 06.09.2026, 16:56\nЗакончится через: 19 мин 37 сек\nПризы: 500, 1000, 1500, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/deko1",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T13:56:23.867000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-06T13:56:45+00:00",
+        "source_message_id": 7808,
+        "source_message_url": "https://telegram.me/c/2445382077/7808",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/deko1",
+        "verification_status": "confirmed",
+        "wheel_key": "deko1",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "de9812c6b356b6f1a7f92c55d7fee40007b1950a396e79901f6dab6cdcd47215"
+    },
+    {
+      "dedupe_key": "34037667803",
+      "occurred_at": "2026-09-06T13:58:32.635372+00:00",
+      "payload": {
+        "workflow_run_id": "34037667803",
+        "workflow_sha": "077d90ed399f3e0a482c7da784327ef034362158"
+      },
+      "stage": "workflow_started",
+      "transition_id": "e5d8157e8e23de639e7fdf0eb19b5b39ecc8351345d65f282fc1a196d46feafc"
     }
   ],
-  "updated_at": "2026-09-06T13:58:32.635372+00:00",
+  "updated_at": "2026-09-06T13:58:50.177155+00:00",
   "wheel_key": "deko1",
   "workflow_started_at": "2026-09-06T13:58:32.635372+00:00"
 }
