@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 import betboom_account_participation as account2
 import betboom_persistent_participation as persistent
+import betboom_profile_identity as profile_identity
 import monitor
 import wheel_publications_v2
 import xflarxx_account_participation as account3
@@ -150,6 +151,9 @@ def run_configured_account(
     if session is None:
         raise RuntimeError(config.missing_session_error)
     _assert_session_is_distinct(config, session)
+    # Validate the actual BetBoom profile before looking at prior event state.
+    # A stale/incorrect successful record must never hide a slot collision.
+    profile_identity.assert_account_slot_distinct(config.account_key)
 
     state = account2._load_json(monitor.STATE_PATH, {})
     if not isinstance(state, dict):
