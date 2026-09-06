@@ -250,7 +250,6 @@ def main() -> None:
         "В единой базе должны оставаться как минимум 66 утверждённых источников"
     )
     for required_source in (
-        "kolesabb",
         "homakolesa",
         "narodcast",
         "dartwager",
@@ -260,10 +259,17 @@ def main() -> None:
         "ct0mislove",
         "blindzonexgod",
         "daynezz",
+        "stavka_tv",
     ):
         assert required_source in approved
-    assert "frixa_betboom" not in approved
-    assert "gazazor" not in approved
+    for retired_source in (
+        "kolesabb",
+        "wfksiris",
+        "stavkatv",
+        "frixa_betboom",
+        "gazazor",
+    ):
+        assert retired_source not in approved
     assert monitor.NEW_SOURCE_CATCHUP_MINUTES >= 0
 
     for obsolete in (
