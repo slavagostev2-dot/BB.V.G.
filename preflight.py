@@ -278,7 +278,7 @@ def main() -> None:
     )
     require_text("telegram_monitor.py", ("from monitor import main", "raise SystemExit(main())"))
     require_text("self_test.py", ("import monitor", "def main()"))
-    require_text("public_sources.txt", ("narodCast", "kolesaBB", "betboomteamcs2"))
+    require_text("public_sources.txt", ("narodCast", "betboomteamcs2"))
     require_text(
         ".github/workflows/daily-report.yml",
         ("BB V.G. summaries", "period:", "daily_report.py"),
@@ -411,7 +411,7 @@ def main() -> None:
             f"configured={configured_total}, operational={len(approved)}"
         )
 
-    forbidden = {"frixa_betboom", "gazazor"}
+    forbidden = {"frixa_betboom", "gazazor", "kolesabb", "wfksiris", "stavkatv"}
     stale = sorted(approved & forbidden)
     if stale:
         raise SystemExit("PRECHECK ERROR: removed sources are still operational: " + ", ".join(stale))
