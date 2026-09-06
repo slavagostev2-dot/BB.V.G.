@@ -1,9 +1,9 @@
 {
-  "active_incidents": 4,
+  "active_incidents": 5,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-06T04:21:38.509825+00:00",
-    "started_at": "2026-09-06T02:20:41.377750+00:00",
+    "age_minutes": 3,
+    "last_heartbeat_at": "2026-09-06T07:19:41.227122+00:00",
+    "started_at": "2026-09-06T06:54:28.017452+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -12,31 +12,29 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 3,
-    "decision_id": "1bfc9936e9b543bd983c1872110e127c",
-    "finding_count": 4,
+    "critical_count": 1,
+    "decision_id": "a058e2ff1edf46ffbef69fb035d470e8",
+    "finding_count": 1,
     "finding_kinds": [
-      "monitor_source_count",
-      "source_empty_public_feed",
-      "source_health_missing"
+      "source_transport_smoke"
     ],
-    "generated_at": "2026-09-06T04:23:58.326168+00:00",
-    "impact": "Нарушена целостность сбора данных: часть источников не обновляется, что приводит к потере актуальной информации в мониторинге.",
+    "generated_at": "2026-09-06T07:22:44.150984+00:00",
+    "impact": "Несоответствие между фактическим состоянием транспортных узлов и конфигурацией inventory может привести к некорректной маршрутизации или потере данных.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источников.",
+    "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 3 критические ошибки мониторинга и 1 предупреждение. Основной монитор не охватывает все настроенные источники, а три конкретных канала (@wfksiris, @kolesaBB, @cs3news) не предоставляют данные.",
+    "summary": "Критическая ошибка: расхождение данных в транспортной проверке (178 источников против 175 в inventory).",
     "used_fallback": false,
     "version": 1,
-    "warning_count": 1
+    "warning_count": 0
   },
   "automation_state": {
     "expected_nightly_sources": 0,
-    "expected_primary_sources": 178,
-    "expected_total_sources": 178,
+    "expected_primary_sources": 175,
+    "expected_total_sources": 175,
     "missing_sources": 0,
     "recorded_configured_sources": 178,
     "recorded_nightly_sources": 0,
@@ -55,19 +53,19 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "ok",
+    "automations": "failed",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
-    "monitor": "failed",
+    "monitor": "ok",
     "notifications": "ok",
     "ratings": "ok",
-    "source_health": "failed",
+    "source_health": "ok",
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-06T04:23:55.828456+00:00",
+  "checked_at": "2026-09-06T07:22:42.450431+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -99,44 +97,23 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 4,
+  "finding_count": 1,
   "findings": [
     {
-      "detail": "В последней итерации проверено 175 из 176 источников, готовых к проверке (всего настроено 178).",
-      "kind": "monitor_source_count",
+      "detail": "status=success; domain=telegram.me; primary=178/175; nightly=0/0; accounted=178/175; reachable=176/175; errors=0; missing=0.",
+      "kind": "source_transport_smoke",
       "severity": "critical",
       "subject": "",
-      "title": "Основной монитор проверяет не все источники"
-    },
-    {
-      "detail": "публичная страница открылась, но сообщений не найдено",
-      "kind": "source_empty_public_feed",
-      "severity": "critical",
-      "subject": "kolesaBB",
-      "title": "Источник @kolesaBB не проверяется"
-    },
-    {
-      "detail": "публичная страница открылась, но сообщений не найдено",
-      "kind": "source_empty_public_feed",
-      "severity": "critical",
-      "subject": "wfksiris",
-      "title": "Источник @wfksiris не проверяется"
-    },
-    {
-      "detail": "Нет записей для 1 источников: @cs3news.",
-      "kind": "source_health_missing",
-      "severity": "warning",
-      "subject": "",
-      "title": "Не для всех источников есть данные здоровья"
+      "title": "Транспортная проверка текущего inventory не подтверждена"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-06T04:21:38.509825+00:00",
-    "checked_sources": 175,
-    "configured_sources": 178,
+    "active_incidents": 5,
+    "bot_panel_heartbeat": "2026-09-06T07:19:41.227122+00:00",
+    "checked_sources": 176,
+    "configured_sources": 175,
     "domain": "telegram.me",
-    "reachable_sources": 175,
+    "reachable_sources": 176,
     "single_source": "system_check_state.json",
     "status": "degraded",
     "wheel_api_health": {
@@ -156,21 +133,21 @@
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 188,
+  "incident_sequence": 189,
   "inventory": {
-    "configured": 178,
-    "configured_total": 178,
+    "configured": 175,
+    "configured_total": 175,
     "domain": "telegram.me",
     "duplicates": 0,
-    "expected": 178,
+    "expected": 175,
     "nightly": 0,
     "nightly_configured": 0,
     "nightly_operational": 0,
     "nightly_policy": "optional_empty",
-    "operational": 178,
-    "primary_configured": 178,
-    "primary_operational": 178,
-    "total": 178
+    "operational": 175,
+    "primary_configured": 175,
+    "primary_operational": 175,
+    "total": 175
   },
   "miniapp": {
     "checked": false,
@@ -179,36 +156,36 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 175,
-    "checks_delta": 177,
-    "checks_total": 9547376,
+    "checked_sources": 176,
+    "checks_delta": 178,
+    "checks_total": 9575186,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
-    "head_sha": "cd7903e7f2f0612da6d27d1c1be1d866712b7f62",
-    "iteration": 61,
-    "last_iteration_at": "2026-09-06T04:21:26.991990+00:00",
-    "last_iteration_duration_seconds": 33,
+    "head_sha": "30e85b794cdc62766d92e2cc535e08620bceab2c",
+    "iteration": 21,
+    "last_iteration_at": "2026-09-06T07:19:04.634327+00:00",
+    "last_iteration_duration_seconds": 57,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-06T04:21:26.991990+00:00",
-    "last_successful_checks_total": 9547376,
-    "last_successful_iteration_at": "2026-09-06T04:21:26.991990+00:00",
+    "last_process_heartbeat_at": "2026-09-06T07:19:04.634327+00:00",
+    "last_successful_checks_total": 9575186,
+    "last_successful_iteration_at": "2026-09-06T07:19:04.634327+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 175,
+    "reachable_sources": 176,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34008526472",
-    "run_started_at": "2026-09-06T03:15:40.074388+00:00",
+    "run_id": "34017687234",
+    "run_started_at": "2026-09-06T06:54:19.278178+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34008526472"
+    "workflow_run_id": "34017687234"
   },
-  "monitor_age_minutes": 2,
-  "monitor_effective_heartbeat_at": "2026-09-06T04:21:26.991990+00:00",
+  "monitor_age_minutes": 3,
+  "monitor_effective_heartbeat_at": "2026-09-06T07:19:04.634327+00:00",
   "monitor_source_expectation": {
-    "configured": 178,
-    "due_for_check": 176
+    "configured": 175,
+    "due_for_check": 175
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
@@ -248,40 +225,21 @@
     "valid_personal_votes": 870
   },
   "source_health_summary": {
-    "configured_records": 177,
-    "missing_sources": [
-      "cs3news"
-    ],
+    "configured_records": 175,
+    "missing_sources": [],
     "nightly_pending_first_check": [],
-    "problem_details": [
-      {
-        "failure_code": "empty_public_feed",
-        "reason": "публичная страница открылась, но сообщений не найдено",
-        "source": "kolesaBB",
-        "status": "quarantined"
-      },
-      {
-        "failure_code": "empty_public_feed",
-        "reason": "публичная страница открылась, но сообщений не найдено",
-        "source": "wfksiris",
-        "status": "quarantined"
-      }
-    ],
-    "problem_sources": [
-      "kolesaBB",
-      "wfksiris"
-    ],
-    "records": 177,
-    "required_primary_records": 177,
+    "problem_details": [],
+    "problem_sources": [],
+    "records": 178,
+    "required_primary_records": 175,
     "statuses": {
-      "ok": 175,
-      "quarantined": 2
+      "ok": 175
     },
     "transport_failure_types": {
       "dns": 0,
       "empty_or_html": 0,
       "http": 0,
-      "other": 2,
+      "other": 0,
       "timeout": 0,
       "tls": 0
     }
