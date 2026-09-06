@@ -1,18 +1,18 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T140348554432Z-f2e3d0b30dc5",
-      "attempt_id": "f52573e3c78b9141c6e3688902890b0613d27585339af3552066f6712e330dda",
-      "confidence": 20,
-      "confirmation": "raw_status:button_not_found; workflow_state",
-      "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции | main:Другие акции",
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T140244136584Z-b587b60d225b",
+      "attempt_id": "14bb788a52b539c7e7e60a0f33a577f28cb9e306acc812811f205a311b27d52c",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
       "event_id": "evt:eb295125b20a541780f0",
-      "finished_at": "2026-09-06T14:03:34.441249+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-06T14:03:50.234250+00:00",
-      "started_at": "2026-09-06T14:03:34.441249+00:00",
-      "status": "unconfirmed"
+      "finished_at": "2026-09-06T14:02:36.593409+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-09-06T14:03:50.236981+00:00",
+      "started_at": "2026-09-06T14:02:36.593409+00:00",
+      "status": "participated"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -29,18 +29,18 @@
       "status": "participated"
     },
     {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T140244136584Z-b587b60d225b",
-      "attempt_id": "14bb788a52b539c7e7e60a0f33a577f28cb9e306acc812811f205a311b27d52c",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T140348554432Z-f2e3d0b30dc5",
+      "attempt_id": "f52573e3c78b9141c6e3688902890b0613d27585339af3552066f6712e330dda",
+      "confidence": 20,
+      "confirmation": "raw_status:button_not_found; workflow_state",
+      "error_text": "кнопка участия не найдена после закрытия cookie; видимые действия: main:Об акции | main:Другие акции",
       "event_id": "evt:eb295125b20a541780f0",
-      "finished_at": "2026-09-06T14:02:36.593409+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-09-06T14:03:50.236981+00:00",
-      "started_at": "2026-09-06T14:02:36.593409+00:00",
-      "status": "participated"
+      "finished_at": "2026-09-06T14:03:34.441249+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-06T14:03:50.234250+00:00",
+      "started_at": "2026-09-06T14:03:34.441249+00:00",
+      "status": "unconfirmed"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T14:03:34.441249+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-09-06T14:03:50.234250+00:00"
+      "updated_at": "2026-09-06T14:04:08.747811+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T14:02:28.251613+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T14:03:50.235619+00:00"
+      "updated_at": "2026-09-06T14:04:08.749034+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-06T14:02:36.593409+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T14:03:50.236981+00:00"
+      "updated_at": "2026-09-06T14:04:08.750238+00:00"
     }
   ],
   "action_id": 2021,
@@ -119,101 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-06T14:03:50.227584+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:14bb788a52b539c7e7e60a0f33a577f28cb9e306acc812811f205a311b27d52c",
+      "occurred_at": "2026-09-06T14:02:36.593409+00:00",
       "payload": {
-        "action_id": 2021,
-        "available_at": "",
-        "deadline": "2026-09-06T14:20:04.003000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:eb295125b20a541780f0",
-        "expires_at": "2026-09-06T14:50:04.003000+00:00",
-        "generation_id": "eb295125b20a541780f0",
-        "identifier": "pomidor2",
-        "message_text": "Название: КОЛЕСО ФРИБЕТОВ\nОписание: Участвуй в Колесе Фрибетов!\nСтример: pomidor2\nДата старта: 06.09.2026, 17:00\nЗакончится через: 19 мин 16 сек\nПризы: 500\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/pomidor2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T14:00:04.003000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-06T14:00:38+00:00",
-        "source_message_id": 7810,
-        "source_message_url": "https://telegram.me/c/2445382077/7810",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/pomidor2",
-        "verification_status": "confirmed",
-        "wheel_key": "pomidor2",
-        "wheel_type": "normal"
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T140244136584Z-b587b60d225b",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "xflarxx",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "8931199e475e95b60b303078ca51e1f0875e985717efbc61c3243622bef1e2c7"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-06T14:03:50.227584+00:00",
-      "payload": {
-        "action_id": 2021,
-        "available_at": "",
-        "deadline": "2026-09-06T14:20:04.003000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:eb295125b20a541780f0",
-        "expires_at": "2026-09-06T14:50:04.003000+00:00",
-        "generation_id": "eb295125b20a541780f0",
-        "identifier": "pomidor2",
-        "message_text": "Название: КОЛЕСО ФРИБЕТОВ\nОписание: Участвуй в Колесе Фрибетов!\nСтример: pomidor2\nДата старта: 06.09.2026, 17:00\nЗакончится через: 19 мин 16 сек\nПризы: 500\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/pomidor2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T14:00:04.003000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-06T14:00:38+00:00",
-        "source_message_id": 7810,
-        "source_message_url": "https://telegram.me/c/2445382077/7810",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/pomidor2",
-        "verification_status": "confirmed",
-        "wheel_key": "pomidor2",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "97264e0cd02e004194a1ca263255b8f0629d6668549399128fd8eab138bf3d35"
-    },
-    {
-      "dedupe_key": "2021:2026-09-06T14:00:04.003000+00:00",
-      "occurred_at": "2026-09-06T14:03:50.227584+00:00",
-      "payload": {
-        "action_id": 2021,
-        "available_at": "",
-        "deadline": "2026-09-06T14:20:04.003000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:eb295125b20a541780f0",
-        "expires_at": "2026-09-06T14:50:04.003000+00:00",
-        "generation_id": "eb295125b20a541780f0",
-        "identifier": "pomidor2",
-        "message_text": "Название: КОЛЕСО ФРИБЕТОВ\nОписание: Участвуй в Колесе Фрибетов!\nСтример: pomidor2\nДата старта: 06.09.2026, 17:00\nЗакончится через: 19 мин 16 сек\nПризы: 500\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/pomidor2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T14:00:04.003000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-06T14:00:38+00:00",
-        "source_message_id": 7810,
-        "source_message_url": "https://telegram.me/c/2445382077/7810",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/pomidor2",
-        "verification_status": "confirmed",
-        "wheel_key": "pomidor2",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "90cb5cea87d7091a7b705940c89886de25e4c3dc0347bdf9ec148cbe246b5c02"
-    },
-    {
-      "dedupe_key": "34037855588",
-      "occurred_at": "2026-09-06T14:03:50.231596+00:00",
-      "payload": {
-        "workflow_run_id": "34037855588",
-        "workflow_sha": "7d92b4d5de64c29988fabd6dbc5072f6ff128e32"
-      },
-      "stage": "workflow_started",
-      "transition_id": "a9cf4b86b02bde75fef6de1d3d92c8d2b998d00ebff351006d3a08e9866ade67"
+      "stage": "account_result",
+      "transition_id": "22549a622687c68cbadddf670f3a3a82390270eeeed11dd0ce9f0dc328562725"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:f52573e3c78b9141c6e3688902890b0613d27585339af3552066f6712e330dda",
@@ -246,22 +164,104 @@
       "transition_id": "606f7daf11c95ea7feb77b610e5d0f00100317ffe92a4c88cbf0d6e426ac068b"
     },
     {
-      "dedupe_key": "xflarxx:xflarxx_primary:14bb788a52b539c7e7e60a0f33a577f28cb9e306acc812811f205a311b27d52c",
-      "occurred_at": "2026-09-06T14:02:36.593409+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-06T14:03:50.227584+00:00",
       "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T140244136584Z-b587b60d225b",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "xflarxx",
-        "status": "participated"
+        "action_id": 2021,
+        "available_at": "",
+        "deadline": "2026-09-06T14:20:04.003000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:eb295125b20a541780f0",
+        "expires_at": "2026-09-06T14:50:04.003000+00:00",
+        "generation_id": "eb295125b20a541780f0",
+        "identifier": "pomidor2",
+        "message_text": "Название: КОЛЕСО ФРИБЕТОВ\nОписание: Участвуй в Колесе Фрибетов!\nСтример: pomidor2\nДата старта: 06.09.2026, 17:00\nЗакончится через: 19 мин 16 сек\nПризы: 500\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/pomidor2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T14:00:04.003000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-06T14:00:38+00:00",
+        "source_message_id": 7810,
+        "source_message_url": "https://telegram.me/c/2445382077/7810",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/pomidor2",
+        "verification_status": "confirmed",
+        "wheel_key": "pomidor2",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "22549a622687c68cbadddf670f3a3a82390270eeeed11dd0ce9f0dc328562725"
+      "stage": "source_discovered",
+      "transition_id": "8931199e475e95b60b303078ca51e1f0875e985717efbc61c3243622bef1e2c7"
+    },
+    {
+      "dedupe_key": "2021:2026-09-06T14:00:04.003000+00:00",
+      "occurred_at": "2026-09-06T14:03:50.227584+00:00",
+      "payload": {
+        "action_id": 2021,
+        "available_at": "",
+        "deadline": "2026-09-06T14:20:04.003000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:eb295125b20a541780f0",
+        "expires_at": "2026-09-06T14:50:04.003000+00:00",
+        "generation_id": "eb295125b20a541780f0",
+        "identifier": "pomidor2",
+        "message_text": "Название: КОЛЕСО ФРИБЕТОВ\nОписание: Участвуй в Колесе Фрибетов!\nСтример: pomidor2\nДата старта: 06.09.2026, 17:00\nЗакончится через: 19 мин 16 сек\nПризы: 500\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/pomidor2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T14:00:04.003000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-06T14:00:38+00:00",
+        "source_message_id": 7810,
+        "source_message_url": "https://telegram.me/c/2445382077/7810",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/pomidor2",
+        "verification_status": "confirmed",
+        "wheel_key": "pomidor2",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "90cb5cea87d7091a7b705940c89886de25e4c3dc0347bdf9ec148cbe246b5c02"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-06T14:03:50.227584+00:00",
+      "payload": {
+        "action_id": 2021,
+        "available_at": "",
+        "deadline": "2026-09-06T14:20:04.003000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:eb295125b20a541780f0",
+        "expires_at": "2026-09-06T14:50:04.003000+00:00",
+        "generation_id": "eb295125b20a541780f0",
+        "identifier": "pomidor2",
+        "message_text": "Название: КОЛЕСО ФРИБЕТОВ\nОписание: Участвуй в Колесе Фрибетов!\nСтример: pomidor2\nДата старта: 06.09.2026, 17:00\nЗакончится через: 19 мин 16 сек\nПризы: 500\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/pomidor2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T14:00:04.003000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-06T14:00:38+00:00",
+        "source_message_id": 7810,
+        "source_message_url": "https://telegram.me/c/2445382077/7810",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/pomidor2",
+        "verification_status": "confirmed",
+        "wheel_key": "pomidor2",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "97264e0cd02e004194a1ca263255b8f0629d6668549399128fd8eab138bf3d35"
+    },
+    {
+      "dedupe_key": "34037855588",
+      "occurred_at": "2026-09-06T14:03:50.231596+00:00",
+      "payload": {
+        "workflow_run_id": "34037855588",
+        "workflow_sha": "7d92b4d5de64c29988fabd6dbc5072f6ff128e32"
+      },
+      "stage": "workflow_started",
+      "transition_id": "a9cf4b86b02bde75fef6de1d3d92c8d2b998d00ebff351006d3a08e9866ade67"
     }
   ],
-  "updated_at": "2026-09-06T14:03:50.231596+00:00",
+  "updated_at": "2026-09-06T14:04:08.745284+00:00",
   "wheel_key": "pomidor2",
   "workflow_started_at": "2026-09-06T14:03:50.231596+00:00"
 }
