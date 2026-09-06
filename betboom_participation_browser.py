@@ -551,8 +551,24 @@ def _find_and_click(
     return False, "", preparations, ""
 
 
-def participate(url: str) -> auto.ParticipationResult:
-    """Open one wheel, distinguish pre-existing participation from our own click."""
+def _resolved_storage_state(
+    storage_state: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if isinstance(storage_state, dict):
+        return storage_state
+    return auto._storage_state()
+
+
+def participate(
+    url: str,
+    storage_state: dict[str, Any] | None = None,
+) -> auto.ParticipationResult:
+    """Open one wheel using an explicit session when supplied.
+
+    The optional argument keeps the primary-account API backward compatible,
+    while secondary account runners can inject their own storage state directly
+    instead of mutating global session lookup functions.
+    """
 
     if not url.startswith("https://betboom.ru/freestream/"):
         return auto.ParticipationResult(
@@ -561,8 +577,8 @@ def participate(url: str) -> auto.ParticipationResult:
             "invalid_url: некорректная ссылка BetBoom",
         )
 
-    storage_state = auto._storage_state()
-    if storage_state is None:
+    resolved_storage_state = _resolved_storage_state(storage_state)
+    if resolved_storage_state is None:
         return auto.ParticipationResult(
             False,
             "technical_error",
@@ -588,7 +604,7 @@ def participate(url: str) -> auto.ParticipationResult:
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, channel=channel)
-            context = browser.new_context(storage_state=storage_state)
+            context = browser.new_context(storage_state=resolved_storage_state)
             page = context.new_page()
             page.set_default_timeout(timeout_ms)
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
@@ -830,6 +846,15 @@ def self_test() -> None:
     assert _matches_full_label(PROMO_DETAILS_RE, "Об акции")
     assert _matches_full_label(AUTH_RE, "Войти")
     assert PROMO_DETAILS_RE not in _preparation_patterns()
+    injected = {"cookies": [{"name": "session", "value": "injected"}]}
+    original_storage = auto._storage_state
+    auto._storage_state = lambda: (_ for _ in ()).throw(
+        AssertionError("global storage lookup must not run for injected state")
+    )
+    try:
+        assert _resolved_storage_state(injected) is injected
+    finally:
+        auto._storage_state = original_storage
     assert _accepted_post_click_layout(
         participation_visible=False,
         promo_details_visible=True,

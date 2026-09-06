@@ -12,6 +12,7 @@ import betboom_participation_browser as browser_helpers
 
 DEFAULT_PROBE_URL = "https://betboom.ru/actions/boomstatus"
 DEFAULT_CACHE_PATH = Path("/tmp/bbvg-betboom-profile-identities.json")
+AUTH_REVISION_NAMESPACE = "bbvg-betboom-auth-v1"
 
 
 def _storage_state(part1_name: str, part2_name: str) -> dict[str, Any] | None:
@@ -125,6 +126,24 @@ def profile_fingerprint_from_next_data(raw: str) -> str:
     return digest[:24]
 
 
+def auth_revision_from_profile_fingerprint(profile_fingerprint: str) -> str:
+    """Return a stable, non-secret revision for one real BetBoom profile.
+
+    Cookie refreshes for the same BetBoom profile intentionally keep the same
+    revision. Replacing a slot with another real profile produces another
+    revision, so old participation success records cannot suppress the new
+    profile's first check of an active wheel.
+    """
+
+    fingerprint = str(profile_fingerprint or "").strip().casefold()
+    if not fingerprint:
+        return ""
+    digest = hashlib.sha256(
+        f"{AUTH_REVISION_NAMESPACE}:{fingerprint}".encode("utf-8")
+    ).hexdigest()[:24]
+    return f"auth:v1:{digest}"
+
+
 def resolve_profile_fingerprint(
     playwright: Any,
     storage_state: dict[str, Any] | None,
@@ -189,6 +208,7 @@ def build_identity_report() -> dict[str, Any]:
             accounts[account_key] = {
                 "status": status,
                 "profile_fingerprint": fingerprint,
+                "auth_revision": auth_revision_from_profile_fingerprint(fingerprint),
             }
 
     groups: dict[str, list[str]] = {}
@@ -229,6 +249,34 @@ def load_or_build_identity_report(
     except Exception:
         pass
     return report
+
+
+def account_auth_revision(
+    account_key: str,
+    report: dict[str, Any] | None = None,
+) -> str:
+    """Return the current stable auth revision for one configured account slot."""
+
+    current_report = report or load_or_build_identity_report()
+    accounts = current_report.get("accounts")
+    if not isinstance(accounts, dict):
+        raise RuntimeError("BetBoom profile identity report is unavailable")
+    current = accounts.get(account_key)
+    if not isinstance(current, dict):
+        raise RuntimeError(f"BetBoom profile identity is unavailable for {account_key}")
+    if current.get("status") != "ok":
+        raise RuntimeError(
+            f"BetBoom profile identity check failed for {account_key}: "
+            f"{current.get('status')}"
+        )
+    revision = str(current.get("auth_revision") or "").strip()
+    if not revision:
+        revision = auth_revision_from_profile_fingerprint(
+            str(current.get("profile_fingerprint") or "")
+        )
+    if not revision:
+        raise RuntimeError(f"BetBoom auth revision is unavailable for {account_key}")
+    return revision
 
 
 def assert_account_slot_distinct(account_key: str) -> dict[str, Any]:
@@ -293,6 +341,20 @@ def self_test() -> None:
     assert first and first == second
     assert "123456" not in first
     assert profile_fingerprint_from_next_data("{}") == ""
+    revision = auth_revision_from_profile_fingerprint(first)
+    assert revision.startswith("auth:v1:")
+    assert revision == auth_revision_from_profile_fingerprint(second)
+    assert revision != auth_revision_from_profile_fingerprint(first + "changed")
+    report = {
+        "accounts": {
+            "vyacheslav_secondary": {
+                "status": "ok",
+                "profile_fingerprint": first,
+            }
+        }
+    }
+    assert account_auth_revision("vyacheslav_secondary", report) == revision
+    assert "123456" not in revision
     print("BetBoom profile identity guard self-test passed")
 
 
