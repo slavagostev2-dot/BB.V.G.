@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 0,
   "incidents": {
     "system_checks:discovery_domain:9e6b37ba02c42a92": {
       "detail": "Ожидался telegram.me, записано нет данных.",
@@ -256,22 +256,22 @@
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
       "kind": "source_transport_smoke",
-      "last_seen_at": "2026-09-06T07:22:43.350227+00:00",
+      "last_seen_at": "2026-09-06T10:28:56.714451+00:00",
       "lifecycle_started_at": "2026-09-06T07:22:43.350227+00:00",
       "metadata": {},
-      "notification_skipped_because_resolved_before_delivery": "2026-09-02T12:59:59.246671+00:00",
+      "notification_skipped_because_resolved_before_delivery": "2026-09-06T10:28:56.714451+00:00",
       "notification_stabilizing_until": "2026-09-06T07:27:43.350227+00:00",
       "occurrences": 51,
       "open_notification_pending": false,
       "opened_sequence": 189,
-      "recovery_candidate_since": "2026-09-06T08:50:17.701323+00:00",
-      "recovery_confirmation_pending": true,
       "reopen_notification_suppressed_at": "2026-07-18T15:32:04.735808+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
-      "resolved_sequence": 179,
+      "resolution_notification_pending": false,
+      "resolved_at": "2026-09-06T10:28:56.714451+00:00",
+      "resolved_sequence": 194,
       "scope": "system_checks",
       "severity": "critical",
-      "status": "active",
+      "status": "resolved",
       "subject": "",
       "title": "Транспортная проверка текущего inventory не подтверждена"
     },
@@ -320,17 +320,17 @@
       "title": "Источники попали в карантин"
     }
   },
-  "last_change_at": "2026-09-06T08:50:17.701323+00:00",
-  "last_reconcile_at": "2026-09-06T08:50:17.701323+00:00",
+  "last_change_at": "2026-09-06T10:28:56.714451+00:00",
+  "last_reconcile_at": "2026-09-06T10:28:56.714451+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 0,
     "new_notification_count": 0,
-    "recovery_notification_count": 4,
+    "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 193,
+  "sequence": 194,
   "status": "initializing",
-  "updated_at": "2026-09-06T08:50:22.234209+00:00",
+  "updated_at": "2026-09-06T10:28:56.714529+00:00",
   "version": 1
 }
