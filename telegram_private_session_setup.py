@@ -23,6 +23,25 @@ def _channel_id(entity: object) -> int:
     return value
 
 
+def _normalize_mtproxy_secret(value: str) -> str:
+    secret = value.strip().lower()
+    # Telegram links may prefix the 16-byte secret with "dd" to request
+    # randomized padding. Telethon's MTProxy connection class expects the
+    # underlying 16-byte / 32-hex secret and provides randomized-intermediate
+    # framing separately.
+    if len(secret) == 34 and secret.startswith("dd"):
+        secret = secret[2:]
+    if len(secret) != 32:
+        raise ValueError(
+            "MTProto secret должен содержать 16 байт (32 hex-символа; префикс dd допустим)"
+        )
+    try:
+        bytes.fromhex(secret)
+    except ValueError as exc:
+        raise ValueError("MTProto secret должен быть шестнадцатеричной строкой") from exc
+    return secret
+
+
 def _parse_mtproxy_link(value: str) -> tuple[str, int, str]:
     raw = value.strip()
     if not raw:
@@ -38,15 +57,15 @@ def _parse_mtproxy_link(value: str) -> tuple[str, int, str]:
             raise ValueError("ожидается ссылка вида https://t.me/proxy?server=...&port=...&secret=...")
     elif parsed.scheme == "tg":
         if parsed.netloc.lower() != "proxy":
-            raise ValueError("ожидается ссылка tg://proxy?... ")
+            raise ValueError("ожидается ссылка tg://proxy?...")
     else:
         raise ValueError("неподдерживаемый формат ссылки MTProto proxy")
 
     query = parse_qs(parsed.query, keep_blank_values=False)
     server = str((query.get("server") or [""])[0]).strip()
-    secret = str((query.get("secret") or [""])[0]).strip()
+    secret_raw = str((query.get("secret") or [""])[0]).strip()
     port_raw = str((query.get("port") or [""])[0]).strip()
-    if not server or not secret or not port_raw:
+    if not server or not secret_raw or not port_raw:
         raise ValueError("в ссылке должны быть server, port и secret")
     try:
         port = int(port_raw)
@@ -54,6 +73,7 @@ def _parse_mtproxy_link(value: str) -> tuple[str, int, str]:
         raise ValueError("port в ссылке proxy должен быть числом") from exc
     if not 1 <= port <= 65535:
         raise ValueError("port в ссылке proxy вне диапазона 1..65535")
+    secret = _normalize_mtproxy_secret(secret_raw)
     return server, port, secret
 
 
