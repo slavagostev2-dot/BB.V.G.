@@ -123,3 +123,119 @@ def test_private_transport_alias_is_not_shown_to_user() -> None:
     assert "закрытый Telegram-канал" in masked
     assert "https://telegram.me/c/2445382077/7815" in masked
     assert runtime._mask_private_source_handles("Источник: @amam0610") == "Источник: @amam0610"
+
+
+def test_many_sources_of_one_generation_share_one_delivery_identity(monkeypatch) -> None:
+    """A high-overlap source inventory must still yield one primary card."""
+
+    import bbvg_monitor_runtime as runtime
+
+    canonical = "evt:1234567890abcdef1234"
+
+    def original_markup(state, message, link, **kwargs):
+        token = runtime.monitor.button_context_token(message, link)
+        return {
+            "inline_keyboard": [
+                [{"text": "open", "url": link}],
+                [{"text": "join", "callback_data": f"bb:p:{token}"}],
+                [{"text": "post", "url": message.message_url}],
+            ],
+            "_bbvg_event_id": canonical,
+        }
+
+    monkeypatch.setattr(runtime, "_original_wheel_reply_markup", original_markup)
+    monkeypatch.setattr(runtime.monitor, "infer_deadline", lambda text, date: (None, ""))
+
+    sources = [
+        "bbwheel",
+        "BBfreestream",
+        "shadowkekw",
+        "burdakekw",
+        "amam0610",
+        "mechanogun",
+        "betboomru",
+        "betboom_baza",
+        "private_2445382077",
+        "hoochcs2",
+        "ct0mislove",
+        "zont1x",
+    ]
+    identities: set[str] = set()
+    delivery_keys: set[str] = set()
+    for index, source in enumerate(sources, 1):
+        link = "https://betboom.ru/freestream/highoverlap"
+        message = runtime.monitor.Message(
+            source=source,
+            message_id=1000 + index,
+            date=datetime(2026, 9, 6, 16, 0, index, tzinfo=UTC),
+            text=link,
+            message_url=f"https://telegram.me/{source}/{1000 + index}",
+        )
+        markup = runtime.wheel_reply_markup_bbvg(
+            {}, message, link, active=False, status="preliminary", method="stress"
+        )
+        identity = notification_router.notification_event_identity(
+            notification_router.KIND_WHEELS,
+            f"🎡 Новое колесо BetBoom\nИдентификатор: <code>highoverlap</code>",
+            link,
+            markup,
+        )
+        identities.add(identity)
+        delivery_keys.add(
+            notification_router.delivery_key(
+                "owner-chat",
+                notification_router.KIND_WHEELS,
+                identity,
+                None,
+            )
+        )
+
+    assert identities == {
+        "wheel:wheels:highoverlap:detected:evt:1234567890abcdef1234"
+    }
+    assert len(delivery_keys) == 1
+
+
+def test_reused_wheel_link_with_new_generation_is_not_suppressed() -> None:
+    text = "🎡 Новое колесо BetBoom\nИдентификатор: <code>highoverlap</code>"
+    first = notification_router.notification_event_identity(
+        notification_router.KIND_WHEELS,
+        text,
+        "https://betboom.ru/freestream/highoverlap",
+        {
+            "_bbvg_event_id": "evt:11111111111111111111",
+            "inline_keyboard": [],
+        },
+    )
+    second = notification_router.notification_event_identity(
+        notification_router.KIND_WHEELS,
+        text,
+        "https://betboom.ru/freestream/highoverlap",
+        {
+            "_bbvg_event_id": "evt:22222222222222222222",
+            "inline_keyboard": [],
+        },
+    )
+
+    assert first != second
+    assert notification_router.delivery_key(
+        "owner-chat", notification_router.KIND_WHEELS, first, None
+    ) != notification_router.delivery_key(
+        "owner-chat", notification_router.KIND_WHEELS, second, None
+    )
+
+
+def test_high_overlap_sources_are_present_once_in_inventory() -> None:
+    from pathlib import Path
+
+    values = [
+        line.strip().lstrip("@")
+        for line in (Path(__file__).resolve().parents[1] / "public_sources.txt")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    folded = [value.casefold() for value in values]
+    assert "bbwheel" in folded
+    assert "bbfreestream" in folded
+    assert len(folded) == len(set(folded))
