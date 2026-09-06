@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 import betboom_account_participation as account2
+import betboom_persistent_participation as persistent
 import monitor
 import wheel_publications_v2
 import xflarxx_account_participation as account3
@@ -39,7 +40,7 @@ def account_config(name: str) -> AccountRunConfig:
             account_key=account2.ACCOUNT_KEY,
             account_owner=account2.ACCOUNT_OWNER,
             account_order=account2.ACCOUNT_ORDER,
-            multi_account_version=3,
+            multi_account_version=4,
             last_run_state_field="last_secondary_account_participation_at",
             session_getter=account2.storage_state,
             label_getter=account2.account_label,
@@ -56,7 +57,7 @@ def account_config(name: str) -> AccountRunConfig:
             account_key=account3.ACCOUNT_KEY,
             account_owner=account3.ACCOUNT_OWNER,
             account_order=account3.ACCOUNT_ORDER,
-            multi_account_version=3,
+            multi_account_version=4,
             last_run_state_field="last_xflarxx_account_participation_at",
             session_getter=account3.storage_state,
             label_getter=account3.account_label,
@@ -79,8 +80,29 @@ def _account_event_token(
     )
 
 
+def _old_post_click_only_success(previous: Any) -> bool:
+    if not isinstance(previous, dict):
+        return False
+    return (
+        str(previous.get("status") or "").casefold() == "participated"
+        and str(previous.get("confirmation_method") or "").casefold()
+        == "betboom_post_click"
+    )
+
+
+def _should_attempt(previous: Any, current: Any) -> bool:
+    # PR #344 accepted the exact BetBoom success label immediately after our
+    # click. The live zonertg11 incident proved that this can be optimistic UI
+    # and not persisted server state. Re-check those old claims while the wheel
+    # is still active, then store the stronger post-reload proof.
+    if _old_post_click_only_success(previous):
+        return True
+    return account2._should_attempt(previous, current)
+
+
 def _causal_fields(result: Any) -> dict[str, Any]:
     status = str(getattr(result, "status", "") or "").casefold()
+    detail = str(getattr(result, "detail", "") or "")
     if status == "already_participating":
         return {
             "status": "already_participating",
@@ -89,18 +111,35 @@ def _causal_fields(result: Any) -> dict[str, Any]:
             "clicked_by_bot": False,
         }
     if status == "participated":
+        persistence_verified = (
+            persistent.PERSISTENCE_VERIFIED_MARKER in detail.casefold()
+        )
         return {
-            "status": "participated",
-            "confirmation_method": "betboom_post_click",
-            "participation_origin": "automatic",
+            "status": "participated" if persistence_verified else "unconfirmed",
+            "confirmation_method": (
+                "betboom_post_reload" if persistence_verified else "betboom_post_click"
+            ),
+            "participation_origin": "automatic" if persistence_verified else "unverified",
             "clicked_by_bot": True,
         }
     return {
         "status": status or "unconfirmed",
         "confirmation_method": "betboom_unconfirmed",
         "participation_origin": "unverified",
-        "clicked_by_bot": "clicked_by_bot=true" in str(getattr(result, "detail", "")).casefold(),
+        "clicked_by_bot": "clicked_by_bot=true" in detail.casefold(),
     }
+
+
+def _assert_session_is_distinct(
+    config: AccountRunConfig,
+    session: dict[str, Any],
+) -> None:
+    comparisons: list[tuple[str, dict[str, Any] | None]] = [
+        ("account1", account2.primary_auto._storage_state()),
+    ]
+    if config.name == "account3":
+        comparisons.append(("account2", account2.storage_state()))
+    persistent.assert_distinct_session(config.name, session, *comparisons)
 
 
 def run_configured_account(
@@ -110,6 +149,7 @@ def run_configured_account(
     session = config.session_getter()
     if session is None:
         raise RuntimeError(config.missing_session_error)
+    _assert_session_is_distinct(config, session)
 
     state = account2._load_json(monitor.STATE_PATH, {})
     if not isinstance(state, dict):
@@ -147,12 +187,12 @@ def run_configured_account(
 
         token = _account_event_token(config, item, key)
         previous = events.get(token)
-        if not account2._should_attempt(previous, current):
+        if not _should_attempt(previous, current):
             skipped += 1
             continue
 
         attempted += 1
-        result = account2._participate_with_storage(url, session)
+        result = persistent.participate_with_persistence_proof(url, session)
         wheel_publications_v2.apply_referral_context(
             state,
             item,
@@ -179,7 +219,10 @@ def run_configured_account(
             "clicked_by_bot": causal["clicked_by_bot"],
         }
 
-        if result.success:
+        if result.success and causal["status"] in {
+            "participated",
+            "already_participating",
+        }:
             record["bot_success_pending_at"] = current.isoformat()
             record["bot_success_sync_status"] = "waiting_for_control_center"
             record["bot_success_sync_version"] = 1
@@ -232,10 +275,12 @@ def run_account(
 
 
 def self_test() -> None:
+    persistent.self_test()
     second = account_config("account2")
     third = account_config("account3")
     assert second.account_key == "vyacheslav_secondary"
     assert third.account_key == "xflarxx_primary"
+    assert second.multi_account_version == 4
     item = {
         "wheel_key": "wheel",
         "action_id": 42,
@@ -245,6 +290,12 @@ def self_test() -> None:
         "#account:vyacheslav_secondary"
     )
     assert _account_event_token(third, item).endswith("#account:xflarxx_primary")
+    assert _old_post_click_only_success(
+        {"status": "participated", "confirmation_method": "betboom_post_click"}
+    )
+    assert not _old_post_click_only_success(
+        {"status": "participated", "confirmation_method": "betboom_post_reload"}
+    )
 
     class Result:
         detail = ""
@@ -256,11 +307,17 @@ def self_test() -> None:
     assert fields["participation_origin"] == "preexisting_verified"
 
     Result.status = "participated"
-    Result.detail = "clicked_by_bot=true"
+    Result.detail = persistent.PERSISTENCE_VERIFIED_MARKER
     fields = _causal_fields(Result())
     assert fields["status"] == "participated"
     assert fields["clicked_by_bot"] is True
     assert fields["participation_origin"] == "automatic"
+    assert fields["confirmation_method"] == "betboom_post_reload"
+
+    Result.detail = "clicked_by_bot=true"
+    fields = _causal_fields(Result())
+    assert fields["status"] == "unconfirmed"
+    assert fields["confirmation_method"] == "betboom_post_click"
     print("shared secondary BetBoom participation runner self-test passed")
 
 
