@@ -1,5 +1,10 @@
 {
-  "cache": {},
+  "cache": {
+    "fc0c201649e9170090bfdd73117f120d736ad8e269949f8132f1b918f662f0b3": {
+      "expires_at": 1788711894.6594229,
+      "text": "{\n  \"summary\": \"Система мониторинга BB V.G. находится в критическом состоянии: из 177 настроенных источников проверяются только 175, а транспортная проверка inventory не подтверждена.\",\n  \"impact\": \"Мониторинг работает неполноценно, данные по источникам @bbwheel и @BBfreestream отсутствуют, что может привести к пропуску инцидентов в этих сегментах.\",\n  \"recommended_action\": \"Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска двух источников.\",\n  \"confidence\": \"high\"\n}"
+    }
+  },
   "decisions": [
     {
       "cached": false,
@@ -2928,10 +2933,20 @@
       "output_sha256": "d83e784f0591913279e1dcfff4b8935799f3e4d0d2696ad2952a8bed647ceed4",
       "provider": "gemini",
       "status": "provider_error"
+    },
+    {
+      "cached": false,
+      "created_at": 1788710994.6594229,
+      "feature": "health_inspector",
+      "id": "bd45fb0c967d49d7b610248aea6cba34",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "4c5172e68e2c1aecbf7933fcb5a2a3ba569cc85c9c75818ba5d4b242c1233ee2",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788709358.7894967
+    1788710994.6594229
   ],
   "version": 1
 }
