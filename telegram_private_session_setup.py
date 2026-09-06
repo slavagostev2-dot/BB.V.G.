@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import getpass
 import json
 import sys
 from urllib.parse import parse_qs, urlsplit
@@ -90,11 +89,11 @@ def main() -> int:
         return 2
 
     print("Локальная настройка доступа BB.V.G. к закрытому Telegram-каналу.")
-    print("Секреты остаются на вашем компьютере; не отправляйте session string в чат.")
+    print("Все вводимые значения отображаются в консоли по вашему выбору.")
     api_id = _numeric_api_id(input("Telegram API ID: "))
-    api_hash = getpass.getpass("Telegram API hash: ").strip()
+    api_hash = input("Telegram API hash: ").strip()
     phone = input("Номер Telegram в международном формате (+...): ").strip()
-    proxy_link = getpass.getpass(
+    proxy_link = input(
         "Ссылка MTProto proxy из t.me/proxy (Enter = подключаться напрямую): "
     ).strip()
     if not api_hash or not phone:
@@ -116,7 +115,11 @@ def main() -> int:
 
     client = TelegramClient(StringSession(), api_id, api_hash, **client_kwargs)
     try:
-        client.start(phone=phone)
+        client.start(
+            phone=phone,
+            code_callback=lambda: input("Код Telegram: ").strip(),
+            password=lambda: input("Пароль 2FA Telegram (если включён): "),
+        )
         dialogs = []
         for dialog in client.iter_dialogs():
             entity = getattr(dialog, "entity", None)
@@ -163,13 +166,12 @@ def main() -> int:
 
         print("\nГотово. В GitHub → Settings → Secrets and variables → Actions добавьте 4 secrets:")
         print(f"1. TELEGRAM_API_ID = {api_id}")
-        print("2. TELEGRAM_API_HASH = значение API hash")
-        print("3. TELEGRAM_USER_SESSION = строка ниже")
+        print(f"2. TELEGRAM_API_HASH = {api_hash}")
+        print("3. TELEGRAM_USER_SESSION =")
         print(session)
         print("4. TELEGRAM_PRIVATE_SOURCES_JSON =")
         print(source_json)
         print(f"\nВыбран канал: {title}")
-        print("TELEGRAM_USER_SESSION равнозначен ключу входа. Никому его не отправляйте.")
         return 0
     finally:
         client.disconnect()
