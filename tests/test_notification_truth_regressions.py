@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import betboom_participation_browser as browser
 import monitor_entry
+import notification_router
 
 UTC = timezone.utc
 
@@ -45,3 +46,13 @@ def test_post_click_layout_is_not_confirmation_when_authentication_is_visible() 
         promo_details_visible=True,
         authentication_required=True,
     )
+
+
+def test_explicit_notification_kind_has_priority_and_scope_resets() -> None:
+    text = "⚠️ Ошибка в тексте пользовательской карточки"
+    assert notification_router.notification_kind(text) == "admin_system"
+    with notification_router.notification_kind_scope(
+        notification_router.KIND_WHEELS
+    ):
+        assert notification_router.resolve_notification_kind(text) == "wheels"
+    assert notification_router.resolve_notification_kind(text) == "admin_system"
