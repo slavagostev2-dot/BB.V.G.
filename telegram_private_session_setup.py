@@ -3,6 +3,7 @@ from __future__ import annotations
 import getpass
 import json
 import sys
+from urllib.parse import parse_qs, urlsplit
 
 
 def _numeric_api_id(value: str) -> int:
@@ -22,8 +23,43 @@ def _channel_id(entity: object) -> int:
     return value
 
 
+def _parse_mtproxy_link(value: str) -> tuple[str, int, str]:
+    raw = value.strip()
+    if not raw:
+        raise ValueError("пустая ссылка MTProto proxy")
+
+    parsed = urlsplit(raw)
+    host = parsed.hostname or ""
+    path = parsed.path.rstrip("/").lower()
+    if parsed.scheme in {"http", "https"}:
+        if host.lower() not in {"t.me", "telegram.me", "www.t.me", "www.telegram.me"}:
+            raise ValueError("ожидается ссылка t.me/proxy или telegram.me/proxy")
+        if path != "/proxy":
+            raise ValueError("ожидается ссылка вида https://t.me/proxy?server=...&port=...&secret=...")
+    elif parsed.scheme == "tg":
+        if parsed.netloc.lower() != "proxy":
+            raise ValueError("ожидается ссылка tg://proxy?... ")
+    else:
+        raise ValueError("неподдерживаемый формат ссылки MTProto proxy")
+
+    query = parse_qs(parsed.query, keep_blank_values=False)
+    server = str((query.get("server") or [""])[0]).strip()
+    secret = str((query.get("secret") or [""])[0]).strip()
+    port_raw = str((query.get("port") or [""])[0]).strip()
+    if not server or not secret or not port_raw:
+        raise ValueError("в ссылке должны быть server, port и secret")
+    try:
+        port = int(port_raw)
+    except ValueError as exc:
+        raise ValueError("port в ссылке proxy должен быть числом") from exc
+    if not 1 <= port <= 65535:
+        raise ValueError("port в ссылке proxy вне диапазона 1..65535")
+    return server, port, secret
+
+
 def main() -> int:
     try:
+        from telethon import connection
         from telethon.sessions import StringSession
         from telethon.sync import TelegramClient
     except ImportError:
@@ -38,11 +74,27 @@ def main() -> int:
     api_id = _numeric_api_id(input("Telegram API ID: "))
     api_hash = getpass.getpass("Telegram API hash: ").strip()
     phone = input("Номер Telegram в международном формате (+...): ").strip()
+    proxy_link = getpass.getpass(
+        "Ссылка MTProto proxy из t.me/proxy (Enter = подключаться напрямую): "
+    ).strip()
     if not api_hash or not phone:
         print("API hash и номер телефона обязательны.", file=sys.stderr)
         return 2
 
-    client = TelegramClient(StringSession(), api_id, api_hash)
+    client_kwargs = {}
+    if proxy_link:
+        try:
+            mtproxy = _parse_mtproxy_link(proxy_link)
+        except ValueError as exc:
+            print(f"Некорректная ссылка MTProto proxy: {exc}", file=sys.stderr)
+            return 2
+        client_kwargs = {
+            "connection": connection.ConnectionTcpMTProxyRandomizedIntermediate,
+            "proxy": mtproxy,
+        }
+        print("MTProto proxy включен для локальной авторизации.")
+
+    client = TelegramClient(StringSession(), api_id, api_hash, **client_kwargs)
     try:
         client.start(phone=phone)
         dialogs = []
