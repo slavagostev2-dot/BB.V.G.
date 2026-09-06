@@ -12,6 +12,10 @@ UTC = timezone.utc
 ALIAS_RE = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 DEFAULT_LIMIT = 40
 MAX_LIMIT = 100
+AUTH_PUBLIC_FALLBACK_MAX_SOURCES = max(
+    1,
+    min(20, int(os.getenv("TELEGRAM_AUTH_PUBLIC_FALLBACK_MAX_SOURCES", "8"))),
+)
 
 
 @dataclass(frozen=True)
@@ -129,14 +133,23 @@ def _private_message_url(entity: Any, message_id: int) -> str:
     return f"https://telegram.me/c/{channel_id}/{int(message_id)}"
 
 
+def _source_alias(source: PrivateSource | str) -> str:
+    if isinstance(source, PrivateSource):
+        return source.alias
+    return str(source or "").strip().lstrip("@")
+
+
 def _to_monitor_message(
     monitor_module: Any,
-    source: PrivateSource,
+    source: PrivateSource | str,
     entity: Any,
     message: Any,
 ):
     message_id = int(getattr(message, "id", 0) or 0)
     if message_id <= 0:
+        return None
+    alias = _source_alias(source)
+    if not alias:
         return None
     raw_text = str(
         getattr(message, "raw_text", None)
@@ -150,7 +163,7 @@ def _to_monitor_message(
     if date.tzinfo is None:
         date = date.replace(tzinfo=UTC)
     return monitor_module.Message(
-        source=source.alias,
+        source=alias,
         message_id=message_id,
         date=date,
         text=text,
@@ -180,6 +193,17 @@ def _resolve_entities(client: Any, sources: list[PrivateSource]) -> dict[str, An
     return found
 
 
+def _telethon_types():
+    try:
+        from telethon.sessions import StringSession
+        from telethon.sync import TelegramClient
+    except ImportError as exc:
+        raise RuntimeError(
+            f"dependency_missing: {type(exc).__name__}: {exc}"
+        ) from exc
+    return StringSession, TelegramClient
+
+
 def fetch_private_sources(
     monitor_module: Any,
     requested: list[PrivateSource],
@@ -192,15 +216,9 @@ def fetch_private_sources(
 
     try:
         api_id, api_hash, session = _credentials()
+        StringSession, TelegramClient = _telethon_types()
     except RuntimeError as exc:
         detail = f"{type(exc).__name__}: {exc}"
-        return {}, {source.alias: detail for source in requested}, []
-
-    try:
-        from telethon.sessions import StringSession
-        from telethon.sync import TelegramClient
-    except ImportError as exc:
-        detail = f"dependency_missing: {type(exc).__name__}: {exc}"
         return {}, {source.alias: detail for source in requested}, []
 
     client = None
@@ -246,6 +264,112 @@ def fetch_private_sources(
                 client.disconnect()
             except Exception:
                 pass
+    return results, errors, empty
+
+
+def fetch_authenticated_public_sources(
+    monitor_module: Any,
+    requested: list[str],
+) -> tuple[dict[str, list[Any]], dict[str, str], list[str]]:
+    """Read a small set of public aliases through the existing user session.
+
+    This is a fallback only for public web feeds that opened successfully but
+    yielded no Telegram messages. It never joins a channel and keeps the configured
+    public alias as the source identity, so wheel deduplication remains unchanged.
+    """
+
+    aliases = [
+        str(value or "").strip().lstrip("@")
+        for value in requested
+        if str(value or "").strip().lstrip("@")
+    ]
+    if not aliases:
+        return {}, {}, []
+
+    results: dict[str, list[Any]] = {}
+    errors: dict[str, str] = {}
+    empty: list[str] = []
+    try:
+        api_id, api_hash, session = _credentials()
+        StringSession, TelegramClient = _telethon_types()
+    except RuntimeError as exc:
+        detail = f"{type(exc).__name__}: {exc}"[:500]
+        return {}, {alias: detail for alias in aliases}, []
+
+    client = None
+    try:
+        client = TelegramClient(StringSession(session), api_id, api_hash)
+        client.connect()
+        if not client.is_user_authorized():
+            detail = "authorization_required: Telegram user session is no longer authorized"
+            return {}, {alias: detail for alias in aliases}, []
+        limit = _message_limit()
+        for alias in aliases:
+            try:
+                # Resolving a public @username does not join or subscribe the user.
+                entity = client.get_entity(alias)
+                rows = list(client.get_messages(entity, limit=limit) or [])
+            except Exception as exc:
+                errors[alias] = f"{type(exc).__name__}: {exc}"[:500]
+                continue
+            messages = []
+            for row in rows:
+                converted = _to_monitor_message(monitor_module, alias, entity, row)
+                if converted is not None:
+                    messages.append(converted)
+            messages.sort(key=lambda item: item.message_id)
+            if messages:
+                results[alias] = messages
+            else:
+                empty.append(alias)
+    except Exception as exc:
+        detail = f"{type(exc).__name__}: {exc}"[:500]
+        for alias in aliases:
+            if alias not in results and alias not in errors:
+                errors[alias] = detail
+    finally:
+        if client is not None:
+            try:
+                client.disconnect()
+            except Exception:
+                pass
+    return results, errors, empty
+
+
+def _authenticated_public_fallback_candidates(
+    public_requested: list[str],
+    empty: list[str],
+) -> list[str]:
+    """Bound fallback work so a correlated Telegram outage cannot fan out."""
+
+    empty_keys = {str(value).casefold() for value in empty}
+    if not empty_keys or len(empty_keys) > AUTH_PUBLIC_FALLBACK_MAX_SOURCES:
+        return []
+    return [
+        source
+        for source in public_requested
+        if str(source).casefold() in empty_keys
+    ]
+
+
+def _apply_authenticated_public_fallback(
+    results: dict[str, list[Any]],
+    errors: dict[str, str],
+    empty: list[str],
+    fallback_results: dict[str, list[Any]],
+) -> tuple[dict[str, list[Any]], dict[str, str], list[str]]:
+    """Replace only empty public-feed outcomes that authenticated reads recovered."""
+
+    recovered = {str(source).casefold() for source in fallback_results}
+    if not recovered:
+        return results, errors, empty
+    for source, messages in fallback_results.items():
+        results[source] = messages
+        errors.pop(source, None)
+        for key in list(errors):
+            if str(key).casefold() == str(source).casefold():
+                errors.pop(key, None)
+    empty = [value for value in empty if str(value).casefold() not in recovered]
     return results, errors, empty
 
 
@@ -297,15 +421,46 @@ def install(monitor_module: Any) -> None:
                 private_requested.append(private)
 
         results, errors, empty = original_fetch_all(public_requested)
-        if not private_requested:
-            return results, errors, empty
-        private_results, private_errors, private_empty = fetch_private_sources(
-            monitor_module,
-            private_requested,
+
+        fallback_requested = _authenticated_public_fallback_candidates(
+            public_requested,
+            empty,
         )
-        results.update(private_results)
-        errors.update(private_errors)
-        empty.extend(private_empty)
+        if fallback_requested:
+            fallback_results, fallback_errors, fallback_empty = (
+                fetch_authenticated_public_sources(
+                    monitor_module,
+                    fallback_requested,
+                )
+            )
+            results, errors, empty = _apply_authenticated_public_fallback(
+                results,
+                errors,
+                empty,
+                fallback_results,
+            )
+            if fallback_errors:
+                print(
+                    "WARNING authenticated public Telegram fallback: "
+                    + ", ".join(
+                        f"{source}={detail}"
+                        for source, detail in sorted(fallback_errors.items())
+                    )[:1000]
+                )
+            if fallback_empty:
+                print(
+                    "INFO authenticated public Telegram fallback remained empty: "
+                    + ", ".join(sorted(fallback_empty, key=str.casefold))
+                )
+
+        if private_requested:
+            private_results, private_errors, private_empty = fetch_private_sources(
+                monitor_module,
+                private_requested,
+            )
+            results.update(private_results)
+            errors.update(private_errors)
+            empty.extend(private_empty)
         return results, errors, sorted(set(empty), key=str.casefold)
 
     # Existing production contracts intentionally expose the public collector as
@@ -350,7 +505,22 @@ def self_test() -> None:
     assert _extra_urls(Message()) == [
         "https://betboom.ru/freestream/private-test"
     ]
-    print("authenticated private Telegram source self-test passed")
+    assert _authenticated_public_fallback_candidates(
+        ["one", "bbwheel", "three"],
+        ["bbwheel"],
+    ) == ["bbwheel"]
+    original_results = {"one": [1]}
+    original_errors = {"bbwheel": "empty_public_feed"}
+    merged_results, merged_errors, merged_empty = _apply_authenticated_public_fallback(
+        original_results,
+        original_errors,
+        ["bbwheel"],
+        {"bbwheel": [2, 3]},
+    )
+    assert merged_results == {"one": [1], "bbwheel": [2, 3]}
+    assert "bbwheel" not in merged_errors
+    assert merged_empty == []
+    print("authenticated private/public Telegram source self-test passed")
 
 
 if __name__ == "__main__":
