@@ -13,6 +13,7 @@ import wheel_detection_reliability
 import xflarxx_account_participation
 import xflarxx_runtime_integration
 from admin_panel_runtime_v41 import TelegramPanelRuntimeV41
+from bbvg.bot import wheel_screen
 
 
 FAST_SYNC_INTERVAL_SECONDS = 5
@@ -201,7 +202,10 @@ def _install_auto_outcome_delivery_claims() -> None:
 
 
 class TelegramPanelRuntimeButtonRecovery(TelegramPanelRuntimeV41):
-    """Compatibility entrypoint; personal wheel callbacks have one subject owner."""
+    """Live Control Center entrypoint with one production wheels-screen owner."""
+
+    def show_active(self, page: int = 0) -> None:
+        wheel_screen.render(self, page)
 
 
 _install_fast_outcome_policy()
