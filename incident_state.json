@@ -1,5 +1,5 @@
 {
-  "active_count": 3,
+  "active_count": 4,
   "incidents": {
     "system_checks:discovery_domain:9e6b37ba02c42a92": {
       "detail": "Ожидался telegram.me, записано нет данных.",
@@ -80,6 +80,8 @@
       "occurrences": 47,
       "open_notification_pending": false,
       "opened_sequence": 195,
+      "recovery_candidate_since": "2026-09-06T17:44:54.997564+00:00",
+      "recovery_confirmation_pending": true,
       "reopen_notification_suppressed_at": "2026-07-18T18:35:18.762046+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
       "resolution_notification_expired_at": "2026-09-05T04:26:45.592176+00:00",
@@ -133,6 +135,24 @@
       "status": "resolved",
       "subject": "",
       "title": "Рейтинг источников не совпадает с личными голосами"
+    },
+    "system_checks:source_empty_public_feed:2193f83d5f5516c3": {
+      "detail": "публичная страница открылась, но сообщений не найдено",
+      "first_seen_at": "2026-09-06T17:44:54.997564+00:00",
+      "key": "system_checks:source_empty_public_feed:2193f83d5f5516c3",
+      "kind": "source_empty_public_feed",
+      "last_seen_at": "2026-09-06T17:44:54.997564+00:00",
+      "lifecycle_started_at": "2026-09-06T17:44:54.997564+00:00",
+      "metadata": {},
+      "notification_stabilizing_until": "2026-09-06T17:49:54.997564+00:00",
+      "occurrences": 1,
+      "open_notification_pending": false,
+      "opened_sequence": 198,
+      "scope": "system_checks",
+      "severity": "critical",
+      "status": "active",
+      "subject": "bbwheel",
+      "title": "Источник @bbwheel не проверяется"
     },
     "system_checks:source_empty_public_feed:30ebea7653b018d8": {
       "detail": "публичная страница открылась, но сообщений не найдено",
@@ -191,6 +211,8 @@
       "occurrences": 49,
       "open_notification_pending": false,
       "opened_sequence": 196,
+      "recovery_candidate_since": "2026-09-06T17:44:54.997564+00:00",
+      "recovery_confirmation_pending": true,
       "reopen_notification_suppressed_at": "2026-07-18T18:35:18.762046+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
       "resolution_notification_expired_at": "2026-09-05T04:26:45.592176+00:00",
@@ -246,17 +268,17 @@
       "title": "Не подтверждён ручной режим ночных источников"
     },
     "system_checks:source_transport_smoke:581b534aecd3e81e": {
-      "detail": "status=success; domain=telegram.me; primary=175/177; nightly=0/0; accounted=175/177; reachable=175/177; errors=0; missing=0.",
+      "detail": "status=success; domain=telegram.me; primary=178/177; nightly=0/0; accounted=178/177; reachable=178/177; errors=0; missing=0.",
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
       "kind": "source_transport_smoke",
-      "last_seen_at": "2026-09-06T16:09:54.656066+00:00",
+      "last_seen_at": "2026-09-06T17:44:54.997564+00:00",
       "lifecycle_started_at": "2026-09-06T16:09:54.656066+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-09-06T10:28:56.714451+00:00",
-      "notification_stabilizing_until": "2026-09-06T16:14:54.656066+00:00",
-      "occurrences": 52,
+      "occurrences": 53,
       "open_notification_pending": false,
+      "open_notified_at": "2026-09-06T17:44:56.223535+00:00",
       "opened_sequence": 197,
       "reopen_notification_suppressed_at": "2026-07-18T15:32:04.735808+00:00",
       "reopen_notification_suppressed_until": "2026-07-18T21:16:54.984258+00:00",
@@ -312,17 +334,17 @@
       "title": "Источники попали в карантин"
     }
   },
-  "last_change_at": "2026-09-06T16:09:54.656066+00:00",
-  "last_reconcile_at": "2026-09-06T16:09:54.656066+00:00",
+  "last_change_at": "2026-09-06T17:44:54.997564+00:00",
+  "last_reconcile_at": "2026-09-06T17:44:54.997564+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 3,
-    "new_notification_count": 0,
+    "active": 4,
+    "new_notification_count": 1,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 197,
+  "sequence": 198,
   "status": "initializing",
-  "updated_at": "2026-09-06T16:09:54.656258+00:00",
+  "updated_at": "2026-09-06T17:44:56.223566+00:00",
   "version": 1
 }
