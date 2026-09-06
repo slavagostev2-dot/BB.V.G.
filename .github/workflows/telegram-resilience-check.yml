@@ -27,6 +27,8 @@ permissions:
 
 jobs:
   validate:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -83,6 +85,7 @@ jobs:
           PY
 
       - name: Probe one source through authenticated Telegram API
+        id: api_probe
         if: github.event_name == 'workflow_dispatch' && inputs.api_probe_source != ''
         env:
           API_PROBE_SOURCE: ${{ inputs.api_probe_source }}
@@ -93,7 +96,6 @@ jobs:
         run: |
           python - <<'PY'
           import os
-          import sys
 
           import bbvg_monitor_main as runtime
           import telegram_private_sources
@@ -124,3 +126,72 @@ jobs:
           print(f"authenticated_api_probe status=no_result source=@{alias}")
           raise SystemExit(5)
           PY
+
+      - name: Release stale public-feed quarantine after API proof
+        if: github.event_name == 'workflow_dispatch' && inputs.api_probe_source != '' && steps.api_probe.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          API_PROBE_SOURCE: ${{ inputs.api_probe_source }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          alias="${API_PROBE_SOURCE#@}"
+          alias=$(printf '%s' "$alias" | tr '[:upper:]' '[:lower:]')
+          tmp=$(mktemp)
+          raw=$(mktemp)
+
+          meta=$(gh api "/repos/${GITHUB_REPOSITORY}/contents/source_health.json?ref=runtime-state")
+          sha=$(printf '%s' "$meta" | jq -r '.sha')
+          printf '%s' "$meta" | jq -r '.content' | tr -d '\n' | base64 -d > "$raw"
+
+          python - "$raw" "$tmp" "$alias" <<'PY'
+          import json
+          import sys
+
+          source_path, output_path, wanted = sys.argv[1:]
+          with open(source_path, encoding="utf-8") as stream:
+              data = json.load(stream)
+          sources = data.get("sources") if isinstance(data, dict) else None
+          if not isinstance(sources, dict):
+              raise SystemExit("source_health.json has no sources mapping")
+
+          matched = None
+          for name, entry in sources.items():
+              if str(name).casefold() == wanted.casefold() and isinstance(entry, dict):
+                  matched = entry
+                  break
+          if matched is None:
+              raise SystemExit(f"source @{wanted} is absent from runtime health")
+
+          changed = False
+          if (
+              str(matched.get("status") or "") == "quarantined"
+              and str(matched.get("failure_code") or "") == "empty_public_feed"
+          ):
+              matched["status"] = "unknown"
+              matched["consecutive_empty"] = 0
+              for field in (
+                  "quarantined_at",
+                  "next_recheck_at",
+                  "failure_code",
+                  "failure_reason",
+                  "last_error",
+              ):
+                  matched.pop(field, None)
+              changed = True
+
+          with open(output_path, "w", encoding="utf-8") as stream:
+              json.dump(data, stream, ensure_ascii=False, indent=2, sort_keys=True)
+              stream.write("\n")
+          print(
+              f"authenticated_api_quarantine_release source=@{wanted} "
+              f"changed={'yes' if changed else 'no'}"
+          )
+          PY
+
+          encoded=$(base64 -w0 "$tmp")
+          gh api --method PUT "/repos/${GITHUB_REPOSITORY}/contents/source_health.json" \
+            -f message="Release stale public-feed quarantine after authenticated API proof [skip ci]" \
+            -f content="$encoded" \
+            -f sha="$sha" \
+            -f branch=runtime-state >/dev/null
