@@ -7,6 +7,7 @@ from typing import Any, Callable
 
 import betboom_account_participation as account2
 import betboom_auto_participation as auto
+import betboom_profile_identity as profile_identity
 
 
 PERSISTENCE_VERIFIED_MARKER = "server_persistence_verified=true"
@@ -45,6 +46,23 @@ def assert_distinct_session(
             )
 
 
+def _assert_resolved_profile_slot(storage_state: dict[str, Any]) -> None:
+    """Reject a distinct storage blob that resolves to another configured profile."""
+
+    second = account2.storage_state()
+    if second is not None and storage_state == second:
+        profile_identity.assert_account_slot_distinct(account2.ACCOUNT_KEY)
+        return
+
+    # Import lazily to avoid widening the module dependency graph during unit
+    # self-tests and primary-account startup.
+    import xflarxx_account_participation as account3
+
+    third = account3.storage_state()
+    if third is not None and storage_state == third:
+        profile_identity.assert_account_slot_distinct(account3.ACCOUNT_KEY)
+
+
 def participate_with_persistence_proof(
     url: str,
     storage_state: dict[str, Any],
@@ -59,7 +77,14 @@ def participate_with_persistence_proof(
     That UI transition is not authoritative. A successful automatic result is only
     returned after a separate browser context, created from the saved session,
     opens the same wheel and observes participation *before* any new click.
+
+    Production calls also resolve the authenticated BetBoom profile behind the
+    storage state. Two different cookie blobs are not allowed to masquerade as
+    separate account slots when BetBoom resolves them to the same profile.
     """
+
+    if participate_once is None:
+        _assert_resolved_profile_slot(storage_state)
 
     runner = participate_once or account2._participate_with_storage
     initial = runner(url, storage_state)
@@ -124,6 +149,7 @@ def participate_with_persistence_proof(
 
 
 def self_test() -> None:
+    profile_identity.self_test()
     state = {"cookies": [{"name": "session", "value": "a"}]}
     assert session_fingerprint(state) == session_fingerprint(dict(state))
     try:
