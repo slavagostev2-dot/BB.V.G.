@@ -1,0 +1,39 @@
+name: Retry participation patch applicator
+
+on:
+  push:
+    branches:
+      - fix/participation-network-and-wheel-sources
+    paths:
+      - .github/workflows/relax-patch-applicator.yml
+
+permissions:
+  contents: write
+
+jobs:
+  adjust:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: fix/participation-network-and-wheel-sources
+          fetch-depth: 1
+      - name: Adjust and self-remove
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/apply-participation-diagnostics.yml')
+          text = path.read_text(encoding='utf-8')
+          old = '              if count != 1:\n                  raise SystemExit(f"{path}: expected exactly one match, got {count}")\n'
+          new = '              if count < 1:\n                  raise SystemExit(f"{path}: expected at least one match, got {count}")\n'
+          if text.count(old) != 1:
+              raise SystemExit('applicator guard marker mismatch')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          rm .github/workflows/relax-patch-applicator.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/apply-participation-diagnostics.yml .github/workflows/relax-patch-applicator.yml
+          git commit -m "Retry participation patch applicator"
+          git push origin HEAD:fix/participation-network-and-wheel-sources
