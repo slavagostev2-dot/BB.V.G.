@@ -1,19 +1,118 @@
 {
-  "candidates": {},
-  "edges": {},
+  "candidates": {
+    "littlecsgo": {
+      "admin_alert_delivery_count": 1,
+      "admin_alerted_at": "2026-09-06T20:32:41.297294+00:00",
+      "candidate_signals": [
+        "киберспорт и игры",
+        "колёса и акции",
+        "стримы"
+      ],
+      "context_signals": [
+        "колёса и акции"
+      ],
+      "discovered_from": [
+        "f_1ncsgo",
+        "GromoZekaCS",
+        "sheyl31"
+      ],
+      "evidence": [
+        {
+          "from": "GromoZekaCS",
+          "message_url": "https://telegram.me/GromoZekaCS/2663",
+          "method": "тематическое упоминание или ссылка Telegram",
+          "published_at": "2026-08-10T10:32:18+00:00",
+          "signals": [
+            "колёса и акции"
+          ]
+        },
+        {
+          "from": "f_1ncsgo",
+          "message_url": "https://telegram.me/f_1ncsgo/1941",
+          "method": "тематическое упоминание или ссылка Telegram",
+          "published_at": "2026-08-10T11:40:17+00:00",
+          "signals": [
+            "колёса и акции"
+          ]
+        },
+        {
+          "from": "sheyl31",
+          "message_url": "https://telegram.me/sheyl31/2954",
+          "method": "тематическое упоминание или ссылка Telegram",
+          "published_at": "2026-08-11T03:54:30+00:00",
+          "signals": [
+            "колёса и акции"
+          ]
+        }
+      ],
+      "first_discovered_at": "2026-09-06T20:32:40.844469+00:00",
+      "last_discovered_at": "2026-09-06T20:32:40.844466+00:00",
+      "last_lifecycle_run": "2026-09-06T20:32:40.846919+00:00",
+      "last_verified_at": "2026-09-06T20:32:40.844472+00:00",
+      "latest_wheel_at": "2026-09-06T14:25:30+00:00",
+      "lifecycle_reason": "найдена ссылка на колесо и общий рейтинг кандидата 67/100",
+      "lifecycle_status": "recommended",
+      "mention_count": 3,
+      "messages_checked": 19,
+      "observation_days": 0,
+      "observation_runs": 1,
+      "public": true,
+      "recommendation_alert_count": 1,
+      "recommendation_alerted_at": "2026-09-06T20:32:41.297294+00:00",
+      "recommended_at": "2026-09-06T20:32:40.854878+00:00",
+      "relevance_status": "relevant",
+      "relevant_messages_found": 4,
+      "sample_wheels": [
+        {
+          "identifier": "little1",
+          "message_url": "https://telegram.me/littlecsgo/5351",
+          "published_at": "2026-09-06T14:25:30+00:00",
+          "url": "https://betboom.ru/freestream/little1"
+        }
+      ],
+      "score": 67,
+      "source": "littlecsgo",
+      "status": "ok",
+      "username_signals": [],
+      "wheel_links_found": 1
+    }
+  },
+  "edges": {
+    "f_1ncsgo->littlecsgo": {
+      "count": 1,
+      "first_seen_at": "2026-09-06T20:32:31.891185+00:00",
+      "from": "f_1ncsgo",
+      "last_seen_at": "2026-09-06T20:32:31.891187+00:00",
+      "to": "littlecsgo"
+    },
+    "gromozekacs->littlecsgo": {
+      "count": 1,
+      "first_seen_at": "2026-09-06T20:32:31.748026+00:00",
+      "from": "GromoZekaCS",
+      "last_seen_at": "2026-09-06T20:32:31.748029+00:00",
+      "to": "littlecsgo"
+    },
+    "sheyl31->littlecsgo": {
+      "count": 1,
+      "first_seen_at": "2026-09-06T20:32:32.056712+00:00",
+      "from": "sheyl31",
+      "last_seen_at": "2026-09-06T20:32:32.056714+00:00",
+      "to": "littlecsgo"
+    }
+  },
   "last_errors": [],
-  "last_run_at": "2026-09-06T10:33:19.791991+00:00",
+  "last_run_at": "2026-09-06T20:32:40.846919+00:00",
   "last_run_summary": {
-    "empty_sources": 0,
+    "empty_sources": 1,
     "error_types": {},
     "errors": 0,
-    "known_sources": 175,
-    "references_found": 355,
-    "relevant_candidates": 173,
-    "sources_scanned": 175,
-    "strong_candidates": 4,
+    "known_sources": 177,
+    "references_found": 343,
+    "relevant_candidates": 171,
+    "sources_scanned": 177,
+    "strong_candidates": 6,
     "telegram_domain": "telegram.me",
-    "unique_candidates": 173,
+    "unique_candidates": 171,
     "verified_candidates": 150,
     "workers": 12
   },
@@ -242,6 +341,21 @@
       "unique_candidates": 173,
       "verified_candidates": 150,
       "workers": 12
+    },
+    {
+      "at": "2026-09-06T20:32:40.847013+00:00",
+      "empty_sources": 1,
+      "error_types": {},
+      "errors": 0,
+      "known_sources": 177,
+      "references_found": 343,
+      "relevant_candidates": 171,
+      "sources_scanned": 177,
+      "strong_candidates": 6,
+      "telegram_domain": "telegram.me",
+      "unique_candidates": 171,
+      "verified_candidates": 150,
+      "workers": 12
     }
   ],
   "source_discovery_lifecycle": {
@@ -249,14 +363,14 @@
       "approved": 0,
       "candidate": 0,
       "observed": 0,
-      "recommended": 0,
+      "recommended": 1,
       "rejected": 0
     },
-    "evaluated_at": "2026-09-06T10:33:19.797630+00:00",
-    "recommended": 0,
-    "run_marker": "2026-09-06T10:33:19.791991+00:00"
+    "evaluated_at": "2026-09-06T20:32:40.854892+00:00",
+    "recommended": 1,
+    "run_marker": "2026-09-06T20:32:40.846919+00:00"
   },
   "telegram_domain": "telegram.me",
-  "updated_at": "2026-09-06T10:33:19.797851+00:00",
+  "updated_at": "2026-09-06T20:32:41.297355+00:00",
   "version": 1
 }
