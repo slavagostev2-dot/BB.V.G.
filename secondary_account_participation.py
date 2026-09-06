@@ -41,7 +41,7 @@ def account_config(name: str) -> AccountRunConfig:
             account_key=account2.ACCOUNT_KEY,
             account_owner=account2.ACCOUNT_OWNER,
             account_order=account2.ACCOUNT_ORDER,
-            multi_account_version=4,
+            multi_account_version=5,
             last_run_state_field="last_secondary_account_participation_at",
             session_getter=account2.storage_state,
             label_getter=account2.account_label,
@@ -58,7 +58,7 @@ def account_config(name: str) -> AccountRunConfig:
             account_key=account3.ACCOUNT_KEY,
             account_owner=account3.ACCOUNT_OWNER,
             account_order=account3.ACCOUNT_ORDER,
-            multi_account_version=4,
+            multi_account_version=5,
             last_run_state_field="last_xflarxx_account_participation_at",
             session_getter=account3.storage_state,
             label_getter=account3.account_label,
@@ -91,7 +91,25 @@ def _old_post_click_only_success(previous: Any) -> bool:
     )
 
 
-def _should_attempt(previous: Any, current: Any) -> bool:
+def _same_auth_revision(previous: Any, auth_revision: str) -> bool:
+    return bool(
+        isinstance(previous, dict)
+        and auth_revision
+        and str(previous.get("auth_revision") or "") == auth_revision
+    )
+
+
+def _should_attempt(
+    previous: Any,
+    current: Any,
+    auth_revision: str,
+) -> bool:
+    # A participation result belongs to the BetBoom profile that produced it,
+    # not merely to the logical slot name. Old rows without auth_revision are
+    # deliberately rechecked once while the wheel is active because identity
+    # continuity cannot be proven for them.
+    if isinstance(previous, dict) and not _same_auth_revision(previous, auth_revision):
+        return True
     # PR #344 accepted the exact BetBoom success label immediately after our
     # click. The live zonertg11 incident proved that this can be optimistic UI
     # and not persisted server state. Re-check those old claims while the wheel
@@ -153,7 +171,11 @@ def run_configured_account(
     _assert_session_is_distinct(config, session)
     # Validate the actual BetBoom profile before looking at prior event state.
     # A stale/incorrect successful record must never hide a slot collision.
-    profile_identity.assert_account_slot_distinct(config.account_key)
+    identity_report = profile_identity.assert_account_slot_distinct(config.account_key)
+    auth_revision = profile_identity.account_auth_revision(
+        config.account_key,
+        identity_report,
+    )
 
     state = account2._load_json(monitor.STATE_PATH, {})
     if not isinstance(state, dict):
@@ -170,6 +192,9 @@ def run_configured_account(
     )
     if config.canonicalize_primary_aliases:
         account2.primary_auto.canonicalize_primary_event_aliases(state)
+    state.setdefault("auto_participation_auth_revisions", {})[
+        config.account_key
+    ] = auth_revision
 
     events = state.setdefault("auto_participation_events", {})
     current = monitor.now_utc()
@@ -180,6 +205,7 @@ def run_configured_account(
     terminal_failed = 0
     deferred = 0
     skipped = 0
+    auth_rearmed = 0
 
     for item in account2._candidate_rows(state, recovery_result_path):
         key = str(
@@ -191,9 +217,12 @@ def run_configured_account(
 
         token = _account_event_token(config, item, key)
         previous = events.get(token)
-        if not _should_attempt(previous, current):
+        same_revision = _same_auth_revision(previous, auth_revision)
+        if not _should_attempt(previous, current, auth_revision):
             skipped += 1
             continue
+        if isinstance(previous, dict) and not same_revision:
+            auth_rearmed += 1
 
         attempted += 1
         result = persistent.participate_with_persistence_proof(url, session)
@@ -212,6 +241,7 @@ def run_configured_account(
             "alert_user": config.alert_user_getter(),
             "account_owner": config.account_owner,
             "account_order": config.account_order,
+            "auth_revision": auth_revision,
             "status": causal["status"],
             "detail": str(result.detail)[:300],
             "attempted_at": current.isoformat(),
@@ -251,8 +281,11 @@ def run_configured_account(
             record["user_alert_policy"] = "deferred_transient_failure"
             deferred += 1
 
+        # Never let a success created by a different real BetBoom profile win
+        # merge precedence over the current profile's result.
+        merge_base = previous if same_revision else None
         events[token] = account2.primary_auto.merge_event_record(
-            events.get(token), record
+            merge_base, record
         )
 
     state[config.last_run_state_field] = current.isoformat()
@@ -261,6 +294,8 @@ def run_configured_account(
         "account_key": config.account_key,
         "account_label": config.label_getter(),
         "alert_user": config.alert_user_getter(),
+        "auth_revision": auth_revision,
+        "auth_rearmed": auth_rearmed,
         "attempted": attempted,
         "succeeded": succeeded,
         "participated_by_bot": clicked_successes,
@@ -284,7 +319,7 @@ def self_test() -> None:
     third = account_config("account3")
     assert second.account_key == "vyacheslav_secondary"
     assert third.account_key == "xflarxx_primary"
-    assert second.multi_account_version == 4
+    assert second.multi_account_version == 5
     item = {
         "wheel_key": "wheel",
         "action_id": 42,
@@ -300,6 +335,21 @@ def self_test() -> None:
     assert not _old_post_click_only_success(
         {"status": "participated", "confirmation_method": "betboom_post_reload"}
     )
+    current_revision = "auth:v1:current"
+    old_success = {
+        "status": "participated",
+        "confirmation_method": "betboom_post_reload",
+        "auth_revision": "auth:v1:old",
+    }
+    assert _should_attempt(old_success, monitor.now_utc(), current_revision)
+    assert not _same_auth_revision(old_success, current_revision)
+    same_success = dict(old_success, auth_revision=current_revision)
+    assert not _should_attempt(same_success, monitor.now_utc(), current_revision)
+    legacy_success = {
+        "status": "participated",
+        "confirmation_method": "betboom_post_reload",
+    }
+    assert _should_attempt(legacy_success, monitor.now_utc(), current_revision)
 
     class Result:
         detail = ""
