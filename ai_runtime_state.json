@@ -1,10 +1,5 @@
 {
-  "cache": {
-    "c8500509770bd5c5f5a6a267ffa3ce2878ed58093bec4c6b7d84c75203fba705": {
-      "expires_at": 1788705196.4460678,
-      "text": "{\n  \"summary\": \"Система BB V.G. функционирует штатно: все 175 источников доступны, ошибок нет.\",\n  \"impact\": \"Система полностью работоспособна, риски отсутствуют.\",\n  \"recommended_action\": \"Вмешательство не требуется, продолжать штатный мониторинг.\",\n  \"confidence\": \"100%\"\n}"
-    }
-  },
+  "cache": {},
   "decisions": [
     {
       "cached": false,
@@ -2922,10 +2917,21 @@
       "output_sha256": "5dbb80a77b1318f5231d8dfa1df386ef7d942b5cf4195d0f3e2bbc8c105430b2",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1788709358.7894967,
+      "error": "ReadTimeout: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=20)",
+      "feature": "health_inspector",
+      "id": "24288a2c649543a2b2aa791b8197b39e",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "d83e784f0591913279e1dcfff4b8935799f3e4d0d2696ad2952a8bed647ceed4",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1788704296.4460678
+    1788709358.7894967
   ],
   "version": 1
 }
