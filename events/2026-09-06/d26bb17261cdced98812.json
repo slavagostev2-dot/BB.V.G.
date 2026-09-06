@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T15:06:13.835760+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:07:03.481550+00:00"
+      "updated_at": "2026-09-06T15:07:21.004017+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-06T15:06:18.430660+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:07:03.482848+00:00"
+      "updated_at": "2026-09-06T15:07:21.005301+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-06T15:06:41.045997+00:00",
       "status": "participated",
-      "updated_at": "2026-09-06T15:07:03.484145+00:00"
+      "updated_at": "2026-09-06T15:07:21.006390+00:00"
     }
   ],
   "action_id": 2031,
@@ -119,35 +119,6 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-06T15:07:03.474827+00:00",
-      "payload": {
-        "action_id": 2031,
-        "available_at": "",
-        "deadline": "2026-09-06T15:24:13.142000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:d26bb17261cdced98812",
-        "expires_at": "2026-09-06T15:54:13.142000+00:00",
-        "generation_id": "d26bb17261cdced98812",
-        "identifier": "deko2",
-        "message_text": "Название: ПОДГОН ОТ DEKO\nОписание: Прими участие в розыгрыше фрибетов\nСтример: deko2\nДата старта: 06.09.2026, 18:04\nЗакончится через: 18 мин 45 сек\nПризы: 500, 1000, 1500, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/deko2",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-06T15:04:13.142000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-06T15:04:46+00:00",
-        "source_message_id": 7820,
-        "source_message_url": "https://telegram.me/c/2445382077/7820",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/deko2",
-        "verification_status": "confirmed",
-        "wheel_key": "deko2",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "e04b1c6a2739c16b7ecd3ff675410830c3c0d4c9e1d54504ad569fcd2457bc95"
-    },
-    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-09-06T15:07:03.474827+00:00",
       "payload": {
@@ -175,6 +146,16 @@
       },
       "stage": "persisted",
       "transition_id": "6762718d51668afe0f6fd497d64ac8e79da72992f8e7c8eacad862e7a5a6fef8"
+    },
+    {
+      "dedupe_key": "34041216825",
+      "occurred_at": "2026-09-06T15:07:03.478897+00:00",
+      "payload": {
+        "workflow_run_id": "34041216825",
+        "workflow_sha": "b5c63816a26533a777af0b413d8f8bb9cf7e21e1"
+      },
+      "stage": "workflow_started",
+      "transition_id": "98d0a25a46312e0cc7c649bd6459e1dda25b12eba95cec7218e7c68ac5221548"
     },
     {
       "dedupe_key": "2031:2026-09-06T15:04:13.142000+00:00",
@@ -206,14 +187,48 @@
       "transition_id": "a3af0a6bcd88517becb117ab308cc088add8434c381e3f98d2796f52584da15d"
     },
     {
-      "dedupe_key": "34041216825",
-      "occurred_at": "2026-09-06T15:07:03.478897+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:bb45421e15ad50ed5c3e7352919fb4ff8f467f209634838b85471da8413f5f37",
+      "occurred_at": "2026-09-06T15:06:18.430660+00:00",
       "payload": {
-        "workflow_run_id": "34041216825",
-        "workflow_sha": "b5c63816a26533a777af0b413d8f8bb9cf7e21e1"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T150625499946Z-921656c1075c",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "workflow_started",
-      "transition_id": "98d0a25a46312e0cc7c649bd6459e1dda25b12eba95cec7218e7c68ac5221548"
+      "stage": "account_result",
+      "transition_id": "d228aeb631abfc189e1b06e3c41c25d028296b3770d73277379c139020a3afe0"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-06T15:07:03.474827+00:00",
+      "payload": {
+        "action_id": 2031,
+        "available_at": "",
+        "deadline": "2026-09-06T15:24:13.142000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:d26bb17261cdced98812",
+        "expires_at": "2026-09-06T15:54:13.142000+00:00",
+        "generation_id": "d26bb17261cdced98812",
+        "identifier": "deko2",
+        "message_text": "Название: ПОДГОН ОТ DEKO\nОписание: Прими участие в розыгрыше фрибетов\nСтример: deko2\nДата старта: 06.09.2026, 18:04\nЗакончится через: 18 мин 45 сек\nПризы: 500, 1000, 1500, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/deko2",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-06T15:04:13.142000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-06T15:04:46+00:00",
+        "source_message_id": 7820,
+        "source_message_url": "https://telegram.me/c/2445382077/7820",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/deko2",
+        "verification_status": "confirmed",
+        "wheel_key": "deko2",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "e04b1c6a2739c16b7ecd3ff675410830c3c0d4c9e1d54504ad569fcd2457bc95"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:3ea32647d432e527b30495398d3e8e619b5e4c654ecc0e80c545910660800948",
@@ -231,21 +246,6 @@
       "transition_id": "eb246d4f1c220dc96bf5b243ddeefe89c219d90c38158308d96dccdb178a33fe"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:bb45421e15ad50ed5c3e7352919fb4ff8f467f209634838b85471da8413f5f37",
-      "occurred_at": "2026-09-06T15:06:18.430660+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260906T150625499946Z-921656c1075c",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "d228aeb631abfc189e1b06e3c41c25d028296b3770d73277379c139020a3afe0"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:ed07638fe50a8b11d41662ab3b85781a56fb84df9499706ac5ef0941e3d3f4d9",
       "occurred_at": "2026-09-06T15:06:41.045997+00:00",
       "payload": {
@@ -261,7 +261,7 @@
       "transition_id": "ff672c0e54a72b5a723f609425bca9715f39461217fae2d30f7385d41385f9e0"
     }
   ],
-  "updated_at": "2026-09-06T15:07:03.478897+00:00",
+  "updated_at": "2026-09-06T15:07:21.001737+00:00",
   "wheel_key": "deko2",
   "workflow_started_at": "2026-09-06T15:07:03.478897+00:00"
 }
