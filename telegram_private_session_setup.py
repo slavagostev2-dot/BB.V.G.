@@ -76,9 +76,20 @@ def _parse_mtproxy_link(value: str) -> tuple[str, int, str]:
     return server, port, secret
 
 
+def _visible_2fa_password() -> str:
+    while True:
+        value = input("Пароль 2FA Telegram: ")
+        if value:
+            return value
+        print(
+            "Telegram запросил 2FA, поэтому пустой пароль здесь недопустим. "
+            "Введите облачный пароль Telegram."
+        )
+
+
 def main() -> int:
     try:
-        from telethon import connection
+        from telethon import connection, errors
         from telethon.sessions import StringSession
         from telethon.sync import TelegramClient
     except ImportError:
@@ -115,11 +126,31 @@ def main() -> int:
 
     client = TelegramClient(StringSession(), api_id, api_hash, **client_kwargs)
     try:
-        client.start(
-            phone=phone,
-            code_callback=lambda: input("Код Telegram: ").strip(),
-            password=lambda: input("Пароль 2FA Telegram (если включён): "),
-        )
+        try:
+            client.start(
+                phone=phone,
+                code_callback=lambda: input("Код Telegram: ").strip(),
+                password=_visible_2fa_password,
+            )
+        except errors.SendCodeUnavailableError:
+            print(
+                "Telegram сейчас не разрешил повторную отправку кода для этого номера. "
+                "Не запускайте авторизацию подряд много раз; повторите позже, когда Telegram снова выдаст новый код.",
+                file=sys.stderr,
+            )
+            return 4
+        except errors.FloodWaitError as exc:
+            seconds = int(getattr(exc, "seconds", 0) or 0)
+            if seconds > 0:
+                print(
+                    f"Telegram временно ограничил новые попытки авторизации. "
+                    f"Указанный Telegram срок: {seconds} сек.",
+                    file=sys.stderr,
+                )
+            else:
+                print("Telegram временно ограничил новые попытки авторизации.", file=sys.stderr)
+            return 4
+
         dialogs = []
         for dialog in client.iter_dialogs():
             entity = getattr(dialog, "entity", None)
