@@ -7,6 +7,7 @@ from typing import Any, Callable
 
 import betboom_account_participation as account2
 import betboom_auto_participation as auto
+import betboom_participation_browser as browser
 import betboom_profile_identity as profile_identity
 
 
@@ -63,6 +64,16 @@ def _assert_resolved_profile_slot(storage_state: dict[str, Any]) -> None:
         profile_identity.assert_account_slot_distinct(account3.ACCOUNT_KEY)
 
 
+def _participate_with_injected_storage(
+    url: str,
+    storage_state: dict[str, Any],
+) -> auto.ParticipationResult:
+    """Run the existing browser proof with an explicit account session."""
+
+    result = browser.participate(url, storage_state=storage_state)
+    return account2._reject_weak_browser_success(result)
+
+
 def participate_with_persistence_proof(
     url: str,
     storage_state: dict[str, Any],
@@ -86,7 +97,7 @@ def participate_with_persistence_proof(
     if participate_once is None:
         _assert_resolved_profile_slot(storage_state)
 
-    runner = participate_once or account2._participate_with_storage
+    runner = participate_once or _participate_with_injected_storage
     initial = runner(url, storage_state)
     initial_status = str(initial.status or "").casefold()
 
@@ -168,6 +179,22 @@ def self_test() -> None:
         assert "session collision" in str(exc)
     else:
         raise AssertionError("exact duplicate BetBoom sessions must be rejected")
+
+    captured: dict[str, Any] = {}
+    original_browser = browser.participate
+    browser.participate = lambda url, storage_state=None: (
+        captured.update({"url": url, "storage_state": storage_state})
+        or auto.ParticipationResult(False, "button_not_found", "test")
+    )
+    try:
+        injected_result = _participate_with_injected_storage(
+            "https://betboom.ru/freestream/injected",
+            state,
+        )
+    finally:
+        browser.participate = original_browser
+    assert injected_result.status == "button_not_found"
+    assert captured["storage_state"] is state
 
     sequence = iter(
         [
