@@ -1,8 +1,8 @@
 {
-  "active_incidents": 5,
+  "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-09-06T07:19:41.227122+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-09-06T08:45:18.185565+00:00",
     "started_at": "2026-09-06T06:54:28.017452+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -12,21 +12,19 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 1,
-    "decision_id": "a058e2ff1edf46ffbef69fb035d470e8",
-    "finding_count": 1,
-    "finding_kinds": [
-      "source_transport_smoke"
-    ],
-    "generated_at": "2026-09-06T07:22:44.150984+00:00",
-    "impact": "Несоответствие между фактическим состоянием транспортных узлов и конфигурацией inventory может привести к некорректной маршрутизации или потере данных.",
+    "critical_count": 0,
+    "decision_id": "209237c8efb049c682ec83f95ef0361d",
+    "finding_count": 0,
+    "finding_kinds": [],
+    "generated_at": "2026-09-06T08:50:21.752069+00:00",
+    "impact": "Отсутствует. Система работает стабильно, показатели в пределах нормы.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Критическая ошибка: расхождение данных в транспортной проверке (178 источников против 175 в inventory).",
+    "recommended_action": "Вмешательство не требуется. Продолжать штатный мониторинг.",
+    "requires_human_attention": false,
+    "severity": "ok",
+    "summary": "Система BB V.G. функционирует в штатном режиме, все 176 источников доступны, ошибок не зафиксировано.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -36,15 +34,15 @@
     "expected_primary_sources": 175,
     "expected_total_sources": 175,
     "missing_sources": 0,
-    "recorded_configured_sources": 178,
+    "recorded_configured_sources": 175,
     "recorded_nightly_sources": 0,
-    "recorded_primary_sources": 178,
+    "recorded_primary_sources": 175,
     "source_policy": "single_public_inventory",
-    "transport_accounted_sources": 178,
-    "transport_checked_at": "2026-09-05T14:10:39.902346+00:00",
+    "transport_accounted_sources": 175,
+    "transport_checked_at": "2026-09-06T07:55:53.696927+00:00",
     "transport_domain": "telegram.me",
     "transport_error_sources": [],
-    "transport_reachable_sources": 176,
+    "transport_reachable_sources": 175,
     "transport_recovered_by_newer_monitor": false,
     "transport_status": "success"
   },
@@ -53,7 +51,7 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "failed",
+    "automations": "ok",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
@@ -65,7 +63,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-06T07:22:42.450431+00:00",
+  "checked_at": "2026-09-06T08:50:16.434247+00:00",
   "discovery": {
     "candidate_count": 0,
     "intelligence_domain": "telegram.me",
@@ -97,25 +95,17 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "status=success; domain=telegram.me; primary=178/175; nightly=0/0; accounted=178/175; reachable=176/175; errors=0; missing=0.",
-      "kind": "source_transport_smoke",
-      "severity": "critical",
-      "subject": "",
-      "title": "Транспортная проверка текущего inventory не подтверждена"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 5,
-    "bot_panel_heartbeat": "2026-09-06T07:19:41.227122+00:00",
+    "active_incidents": 1,
+    "bot_panel_heartbeat": "2026-09-06T08:45:18.185565+00:00",
     "checked_sources": 176,
     "configured_sources": 175,
     "domain": "telegram.me",
     "reachable_sources": 176,
     "single_source": "system_check_state.json",
-    "status": "degraded",
+    "status": "ok",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
@@ -126,14 +116,14 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
+    "messages_attempted": 1,
     "opened": 0,
-    "resolved": 0
+    "resolved": 4
   },
-  "incident_sequence": 189,
+  "incident_sequence": 193,
   "inventory": {
     "configured": 175,
     "configured_total": 175,
@@ -158,31 +148,31 @@
     "brand": "BB V.G.",
     "checked_sources": 176,
     "checks_delta": 178,
-    "checks_total": 9575186,
+    "checks_total": 9588358,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "30e85b794cdc62766d92e2cc535e08620bceab2c",
-    "iteration": 21,
-    "last_iteration_at": "2026-09-06T07:19:04.634327+00:00",
-    "last_iteration_duration_seconds": 57,
+    "iteration": 70,
+    "last_iteration_at": "2026-09-06T08:44:30.483986+00:00",
+    "last_iteration_duration_seconds": 42,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-06T07:19:04.634327+00:00",
-    "last_successful_checks_total": 9575186,
-    "last_successful_iteration_at": "2026-09-06T07:19:04.634327+00:00",
+    "last_process_heartbeat_at": "2026-09-06T08:44:30.483986+00:00",
+    "last_successful_checks_total": 9588358,
+    "last_successful_iteration_at": "2026-09-06T08:44:30.483986+00:00",
     "pending_wheels": 0,
     "reachable_sources": 176,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34017687234",
-    "run_started_at": "2026-09-06T06:54:19.278178+00:00",
+    "run_id": "34019123330",
+    "run_started_at": "2026-09-06T07:26:36.580948+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34017687234"
+    "workflow_run_id": "34019123330"
   },
-  "monitor_age_minutes": 3,
-  "monitor_effective_heartbeat_at": "2026-09-06T07:19:04.634327+00:00",
+  "monitor_age_minutes": 5,
+  "monitor_effective_heartbeat_at": "2026-09-06T08:44:30.483986+00:00",
   "monitor_source_expectation": {
     "configured": 175,
     "due_for_check": 175
@@ -244,7 +234,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
