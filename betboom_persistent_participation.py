@@ -150,6 +150,16 @@ def participate_with_persistence_proof(
 
 def self_test() -> None:
     profile_identity.self_test()
+    configured = profile_identity.configured_sessions()
+    if configured and all(storage is not None for _key, storage in configured):
+        report = profile_identity.load_or_build_identity_report()
+        assert isinstance(report.get("accounts"), dict)
+        print(
+            "BetBoom live profile identity preflight: "
+            f"status={report.get('status')} "
+            f"collision_groups={report.get('collision_groups', [])}"
+        )
+
     state = {"cookies": [{"name": "session", "value": "a"}]}
     assert session_fingerprint(state) == session_fingerprint(dict(state))
     try:
