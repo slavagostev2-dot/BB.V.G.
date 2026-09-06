@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+import json
 from datetime import datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -12,7 +14,6 @@ import notification_preferences_v2
 import notification_router
 import personal_reminder_filter
 import personal_wheel_voting
-import json
 import rating_policy
 import recurring_wheel_events
 import restart_duplicate_guard
@@ -367,7 +368,7 @@ def branded_send_message(text: str, url=None, reply_markup=None):
         )
         value = value.replace(
             "Повторная проверка одного поста проходит без сообщений.",
-            "Колёса без найденного времени ожидают ручного ввода администратора.",
+            "Колёса без найденного времени автоматически перепроверяются через BetBoom.",
         )
         value = "\n".join(
             line
@@ -378,20 +379,33 @@ def branded_send_message(text: str, url=None, reply_markup=None):
 
 
 def process_active_without_unknown_time_spam(state: dict, stats: dict):
-    """Unknown-time wheels wait silently until an administrator supplies a deadline."""
+    """Recheck untimed wheels and announce a newly confirmed deadline once."""
+
     changed = False
     current = monitor.now_utc()
-    for entry in state.setdefault("active_wheels", {}).values():
+    active = state.setdefault("active_wheels", {})
+    untimed_before: set[str] = set()
+
+    for key, entry in active.items():
         if not isinstance(entry, dict):
             continue
-        if monitor.parse_datetime(entry.get("deadline")) is not None:
+        deadline = monitor.parse_datetime(entry.get("deadline"))
+        if deadline is not None:
+            if entry.pop("needs_manual_time", None) is not None:
+                changed = True
+            if entry.pop("manual_time_waiting_since", None) is not None:
+                changed = True
             continue
-        if not bool(entry.get("needs_manual_time")):
-            entry["needs_manual_time"] = True
+
+        untimed_before.add(str(key))
+        if entry.pop("needs_manual_time", None) is not None:
             changed = True
-        if not entry.get("manual_time_waiting_since"):
-            entry["manual_time_waiting_since"] = current.isoformat()
+        if entry.pop("manual_time_waiting_since", None) is not None:
             changed = True
+
+        # The underlying active lifecycle reopens BetBoom on every cycle. Keep
+        # the old repeated unknown-time reminder suppressed while that automatic
+        # revalidation is in progress.
         suppress_until = monitor.parse_datetime(entry.get("last_unknown_reminder_at"))
         minimum = runtime._entry_untimed_expiry(entry, current)
         if suppress_until is None or suppress_until < minimum:
@@ -399,6 +413,70 @@ def process_active_without_unknown_time_spam(state: dict, stats: dict):
             changed = True
 
     result = _original_process_active(state, stats)
+    refresh_time = monitor.now_utc()
+    notified = 0
+
+    for key in sorted(untimed_before):
+        entry = active.get(key)
+        if not isinstance(entry, dict):
+            continue
+        deadline = monitor.parse_datetime(entry.get("deadline"))
+        if deadline is None:
+            continue
+
+        if not entry.get("time_became_known_at"):
+            entry["time_became_known_at"] = refresh_time.isoformat()
+            changed = True
+        if entry.get("time_known_notified_at"):
+            continue
+
+        message = monitor.active_entry_message(entry)
+        url = str(entry.get("url") or "").strip()
+        if message is None or not url:
+            entry["time_known_notification_error"] = (
+                "missing active wheel message or URL"
+            )
+            changed = True
+            continue
+
+        local_deadline = deadline.astimezone(monitor.DISPLAY_TZ)
+        try:
+            monitor.send_message(
+                "🕐 <b>Время прокрутки колеса определено</b>\n\n"
+                f"Идентификатор: <code>{html.escape(str(entry.get('identifier') or key))}</code>\n"
+                f"Время прокрутки: <b>{local_deadline:%d.%m %H:%M}</b>\n"
+                f"⏳ Осталось: <b>{html.escape(monitor.human_remaining(deadline))}</b>\n"
+                "Колесо BetBoom стало активно с точным временем.",
+                reply_markup=monitor.wheel_reply_markup(
+                    state,
+                    message,
+                    url,
+                    active=True,
+                    status="time_known",
+                    method=str(entry.get("method") or "BetBoom exact time refresh"),
+                    page_excerpt=str(entry.get("page_excerpt") or ""),
+                ),
+            )
+        except Exception as exc:
+            entry["time_known_notification_error"] = (
+                f"{type(exc).__name__}: {exc}"[:300]
+            )
+            changed = True
+            continue
+
+        entry["time_known_notified_at"] = refresh_time.isoformat()
+        entry["last_notification_at"] = refresh_time.isoformat()
+        entry.pop("time_known_notification_error", None)
+        monitor.data_store.increment_stat(
+            stats,
+            str(entry.get("source") or "unknown"),
+            "time_known_notifications",
+        )
+        notified += 1
+        changed = True
+
+    if notified:
+        result["time_known_notifications"] = notified
     if changed:
         result["changed"] = True
     return result
