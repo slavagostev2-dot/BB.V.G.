@@ -4,6 +4,7 @@ from typing import Any, Callable
 
 WHEEL_FINAL_REMINDERS = "wheel_final_reminders"
 WHEEL_DRAW_ALERTS = "wheel_draw_alerts"
+WHEEL_TIME_KNOWN = "wheel_time_known"
 
 
 def install(router_module: Any) -> None:
@@ -13,11 +14,13 @@ def install(router_module: Any) -> None:
     original_preference: Callable[[dict, str, dict, str], bool] = router_module.preference_enabled
 
     router_module.USER_NOTIFICATION_KINDS.update(
-        {WHEEL_FINAL_REMINDERS, WHEEL_DRAW_ALERTS}
+        {WHEEL_FINAL_REMINDERS, WHEEL_DRAW_ALERTS, WHEEL_TIME_KNOWN}
     )
 
     def notification_kind_v2(text: str) -> str:
         lowered = router_module.html.unescape(str(text or "")).casefold()
+        if "время прокрутки колеса определено" in lowered:
+            return WHEEL_TIME_KNOWN
         if "время прокрутки колеса наступило" in lowered:
             return WHEEL_DRAW_ALERTS
         if (
@@ -34,7 +37,7 @@ def install(router_module: Any) -> None:
         record: dict[str, Any],
         kind: str,
     ) -> bool:
-        if kind in {WHEEL_FINAL_REMINDERS, WHEEL_DRAW_ALERTS}:
+        if kind in {WHEEL_FINAL_REMINDERS, WHEEL_DRAW_ALERTS, WHEEL_TIME_KNOWN}:
             raw = record.get("notification_preferences")
             if isinstance(raw, dict) and kind in raw:
                 return bool(raw[kind])
@@ -52,6 +55,9 @@ def self_test() -> None:
     import notification_router
 
     install(notification_router)
+    assert notification_router.notification_kind(
+        "🕐 Время прокрутки колеса определено"
+    ) == WHEEL_TIME_KNOWN
     assert notification_router.notification_kind(
         "🎯 Время прокрутки колеса наступило"
     ) == WHEEL_DRAW_ALERTS
@@ -74,6 +80,7 @@ def self_test() -> None:
     }
     assert notification_router.recipients(config, True, WHEEL_DRAW_ALERTS) == []
     assert notification_router.recipients(config, True, WHEEL_FINAL_REMINDERS) == ["10", "20"]
+    assert notification_router.recipients(config, True, WHEEL_TIME_KNOWN) == ["10", "20"]
     print("notification preferences v2 self-test passed")
 
 

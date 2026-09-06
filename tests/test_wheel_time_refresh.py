@@ -46,6 +46,7 @@ class WheelTimeRefreshTests(unittest.TestCase):
                     "text": text,
                     "url": url,
                     "reply_markup": reply_markup,
+                    "kind": subject.notification_router.resolve_notification_kind(text),
                 }
             )
             return {"ok": True, "result": {"message_id": len(self.sent)}}
@@ -109,6 +110,10 @@ class WheelTimeRefreshTests(unittest.TestCase):
         self.assertEqual(len(self.sent), 1)
         self.assertIn("Время прокрутки колеса определено", self.sent[0]["text"])
         self.assertIn("Колесо BetBoom стало активно", self.sent[0]["text"])
+        self.assertEqual(
+            self.sent[0]["kind"],
+            subject.notification_preferences_v2.WHEEL_TIME_KNOWN,
+        )
         self.assertTrue(entry.get("time_became_known_at"))
         self.assertTrue(entry.get("time_known_notified_at"))
         self.assertEqual(

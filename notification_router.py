@@ -9,9 +9,11 @@ import os
 import re
 import threading
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 from urllib.parse import unquote
 
 ACCESS_PATH = Path(__file__).resolve().parent / "bot_access.json"
@@ -23,6 +25,13 @@ WHEEL_URL_RE = re.compile(
 )
 _EVENT_ID_RE = re.compile(r"^(?:evt|pending):[0-9a-f]{20}$")
 _EVENT_ID_MARKUP_KEY = "_bbvg_event_id"
+
+KIND_WHEELS = "wheels"
+KIND_DAILY_REPORTS = "daily_reports"
+KIND_WEEKLY_REPORTS = "weekly_reports"
+KIND_ADMIN_SYSTEM = "admin_system"
+KIND_ADMIN_SOURCES = "admin_sources"
+KIND_ADMIN_REQUESTS = "admin_requests"
 
 USER_NOTIFICATION_MARKERS = (
     "новое колесо betboom",
@@ -46,14 +55,27 @@ ADMIN_NOTIFICATION_MARKERS = (
     "диагност",
 )
 
-USER_NOTIFICATION_KINDS = {"wheels", "daily_reports", "weekly_reports"}
-ADMIN_NOTIFICATION_KINDS = {"admin_system", "admin_sources", "admin_requests"}
+USER_NOTIFICATION_KINDS = {
+    KIND_WHEELS,
+    KIND_DAILY_REPORTS,
+    KIND_WEEKLY_REPORTS,
+}
+ADMIN_NOTIFICATION_KINDS = {
+    KIND_ADMIN_SYSTEM,
+    KIND_ADMIN_SOURCES,
+    KIND_ADMIN_REQUESTS,
+}
+
 DELIVERY_DEDUP_SECONDS = max(
     300, int(os.getenv("NOTIFICATION_DEDUP_SECONDS", "86400"))
 )
 _delivered: dict[str, float] = {}
 _delivery_lock = threading.RLock()
 _pending_deliveries: set[str] = set()
+_explicit_notification_kind: ContextVar[str | None] = ContextVar(
+    "bbvg_explicit_notification_kind",
+    default=None,
+)
 
 
 def recipient_scope(chat_id: str) -> str:
@@ -81,31 +103,82 @@ def load_config() -> tuple[dict[str, Any], bool]:
 
 
 def notification_kind(text: str) -> str:
+    """Legacy text classifier kept only as a compatibility fallback."""
+
     lowered = html.unescape(str(text or "")).casefold()
     if "ежедневный отчёт" in lowered or "ежедневная сводка" in lowered:
-        return "daily_reports"
+        return KIND_DAILY_REPORTS
     if "недельный отчёт" in lowered or "недельная сводка" in lowered:
-        return "weekly_reports"
+        return KIND_WEEKLY_REPORTS
     if "запрос пользователя" in lowered and "источник" in lowered:
-        return "admin_requests"
-    source_failure = any(marker in lowered for marker in (
-        "ошибок источников",
-        "источник недоступен",
-        "источников недоступна",
-        "проблемы источников",
-        "не смог проверить источник",
-    ))
+        return KIND_ADMIN_REQUESTS
+    source_failure = any(
+        marker in lowered
+        for marker in (
+            "ошибок источников",
+            "источник недоступен",
+            "источников недоступна",
+            "проблемы источников",
+            "не смог проверить источник",
+        )
+    )
     if any(marker in lowered for marker in ADMIN_NOTIFICATION_MARKERS):
-        return "admin_sources" if source_failure else "admin_system"
+        return KIND_ADMIN_SOURCES if source_failure else KIND_ADMIN_SYSTEM
     if any(marker in lowered for marker in USER_NOTIFICATION_MARKERS):
-        return "wheels"
+        return KIND_WHEELS
     if source_failure:
-        return "admin_sources"
-    return "admin_system"
+        return KIND_ADMIN_SOURCES
+    return KIND_ADMIN_SYSTEM
+
+
+def _validated_kind(kind: str) -> str:
+    value = str(kind or "").strip()
+    if value not in USER_NOTIFICATION_KINDS | ADMIN_NOTIFICATION_KINDS:
+        raise ValueError(f"Unknown notification kind: {value or '<empty>'}")
+    return value
+
+
+def resolve_notification_kind(text: str, explicit_kind: str | None = None) -> str:
+    """Resolve an explicit kind first and use text recognition only as fallback."""
+
+    value = explicit_kind or _explicit_notification_kind.get()
+    if value:
+        return _validated_kind(value)
+    return notification_kind(text)
+
+
+def classify_kind(kind: str) -> str:
+    return "user" if _validated_kind(kind) in USER_NOTIFICATION_KINDS else "admin"
 
 
 def classify(text: str) -> str:
-    return "user" if notification_kind(text) in USER_NOTIFICATION_KINDS else "admin"
+    return classify_kind(resolve_notification_kind(text))
+
+
+@contextmanager
+def notification_kind_scope(kind: str) -> Iterator[None]:
+    """Carry an explicit kind through the existing send-message wrapper chain."""
+
+    normalized = _validated_kind(kind)
+    token = _explicit_notification_kind.set(normalized)
+    try:
+        yield
+    finally:
+        _explicit_notification_kind.reset(token)
+
+
+def send_notification(
+    monitor_module: Any,
+    text: str,
+    *,
+    kind: str,
+    url: str | None = None,
+    reply_markup: dict | None = None,
+) -> dict:
+    """Send one explicitly typed notification without changing wrapper signatures."""
+
+    with notification_kind_scope(kind):
+        return monitor_module.send_message(text, url=url, reply_markup=reply_markup)
 
 
 def user_notifications_enabled(config: dict[str, Any]) -> bool:
@@ -148,7 +221,9 @@ def is_admin_chat(config: dict[str, Any], chat_id: str) -> bool:
     user_id, _ = user_for_chat(config, chat_id)
     if user_id:
         return user_id in admin_user_ids(config)
-    return str(chat_id) in {chat_for_user(config, user_id) for user_id in admin_user_ids(config)}
+    return str(chat_id) in {
+        chat_for_user(config, user_id) for user_id in admin_user_ids(config)
+    }
 
 
 def preference_enabled(
@@ -161,20 +236,26 @@ def preference_enabled(
     if isinstance(raw, dict) and kind in raw:
         return bool(raw[kind])
     settings = config.get("settings") if isinstance(config.get("settings"), dict) else {}
-    if kind == "wheels":
+    if kind == KIND_WHEELS:
         enabled = record.get("notifications_enabled")
         if enabled is not None:
             return bool(enabled)
         legacy = {str(value) for value in config.get("notification_recipients", [])}
         chat_id = str(record.get("chat_id") or user_id)
-        return chat_id in legacy if legacy else bool(settings.get("wheel_notifications", True))
-    if kind in {"daily_reports", "weekly_reports"}:
+        return (
+            chat_id in legacy
+            if legacy
+            else bool(settings.get("wheel_notifications", True))
+        )
+    if kind in {KIND_DAILY_REPORTS, KIND_WEEKLY_REPORTS}:
         return False
     return admin
 
 
 def recipients(config: dict[str, Any], config_exists: bool, category: str) -> list[str]:
-    kind = {"admin": "admin_system", "user": "wheels"}.get(category, category)
+    kind = {"admin": KIND_ADMIN_SYSTEM, "user": KIND_WHEELS}.get(
+        category, category
+    )
     users = config.get("users") if isinstance(config.get("users"), dict) else {}
     if kind in ADMIN_NOTIFICATION_KINDS:
         result: set[str] = set()
@@ -189,10 +270,9 @@ def recipients(config: dict[str, Any], config_exists: bool, category: str) -> li
         if result:
             return sorted(result)
     elif kind in USER_NOTIFICATION_KINDS:
-        settings = config.get("settings") if isinstance(config.get("settings"), dict) else {}
         globally_enabled = (
             False
-            if kind in {"daily_reports", "weekly_reports"}
+            if kind in {KIND_DAILY_REPORTS, KIND_WEEKLY_REPORTS}
             else user_notifications_enabled(config)
         )
         if not globally_enabled:
@@ -211,7 +291,7 @@ def recipients(config: dict[str, Any], config_exists: bool, category: str) -> li
                 result.add(chat_id)
         if result:
             return sorted(result)
-        if kind == "wheels" and not users and legacy:
+        if kind == KIND_WHEELS and not users and legacy:
             return sorted(legacy)
 
     fallback = str(os.getenv("BOT_CHAT_ID", "")).strip()
@@ -245,14 +325,7 @@ def remember_delivery(key: str) -> None:
 
 
 def claim_delivery(key: str) -> bool:
-    """Atomically reserve one delivery inside the single monitor process.
-
-    The old ``duplicate_delivery`` followed by ``remember_delivery`` sequence
-    left a race window: two worker threads could both see a missing key and send
-    the same alert.  A claim is intentionally kept in memory until Telegram
-    confirms the send.  Persistent deduplication is installed by
-    ``notification_integrity_v2`` and retains the completed delivery.
-    """
+    """Atomically reserve one delivery inside the single monitor process."""
 
     with _delivery_lock:
         if key in _pending_deliveries or duplicate_delivery(key):
@@ -262,19 +335,17 @@ def claim_delivery(key: str) -> bool:
 
 
 def release_delivery(key: str) -> None:
-    """Release a failed reservation so a later retry is not suppressed."""
-
     with _delivery_lock:
         _pending_deliveries.discard(key)
 
 
 def complete_delivery(key: str) -> None:
-    """Convert a successful reservation into a completed delivery mark."""
-
     remember_delivery(key)
 
 
-def wheel_key_from_message(text: str, url: str | None, reply_markup: dict | None) -> str:
+def wheel_key_from_message(
+    text: str, url: str | None, reply_markup: dict | None
+) -> str:
     match = WHEEL_ID_RE.search(text or "")
     if match:
         return html.unescape(match.group(1)).strip().casefold()
@@ -290,7 +361,9 @@ def wheel_key_from_message(text: str, url: str | None, reply_markup: dict | None
                 if not isinstance(button, dict):
                     continue
                 callback = str(button.get("callback_data") or "")
-                if callback.startswith(("bb:x:", "bb:t:", "wheel:inactive:", "wheel:time:")):
+                if callback.startswith(
+                    ("bb:x:", "bb:t:", "wheel:inactive:", "wheel:time:")
+                ):
                     return callback.split(":", 2)[2].casefold()
                 button_url = str(button.get("url") or "")
                 match = WHEEL_URL_RE.search(button_url)
@@ -305,16 +378,10 @@ def notification_event_identity(
     url: str | None,
     reply_markup: dict | None,
 ) -> str:
-    """Return one stable delivery identity for one current wheel event.
-
-    Telegram publications of the same wheel can contain different source names,
-    countdown text or formatting.  Those differences are useful for statistics,
-    but must not create a second user notification.  The notification kind keeps
-    draw-time and final-reminder preferences independent from the initial alert.
-    """
+    """Return one stable delivery identity for one current wheel event."""
 
     wheel_key = wheel_key_from_message(text, url, reply_markup)
-    if wheel_key and (kind == "wheels" or kind.startswith("wheel_")):
+    if wheel_key and (kind == KIND_WHEELS or kind.startswith("wheel_")):
         lowered = html.unescape(str(text or "")).casefold()
         if "доступно для участия" in lowered or "теперь можно принять участие" in lowered:
             phase = "available"
@@ -397,7 +464,6 @@ def markup_for_chat(reply_markup: dict | None, *, admin: bool) -> dict | None:
     if not isinstance(reply_markup, dict):
         return reply_markup
     result = copy.deepcopy(reply_markup)
-    # Internal delivery metadata must never be passed to the Telegram API.
     result.pop(_EVENT_ID_MARKUP_KEY, None)
     rows: list[list[dict[str, Any]]] = []
     for row in result.get("inline_keyboard", []):
@@ -459,14 +525,18 @@ def install(monitor_module: Any) -> None:
         reply_markup: dict | None = None,
     ) -> dict:
         config, exists = load_config()
-        category = classify(text)
-        kind = notification_kind(text)
+        kind = resolve_notification_kind(text)
+        category = classify_kind(kind)
         targets = recipients(config, exists, kind)
         if not targets:
             print(f"Notification has no recipients: {kind}")
             return {
                 "ok": True,
-                "result": {"suppressed": True, "category": category, "kind": kind},
+                "result": {
+                    "suppressed": True,
+                    "category": category,
+                    "kind": kind,
+                },
             }
 
         key = wheel_key_from_message(text, url, reply_markup)
@@ -518,7 +588,9 @@ def install(monitor_module: Any) -> None:
             try:
                 response = monitor_module.telegram_api("sendMessage", payload)
                 result = response
-                response_result = response.get("result") if isinstance(response, dict) else None
+                response_result = (
+                    response.get("result") if isinstance(response, dict) else None
+                )
                 try:
                     sent_message_id = int(
                         response_result.get("message_id") or 0
@@ -541,7 +613,9 @@ def install(monitor_module: Any) -> None:
                     except (TypeError, ValueError):
                         sent_message_id = 0
                     if sent_message_id > 0:
-                        record_participation_message(chat_id, button_token, sent_message_id)
+                        record_participation_message(
+                            chat_id, button_token, sent_message_id
+                        )
                 sent += 1
             except Exception as exc:
                 release_delivery(dedup_key)
@@ -553,7 +627,10 @@ def install(monitor_module: Any) -> None:
                         "error_type": type(exc).__name__,
                     }
                 )
-                print(f"WARNING notification target {chat_id}: {type(exc).__name__}: {exc}")
+                print(
+                    f"WARNING notification target {chat_id}: "
+                    f"{type(exc).__name__}: {exc}"
+                )
             else:
                 complete_delivery(dedup_key)
 
@@ -589,70 +666,98 @@ def self_test() -> None:
             "3": {
                 "chat_id": "3",
                 "notifications_enabled": True,
-                "notification_preferences": {"admin_system": True},
+                "notification_preferences": {KIND_ADMIN_SYSTEM: True},
             },
         },
     }
-    assert notification_kind("🎡 <b>Обнаружено колесо BetBoom</b>") == "wheels"
+    assert notification_kind("🎡 <b>Обнаружено колесо BetBoom</b>") == KIND_WHEELS
     assert notification_event_identity(
-        "wheels",
+        KIND_WHEELS,
         "🎡 <b>Обнаружено колесо BetBoom</b>",
         "https://betboom.ru/freestream/example",
         None,
     ) == "wheel:wheels:example:detected"
     assert not referral_wheel_notification(
         type("Monitor", (), {"load_state": staticmethod(lambda: {})}),
-        "wheels",
+        KIND_WHEELS,
         "🎡 Обнаружено колесо BetBoom\nКолесо только для рефералов",
         "https://betboom.ru/freestream/ref-example",
         None,
     )
     assert recipients(config, True, "admin") == ["1", "2"]
     assert recipients(config, True, "user") == ["1", "3"]
-    assert recipients(config, True, "admin_system") == ["1", "2"]
-    assert "3" not in recipients(config, True, "admin_system")
+    assert recipients(config, True, KIND_ADMIN_SYSTEM) == ["1", "2"]
+    assert "3" not in recipients(config, True, KIND_ADMIN_SYSTEM)
     assert classify("🎡 Новое колесо BetBoom") == "user"
     assert classify("✅ Колесо BetBoom подтверждено администратором") == "user"
     assert classify("⚠️ BB V.G. не смог проверить источник") == "admin"
     assert classify("⚠️ Ошибка в списке «Активные колёса»") == "admin"
-    assert notification_kind("📊 Ежедневный отчёт BB V.G.") == "daily_reports"
-    assert recipients(config, True, "daily_reports") == []
-    assert recipients(config, True, "weekly_reports") == []
-    assert notification_kind("📨 Запрос пользователя на добавление источника") == "admin_requests"
-    key = delivery_key("1", "admin_system", "failure", None)
+    assert notification_kind("📊 Ежедневный отчёт BB V.G.") == KIND_DAILY_REPORTS
+    assert recipients(config, True, KIND_DAILY_REPORTS) == []
+    assert recipients(config, True, KIND_WEEKLY_REPORTS) == []
+    assert notification_kind(
+        "📨 Запрос пользователя на добавление источника"
+    ) == KIND_ADMIN_REQUESTS
+
+    observed: list[str] = []
+
+    class CaptureMonitor:
+        @staticmethod
+        def send_message(text: str, url=None, reply_markup=None) -> dict:
+            observed.append(resolve_notification_kind(text))
+            return {"ok": True, "result": {"sent": 1}}
+
+    send_notification(
+        CaptureMonitor,
+        "⚠️ Ошибка в тексте пользовательской карточки",
+        kind=KIND_WHEELS,
+    )
+    assert observed == [KIND_WHEELS]
+    assert notification_kind(
+        "⚠️ Ошибка в тексте пользовательской карточки"
+    ) == KIND_ADMIN_SYSTEM
+    try:
+        send_notification(CaptureMonitor, "test", kind="unknown_kind")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Unknown explicit notification kind must fail closed")
+
+    key = delivery_key("1", KIND_ADMIN_SYSTEM, "failure", None)
     assert not duplicate_delivery(key)
     remember_delivery(key)
     assert duplicate_delivery(key)
     first_event = notification_event_identity(
-        "wheels",
+        KIND_WHEELS,
         "🎡 Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>\n📡 @first",
         "https://betboom.ru/freestream/wheel-a",
         None,
     )
     second_event = notification_event_identity(
-        "wheels",
+        KIND_WHEELS,
         "🎡 Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>\n📡 @second",
         "https://betboom.ru/freestream/wheel-a?from=second",
         None,
     )
     assert first_event == second_event == "wheel:wheels:wheel-a:detected"
     assert participation_button_token(
-        {"inline_keyboard": [[{"text": "Участвую", "callback_data": "bb:p:ABC123"}]]}
+        {
+            "inline_keyboard": [
+                [{"text": "Участвую", "callback_data": "bb:p:ABC123"}]
+            ]
+        }
     ) == "abc123"
     canonical_markup = {
         _EVENT_ID_MARKUP_KEY: "evt:11111111111111111111",
         "inline_keyboard": [[{"callback_data": "bb:p:publication-one"}]],
     }
     assert notification_event_identity(
-        "wheels",
+        KIND_WHEELS,
         "🎡 Новое колесо BetBoom\nИдентификатор: <code>wheel-a</code>",
         None,
         canonical_markup,
     ).endswith(":evt:11111111111111111111")
-    assert _EVENT_ID_MARKUP_KEY not in markup_for_chat(
-        canonical_markup,
-        admin=True,
-    )
+    assert _EVENT_ID_MARKUP_KEY not in markup_for_chat(canonical_markup, admin=True)
     assert notification_event_identity(
         "wheel_final_reminders",
         "Напоминание о колесе BetBoom\nИдентификатор: <code>wheel-a</code>",
@@ -660,7 +765,14 @@ def self_test() -> None:
         None,
     ) != first_event
     user_markup = markup_for_chat(
-        {"inline_keyboard": [[{"text": "Время", "callback_data": "bb:t:test"}, {"text": "Неактивное", "callback_data": "bb:x:test"}]]},
+        {
+            "inline_keyboard": [
+                [
+                    {"text": "Время", "callback_data": "bb:t:test"},
+                    {"text": "Неактивное", "callback_data": "bb:x:test"},
+                ]
+            ]
+        },
         admin=False,
     )
     assert "bb:t:test" not in str(user_markup) and "Скрыть у меня" in str(user_markup)

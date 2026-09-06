@@ -4,6 +4,7 @@ import html
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import notification_router
 from bbvg.monitor import source_discovery
 
 UTC = timezone.utc
@@ -42,7 +43,11 @@ def wheel_candidate_rows(
     known = {str(value).casefold() for value in (known_sources or set())}
     ignored = {str(value).casefold() for value in (ignored_sources or set())}
     rows: list[tuple[str, dict[str, Any]]] = []
-    candidates = state.get("candidates") if isinstance(state.get("candidates"), dict) else {}
+    candidates = (
+        state.get("candidates")
+        if isinstance(state.get("candidates"), dict)
+        else {}
+    )
     for key, raw in candidates.items():
         if not isinstance(raw, dict):
             continue
@@ -72,11 +77,17 @@ def wheel_candidate_rows(
     return rows
 
 
-def candidate_message(source: str, entry: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+def candidate_message(
+    source: str, entry: dict[str, Any]
+) -> tuple[str, dict[str, Any]]:
     found = int(entry.get("wheel_links_found", 0) or 0)
     latest = str(entry.get("latest_wheel_at") or "не определено")
     alert_count = int(entry.get("recommendation_alert_count", 0) or 0)
-    samples = entry.get("sample_wheels") if isinstance(entry.get("sample_wheels"), list) else []
+    samples = (
+        entry.get("sample_wheels")
+        if isinstance(entry.get("sample_wheels"), list)
+        else []
+    )
     sample = next((row for row in samples if isinstance(row, dict)), {})
     identifier = str(sample.get("identifier") or "")
     message_url = str(sample.get("message_url") or "")
@@ -107,7 +118,9 @@ def candidate_message(source: str, entry: dict[str, Any]) -> tuple[str, dict[str
         [{"text": "📨 Открыть канал", "url": f"https://telegram.me/{source}"}],
     ]
     if message_url:
-        buttons.append([{"text": "🎡 Открыть найденный пост", "url": message_url}])
+        buttons.append(
+            [{"text": "🎡 Открыть найденный пост", "url": message_url}]
+        )
     buttons.extend(
         [
             [
@@ -133,9 +146,16 @@ def notify_new_candidates(module: Any, state: dict[str, Any]) -> int:
     sent = 0
     for source, entry in wheel_candidate_rows(state, known, ignored):
         text, markup = candidate_message(source, entry)
-        response = module.monitor.send_message(text, reply_markup=markup)
+        response = notification_router.send_notification(
+            module.monitor,
+            text,
+            kind=notification_router.KIND_ADMIN_SOURCES,
+            reply_markup=markup,
+        )
         result = response.get("result") if isinstance(response, dict) else None
-        delivered = int(result.get("sent", 0) or 0) if isinstance(result, dict) else 0
+        delivered = (
+            int(result.get("sent", 0) or 0) if isinstance(result, dict) else 0
+        )
         if delivered <= 0:
             continue
         timestamp = module.now_iso()
@@ -161,7 +181,11 @@ def run(module: Any) -> int:
     if lifecycle_changes or sent:
         module.save_state(state)
     summary = state.get("source_discovery_lifecycle", {})
-    recommended = int(summary.get("recommended", 0) or 0) if isinstance(summary, dict) else 0
+    recommended = (
+        int(summary.get("recommended", 0) or 0)
+        if isinstance(summary, dict)
+        else 0
+    )
     print(
         f"Source intelligence lifecycle changes: {lifecycle_changes}; "
         f"recommended={recommended}; administrator alerts sent={sent}"
@@ -188,13 +212,17 @@ def self_test() -> None:
                 "source": "TooEarly",
                 "public": True,
                 "wheel_links_found": 1,
-                "recommendation_alerted_at": (now - timedelta(hours=23, minutes=59)).isoformat(),
+                "recommendation_alerted_at": (
+                    now - timedelta(hours=23, minutes=59)
+                ).isoformat(),
             },
             "reminder": {
                 "source": "Reminder",
                 "public": True,
                 "wheel_links_found": 1,
-                "recommendation_alerted_at": (now - timedelta(hours=24)).isoformat(),
+                "recommendation_alerted_at": (
+                    now - timedelta(hours=24)
+                ).isoformat(),
                 "recommendation_alert_count": 1,
             },
             "configured": {
@@ -216,7 +244,9 @@ def self_test() -> None:
         current=now,
     )
     assert [source for source, _ in rows] == ["NewSource", "Reminder"]
-    text, markup = candidate_message("NewSource", state["candidates"]["newsource"])
+    text, markup = candidate_message(
+        "NewSource", state["candidates"]["newsource"]
+    )
     assert "Новый источник с колесом" in text
     callbacks = [
         button.get("callback_data")
@@ -228,8 +258,16 @@ def self_test() -> None:
         "intel:mode:fast:NewSource",
         "intel:ignoreask:NewSource",
     ]
-    reminder_text, _ = candidate_message("Reminder", state["candidates"]["reminder"])
+    reminder_text, _ = candidate_message(
+        "Reminder", state["candidates"]["reminder"]
+    )
     assert "Напоминание" in reminder_text
+    assert (
+        notification_router.resolve_notification_kind(
+            text, notification_router.KIND_ADMIN_SOURCES
+        )
+        == notification_router.KIND_ADMIN_SOURCES
+    )
     print("source intelligence alert and 24 hour reminder self-test passed")
 
 
