@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260907T151936955005Z-d86ce86c9a28",
-      "attempt_id": "e1d0fb2e7c2e8c1761966a574f6f5a716b7320d06e3c80513bfb9359e147bbff",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:bca9f83b36ed40b28740",
-      "finished_at": "2026-09-07T15:19:29.984619+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-07T15:19:45.883699+00:00",
-      "started_at": "2026-09-07T15:19:29.984619+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260907T151944253342Z-c32b909321ca",
       "attempt_id": "30c9f4fcd1e22b22c462aeb14d684dbdce34fe4e76ab37c9d8d6b52262122316",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-09-07T15:19:45.884646+00:00",
       "started_at": "2026-09-07T15:19:37.402429+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260907T151936955005Z-d86ce86c9a28",
+      "attempt_id": "e1d0fb2e7c2e8c1761966a574f6f5a716b7320d06e3c80513bfb9359e147bbff",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:bca9f83b36ed40b28740",
+      "finished_at": "2026-09-07T15:19:29.984619+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-07T15:19:45.883699+00:00",
+      "started_at": "2026-09-07T15:19:29.984619+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-07T15:19:24.839388+00:00",
       "status": "participated",
-      "updated_at": "2026-09-07T15:19:45.872116+00:00"
+      "updated_at": "2026-09-07T15:20:02.401115+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-07T15:19:29.984619+00:00",
       "status": "participated",
-      "updated_at": "2026-09-07T15:19:45.883699+00:00"
+      "updated_at": "2026-09-07T15:20:02.402297+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-07T15:19:37.402429+00:00",
       "status": "participated",
-      "updated_at": "2026-09-07T15:19:45.884646+00:00"
+      "updated_at": "2026-09-07T15:20:02.403865+00:00"
     }
   ],
   "action_id": 1936,
@@ -119,62 +119,14 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-07T15:19:45.844527+00:00",
+      "dedupe_key": "34137645626",
+      "occurred_at": "2026-09-07T15:19:45.858963+00:00",
       "payload": {
-        "action_id": 1936,
-        "available_at": "",
-        "deadline": "2026-09-07T15:33:13.761000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:bca9f83b36ed40b28740",
-        "expires_at": "2026-09-07T16:03:13.761000+00:00",
-        "generation_id": "bca9f83b36ed40b28740",
-        "identifier": "ROGANOV07",
-        "message_text": "КОЛЕСО ФРИБЕТОВ\n🔥\nВ течение 15 минут после публикации поста вы можете выиграть часть из 15.000 фрибетов в BETBOOM!\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nДальше дождитесь окончания таймера — сразу после этого колесо начнет крутиться, и вы увидите результаты.\n@roganov_hockey\nhttps://telegram.me/roganov_hockey\nhttps://telegram.me/roganov_hockey/19762\nhttps://betboom.ru/freestream/ROGANOV07",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-07T15:18:13.761000+00:00",
-        "source": "roganov_hockey",
-        "source_message_date": "2026-09-07T15:18:29+00:00",
-        "source_message_id": 19762,
-        "source_message_url": "https://telegram.me/roganov_hockey/19762",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/ROGANOV07",
-        "verification_status": "confirmed",
-        "wheel_key": "roganov07",
-        "wheel_type": "normal"
+        "workflow_run_id": "34137645626",
+        "workflow_sha": "74b5f19e132c4d65c1cd313998d7b5202b54af26"
       },
-      "stage": "source_discovered",
-      "transition_id": "8f74eba33abae0d4a996ca10c6f6dacf2ed0a263838b4bc9a720e0cfe90103c2"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-07T15:19:45.844527+00:00",
-      "payload": {
-        "action_id": 1936,
-        "available_at": "",
-        "deadline": "2026-09-07T15:33:13.761000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:bca9f83b36ed40b28740",
-        "expires_at": "2026-09-07T16:03:13.761000+00:00",
-        "generation_id": "bca9f83b36ed40b28740",
-        "identifier": "ROGANOV07",
-        "message_text": "КОЛЕСО ФРИБЕТОВ\n🔥\nВ течение 15 минут после публикации поста вы можете выиграть часть из 15.000 фрибетов в BETBOOM!\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nДальше дождитесь окончания таймера — сразу после этого колесо начнет крутиться, и вы увидите результаты.\n@roganov_hockey\nhttps://telegram.me/roganov_hockey\nhttps://telegram.me/roganov_hockey/19762\nhttps://betboom.ru/freestream/ROGANOV07",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-07T15:18:13.761000+00:00",
-        "source": "roganov_hockey",
-        "source_message_date": "2026-09-07T15:18:29+00:00",
-        "source_message_id": 19762,
-        "source_message_url": "https://telegram.me/roganov_hockey/19762",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/ROGANOV07",
-        "verification_status": "confirmed",
-        "wheel_key": "roganov07",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "4b638d1bc185358c15ef4ce0e0137dcfedf9ba45c4a33b4f66d6c8514fadf00d"
+      "stage": "workflow_started",
+      "transition_id": "070eca5a56ad954c299b52b49c35fbdc52f346a255792abd2af2a61df46c11ec"
     },
     {
       "dedupe_key": "1936:2026-09-07T15:18:13.761000+00:00",
@@ -206,14 +158,62 @@
       "transition_id": "42041d5c32e152443c21a72ed9ebe83990127db2c95efe5285cab55063c08897"
     },
     {
-      "dedupe_key": "34137645626",
-      "occurred_at": "2026-09-07T15:19:45.858963+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-07T15:19:45.844527+00:00",
       "payload": {
-        "workflow_run_id": "34137645626",
-        "workflow_sha": "74b5f19e132c4d65c1cd313998d7b5202b54af26"
+        "action_id": 1936,
+        "available_at": "",
+        "deadline": "2026-09-07T15:33:13.761000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:bca9f83b36ed40b28740",
+        "expires_at": "2026-09-07T16:03:13.761000+00:00",
+        "generation_id": "bca9f83b36ed40b28740",
+        "identifier": "ROGANOV07",
+        "message_text": "КОЛЕСО ФРИБЕТОВ\n🔥\nВ течение 15 минут после публикации поста вы можете выиграть часть из 15.000 фрибетов в BETBOOM!\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nДальше дождитесь окончания таймера — сразу после этого колесо начнет крутиться, и вы увидите результаты.\n@roganov_hockey\nhttps://telegram.me/roganov_hockey\nhttps://telegram.me/roganov_hockey/19762\nhttps://betboom.ru/freestream/ROGANOV07",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-07T15:18:13.761000+00:00",
+        "source": "roganov_hockey",
+        "source_message_date": "2026-09-07T15:18:29+00:00",
+        "source_message_id": 19762,
+        "source_message_url": "https://telegram.me/roganov_hockey/19762",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/ROGANOV07",
+        "verification_status": "confirmed",
+        "wheel_key": "roganov07",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "070eca5a56ad954c299b52b49c35fbdc52f346a255792abd2af2a61df46c11ec"
+      "stage": "persisted",
+      "transition_id": "4b638d1bc185358c15ef4ce0e0137dcfedf9ba45c4a33b4f66d6c8514fadf00d"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-07T15:19:45.844527+00:00",
+      "payload": {
+        "action_id": 1936,
+        "available_at": "",
+        "deadline": "2026-09-07T15:33:13.761000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:bca9f83b36ed40b28740",
+        "expires_at": "2026-09-07T16:03:13.761000+00:00",
+        "generation_id": "bca9f83b36ed40b28740",
+        "identifier": "ROGANOV07",
+        "message_text": "КОЛЕСО ФРИБЕТОВ\n🔥\nВ течение 15 минут после публикации поста вы можете выиграть часть из 15.000 фрибетов в BETBOOM!\nЧто нужно сделать:\n• перейти по\nССЫЛКЕ\n• авторизоваться в аккаунте\n• нажать «Принять участие»\nДальше дождитесь окончания таймера — сразу после этого колесо начнет крутиться, и вы увидите результаты.\n@roganov_hockey\nhttps://telegram.me/roganov_hockey\nhttps://telegram.me/roganov_hockey/19762\nhttps://betboom.ru/freestream/ROGANOV07",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-07T15:18:13.761000+00:00",
+        "source": "roganov_hockey",
+        "source_message_date": "2026-09-07T15:18:29+00:00",
+        "source_message_id": 19762,
+        "source_message_url": "https://telegram.me/roganov_hockey/19762",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/ROGANOV07",
+        "verification_status": "confirmed",
+        "wheel_key": "roganov07",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "8f74eba33abae0d4a996ca10c6f6dacf2ed0a263838b4bc9a720e0cfe90103c2"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:082b679fd0e3df59752067de4545c6fc14b9c86b5f693838816157ad87c673c0",
@@ -261,7 +261,7 @@
       "transition_id": "ac5b851b57bfb309433316be02b934a3b9461cc0a78abc7d1ad1711457090c76"
     }
   ],
-  "updated_at": "2026-09-07T15:19:45.858963+00:00",
+  "updated_at": "2026-09-07T15:20:02.396509+00:00",
   "wheel_key": "roganov07",
   "workflow_started_at": "2026-09-07T15:19:45.858963+00:00"
 }
