@@ -1,9 +1,9 @@
 {
   "active_incidents": 3,
   "admin_panel": {
-    "age_minutes": 3,
-    "last_heartbeat_at": "2026-09-07T17:42:26.165377+00:00",
-    "started_at": "2026-09-07T15:01:09.951061+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-09-07T20:42:54.267082+00:00",
+    "started_at": "2026-09-07T19:32:11.769387+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,22 +13,22 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 2,
-    "decision_id": "2eb283ab90c24af4b54ad3a8c6f1bb7c",
+    "decision_id": "18014fdf476e473a9b2b15a20b64a950",
     "finding_count": 3,
     "finding_kinds": [
       "monitor_source_count",
       "source_health_missing",
       "source_transport_smoke"
     ],
-    "generated_at": "2026-09-07T17:46:03.978834+00:00",
-    "impact": "Нарушена целостность данных мониторинга: один источник (@littlecsgo) не передает данные, а общая проверка источников не завершается успешно, что может привести к потере актуальности информации.",
+    "generated_at": "2026-09-07T20:47:35.761348+00:00",
+    "impact": "Нарушена целостность мониторинга: часть источников данных не обрабатывается, что может привести к потере актуальности информации и пропускам событий.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источника.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источника @littlecsgo.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 2 критические ошибки и 1 предупреждение. Мониторинг не охватывает все источники, а транспортная проверка inventory не подтверждена.",
+    "summary": "Система находится в критическом состоянии: зафиксировано 2 критические ошибки и 1 предупреждение. Основной монитор не охватывает все источники, а транспортная проверка inventory не подтверждена.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -67,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-07T17:46:01.701167+00:00",
+  "checked_at": "2026-09-07T20:47:33.679638+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -125,7 +125,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 3,
-    "bot_panel_heartbeat": "2026-09-07T17:42:26.165377+00:00",
+    "bot_panel_heartbeat": "2026-09-07T20:42:54.267082+00:00",
     "checked_sources": 177,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -135,9 +135,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-07T17:44:53.655711+00:00",
+      "last_checked_at": "2026-09-07T20:46:30.111247+00:00",
       "last_failure_at": "2026-09-07T15:48:53.181077+00:00",
-      "last_success_at": "2026-09-07T17:44:53.655711+00:00",
+      "last_success_at": "2026-09-07T20:46:30.111247+00:00",
       "status": "ok"
     }
   },
@@ -174,31 +174,31 @@
     "brand": "BB V.G.",
     "checked_sources": 177,
     "checks_delta": 177,
-    "checks_total": 9720887,
+    "checks_total": 9749738,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "8f0b133e8444c833523e6ba19f90387bbd073f3e",
-    "iteration": 166,
-    "last_iteration_at": "2026-09-07T17:42:41.500221+00:00",
-    "last_iteration_duration_seconds": 32,
+    "iteration": 36,
+    "last_iteration_at": "2026-09-07T20:46:33.627135+00:00",
+    "last_iteration_duration_seconds": 30,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-07T17:42:41.500221+00:00",
-    "last_successful_checks_total": 9720887,
-    "last_successful_iteration_at": "2026-09-07T17:42:41.500221+00:00",
+    "last_process_heartbeat_at": "2026-09-07T20:46:33.627135+00:00",
+    "last_successful_checks_total": 9749738,
+    "last_successful_iteration_at": "2026-09-07T20:46:33.627135+00:00",
     "pending_wheels": 0,
     "reachable_sources": 177,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34133714191",
-    "run_started_at": "2026-09-07T14:35:09.809642+00:00",
+    "run_id": "34158099463",
+    "run_started_at": "2026-09-07T20:06:27.320746+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34133714191"
+    "workflow_run_id": "34158099463"
   },
-  "monitor_age_minutes": 3,
-  "monitor_effective_heartbeat_at": "2026-09-07T17:42:41.500221+00:00",
+  "monitor_age_minutes": 1,
+  "monitor_effective_heartbeat_at": "2026-09-07T20:46:33.627135+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
@@ -206,7 +206,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 192,
+    "entry_count": 36,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -274,9 +274,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-07T17:44:53.655711+00:00",
+    "last_checked_at": "2026-09-07T20:46:30.111247+00:00",
     "last_failure_at": "2026-09-07T15:48:53.181077+00:00",
-    "last_success_at": "2026-09-07T17:44:53.655711+00:00",
+    "last_success_at": "2026-09-07T20:46:30.111247+00:00",
     "status": "ok"
   }
 }
