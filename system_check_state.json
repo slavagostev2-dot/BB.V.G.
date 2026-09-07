@@ -1,9 +1,9 @@
 {
   "active_incidents": 3,
   "admin_panel": {
-    "age_minutes": 0,
-    "last_heartbeat_at": "2026-09-07T05:59:28.177881+00:00",
-    "started_at": "2026-09-07T05:59:24.289182+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-09-07T12:16:23.468309+00:00",
+    "started_at": "2026-09-07T10:30:16.118263+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,22 +13,22 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 2,
-    "decision_id": "6dc39f18913d44a5b411de305acd1e38",
+    "decision_id": "c6b56bfe38674517af3dca1c30671720",
     "finding_count": 3,
     "finding_kinds": [
       "monitor_source_count",
       "source_health_missing",
       "source_transport_smoke"
     ],
-    "generated_at": "2026-09-07T05:59:55.103465+00:00",
-    "impact": "Нарушена целостность мониторинга: часть источников (включая @littlecsgo) не обрабатывается, что приводит к потере данных и неполному покрытию системы.",
+    "generated_at": "2026-09-07T12:18:31.488123+00:00",
+    "impact": "Нарушена целостность мониторинга: часть источников данных не обрабатывается, что может привести к потере актуальности информации и пропускам событий.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
-    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источника.",
+    "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации для выявления причин пропуска источника @littlecsgo.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: обнаружено 2 критические ошибки и 1 предупреждение. Монитор не охватывает все источники, а транспортная проверка inventory не подтверждена.",
+    "summary": "Система находится в критическом состоянии: зафиксировано 2 критические ошибки и 1 предупреждение. Основной монитор не охватывает все источники, а транспортная проверка inventory не подтверждена.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -43,7 +43,7 @@
     "recorded_primary_sources": 179,
     "source_policy": "single_public_inventory",
     "transport_accounted_sources": 179,
-    "transport_checked_at": "2026-09-07T03:36:44.664494+00:00",
+    "transport_checked_at": "2026-09-07T08:19:26.463500+00:00",
     "transport_domain": "telegram.me",
     "transport_error_sources": [],
     "transport_reachable_sources": 179,
@@ -67,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-07T05:59:52.705329+00:00",
+  "checked_at": "2026-09-07T12:18:29.255367+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -125,7 +125,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 3,
-    "bot_panel_heartbeat": "2026-09-07T05:59:28.177881+00:00",
+    "bot_panel_heartbeat": "2026-09-07T12:16:23.468309+00:00",
     "checked_sources": 177,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -135,18 +135,18 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-06T23:36:05.206645+00:00",
+      "last_checked_at": "2026-09-07T12:17:20.153292+00:00",
       "last_failure_at": "2026-09-05T18:43:16.785720+00:00",
-      "last_success_at": "2026-09-06T23:36:05.206645+00:00",
+      "last_success_at": "2026-09-07T12:17:20.153292+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
+    "digest_sent": true,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 0,
-    "opened": 0,
+    "messages_attempted": 1,
+    "opened": 2,
     "resolved": 0
   },
   "incident_sequence": 203,
@@ -174,31 +174,31 @@
     "brand": "BB V.G.",
     "checked_sources": 177,
     "checks_delta": 177,
-    "checks_total": 9612563,
+    "checks_total": 9670796,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "8f0b133e8444c833523e6ba19f90387bbd073f3e",
-    "iteration": 131,
-    "last_iteration_at": "2026-09-07T05:59:33.610825+00:00",
-    "last_iteration_duration_seconds": 30,
+    "iteration": 166,
+    "last_iteration_at": "2026-09-07T12:17:44.945599+00:00",
+    "last_iteration_duration_seconds": 33,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-07T05:59:33.610825+00:00",
-    "last_successful_checks_total": 9612563,
-    "last_successful_iteration_at": "2026-09-07T05:59:33.610825+00:00",
+    "last_process_heartbeat_at": "2026-09-07T12:17:44.945599+00:00",
+    "last_successful_checks_total": 9670796,
+    "last_successful_iteration_at": "2026-09-07T12:17:44.945599+00:00",
     "pending_wheels": 0,
     "reachable_sources": 177,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34079946379",
-    "run_started_at": "2026-09-07T03:32:59.282842+00:00",
+    "run_id": "34103920085",
+    "run_started_at": "2026-09-07T09:04:22.274059+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34079946379"
+    "workflow_run_id": "34103920085"
   },
   "monitor_age_minutes": 0,
-  "monitor_effective_heartbeat_at": "2026-09-07T05:59:33.610825+00:00",
+  "monitor_effective_heartbeat_at": "2026-09-07T12:17:44.945599+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
@@ -206,7 +206,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 392,
+    "entry_count": 399,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -234,11 +234,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 937,
+    "personal_vote_records": 939,
     "policy": "personal_votes_v1",
     "rated_sources": 47,
     "score_mismatches": [],
-    "valid_personal_votes": 937
+    "valid_personal_votes": 939
   },
   "source_health_summary": {
     "configured_records": 177,
@@ -274,9 +274,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-06T23:36:05.206645+00:00",
+    "last_checked_at": "2026-09-07T12:17:20.153292+00:00",
     "last_failure_at": "2026-09-05T18:43:16.785720+00:00",
-    "last_success_at": "2026-09-06T23:36:05.206645+00:00",
+    "last_success_at": "2026-09-07T12:17:20.153292+00:00",
     "status": "ok"
   }
 }
