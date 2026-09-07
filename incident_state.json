@@ -1,5 +1,5 @@
 {
-  "active_count": 3,
+  "active_count": 4,
   "incidents": {
     "system_checks:discovery_domain:9e6b37ba02c42a92": {
       "detail": "Ожидался telegram.me, записано нет данных.",
@@ -68,15 +68,15 @@
       "title": "В рабочем коде остались ссылки на заблокированный домен"
     },
     "system_checks:monitor_source_count:05defcc6c0898ea6": {
-      "detail": "В последней итерации проверено 177 из 178 источников, готовых к проверке (всего настроено 178).",
+      "detail": "В последней итерации проверено 176 из 177 источников, готовых к проверке (всего настроено 178).",
       "first_seen_at": "2026-07-14T03:10:51.892284+00:00",
       "key": "system_checks:monitor_source_count:05defcc6c0898ea6",
       "kind": "monitor_source_count",
-      "last_seen_at": "2026-09-07T20:47:34.847240+00:00",
+      "last_seen_at": "2026-09-07T23:01:38.804806+00:00",
       "lifecycle_started_at": "2026-09-07T05:59:54.068238+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-09-06T19:35:21.702078+00:00",
-      "occurrences": 51,
+      "occurrences": 52,
       "open_notification_pending": false,
       "open_notified_at": "2026-09-07T12:18:31.859307+00:00",
       "opened_sequence": 202,
@@ -200,16 +200,34 @@
       "subject": "kolesaBB",
       "title": "Источник @kolesaBB не проверяется"
     },
+    "system_checks:source_empty_public_feed:ed979750941e472f": {
+      "detail": "публичная страница открылась, но сообщений не найдено",
+      "first_seen_at": "2026-09-07T23:01:38.804806+00:00",
+      "key": "system_checks:source_empty_public_feed:ed979750941e472f",
+      "kind": "source_empty_public_feed",
+      "last_seen_at": "2026-09-07T23:01:38.804806+00:00",
+      "lifecycle_started_at": "2026-09-07T23:01:38.804806+00:00",
+      "metadata": {},
+      "notification_stabilizing_until": "2026-09-07T23:06:38.804806+00:00",
+      "occurrences": 1,
+      "open_notification_pending": false,
+      "opened_sequence": 204,
+      "scope": "system_checks",
+      "severity": "critical",
+      "status": "active",
+      "subject": "EWC_betboom",
+      "title": "Источник @EWC_betboom не проверяется"
+    },
     "system_checks:source_health_missing:d94ad276a135da04": {
       "detail": "Нет записей для 1 источников: @littlecsgo.",
       "first_seen_at": "2026-07-14T13:29:26.504862+00:00",
       "key": "system_checks:source_health_missing:d94ad276a135da04",
       "kind": "source_health_missing",
-      "last_seen_at": "2026-09-07T20:47:34.847240+00:00",
+      "last_seen_at": "2026-09-07T23:01:38.804806+00:00",
       "lifecycle_started_at": "2026-09-07T05:59:54.068238+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-09-06T19:35:21.702078+00:00",
-      "occurrences": 53,
+      "occurrences": 54,
       "open_notification_pending": false,
       "open_notified_at": "2026-09-07T12:18:31.859307+00:00",
       "opened_sequence": 203,
@@ -272,11 +290,11 @@
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
       "kind": "source_transport_smoke",
-      "last_seen_at": "2026-09-07T20:47:34.847240+00:00",
+      "last_seen_at": "2026-09-07T23:01:38.804806+00:00",
       "lifecycle_started_at": "2026-09-06T16:09:54.656066+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-09-06T10:28:56.714451+00:00",
-      "occurrences": 61,
+      "occurrences": 62,
       "open_notification_pending": false,
       "open_notified_at": "2026-09-06T17:44:56.223535+00:00",
       "opened_sequence": 197,
@@ -334,17 +352,17 @@
       "title": "Источники попали в карантин"
     }
   },
-  "last_change_at": "2026-09-07T12:18:30.410590+00:00",
-  "last_reconcile_at": "2026-09-07T20:47:34.847240+00:00",
+  "last_change_at": "2026-09-07T23:01:38.804806+00:00",
+  "last_reconcile_at": "2026-09-07T23:01:38.804806+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 3,
+    "active": 4,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 203,
+  "sequence": 204,
   "status": "initializing",
-  "updated_at": "2026-09-07T20:47:34.847406+00:00",
+  "updated_at": "2026-09-07T23:01:38.804968+00:00",
   "version": 1
 }
