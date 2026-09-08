@@ -57,10 +57,9 @@ def _canonical_event_token(
     if explicit:
         return explicit
 
-    # A BetBoom freestream identifier is reused across many wheel generations.
-    # Never remap an already durable event token to whatever generation happens
-    # to be active now only because wheel_key is the same. That was the exact
-    # cause of old zonertw4 successes being attached to a new September event.
+    # Durable evt:/pending: identities already describe one concrete wheel
+    # generation. Never replace them with the currently active generation merely
+    # because BetBoom reused the same freestream identifier.
     if base.startswith(("evt:", "pending:")):
         return base
 
@@ -70,8 +69,29 @@ def _canonical_event_token(
         if contextual:
             return contextual
 
-    # Legacy records without enough event context stay in their own legacy group.
-    # Keeping them isolated is safer than inventing identity from active_wheels.
+    # Older action-based records may predate durable event ids. They are safe to
+    # map to active_wheels only when both the action id and start marker identify
+    # that exact same generation. This preserves historical compatibility without
+    # reviving the zonertw4 cross-generation bug.
+    if "#action:" in base:
+        key = str(record.get("wheel_key") or "").casefold()
+        active = state.get("active_wheels")
+        item = active.get(key) if isinstance(active, dict) else None
+        if isinstance(item, dict):
+            action_id, start_text = _token_identity(base)
+            try:
+                active_action_id = int(item.get("action_id", 0) or 0)
+            except (TypeError, ValueError):
+                active_action_id = 0
+            active_start = str(item.get("server_start_at") or "").strip()
+            same_action = action_id > 0 and action_id == active_action_id
+            same_start = not start_text or not active_start or start_text == active_start
+            if same_action and same_start:
+                active_token = auto_participation_owner_sync._event_token(item, key)
+                if active_token:
+                    return active_token
+
+    # Ambiguous legacy records stay isolated in their own historical group.
     return base
 
 
