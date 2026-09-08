@@ -97,6 +97,36 @@ def test_retry_policy_stops_promo_refusal_but_keeps_server_error() -> None:
     )
 
 
+def test_secondary_helper_passes_storage_explicitly(monkeypatch) -> None:
+    session = {"cookies": [{"name": "session", "value": "account-2"}]}
+    observed: dict[str, object] = {}
+    expected = account2.primary_auto.ParticipationResult(
+        False,
+        "ineligible_promo_code",
+        "BetBoom refusal",
+        "artifact",
+    )
+
+    def fake_participate(url: str, storage_state=None):
+        observed["url"] = url
+        observed["storage_state"] = storage_state
+        return expected
+
+    monkeypatch.setattr(
+        account2.betboom_participation_browser,
+        "participate",
+        fake_participate,
+    )
+
+    result = account2._participate_with_storage(
+        "https://betboom.ru/freestream/SECOND",
+        session,
+    )
+
+    assert result is expected
+    assert observed["storage_state"] is session
+
+
 def test_account2_notification_contains_exact_terminal_reason() -> None:
     text, _markup = account2._short_message(
         False,
