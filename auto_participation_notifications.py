@@ -56,18 +56,42 @@ def _canonical_event_token(
     ).strip()
     if explicit:
         return explicit
+
+    # Durable evt:/pending: identities already describe one concrete wheel
+    # generation. Never replace them with the currently active generation merely
+    # because BetBoom reused the same freestream identifier.
+    if base.startswith(("evt:", "pending:")):
+        return base
+
     context = record.get("event_context")
     if isinstance(context, dict):
         contextual = auto_participation_owner_sync._event_token(context)
         if contextual:
             return contextual
-    key = str(record.get("wheel_key") or "").casefold()
-    active = state.get("active_wheels")
-    item = active.get(key) if isinstance(active, dict) else None
-    if isinstance(item, dict):
-        active_token = auto_participation_owner_sync._event_token(item, key)
-        if active_token:
-            return active_token
+
+    # Older action-based records may predate durable event ids. They are safe to
+    # map to active_wheels only when both the action id and start marker identify
+    # that exact same generation. This preserves historical compatibility without
+    # reviving the zonertw4 cross-generation bug.
+    if "#action:" in base:
+        key = str(record.get("wheel_key") or "").casefold()
+        active = state.get("active_wheels")
+        item = active.get(key) if isinstance(active, dict) else None
+        if isinstance(item, dict):
+            action_id, start_text = _token_identity(base)
+            try:
+                active_action_id = int(item.get("action_id", 0) or 0)
+            except (TypeError, ValueError):
+                active_action_id = 0
+            active_start = str(item.get("server_start_at") or "").strip()
+            same_action = action_id > 0 and action_id == active_action_id
+            same_start = not start_text or not active_start or start_text == active_start
+            if same_action and same_start:
+                active_token = auto_participation_owner_sync._event_token(item, key)
+                if active_token:
+                    return active_token
+
+    # Ambiguous legacy records stay isolated in their own historical group.
     return base
 
 
@@ -416,6 +440,7 @@ def _result_message(
     any_success = any(value[2] for value in accounts.values())
     referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
     lines: list[str] = []
+    result_statuses: list[str] = []
     ordered = sorted(
         accounts.items(),
         key=lambda row: (_account_order(row[1][1], row[0]), row[0]),
@@ -431,6 +456,7 @@ def _result_message(
         )
         escaped_label = html.escape(label or fallback)
         result_status = _account_result_status(record, success)
+        result_statuses.append(result_status)
         if result_status == "participated":
             lines.append(
                 f"✅ {escaped_label} — {html.escape(_success_description(record))}"
@@ -446,7 +472,9 @@ def _result_message(
                 "реферальное ограничение"
             )
         elif result_status == "expired":
-            lines.append(f"⌛ {escaped_label} — подтверждено, что колесо завершено")
+            lines.append(
+                f"⌛ {escaped_label} — колесо уже завершилось; повторная попытка не нужна"
+            )
         elif result_status == "technical_error":
             lines.append(
                 f"🛠 {escaped_label} — техническая ошибка: "
@@ -457,8 +485,13 @@ def _result_message(
                 f"⚠️ {escaped_label} — результат не подтверждён; "
                 "повторная проверка запланирована"
             )
+    all_expired = bool(result_statuses) and all(
+        status == "expired" for status in result_statuses
+    )
     wheel_type = wheel_publications_v2.referral_classification(item)
-    if wheel_type == wheel_publications_v2.WHEEL_TYPE_REFERRAL:
+    if all_expired:
+        title = "⌛ <b>Колесо уже завершилось</b>"
+    elif wheel_type == wheel_publications_v2.WHEEL_TYPE_REFERRAL:
         title = "🎡 <b>Реферальное колесо</b>"
     else:
         title = (
