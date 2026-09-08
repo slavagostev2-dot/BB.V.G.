@@ -56,18 +56,22 @@ def _canonical_event_token(
     ).strip()
     if explicit:
         return explicit
+
+    # A BetBoom freestream identifier is reused across many wheel generations.
+    # Never remap an already durable event token to whatever generation happens
+    # to be active now only because wheel_key is the same. That was the exact
+    # cause of old zonertw4 successes being attached to a new September event.
+    if base.startswith(("evt:", "pending:")):
+        return base
+
     context = record.get("event_context")
     if isinstance(context, dict):
         contextual = auto_participation_owner_sync._event_token(context)
         if contextual:
             return contextual
-    key = str(record.get("wheel_key") or "").casefold()
-    active = state.get("active_wheels")
-    item = active.get(key) if isinstance(active, dict) else None
-    if isinstance(item, dict):
-        active_token = auto_participation_owner_sync._event_token(item, key)
-        if active_token:
-            return active_token
+
+    # Legacy records without enough event context stay in their own legacy group.
+    # Keeping them isolated is safer than inventing identity from active_wheels.
     return base
 
 
@@ -416,6 +420,7 @@ def _result_message(
     any_success = any(value[2] for value in accounts.values())
     referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
     lines: list[str] = []
+    result_statuses: list[str] = []
     ordered = sorted(
         accounts.items(),
         key=lambda row: (_account_order(row[1][1], row[0]), row[0]),
@@ -431,6 +436,7 @@ def _result_message(
         )
         escaped_label = html.escape(label or fallback)
         result_status = _account_result_status(record, success)
+        result_statuses.append(result_status)
         if result_status == "participated":
             lines.append(
                 f"✅ {escaped_label} — {html.escape(_success_description(record))}"
@@ -446,7 +452,9 @@ def _result_message(
                 "реферальное ограничение"
             )
         elif result_status == "expired":
-            lines.append(f"⌛ {escaped_label} — подтверждено, что колесо завершено")
+            lines.append(
+                f"⌛ {escaped_label} — колесо уже завершилось; повторная попытка не нужна"
+            )
         elif result_status == "technical_error":
             lines.append(
                 f"🛠 {escaped_label} — техническая ошибка: "
@@ -457,8 +465,13 @@ def _result_message(
                 f"⚠️ {escaped_label} — результат не подтверждён; "
                 "повторная проверка запланирована"
             )
+    all_expired = bool(result_statuses) and all(
+        status == "expired" for status in result_statuses
+    )
     wheel_type = wheel_publications_v2.referral_classification(item)
-    if wheel_type == wheel_publications_v2.WHEEL_TYPE_REFERRAL:
+    if all_expired:
+        title = "⌛ <b>Колесо уже завершилось</b>"
+    elif wheel_type == wheel_publications_v2.WHEEL_TYPE_REFERRAL:
         title = "🎡 <b>Реферальное колесо</b>"
     else:
         title = (
