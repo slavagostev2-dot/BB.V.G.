@@ -1572,12 +1572,6 @@
       "sequence": 275,
       "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"pomidor1#generation:b2b77b8fbb30753abf59\",\"role\":\"owner\",\"sources\":[\"kolesaBB\"],\"weight\":5,\"wheel_key\":\"pomidor1\"}"
     },
-    "7c40efe61cc84e32b614b2aa115ea4dc": {
-      "action": "set_deadline",
-      "created_at": "2026-07-16T11:51:03.585487+00:00",
-      "sequence": 31,
-      "value": "papa|2026-07-16T20:46:03.370092+00:00"
-    },
     "7c4455f2cb4c4c9bbdc130819d7e5605": {
       "action": "submit_wheel",
       "created_at": "2026-09-05T14:15:04.336483+00:00",
@@ -5148,6 +5142,12 @@
       "sequence": 594,
       "value": "{\"actor\":\"vote_6d354213070f7ecae88871feecfd6151\",\"event_key\":\"dyrachyo#generation:a6e13b2f43464c69ff45\",\"role\":\"admin\",\"sources\":[\"kolesaBB\"],\"weight\":5,\"wheel_key\":\"dyrachyo\"}"
     },
+    "vote-b035ced0382287a6271ec964e217e5a8": {
+      "action": "record_personal_vote",
+      "created_at": "2026-09-08T12:10:13.086629+00:00",
+      "sequence": 1031,
+      "value": "{\"actor\":\"vote_6d354213070f7ecae88871feecfd6151\",\"event_key\":\"little1#generation:4e11b9a194a4dc57dc95\",\"role\":\"admin\",\"sources\":[\"littlecsgo\",\"private_2445382077\"],\"weight\":5,\"wheel_key\":\"little1\"}"
+    },
     "vote-b03ce318b48312b82b92b7b60bf40eed": {
       "action": "record_personal_vote",
       "created_at": "2026-08-21T14:24:50.600831+00:00",
@@ -6002,5 +6002,5 @@
     }
   },
   "format": "bbvg-admin-action-queue-v1",
-  "sequence": 1030
+  "sequence": 1031
 }
