@@ -1,9 +1,9 @@
 {
   "active_incidents": 4,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-08T01:04:25.027479+00:00",
-    "started_at": "2026-09-08T00:03:46.433346+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-09-08T05:50:10.367440+00:00",
+    "started_at": "2026-09-08T04:34:30.241184+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -12,24 +12,23 @@
     "ai_status": "ok",
     "cached": false,
     "confidence": 0.0,
-    "critical_count": 3,
-    "decision_id": "331cc93c778f45468653a9f82a5165e1",
-    "finding_count": 4,
+    "critical_count": 2,
+    "decision_id": "fbbfeb2e2f8a4dd9a63fcb21c866439c",
+    "finding_count": 3,
     "finding_kinds": [
       "monitor_source_count",
-      "source_empty_public_feed",
       "source_health_missing",
       "source_transport_smoke"
     ],
-    "generated_at": "2026-09-08T01:06:55.561224+00:00",
-    "impact": "Часть источников (включая @EWC_betboom) не обновляется, что приводит к потере актуальных данных и неполному покрытию мониторинга.",
+    "generated_at": "2026-09-08T05:55:04.054879+00:00",
+    "impact": "Нарушена целостность мониторинга: часть источников (включая @littlecsgo) не обрабатывается, что ведет к потере данных и неактуальности отчетов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Проверить состояние основного monitor workflow и время последней успешной итерации.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система находится в критическом состоянии: зафиксировано 3 критические ошибки и 1 предупреждение. Основной монитор не охватывает все источники, а транспортная проверка inventory не подтверждена.",
+    "summary": "Система находится в критическом состоянии: монитор не охватывает все источники, а транспортная проверка inventory не подтверждена.",
     "used_fallback": false,
     "version": 1,
     "warning_count": 1
@@ -68,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-08T01:06:53.044939+00:00",
+  "checked_at": "2026-09-08T05:55:01.982872+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -100,21 +99,14 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 4,
+  "finding_count": 3,
   "findings": [
     {
-      "detail": "В последней итерации проверено 176 из 177 источников, готовых к проверке (всего настроено 178).",
+      "detail": "В последней итерации проверено 177 из 178 источников, готовых к проверке (всего настроено 178).",
       "kind": "monitor_source_count",
       "severity": "critical",
       "subject": "",
       "title": "Основной монитор проверяет не все источники"
-    },
-    {
-      "detail": "публичная страница открылась, но сообщений не найдено",
-      "kind": "source_empty_public_feed",
-      "severity": "critical",
-      "subject": "EWC_betboom",
-      "title": "Источник @EWC_betboom не проверяется"
     },
     {
       "detail": "Нет записей для 1 источников: @littlecsgo.",
@@ -133,11 +125,11 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 4,
-    "bot_panel_heartbeat": "2026-09-08T01:04:25.027479+00:00",
-    "checked_sources": 176,
+    "bot_panel_heartbeat": "2026-09-08T05:50:10.367440+00:00",
+    "checked_sources": 177,
     "configured_sources": 178,
     "domain": "telegram.me",
-    "reachable_sources": 176,
+    "reachable_sources": 177,
     "single_source": "system_check_state.json",
     "status": "degraded",
     "wheel_api_health": {
@@ -150,11 +142,11 @@
     }
   },
   "incident_delivery": {
-    "digest_sent": true,
+    "digest_sent": false,
     "health_inspector_mode": "ai",
     "health_inspector_status": "ok",
-    "messages_attempted": 1,
-    "opened": 1,
+    "messages_attempted": 0,
+    "opened": 0,
     "resolved": 0
   },
   "incident_sequence": 204,
@@ -180,36 +172,36 @@
   },
   "monitor": {
     "brand": "BB V.G.",
-    "checked_sources": 176,
+    "checked_sources": 177,
     "checks_delta": 177,
-    "checks_total": 9792218,
+    "checks_total": 9838946,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "8f0b133e8444c833523e6ba19f90387bbd073f3e",
-    "iteration": 276,
-    "last_iteration_at": "2026-09-08T01:06:39.809443+00:00",
-    "last_iteration_duration_seconds": 29,
+    "iteration": 236,
+    "last_iteration_at": "2026-09-08T05:53:55.474647+00:00",
+    "last_iteration_duration_seconds": 38,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-08T01:06:39.809443+00:00",
-    "last_successful_checks_total": 9792218,
-    "last_successful_iteration_at": "2026-09-08T01:06:39.809443+00:00",
+    "last_process_heartbeat_at": "2026-09-08T05:53:55.474647+00:00",
+    "last_successful_checks_total": 9838946,
+    "last_successful_iteration_at": "2026-09-08T05:53:55.474647+00:00",
     "pending_wheels": 0,
-    "reachable_sources": 176,
+    "reachable_sources": 177,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34158099463",
-    "run_started_at": "2026-09-07T20:06:27.320746+00:00",
+    "run_id": "34177234260",
+    "run_started_at": "2026-09-08T01:37:17.125176+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34158099463"
+    "workflow_run_id": "34177234260"
   },
-  "monitor_age_minutes": 0,
-  "monitor_effective_heartbeat_at": "2026-09-08T01:06:39.809443+00:00",
+  "monitor_age_minutes": 1,
+  "monitor_effective_heartbeat_at": "2026-09-08T05:53:55.474647+00:00",
   "monitor_source_expectation": {
     "configured": 178,
-    "due_for_check": 177
+    "due_for_check": 178
   },
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
@@ -254,28 +246,18 @@
       "littlecsgo"
     ],
     "nightly_pending_first_check": [],
-    "problem_details": [
-      {
-        "failure_code": "empty_public_feed",
-        "reason": "публичная страница открылась, но сообщений не найдено",
-        "source": "EWC_betboom",
-        "status": "quarantined"
-      }
-    ],
-    "problem_sources": [
-      "EWC_betboom"
-    ],
+    "problem_details": [],
+    "problem_sources": [],
     "records": 177,
     "required_primary_records": 177,
     "statuses": {
-      "ok": 176,
-      "quarantined": 1
+      "ok": 177
     },
     "transport_failure_types": {
       "dns": 0,
       "empty_or_html": 0,
       "http": 0,
-      "other": 1,
+      "other": 0,
       "timeout": 0,
       "tls": 0
     }
