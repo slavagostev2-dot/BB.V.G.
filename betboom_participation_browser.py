@@ -47,6 +47,11 @@ REFERRAL_INELIGIBLE_LABEL_RE = re.compile(
     r"[^.!?\n]{0,140}(?:не\s+реферал\w*|не\s+по\s+реферальн\w*\s+ссылк\w*))[.!]?",
     re.IGNORECASE,
 )
+WHEEL_CLOSED_TEXT_RE = re.compile(
+    r"(?:пока\s+жд[её]шь\s+следующий\s+запуск\s*,?\s*заглядывай\s+в\s+другие\s+акции|"
+    r"(?:колесо|розыгрыш|акция|участие)\s+(?:уже\s+)?(?:заверш[её]н(?:о|а)?|закрыт(?:о|а)?))",
+    re.IGNORECASE,
+)
 PRECLICK_EXACT_CONFIRMATION_MARKER = "preclick_exact_success_label"
 SERVER_ACK_MARKER = "server_join_acknowledged=true"
 
@@ -154,6 +159,21 @@ def _visible_referral_ineligible(page: Any) -> str:
             _candidate, label = _matching_visible_label(locator, REFERRAL_INELIGIBLE_LABEL_RE)
             if label:
                 return f"{_root_name(root, page)}:{label}"[:220]
+    return ""
+
+
+def _wheel_closed_evidence(page: Any) -> str:
+    """Return only strong page text proving this wheel generation is already over."""
+
+    for root in _search_roots(page):
+        try:
+            body = root.locator("body")
+            text = _normalized_label(body.inner_text(timeout=1200))
+        except Exception:
+            continue
+        match = WHEEL_CLOSED_TEXT_RE.search(text)
+        if match:
+            return f"{_root_name(root, page)}:{_normalized_label(match.group(0))}"[:260]
     return ""
 
 
@@ -331,6 +351,33 @@ def _finish_click_proof(page: Any, target: Path | None, *, url: str, click_locat
 def _authorization_failure(page: Any, url: str, detail: str) -> auto.ParticipationResult:
     artifact = _save_diagnostics(page, url, "authorization_required", detail)
     return auto.ParticipationResult(False, "authorization_required", detail[:300], artifact)
+
+
+def _wheel_closed_failure(
+    page: Any,
+    url: str,
+    evidence: str,
+    *,
+    clicked_by_bot: bool = False,
+    proof_target: Path | None = None,
+    click_location: str = "",
+) -> auto.ParticipationResult:
+    detail = (
+        f"expired_exact_text:{evidence}; колесо уже завершилось до подтверждения участия; "
+        f"clicked_by_bot={'true' if clicked_by_bot else 'false'}"
+    )[:300]
+    if clicked_by_bot:
+        artifact = _finish_click_proof(
+            page,
+            proof_target,
+            url=url,
+            click_location=click_location,
+            confirmation=f"expired_exact_text:{evidence}",
+            status="participation_closed",
+        )
+    else:
+        artifact = _save_diagnostics(page, url, "participation_closed", detail)
+    return auto.ParticipationResult(False, "participation_closed", detail, artifact)
 
 
 def _click_preparation_control(page: Any, pattern: re.Pattern[str], timeout_ms: int) -> str:
@@ -542,6 +589,11 @@ def participate(url: str, storage_state: dict[str, Any] | None = None) -> auto.P
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             page.wait_for_timeout(600)
 
+            closed_evidence = _wheel_closed_evidence(page)
+            if closed_evidence:
+                result = _wheel_closed_failure(page, url, closed_evidence)
+                browser.close()
+                return result
             referral_refusal = _visible_referral_ineligible(page)
             if referral_refusal:
                 detail = f"referral_ineligible_exact_text:{referral_refusal}"
@@ -562,6 +614,11 @@ def participate(url: str, storage_state: dict[str, Any] | None = None) -> auto.P
                 return auto.ParticipationResult(True, "already_participating", f"BetBoom уже показывал участие до клика; clicked_by_bot=false; confirmation={PRECLICK_EXACT_CONFIRMATION_MARKER}"[:300], artifact)
 
             if control is None:
+                closed_evidence = _wheel_closed_evidence(page)
+                if closed_evidence:
+                    result = _wheel_closed_failure(page, url, closed_evidence)
+                    browser.close()
+                    return result
                 try:
                     page.reload(wait_until="domcontentloaded", timeout=timeout_ms)
                     page.wait_for_timeout(600)
@@ -577,6 +634,11 @@ def participate(url: str, storage_state: dict[str, Any] | None = None) -> auto.P
                     return auto.ParticipationResult(True, "already_participating", f"BetBoom уже показывал участие до клика после перезагрузки; clicked_by_bot=false; confirmation={PRECLICK_EXACT_CONFIRMATION_MARKER}"[:300], artifact)
 
             if control is None:
+                closed_evidence = _wheel_closed_evidence(page)
+                if closed_evidence:
+                    result = _wheel_closed_failure(page, url, closed_evidence)
+                    browser.close()
+                    return result
                 auth_location = _authentication_required(page)
                 if auth_location:
                     result = _authorization_failure(page, url, f"страница показывает вход/авторизацию ({auth_location})")
@@ -623,6 +685,19 @@ def participate(url: str, storage_state: dict[str, Any] | None = None) -> auto.P
                 browser.close()
                 return auto.ParticipationResult(True, "participated", detail[:300], artifact)
 
+            closed_evidence = _wheel_closed_evidence(page)
+            if closed_evidence:
+                result = _wheel_closed_failure(
+                    page,
+                    url,
+                    closed_evidence,
+                    clicked_by_bot=True,
+                    proof_target=proof_target,
+                    click_location=location,
+                )
+                network_diag.write_trace(result.artifact_url, network_trace)
+                browser.close()
+                return result
             referral_refusal = _visible_referral_ineligible(page)
             if referral_refusal:
                 detail = f"referral_ineligible_exact_text:{referral_refusal}"
@@ -654,6 +729,8 @@ def self_test() -> None:
     assert _matches_full_label(CLICK_RE, "  Принять   участие  ")
     assert not _matches_full_label(CLICK_RE, "В розыгрыше могут участвовать все зарегистрированные пользователи")
     assert _matches_full_label(REFERRAL_INELIGIBLE_LABEL_RE, "Ваш аккаунт не является рефералом.")
+    assert WHEEL_CLOSED_TEXT_RE.search("Пока ждёшь следующий запуск, заглядывай в другие акции")
+    assert WHEEL_CLOSED_TEXT_RE.search("Колесо уже завершено")
     assert _matches_full_label(SUCCESS_LABEL_RE, "Вы уже участвуете")
     real_status = "Отлично! Теперь ты участвуешь в розыгрыше. Жди завершения таймера, чтобы забрать приз"
     assert _matches_success_label(real_status)
