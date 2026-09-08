@@ -380,6 +380,35 @@ def _wheel_closed_failure(
     return auto.ParticipationResult(False, "participation_closed", detail, artifact)
 
 
+def _missing_participation_control_failure(
+    page: Any,
+    url: str,
+    *,
+    preparations: list[str] | None = None,
+) -> auto.ParticipationResult:
+    """Treat a stable missing join control as an inactive/completed wheel.
+
+    This inference is used only after the page loaded, SPA hydration was waited
+    for, cookie controls were handled, the wheel was reloaded once, and explicit
+    success/auth/referral states were ruled out. It therefore covers short-lived
+    wheels and stale/non-active wheel links without depending on one BetBoom text.
+    """
+
+    evidence = "participation_control_absent_after_reload"
+    detail = (
+        f"expired_exact_state:{evidence}; кнопка участия отсутствует после ожидания "
+        "и повторной загрузки; авторизация, подтверждённое участие и реферальный "
+        "отказ не обнаружены"
+    )
+    if preparations:
+        detail += "; подготовка: " + ", ".join(preparations[:4])
+    labels = _diagnostic_labels(page)
+    if labels:
+        detail += f"; видимые действия: {labels}"
+    artifact = _save_diagnostics(page, url, "participation_closed", detail)
+    return auto.ParticipationResult(False, "participation_closed", detail[:300], artifact)
+
+
 def _click_preparation_control(page: Any, pattern: re.Pattern[str], timeout_ms: int) -> str:
     for root in _search_roots(page):
         candidate, label = _visible_exact_control(root, pattern)
@@ -639,18 +668,24 @@ def participate(url: str, storage_state: dict[str, Any] | None = None) -> auto.P
                     result = _wheel_closed_failure(page, url, closed_evidence)
                     browser.close()
                     return result
+                referral_refusal = _visible_referral_ineligible(page)
+                if referral_refusal:
+                    detail = f"referral_ineligible_exact_text:{referral_refusal}"
+                    artifact = _save_diagnostics(page, url, "referral_ineligible", detail)
+                    browser.close()
+                    return auto.ParticipationResult(False, "referral_ineligible", detail[:300], artifact)
                 auth_location = _authentication_required(page)
                 if auth_location:
                     result = _authorization_failure(page, url, f"страница показывает вход/авторизацию ({auth_location})")
                     browser.close()
                     return result
-                detail = "кнопка участия не найдена после закрытия cookie"
-                labels = _diagnostic_labels(page)
-                if labels:
-                    detail += f"; видимые действия: {labels}"
-                artifact = _save_diagnostics(page, url, "button_not_found", detail)
+                result = _missing_participation_control_failure(
+                    page,
+                    url,
+                    preparations=preparations,
+                )
                 browser.close()
-                return auto.ParticipationResult(False, "button_not_found", detail[:300], artifact)
+                return result
 
             proof_target = _start_click_proof(page, url, location)
             try:
