@@ -231,13 +231,14 @@ def _reject_weak_browser_success(
 def _participate_with_storage(
     url: str, state_value: dict[str, Any]
 ) -> primary_auto.ParticipationResult:
-    original_storage = primary_auto._storage_state
-    primary_auto._storage_state = lambda: state_value
-    try:
-        result = betboom_participation_browser.participate(url)
-        return _reject_weak_browser_success(result)
-    finally:
-        primary_auto._storage_state = original_storage
+    # Pass the secondary session explicitly. Calling participate() without this
+    # argument activates the primary-account terminal-result cache and can make
+    # account 2 / xFLARXx inherit account 1's refusal without contacting BetBoom.
+    result = betboom_participation_browser.participate(
+        url,
+        storage_state=state_value,
+    )
+    return _reject_weak_browser_success(result)
 
 
 def run_second_account(
