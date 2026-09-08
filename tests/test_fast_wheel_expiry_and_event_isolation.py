@@ -73,7 +73,7 @@ def test_zonertw4_waiting_for_next_launch_is_terminal_closed_evidence(monkeypatc
     assert "expired_exact_text:" in result.detail
 
 
-def test_old_zonertw4_success_cannot_attach_to_current_generation() -> None:
+def test_old_zonertw4_success_cannot_attach_to_current_generation(monkeypatch) -> None:
     item = {
         "wheel_key": "zonertw4",
         "identifier": "zonertw4",
@@ -86,53 +86,67 @@ def test_old_zonertw4_success_cannot_attach_to_current_generation() -> None:
     current = auto_participation_owner_sync._event_token(item, "zonertw4")
     old = "evt:288cf62d4fd4b339c368"
 
+    events = {
+        current: _failure_record(
+            event_token=current,
+            account_key=notifications.PRIMARY_ACCOUNT_KEY,
+            account_label=notifications.PRIMARY_ACCOUNT_LABEL,
+            attempted_at="2026-09-08T09:59:41+00:00",
+        ),
+        current + "#account:vyacheslav_secondary": _failure_record(
+            event_token=current,
+            account_key=notifications.SECONDARY_ACCOUNT_KEY,
+            account_label=notifications.SECONDARY_ACCOUNT_LABEL,
+            attempted_at="2026-09-08T09:59:53+00:00",
+        ),
+        current + "#account:xflarxx_primary": _failure_record(
+            event_token=current,
+            account_key=notifications.XFLARXX_ACCOUNT_KEY,
+            account_label=notifications.XFLARXX_ACCOUNT_LABEL,
+            attempted_at="2026-09-08T10:00:06+00:00",
+        ),
+        old + "#account:vyacheslav_secondary": {
+            "wheel_key": "zonertw4",
+            "event_token": old,
+            "account_key": notifications.SECONDARY_ACCOUNT_KEY,
+            "account_label": notifications.SECONDARY_ACCOUNT_LABEL,
+            "status": "participated",
+            "attempted_at": "2026-08-07T11:32:39+00:00",
+            "bot_success_pending_at": "2026-08-07T11:32:39+00:00",
+        },
+        old + "#account:xflarxx_primary": {
+            "wheel_key": "zonertw4",
+            "event_token": old,
+            "account_key": notifications.XFLARXX_ACCOUNT_KEY,
+            "account_label": notifications.XFLARXX_ACCOUNT_LABEL,
+            "status": "participated",
+            "attempted_at": "2026-08-07T11:32:44+00:00",
+            "bot_success_pending_at": "2026-08-07T11:32:44+00:00",
+        },
+    }
     state = {
         "active_wheels": {"zonertw4": item},
-        "auto_participation_events": {
-            current: _failure_record(
-                event_token=current,
-                account_key=notifications.PRIMARY_ACCOUNT_KEY,
-                account_label=notifications.PRIMARY_ACCOUNT_LABEL,
-                attempted_at="2026-09-08T09:59:41+00:00",
-            ),
-            current + "#account:vyacheslav_secondary": _failure_record(
-                event_token=current,
-                account_key=notifications.SECONDARY_ACCOUNT_KEY,
-                account_label=notifications.SECONDARY_ACCOUNT_LABEL,
-                attempted_at="2026-09-08T09:59:53+00:00",
-            ),
-            current + "#account:xflarxx_primary": _failure_record(
-                event_token=current,
-                account_key=notifications.XFLARXX_ACCOUNT_KEY,
-                account_label=notifications.XFLARXX_ACCOUNT_LABEL,
-                attempted_at="2026-09-08T10:00:06+00:00",
-            ),
-            old + "#account:vyacheslav_secondary": {
-                "wheel_key": "zonertw4",
-                "event_token": old,
-                "account_key": notifications.SECONDARY_ACCOUNT_KEY,
-                "account_label": notifications.SECONDARY_ACCOUNT_LABEL,
-                "status": "participated",
-                "attempted_at": "2026-08-07T11:32:39+00:00",
-                "bot_success_pending_at": "2026-08-07T11:32:39+00:00",
-            },
-            old + "#account:xflarxx_primary": {
-                "wheel_key": "zonertw4",
-                "event_token": old,
-                "account_key": notifications.XFLARXX_ACCOUNT_KEY,
-                "account_label": notifications.XFLARXX_ACCOUNT_LABEL,
-                "status": "participated",
-                "attempted_at": "2026-08-07T11:32:44+00:00",
-                "bot_success_pending_at": "2026-08-07T11:32:44+00:00",
-            },
-        },
+        "auto_participation_events": events,
     }
 
     assert notifications._canonical_event_token(
         state,
         old + "#account:vyacheslav_secondary",
-        state["auto_participation_events"][old + "#account:vyacheslav_secondary"],
+        events[old + "#account:vyacheslav_secondary"],
     ) == old
+
+    # The owner-sync grace period is tested elsewhere. Here all current terminal
+    # failures are made eligible so this regression focuses on generation identity.
+    current_failures = [
+        (token, record)
+        for token, record in events.items()
+        if token == current or token.startswith(current + "#account:")
+    ]
+    monkeypatch.setattr(
+        auto_participation_owner_sync,
+        "pending_failure_events",
+        lambda _state, now=None: current_failures,
+    )
 
     groups = notifications._settled_event_groups(
         state,
