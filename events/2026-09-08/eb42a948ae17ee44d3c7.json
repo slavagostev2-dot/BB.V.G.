@@ -1,17 +1,17 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260908T114154027797Z-3e8541e9927e",
-      "attempt_id": "cca8283c976932e18637a0f4565a011f594835e771f0108713df2e3fac36aab9",
-      "confidence": 120,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom API подтвердил участие: BetBoom принял запрос на участие; clicked_by_bot=true; server_join_acknowledged=true; ui_confirmation=embedded_success_label:main:Отлично! Теперь ты участвуешь в розыгрыше. Жди завершения таймера, чтобы забрать приз",
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260908T114207843786Z-a86920db6827",
+      "attempt_id": "7d0aa8089a848d057f4a2125d8a3e008cd92cf9391dfccbe52fa5605eec1370c",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
       "event_id": "evt:eb42a948ae17ee44d3c7",
-      "finished_at": "2026-09-08T11:41:51.089593+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-08T11:42:08.636352+00:00",
-      "started_at": "2026-09-08T11:41:51.089593+00:00",
+      "finished_at": "2026-09-08T11:42:01.836624+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-09-08T11:42:08.638716+00:00",
+      "started_at": "2026-09-08T11:42:01.836624+00:00",
       "status": "participated"
     },
     {
@@ -29,17 +29,17 @@
       "status": "participated"
     },
     {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260908T114207843786Z-a86920db6827",
-      "attempt_id": "7d0aa8089a848d057f4a2125d8a3e008cd92cf9391dfccbe52fa5605eec1370c",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260908T114154027797Z-3e8541e9927e",
+      "attempt_id": "cca8283c976932e18637a0f4565a011f594835e771f0108713df2e3fac36aab9",
+      "confidence": 120,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom API подтвердил участие: BetBoom принял запрос на участие; clicked_by_bot=true; server_join_acknowledged=true; ui_confirmation=embedded_success_label:main:Отлично! Теперь ты участвуешь в розыгрыше. Жди завершения таймера, чтобы забрать приз",
       "event_id": "evt:eb42a948ae17ee44d3c7",
-      "finished_at": "2026-09-08T11:42:01.836624+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-09-08T11:42:08.638716+00:00",
-      "started_at": "2026-09-08T11:42:01.836624+00:00",
+      "finished_at": "2026-09-08T11:41:51.089593+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-08T11:42:08.636352+00:00",
+      "started_at": "2026-09-08T11:41:51.089593+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-08T11:41:51.089593+00:00",
       "status": "participated",
-      "updated_at": "2026-09-08T11:42:08.636352+00:00"
+      "updated_at": "2026-09-08T11:42:24.054601+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-08T11:41:55.316438+00:00",
       "status": "participated",
-      "updated_at": "2026-09-08T11:42:08.637514+00:00"
+      "updated_at": "2026-09-08T11:42:24.055759+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-08T11:42:01.836624+00:00",
       "status": "participated",
-      "updated_at": "2026-09-08T11:42:08.638716+00:00"
+      "updated_at": "2026-09-08T11:42:24.057037+00:00"
     }
   ],
   "action_id": 2068,
@@ -118,35 +118,6 @@
   "source_message_url": "https://telegram.me/c/2445382077/7866",
   "status": "preliminary",
   "transitions": [
-    {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-08T11:42:08.628736+00:00",
-      "payload": {
-        "action_id": 2068,
-        "available_at": "",
-        "deadline": "2026-09-08T12:10:02.977000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:eb42a948ae17ee44d3c7",
-        "expires_at": "2026-09-08T12:40:02.977000+00:00",
-        "generation_id": "eb42a948ae17ee44d3c7",
-        "identifier": "dayneez",
-        "message_text": "БАРАГОЗ КОЛЕСО ФРИБЕТОВ\nСтример: dayneez\nЗакончится через: 28 мин 41 сек\nПризы: 500, 1000, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/dayneez",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-08T11:40:02.977000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-08T11:40:23+00:00",
-        "source_message_id": 7866,
-        "source_message_url": "https://telegram.me/c/2445382077/7866",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/dayneez",
-        "verification_status": "confirmed",
-        "wheel_key": "dayneez",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "aa67998e355293e14615736b6d764b151e7ecc3bca7edee45164c3e3f4785ecb"
-    },
     {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-09-08T11:42:08.628736+00:00",
@@ -206,14 +177,19 @@
       "transition_id": "0900e623fb89674d4afbc0b9c9aa46bb37825b9551ba9c81d16a5f61d7b4af82"
     },
     {
-      "dedupe_key": "34222020753",
-      "occurred_at": "2026-09-08T11:42:08.633282+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:92eba3d07b8f1284bbcc5b0dfe5d164656bb1d6b552ef5527c8c04cccaf8f37c",
+      "occurred_at": "2026-09-08T11:41:55.316438+00:00",
       "payload": {
-        "workflow_run_id": "34222020753",
-        "workflow_sha": "a5d0c18a369dd1b8b911cbc3affd110b8acae212"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260908T114201273412Z-4d8b829bd453",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "workflow_started",
-      "transition_id": "ad12cf9f5c2133aa46ae0e14e2c9c26cb16cfa0ad6c218477100957df0b646fa"
+      "stage": "account_result",
+      "transition_id": "1f68cfc466f6f4404befb6a4aa9db571ebf218a7718c2ddffd488340bb4155d8"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:cca8283c976932e18637a0f4565a011f594835e771f0108713df2e3fac36aab9",
@@ -231,21 +207,6 @@
       "transition_id": "295f4cc68f6b217b3370937358ae85360a6653a6258dafa4bb1b71fae57b8a6b"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:92eba3d07b8f1284bbcc5b0dfe5d164656bb1d6b552ef5527c8c04cccaf8f37c",
-      "occurred_at": "2026-09-08T11:41:55.316438+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260908T114201273412Z-4d8b829bd453",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "1f68cfc466f6f4404befb6a4aa9db571ebf218a7718c2ddffd488340bb4155d8"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:7d0aa8089a848d057f4a2125d8a3e008cd92cf9391dfccbe52fa5605eec1370c",
       "occurred_at": "2026-09-08T11:42:01.836624+00:00",
       "payload": {
@@ -259,9 +220,48 @@
       },
       "stage": "account_result",
       "transition_id": "680dfdc9b69fa0f8bf5325a01035096c3ed88a66c9f9c0506238cf610e2254c5"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-08T11:42:08.628736+00:00",
+      "payload": {
+        "action_id": 2068,
+        "available_at": "",
+        "deadline": "2026-09-08T12:10:02.977000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:eb42a948ae17ee44d3c7",
+        "expires_at": "2026-09-08T12:40:02.977000+00:00",
+        "generation_id": "eb42a948ae17ee44d3c7",
+        "identifier": "dayneez",
+        "message_text": "БАРАГОЗ КОЛЕСО ФРИБЕТОВ\nСтример: dayneez\nЗакончится через: 28 мин 41 сек\nПризы: 500, 1000, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/dayneez",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-08T11:40:02.977000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-08T11:40:23+00:00",
+        "source_message_id": 7866,
+        "source_message_url": "https://telegram.me/c/2445382077/7866",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dayneez",
+        "verification_status": "confirmed",
+        "wheel_key": "dayneez",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "aa67998e355293e14615736b6d764b151e7ecc3bca7edee45164c3e3f4785ecb"
+    },
+    {
+      "dedupe_key": "34222020753",
+      "occurred_at": "2026-09-08T11:42:08.633282+00:00",
+      "payload": {
+        "workflow_run_id": "34222020753",
+        "workflow_sha": "a5d0c18a369dd1b8b911cbc3affd110b8acae212"
+      },
+      "stage": "workflow_started",
+      "transition_id": "ad12cf9f5c2133aa46ae0e14e2c9c26cb16cfa0ad6c218477100957df0b646fa"
     }
   ],
-  "updated_at": "2026-09-08T11:42:08.633282+00:00",
+  "updated_at": "2026-09-08T11:42:24.052166+00:00",
   "wheel_key": "dayneez",
   "workflow_started_at": "2026-09-08T11:42:08.633282+00:00"
 }
