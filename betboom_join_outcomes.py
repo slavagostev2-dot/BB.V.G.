@@ -12,7 +12,6 @@ from bbvg.storage import event_id_from_entry
 UTC = timezone.utc
 JOIN_PATH = "/api/streamer-wheel/action/join"
 
-# Only mappings backed by observed/semantic BetBoom responses belong here.
 KNOWN_REASON_MAP: dict[str, tuple[str, bool, bool, str]] = {
     "promo_code_not_used": (
         "ineligible_promo_code",
@@ -155,7 +154,12 @@ def _business_error_status(reason: str, message: str) -> tuple[str, bool, bool, 
         return "not_eligible", True, False, message or "Аккаунт не соответствует условиям акции"
     if any(marker in combined for marker in ("already_join", "already_particip", "уже участву")):
         return "already_joined", True, False, message or "BetBoom уже зарегистрировал участие"
-    return "unknown_betboom_error", True, False, message or (f"BetBoom отклонил участие: {reason}" if reason else "BetBoom отклонил участие")
+    return (
+        "unknown_betboom_error",
+        True,
+        False,
+        message or (f"BetBoom отклонил участие: {reason}" if reason else "BetBoom отклонил участие"),
+    )
 
 
 def classify_join_response_event(event: Any) -> JoinOutcome | None:
@@ -172,23 +176,50 @@ def classify_join_response_event(event: Any) -> JoinOutcome | None:
     status_upper = api_status.upper()
     success_value = body.get("success")
 
-    if reason or (effective_code is not None and 400 <= effective_code < 500) or status_upper in {"BAD_REQUEST", "ERROR", "FAILED", "FAILURE"}:
-        if effective_code == 429 or "rate" in reason or "too many" in message.casefold():
-            return JoinOutcome(True, False, "rate_limited", reason, message, http_status, app_code, api_status, captured_at, False, True)
+    # Transport/server failures are transient even if the JSON status says ERROR.
+    if effective_code == 429 or "rate" in reason or "too many" in message.casefold():
+        return JoinOutcome(
+            True, False, "rate_limited", reason, message or "BetBoom временно ограничил запросы",
+            http_status, app_code, api_status, captured_at, False, True,
+        )
+    if effective_code is not None and effective_code >= 500:
+        return JoinOutcome(
+            True, False, "server_error", reason, message or "Временная ошибка BetBoom",
+            http_status, app_code, api_status, captured_at, False, True,
+        )
+
+    # Business 4xx/refusal responses are authoritative terminal outcomes.
+    if (
+        reason
+        or (effective_code is not None and 400 <= effective_code < 500)
+        or status_upper in {"BAD_REQUEST", "FAILED", "FAILURE"}
+    ):
         mapped, terminal, retry_allowed, fallback = _business_error_status(reason, message)
         if mapped == "already_joined":
-            return JoinOutcome(True, True, "already_joined", reason, fallback, http_status, app_code, api_status, captured_at, True, False)
-        return JoinOutcome(True, False, mapped, reason, fallback, http_status, app_code, api_status, captured_at, terminal, retry_allowed)
-
-    if effective_code is not None and effective_code >= 500:
-        return JoinOutcome(True, False, "server_error", reason, message or "Временная ошибка BetBoom", http_status, app_code, api_status, captured_at, False, True)
+            return JoinOutcome(
+                True, True, "already_joined", reason, fallback,
+                http_status, app_code, api_status, captured_at, True, False,
+            )
+        return JoinOutcome(
+            True, False, mapped, reason, fallback,
+            http_status, app_code, api_status, captured_at, terminal, retry_allowed,
+        )
 
     if success_value is True or status_upper in {"OK", "SUCCESS", "SUCCEEDED"} or (
-        effective_code is not None and 200 <= effective_code < 300 and not body.get("error")
+        effective_code is not None
+        and 200 <= effective_code < 300
+        and not body.get("error")
     ):
-        return JoinOutcome(True, True, "joined", reason, message or "BetBoom принял запрос на участие", http_status, app_code, api_status, captured_at, True, False)
+        return JoinOutcome(
+            True, True, "joined", reason, message or "BetBoom принял запрос на участие",
+            http_status, app_code, api_status, captured_at, True, False,
+        )
 
-    return JoinOutcome(True, False, "unknown_betboom_error", reason, message or "Ответ BetBoom на участие не распознан", http_status, app_code, api_status, captured_at, True, False)
+    return JoinOutcome(
+        True, False, "unknown_betboom_error", reason,
+        message or "Ответ BetBoom на участие не распознан",
+        http_status, app_code, api_status, captured_at, True, False,
+    )
 
 
 def latest_join_outcome(events: list[dict[str, Any]]) -> JoinOutcome | None:
@@ -208,22 +239,61 @@ def human_detail(outcome: JoinOutcome) -> str:
     return f"BetBoom API: {outcome.message}{reason}"[:300]
 
 
-def write_join_result(target: Any, outcome: JoinOutcome | None, *, account_key: str = "", identifier: str = "") -> None:
+def failure_title(status: str) -> str:
+    labels = {
+        "ineligible_promo_code": "Акция требует промокод стримера",
+        "authorization_required": "Требуется авторизация BetBoom",
+        "referral_ineligible": "Аккаунт не соответствует реферальному условию",
+        "participation_closed": "Участие в колесе закрыто",
+        "not_eligible": "Аккаунт не соответствует условиям акции",
+        "rejected": "BetBoom отклонил участие",
+        "unknown_betboom_error": "BetBoom отклонил участие по неизвестной причине",
+        "rate_limited": "BetBoom временно ограничил запросы",
+        "server_error": "Временная ошибка BetBoom",
+    }
+    return labels.get(str(status or "").casefold(), "Автоучастие не подтверждено")
+
+
+def terminal_manual_action_needed(status: str) -> bool:
+    return str(status or "").casefold() not in {
+        "ineligible_promo_code",
+        "participation_closed",
+        "not_eligible",
+        "rejected",
+        "unknown_betboom_error",
+    }
+
+
+def write_join_result(
+    target: Any,
+    outcome: JoinOutcome | None,
+    *,
+    account_key: str = "",
+    identifier: str = "",
+) -> None:
     if outcome is None or not target:
         return
     path = Path(str(target))
     if not path.is_dir():
         return
     payload = outcome.public_dict()
-    payload.update({"written_at": datetime.now(UTC).isoformat(), "account_key": str(account_key or ""), "identifier": str(identifier or "")})
+    payload.update(
+        {
+            "written_at": datetime.now(UTC).isoformat(),
+            "account_key": str(account_key or ""),
+            "identifier": str(identifier or ""),
+        }
+    )
     try:
-        (path / "join_result.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        (path / "join_result.json").write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     except OSError:
         return
 
 
 def register_runtime_terminal_statuses() -> None:
-    """Teach legacy retry code about v3 statuses without creating an import cycle."""
     try:
         import betboom_account_participation as account2
     except Exception:
@@ -232,7 +302,15 @@ def register_runtime_terminal_statuses() -> None:
     account2.TRANSIENT_STATUSES.update(TRANSIENT_FAILURE_STATUSES)
 
 
-def record_statistics(state: dict[str, Any], *, identifier: str, account_key: str, status: str, reason: str = "", observed_at: str = "") -> None:
+def record_statistics(
+    state: dict[str, Any],
+    *,
+    identifier: str,
+    account_key: str,
+    status: str,
+    reason: str = "",
+    observed_at: str = "",
+) -> None:
     stats = state.setdefault("auto_participation_outcome_stats", {})
     by_identifier = stats.setdefault("by_identifier", {})
     by_reason = stats.setdefault("by_reason", {})
@@ -259,10 +337,15 @@ def record_statistics(state: dict[str, Any], *, identifier: str, account_key: st
 
 
 def _record_is_terminal_failure(record: Any) -> bool:
-    return isinstance(record, dict) and str(record.get("status") or "").casefold() in TERMINAL_FAILURE_STATUSES
+    return (
+        isinstance(record, dict)
+        and str(record.get("status") or "").casefold() in TERMINAL_FAILURE_STATUSES
+    )
 
 
-def finalize_event_account_summary(state: dict[str, Any], item: dict[str, Any]) -> dict[str, Any]:
+def finalize_event_account_summary(
+    state: dict[str, Any], item: dict[str, Any]
+) -> dict[str, Any]:
     key = str(item.get("wheel_key") or item.get("identifier") or "").casefold()
     if not key:
         return {}
@@ -273,43 +356,55 @@ def finalize_event_account_summary(state: dict[str, Any], item: dict[str, Any]) 
     registry = state.get("auto_participation_account_registry")
     expected = {
         str(account_key)
-        for account_key, raw in (registry.items() if isinstance(registry, dict) else [])
+        for account_key, raw in (
+            registry.items() if isinstance(registry, dict) else []
+        )
         if isinstance(raw, dict) and raw.get("enabled", True)
     }
     results: dict[str, dict[str, Any]] = {}
     for token, raw in events.items():
         if not isinstance(raw, dict):
             continue
-        raw_event = str(raw.get("event_token") or str(token).split("#account:", 1)[0])
+        raw_event = str(
+            raw.get("event_token") or str(token).split("#account:", 1)[0]
+        )
         if raw_event != event_id:
             continue
         account_key = str(raw.get("account_key") or "vyacheslav_primary")
         results[account_key] = {
             "account_label": str(raw.get("account_label") or account_key),
             "status": str(raw.get("status") or ""),
-            "detail": str(raw.get("detail") or raw.get("bot_failure_detail") or "")[:300],
+            "detail": str(
+                raw.get("detail") or raw.get("bot_failure_detail") or ""
+            )[:300],
+            "betboom_reason": str(raw.get("betboom_reason") or ""),
             "retry_allowed": bool(raw.get("retry_allowed")),
             "terminal_failure": _record_is_terminal_failure(raw),
             "attempted_at": str(raw.get("attempted_at") or ""),
         }
+    settled_expected = bool(expected and expected.issubset(results))
+    all_terminal_failure = bool(
+        settled_expected
+        and all(results[account]["terminal_failure"] for account in expected)
+    )
     active = state.get("active_wheels")
     entry = active.get(key) if isinstance(active, dict) else None
     if isinstance(entry, dict):
         entry["auto_participation_account_results"] = results
-        settled_expected = bool(expected and expected.issubset(results))
-        all_terminal_failure = bool(settled_expected and all(results[a]["terminal_failure"] for a in expected))
         entry["auto_participation_all_accounts_settled"] = settled_expected
         entry["auto_participation_terminal"] = all_terminal_failure
         if all_terminal_failure:
-            entry["auto_participation_terminal_reason"] = "all_accounts_terminal_failure"
+            entry["auto_participation_terminal_reason"] = (
+                "all_accounts_terminal_failure"
+            )
         else:
             entry.pop("auto_participation_terminal_reason", None)
     return {
         "event_id": event_id,
         "expected_accounts": sorted(expected),
         "results": results,
-        "all_accounts_settled": bool(expected and expected.issubset(results)),
-        "all_accounts_terminal_failure": bool(expected and expected.issubset(results) and all(results[a]["terminal_failure"] for a in expected)),
+        "all_accounts_settled": settled_expected,
+        "all_accounts_terminal_failure": all_terminal_failure,
     }
 
 
@@ -325,7 +420,11 @@ def self_test() -> None:
             "status": "BAD_REQUEST",
             "error": {
                 "message": "Акция доступна только при регистрации по промокоду стримера",
-                "details": {"value": {"violations": "[{'reason': 'promo_code_not_used', 'message': 'Акция доступна только при регистрации по промокоду стримера'}]"}},
+                "details": {
+                    "value": {
+                        "violations": "[{'reason': 'promo_code_not_used', 'message': 'Акция доступна только при регистрации по промокоду стримера'}]"
+                    }
+                },
             },
             "error.message": "Акция доступна только при регистрации по промокоду стримера",
         },
@@ -338,11 +437,34 @@ def self_test() -> None:
     assert outcome.retry_allowed is False
     assert "промокоду" in human_detail(outcome).casefold()
 
-    temporary = classify_join_response_event({"kind": "response", "method": "POST", "url": "https://betboom.ru/api/streamer-wheel/action/join", "status": 503, "body": {"code": 503, "status": "ERROR"}})
-    assert temporary is not None and temporary.status == "server_error" and temporary.retry_allowed
+    temporary = classify_join_response_event(
+        {
+            "kind": "response",
+            "method": "POST",
+            "url": "https://betboom.ru/api/streamer-wheel/action/join",
+            "status": 503,
+            "body": {"code": 503, "status": "ERROR"},
+        }
+    )
+    assert temporary is not None
+    assert temporary.status == "server_error"
+    assert temporary.retry_allowed
 
-    unknown = classify_join_response_event({"kind": "response", "method": "POST", "url": "https://betboom.ru/api/streamer-wheel/action/join", "status": 200, "body": {"code": 400, "status": "BAD_REQUEST", "reason": "new_reason"}})
-    assert unknown is not None and unknown.status == "unknown_betboom_error"
+    unknown = classify_join_response_event(
+        {
+            "kind": "response",
+            "method": "POST",
+            "url": "https://betboom.ru/api/streamer-wheel/action/join",
+            "status": 200,
+            "body": {
+                "code": 400,
+                "status": "BAD_REQUEST",
+                "reason": "new_reason",
+            },
+        }
+    )
+    assert unknown is not None
+    assert unknown.status == "unknown_betboom_error"
     assert unknown.reason == "new_reason"
     print("BetBoom authoritative join outcome self-test passed")
 
