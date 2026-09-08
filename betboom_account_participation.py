@@ -10,6 +10,7 @@ from typing import Any
 
 import auto_participation_owner_sync
 import betboom_auto_participation as primary_auto
+import betboom_join_outcomes as join_outcomes
 import betboom_participation_browser
 import monitor
 import personal_wheel_voting
@@ -31,6 +32,7 @@ TRANSIENT_STATUSES = {
     "navigation_timeout",
     "page_timeout",
     "technical_error",
+    *join_outcomes.TRANSIENT_FAILURE_STATUSES,
 }
 TERMINAL_FAILURE_STATUSES = {
     "authorization_required",
@@ -38,6 +40,7 @@ TERMINAL_FAILURE_STATUSES = {
     "participation_closed",
     "not_eligible",
     "rejected",
+    *join_outcomes.TERMINAL_FAILURE_STATUSES,
 }
 RETRY_DELAY_MINUTES = 2
 MAX_COMPLETED_EVENTS = 500
@@ -97,7 +100,9 @@ def _parse_datetime(value: Any) -> datetime | None:
 
 
 def _base_event_token(item: dict[str, Any], wheel_key: str = "") -> str:
-    key = str(wheel_key or item.get("wheel_key") or item.get("identifier") or "").casefold()
+    key = str(
+        wheel_key or item.get("wheel_key") or item.get("identifier") or ""
+    ).casefold()
     return primary_auto._event_token(key, item)
 
 
@@ -136,16 +141,27 @@ def _candidate_rows(
 ) -> list[dict[str, Any]]:
     rows: dict[str, dict[str, Any]] = {}
     recovery = _load_last_json_object(recovery_result_path)
-    checked = recovery.get("checked") if isinstance(recovery.get("checked"), list) else []
+    checked = (
+        recovery.get("checked")
+        if isinstance(recovery.get("checked"), list)
+        else []
+    )
     for raw in checked:
-        if not isinstance(raw, dict) or str(raw.get("api_status") or "") != "active":
+        if (
+            not isinstance(raw, dict)
+            or str(raw.get("api_status") or "") != "active"
+        ):
             continue
         key = str(raw.get("wheel_key") or "").casefold()
         url = str(raw.get("url") or "").strip()
         if key and url:
             rows[key] = dict(raw)
 
-    active = state.get("active_wheels") if isinstance(state.get("active_wheels"), dict) else {}
+    active = (
+        state.get("active_wheels")
+        if isinstance(state.get("active_wheels"), dict)
+        else {}
+    )
     for raw_key, raw in active.items():
         if not isinstance(raw, dict):
             continue
@@ -196,7 +212,10 @@ def _reject_weak_browser_success(
     result: primary_auto.ParticipationResult,
 ) -> primary_auto.ParticipationResult:
     detail = str(result.detail or "")
-    if not result.success or LEGACY_WEAK_CONFIRMATION_MARKER not in detail.casefold():
+    if (
+        not result.success
+        or LEGACY_WEAK_CONFIRMATION_MARKER not in detail.casefold()
+    ):
         return result
     return primary_auto.ParticipationResult(
         False,
@@ -251,7 +270,9 @@ def run_second_account(
     skipped = 0
 
     for item in _candidate_rows(state, recovery_result_path):
-        key = str(item.get("wheel_key") or item.get("identifier") or "").casefold()
+        key = str(
+            item.get("wheel_key") or item.get("identifier") or ""
+        ).casefold()
         url = str(item.get("url") or "").strip()
         if not key or not url:
             continue
@@ -348,7 +369,8 @@ def _target_context(
             continue
         names = _normalized_names(str(user_id), raw)
         if normalized_target in names or any(
-            value == normalized_target or value.startswith(normalized_target + " ")
+            value == normalized_target
+            or value.startswith(normalized_target + " ")
             for value in names
         ):
             chat_id = str(raw.get("chat_id") or user_id).strip()
@@ -359,7 +381,9 @@ def _target_context(
     )
 
 
-def _outcome_records(user: dict[str, Any], field: str) -> dict[str, dict[str, Any]]:
+def _outcome_records(
+    user: dict[str, Any], field: str
+) -> dict[str, dict[str, Any]]:
     raw = user.get(field)
     if not isinstance(raw, dict):
         return {}
@@ -401,7 +425,10 @@ def _pending_account_events(
         return []
     result: list[tuple[str, dict[str, Any]]] = []
     for token, raw in events.items():
-        if not isinstance(raw, dict) or str(raw.get("account_key") or "") != ACCOUNT_KEY:
+        if (
+            not isinstance(raw, dict)
+            or str(raw.get("account_key") or "") != ACCOUNT_KEY
+        ):
             continue
         if not raw.get(field):
             continue
@@ -413,26 +440,58 @@ def _pending_account_events(
 def _short_message(
     success: bool, key: str, item: dict[str, Any], record: dict[str, Any]
 ) -> tuple[str, dict[str, Any]]:
-    status = str(record.get("bot_failure_status") or record.get("status") or "").casefold()
-    if success:
-        title = "✅ <b>Участие принято</b>"
-        suffix = ""
-    elif status == "authorization_required":
-        title = "🔐 <b>Требуется авторизация BetBoom</b>"
-        suffix = "\nСессия аккаунта истекла. Автоповторы остановлены до обновления авторизации."
-    else:
-        title = "⚠️ <b>Участие не принято</b>"
-        suffix = ""
-    label = html.escape(str(record.get("account_label") or DEFAULT_ACCOUNT_LABEL))
+    status = str(
+        record.get("bot_failure_status") or record.get("status") or ""
+    ).casefold()
+    detail = str(
+        record.get("bot_failure_detail")
+        or record.get("detail")
+        or join_outcomes.failure_title(status)
+    )[:300]
+    label = html.escape(
+        str(record.get("account_label") or DEFAULT_ACCOUNT_LABEL)
+    )
     identifier = html.escape(str(item.get("identifier") or key))
+
+    if success:
+        text = (
+            "✅ <b>Участие принято</b>\n\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            f"Колесо: <code>{identifier}</code>"
+        )
+    elif status == "authorization_required":
+        text = (
+            "🔐 <b>Требуется авторизация BetBoom</b>\n\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            f"Колесо: <code>{identifier}</code>\n"
+            f"Причина: {html.escape(detail)}\n"
+            "Автоповторы остановлены до обновления авторизации."
+        )
+    elif status in TERMINAL_FAILURE_STATUSES:
+        text = (
+            f"⛔ <b>{html.escape(join_outcomes.failure_title(status))}</b>\n\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            f"Колесо: <code>{identifier}</code>\n"
+            f"Причина: {html.escape(detail)}\n"
+            "Повторной автоматической попытки для этого события не будет."
+        )
+    else:
+        text = (
+            "⚠️ <b>Участие пока не подтверждено</b>\n\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            f"Колесо: <code>{identifier}</code>\n"
+            f"Причина: {html.escape(detail)}\n"
+            "Будет выполнена повторная проверка, если событие ещё активно."
+        )
     return (
-        f"{title}\n\n"
-        f"Аккаунт: <b>{label}</b>\n"
-        f"Колесо: <code>{identifier}</code>{suffix}",
+        text,
         {
             "inline_keyboard": [
                 [
-                    {"text": "🔥 Активные колёса", "callback_data": "bb:l:active"},
+                    {
+                        "text": "🔥 Активные колёса",
+                        "callback_data": "bb:l:active",
+                    },
                     {"text": "🏠 Главное меню", "callback_data": "page:menu"},
                 ]
             ]
@@ -443,12 +502,20 @@ def _short_message(
 def sync_account_events(panel: Any) -> dict[str, int]:
     snap = panel.snapshot()
     state = snap.state if isinstance(getattr(snap, "state", None), dict) else {}
-    success_candidates = _pending_account_events(state, "bot_success_pending_at")
-    failure_candidates = _pending_account_events(state, "bot_failure_pending_at")
+    success_candidates = _pending_account_events(
+        state, "bot_success_pending_at"
+    )
+    failure_candidates = _pending_account_events(
+        state, "bot_failure_pending_at"
+    )
     if not success_candidates and not failure_candidates:
         return {"pending": 0, "completed": 0, "failed": 0}
 
-    active = state.get("active_wheels") if isinstance(state.get("active_wheels"), dict) else {}
+    active = (
+        state.get("active_wheels")
+        if isinstance(state.get("active_wheels"), dict)
+        else {}
+    )
     completed = 0
     failed = 0
     original_context = (
@@ -457,18 +524,24 @@ def sync_account_events(panel: Any) -> dict[str, int]:
         getattr(panel, "current_role", "guest"),
     )
 
-    for success, candidates in ((True, success_candidates), (False, failure_candidates)):
+    for success, candidates in (
+        (True, success_candidates),
+        (False, failure_candidates),
+    ):
         for token, record in candidates:
             key = str(record.get("wheel_key") or "").casefold()
             item = active.get(key)
             if not key or not isinstance(item, dict):
                 failed += 1
                 continue
-            if str(record.get("event_token") or "") != _base_event_token(item, key):
+            if str(record.get("event_token") or "") != _base_event_token(
+                item, key
+            ):
                 continue
             try:
                 _access, user_id, user, chat_id = _target_context(
-                    panel, str(record.get("alert_user") or DEFAULT_ALERT_USER)
+                    panel,
+                    str(record.get("alert_user") or DEFAULT_ALERT_USER),
                 )
                 outcome_key = (
                     personal_wheel_voting.wheel_event_key(key, item)
@@ -480,14 +553,19 @@ def sync_account_events(panel: Any) -> dict[str, int]:
                     else "auto_participation_failure_events"
                 )
                 previous = _outcome_records(user, field).get(outcome_key)
-                if isinstance(previous, dict) and previous.get("notified_at"):
+                if (
+                    isinstance(previous, dict)
+                    and previous.get("notified_at")
+                ):
                     continue
 
                 panel.set_context(chat_id, user_id)
                 vote_result: dict[str, Any] = {}
                 if success:
                     raw_result = panel.mark_personal_participation(key)
-                    vote_result = raw_result if isinstance(raw_result, dict) else {}
+                    vote_result = (
+                        raw_result if isinstance(raw_result, dict) else {}
+                    )
                     auto_participation_owner_sync._mark_original_notification(
                         panel, chat_id, item
                     )
@@ -503,10 +581,14 @@ def sync_account_events(panel: Any) -> dict[str, int]:
                         "wheel_key": key,
                         "source_event_token": token,
                         "account_key": ACCOUNT_KEY,
-                        "account_label": str(record.get("account_label") or ""),
+                        "account_label": str(
+                            record.get("account_label") or ""
+                        ),
                         "notified_at": now_text,
                         "vote_changed": bool(vote_result.get("changed")),
-                        "vote_command_id": str(vote_result.get("vote_command_id") or ""),
+                        "vote_command_id": str(
+                            vote_result.get("vote_command_id") or ""
+                        ),
                     },
                 )
                 completed += 1
@@ -517,9 +599,11 @@ def sync_account_events(panel: Any) -> dict[str, int]:
                     f"wheel={key} {type(exc).__name__}: {exc}"
                 )
             finally:
-                panel.current_chat_id, panel.current_user_id, panel.current_role = (
-                    original_context
-                )
+                (
+                    panel.current_chat_id,
+                    panel.current_user_id,
+                    panel.current_role,
+                ) = original_context
 
     return {
         "pending": len(success_candidates) + len(failure_candidates),
@@ -529,16 +613,26 @@ def sync_account_events(panel: Any) -> dict[str, int]:
 
 
 def install_owner_sync() -> None:
-    if getattr(auto_participation_owner_sync, "_bbvg_account_sync_installed", False):
+    if getattr(
+        auto_participation_owner_sync,
+        "_bbvg_account_sync_installed",
+        False,
+    ):
         return
     original_sync_once = auto_participation_owner_sync.sync_once
 
     def sync_once_with_accounts(panel: Any) -> dict[str, int]:
         base = dict(original_sync_once(panel))
         extra = sync_account_events(panel)
-        base["pending"] = int(base.get("pending", 0)) + int(extra.get("pending", 0))
-        base["completed"] = int(base.get("completed", 0)) + int(extra.get("completed", 0))
-        base["failed"] = int(base.get("failed", 0)) + int(extra.get("failed", 0))
+        base["pending"] = int(base.get("pending", 0)) + int(
+            extra.get("pending", 0)
+        )
+        base["completed"] = int(base.get("completed", 0)) + int(
+            extra.get("completed", 0)
+        )
+        base["failed"] = int(base.get("failed", 0)) + int(
+            extra.get("failed", 0)
+        )
         base["account_completed"] = int(extra.get("completed", 0))
         return base
 
@@ -550,7 +644,9 @@ def self_test() -> None:
     previous3 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART3")
     previous4 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART4")
     try:
-        raw = json.dumps({"cookies": [], "origins": []}, separators=(",", ":"))
+        raw = json.dumps(
+            {"cookies": [], "origins": []}, separators=(",", ":")
+        )
         middle = len(raw) // 2
         os.environ["BETBOOM_STORAGE_STATE_JSON_PART3"] = raw[:middle]
         os.environ["BETBOOM_STORAGE_STATE_JSON_PART4"] = raw[middle:]
@@ -573,13 +669,19 @@ def self_test() -> None:
     }
     now = datetime(2026, 7, 22, tzinfo=UTC)
     assert _base_event_token(item).startswith("evt:")
-    assert _account_event_token(item).endswith("#account:vyacheslav_secondary")
+    assert _account_event_token(item).endswith(
+        "#account:vyacheslav_secondary"
+    )
     assert "authorization_required" in TERMINAL_FAILURE_STATUSES
+    assert "ineligible_promo_code" in TERMINAL_FAILURE_STATUSES
     assert not _should_attempt({"status": "participated"}, now)
     assert _should_attempt(
         {
             "status": "participated",
-            "detail": "BetBoom подтвердил участие (post_click_layout:main:Об акции)",
+            "detail": (
+                "BetBoom подтвердил участие "
+                "(post_click_layout:main:Об акции)"
+            ),
         },
         now,
     )
@@ -593,7 +695,9 @@ def self_test() -> None:
     assert _should_attempt(
         {
             "status": "participated",
-            "detail": "BetBoom показывает точное подтверждение после повторной загрузки",
+            "detail": (
+                "BetBoom показывает точное подтверждение после повторной загрузки"
+            ),
         },
         now,
     )
@@ -609,6 +713,7 @@ def self_test() -> None:
     )
     assert not _should_attempt({"status": "already_participating"}, now)
     assert not _should_attempt({"status": "authorization_required"}, now)
+    assert not _should_attempt({"status": "ineligible_promo_code"}, now)
     assert _should_attempt(
         {
             "status": "browser_error",
@@ -632,8 +737,25 @@ def self_test() -> None:
         "",
     )
     assert _reject_weak_browser_success(exact) is exact
+    promo_text, _ = _short_message(
+        False,
+        "rewsa",
+        {"identifier": "REWSA"},
+        {
+            "account_label": "Аккаунт 2",
+            "status": "ineligible_promo_code",
+            "bot_failure_detail": (
+                "BetBoom отказал в участии: Акция доступна только при "
+                "регистрации по промокоду стримера"
+            ),
+        },
+    )
+    assert "промокод" in promo_text.casefold()
+    assert "повторной автоматической попытки" in promo_text.casefold()
     install_owner_sync()
-    assert auto_participation_owner_sync._bbvg_account_sync_installed is True
+    assert (
+        auto_participation_owner_sync._bbvg_account_sync_installed is True
+    )
     print("secondary BetBoom account self-test passed")
 
 

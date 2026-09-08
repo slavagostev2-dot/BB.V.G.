@@ -12,6 +12,7 @@ import betboom_profile_identity as profile_identity
 
 
 PERSISTENCE_VERIFIED_MARKER = "server_persistence_verified=true"
+SERVER_JOIN_ACK_MARKER = "server_join_acknowledged=true"
 MAX_FRESH_VERIFICATION_ATTEMPTS = 3
 FRESH_VERIFICATION_DELAY_SECONDS = 1.0
 
@@ -55,8 +56,6 @@ def _assert_resolved_profile_slot(storage_state: dict[str, Any]) -> None:
         profile_identity.assert_account_slot_distinct(account2.ACCOUNT_KEY)
         return
 
-    # Import lazily to avoid widening the module dependency graph during unit
-    # self-tests and primary-account startup.
     import xflarxx_account_participation as account3
 
     third = account3.storage_state()
@@ -74,6 +73,10 @@ def _participate_with_injected_storage(
     return account2._reject_weak_browser_success(result)
 
 
+def _server_acknowledged(result: auto.ParticipationResult) -> bool:
+    return SERVER_JOIN_ACK_MARKER in str(result.detail or "").casefold()
+
+
 def participate_with_persistence_proof(
     url: str,
     storage_state: dict[str, Any],
@@ -82,16 +85,14 @@ def participate_with_persistence_proof(
     | None = None,
     sleep: Callable[[float], None] = time.sleep,
 ) -> auto.ParticipationResult:
-    """Click if needed, then require a fresh-page persisted account state.
+    """Click if needed, then verify the result in a fresh browser context.
 
-    BetBoom may optimistically render the success label immediately after a click.
-    That UI transition is not authoritative. A successful automatic result is only
-    returned after a separate browser context, created from the saved session,
-    opens the same wheel and observes participation *before* any new click.
-
-    Production calls also resolve the authenticated BetBoom profile behind the
-    storage state. Two different cookie blobs are not allowed to masquerade as
-    separate account slots when BetBoom resolves them to the same profile.
+    A terminal BetBoom join-API refusal is final immediately. A successful join
+    response is authoritative for the click itself, but a fresh context still
+    verifies account continuity. A fresh ``already_participating`` state is the
+    strongest proof; a second authoritative successful join response is also
+    accepted because it comes from a separate browser context and avoids a false
+    failure when the BetBoom frontend has not refreshed its status yet.
     """
 
     if participate_once is None:
@@ -113,6 +114,7 @@ def participate_with_persistence_proof(
             initial.artifact_url,
         )
 
+    initial_server_ack = _server_acknowledged(initial)
     last = initial
     for attempt in range(1, MAX_FRESH_VERIFICATION_ATTEMPTS + 1):
         if attempt > 1:
@@ -126,6 +128,28 @@ def participate_with_persistence_proof(
                 "BetBoom подтвердил сохранённое участие в новом браузерном контексте; "
                 f"{PERSISTENCE_VERIFIED_MARKER}; fresh_attempt={attempt}; "
                 "initial_status=participated; verification_status=already_participating"
+            )
+            return auto.ParticipationResult(
+                True,
+                "participated",
+                detail[:300],
+                verification.artifact_url or initial.artifact_url,
+            )
+
+        # New API-first path: both independent browser contexts received an
+        # authoritative join acknowledgement. Do not downgrade this to failure
+        # merely because the SPA did not render its success label yet.
+        if (
+            initial_server_ack
+            and verification.success
+            and verification_status == "participated"
+            and _server_acknowledged(verification)
+        ):
+            detail = (
+                "BetBoom дважды подтвердил join API в независимых браузерных "
+                f"контекстах; {PERSISTENCE_VERIFIED_MARKER}; "
+                f"{SERVER_JOIN_ACK_MARKER}; fresh_attempt={attempt}; "
+                "verification_method=join_api"
             )
             return auto.ParticipationResult(
                 True,
@@ -199,7 +223,9 @@ def self_test() -> None:
     sequence = iter(
         [
             auto.ParticipationResult(True, "participated", "optimistic", "a"),
-            auto.ParticipationResult(True, "already_participating", "persisted", "b"),
+            auto.ParticipationResult(
+                True, "already_participating", "persisted", "b"
+            ),
         ]
     )
     result = participate_with_persistence_proof(
@@ -212,6 +238,34 @@ def self_test() -> None:
     assert result.status == "participated"
     assert PERSISTENCE_VERIFIED_MARKER in result.detail
     assert result.artifact_url == "b"
+
+    api_sequence = iter(
+        [
+            auto.ParticipationResult(
+                True,
+                "participated",
+                f"accepted; {SERVER_JOIN_ACK_MARKER}",
+                "api-a",
+            ),
+            auto.ParticipationResult(
+                True,
+                "participated",
+                f"accepted again; {SERVER_JOIN_ACK_MARKER}",
+                "api-b",
+            ),
+        ]
+    )
+    result = participate_with_persistence_proof(
+        "https://betboom.ru/freestream/test",
+        state,
+        participate_once=lambda _url, _state: next(api_sequence),
+        sleep=lambda _seconds: None,
+    )
+    assert result.success
+    assert result.status == "participated"
+    assert PERSISTENCE_VERIFIED_MARKER in result.detail
+    assert SERVER_JOIN_ACK_MARKER in result.detail
+    assert result.artifact_url == "api-b"
 
     optimistic_only = iter(
         [
@@ -238,7 +292,23 @@ def self_test() -> None:
         ),
         sleep=lambda _seconds: None,
     )
-    assert preexisting.success and preexisting.status == "already_participating"
+    assert preexisting.success
+    assert preexisting.status == "already_participating"
+
+    terminal = participate_with_persistence_proof(
+        "https://betboom.ru/freestream/test",
+        state,
+        participate_once=lambda _url, _state: auto.ParticipationResult(
+            False,
+            "ineligible_promo_code",
+            "promo_code_not_used",
+            "terminal",
+        ),
+        sleep=lambda _seconds: None,
+    )
+    assert not terminal.success
+    assert terminal.status == "ineligible_promo_code"
+    assert terminal.artifact_url == "terminal"
 
     print("BetBoom persisted participation proof self-test passed")
 

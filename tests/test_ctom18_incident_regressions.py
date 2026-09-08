@@ -87,12 +87,19 @@ def test_preparation_clicks_cookie_but_never_promo_state() -> None:
 
 def test_participation_button_is_found_after_preparation() -> None:
     page = Page(["Окей", "Об акции", "Участвовать"])
-    browser._prepare_page(page, 1000)
 
-    clicked, location = browser._click_candidates(page, 1000)
+    candidate, location, preparations, preexisting = browser._find_click_control(
+        page, 1000
+    )
 
-    assert clicked is True
+    assert candidate is page.values[2]
     assert location == "main:Участвовать"
+    assert preparations == ["main:Окей"]
+    assert preexisting == ""
+    assert page.values[0].clicked is True
+    assert page.values[2].clicked is False
+
+    candidate.click(timeout=1000)
     assert page.values[2].clicked is True
 
 

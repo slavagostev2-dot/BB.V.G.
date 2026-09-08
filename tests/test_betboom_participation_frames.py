@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from betboom_participation_browser import (
     _authentication_required,
-    _click_candidates,
     _diagnostic_labels,
+    _find_click_control,
     _success,
 )
 
@@ -15,6 +15,9 @@ class Candidate:
         self.force_values: list[bool] = []
 
     def is_visible(self) -> bool:
+        return True
+
+    def is_enabled(self) -> bool:
         return True
 
     def inner_text(self, timeout: int = 0) -> str:
@@ -64,9 +67,15 @@ class Page(Root):
         self.main_frame = Root([], url=self.url)
         self.frames = [self.main_frame, *child_frames]
 
+    def wait_for_timeout(self, _timeout: int) -> None:
+        return None
+
 
 def test_success_confirmation_is_found_inside_child_frame() -> None:
-    page = Page(["Об акции"], [Root(["Вы уже участвуете"], url="https://wheel.example/embed")])
+    page = Page(
+        ["Об акции"],
+        [Root(["Вы уже участвуете"], url="https://wheel.example/embed")],
+    )
     assert _success(page) is True
 
 
@@ -80,20 +89,24 @@ def test_authentication_detection_requires_exact_visible_label() -> None:
     )
 
 
-def test_participation_button_is_clicked_inside_child_frame() -> None:
+def test_participation_control_is_found_inside_child_frame_without_preclick() -> None:
     child = Root(["Участвовать"], url="https://wheel.example/embed")
     page = Page(["Об акции"], [child])
 
-    clicked, location = _click_candidates(page, 1000)
+    control, location, _preparations, preexisting = _find_click_control(page, 1000)
 
-    assert clicked is True
-    assert child.candidates[0].clicked is True
-    assert child.candidates[0].force_values == [False]
+    assert control is child.candidates[0]
+    assert preexisting == ""
+    assert child.candidates[0].clicked is False
+    assert child.candidates[0].force_values == []
     assert location.startswith("frame:wheel.example:")
 
 
 def test_frame_diagnostics_include_location_and_label() -> None:
-    page = Page(["Об акции"], [Root(["Участвовать"], url="https://wheel.example/embed")])
+    page = Page(
+        ["Об акции"],
+        [Root(["Участвовать"], url="https://wheel.example/embed")],
+    )
     labels = _diagnostic_labels(page)
     assert "main:Об акции" in labels
     assert "frame:wheel.example:Участвовать" in labels
@@ -114,12 +127,13 @@ class BlockedRoot(Root):
         return "Принять участие"
 
 
-def test_blocked_control_is_not_reported_as_clicked_by_dom_fallback() -> None:
+def test_blocked_control_is_returned_for_real_click_instead_of_dom_fallback() -> None:
     child = BlockedRoot()
     page = Page([], [child])
 
-    clicked, location = _click_candidates(page, 1000)
+    control, location, _preparations, preexisting = _find_click_control(page, 1000)
 
-    assert clicked is False
-    assert location == ""
-    assert child.candidates[0].force_values == [False]
+    assert control is child.candidates[0]
+    assert preexisting == ""
+    assert location.startswith("frame:")
+    assert child.candidates[0].force_values == []

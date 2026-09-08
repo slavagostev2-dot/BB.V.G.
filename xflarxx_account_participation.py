@@ -10,6 +10,7 @@ from typing import Any
 
 import auto_participation_owner_sync
 import betboom_account_participation as account_base
+import betboom_join_outcomes as join_outcomes
 import monitor
 import personal_wheel_voting
 import wheel_publications_v2
@@ -98,7 +99,9 @@ def run_account(
     skipped = 0
 
     for item in account_base._candidate_rows(state, recovery_result_path):
-        key = str(item.get("wheel_key") or item.get("identifier") or "").casefold()
+        key = str(
+            item.get("wheel_key") or item.get("identifier") or ""
+        ).casefold()
         url = str(item.get("url") or "").strip()
         if not key or not url:
             continue
@@ -179,7 +182,9 @@ def _pending_records(
         return []
     approved_failures = {
         token
-        for token, _record in auto_participation_owner_sync.pending_failure_events(state)
+        for token, _record in auto_participation_owner_sync.pending_failure_events(
+            state
+        )
     }
     result: list[tuple[str, dict[str, Any], bool]] = []
     for raw_token, raw_record in events.items():
@@ -188,7 +193,10 @@ def _pending_records(
         if str(raw_record.get("account_key") or "") != ACCOUNT_KEY:
             continue
         token = str(raw_token)
-        success = str(raw_record.get("status") or "").casefold() in SUCCESS_STATUSES
+        success = (
+            str(raw_record.get("status") or "").casefold()
+            in SUCCESS_STATUSES
+        )
         if success or token in approved_failures:
             result.append((token, raw_record, success))
     result.sort(key=lambda row: str(row[1].get("attempted_at") or row[0]))
@@ -202,7 +210,9 @@ def _notification_enabled(user: dict[str, Any]) -> bool:
     return bool(preferences.get("auto_participation", True))
 
 
-def _should_send_notification(user: dict[str, Any], item: dict[str, Any]) -> bool:
+def _should_send_notification(
+    user: dict[str, Any], item: dict[str, Any]
+) -> bool:
     return _notification_enabled(user)
 
 
@@ -210,8 +220,16 @@ def _failure_reason(record: dict[str, Any]) -> str:
     status = str(
         record.get("bot_failure_status") or record.get("status") or ""
     ).casefold()
+    if status == "ineligible_promo_code":
+        return str(
+            record.get("bot_failure_detail")
+            or record.get("detail")
+            or "Акция доступна только при регистрации по промокоду стримера"
+        )[:300]
     labels = {
-        "authorization_required": "сессия BetBoom истекла — требуется повторная авторизация",
+        "authorization_required": (
+            "сессия BetBoom истекла — требуется повторная авторизация"
+        ),
         "button_not_found": "кнопка участия не найдена",
         "participation_closed": "участие уже закрыто",
         "not_eligible": "аккаунт не подходит",
@@ -223,7 +241,7 @@ def _failure_reason(record: dict[str, Any]) -> str:
         record.get("bot_failure_detail")
         or record.get("detail")
         or "участие не подтверждено"
-    )[:120]
+    )[:300]
 
 
 def _message(
@@ -233,7 +251,9 @@ def _message(
     success: bool,
 ) -> tuple[str, dict[str, Any]]:
     identifier = html.escape(str(item.get("identifier") or key))
-    label = html.escape(str(record.get("account_label") or DEFAULT_ACCOUNT_LABEL))
+    label = html.escape(
+        str(record.get("account_label") or DEFAULT_ACCOUNT_LABEL)
+    )
     raw_status = str(
         record.get("bot_failure_status") or record.get("status") or ""
     ).casefold()
@@ -253,7 +273,16 @@ def _message(
             "🔐 <b>Требуется авторизация BetBoom</b>\n\n"
             f"Колесо: <code>{identifier}</code>\n"
             f"Аккаунт: <b>{label}</b>\n"
-            "Сессия аккаунта истекла. Автоповторы остановлены до обновления авторизации."
+            "Сессия аккаунта истекла. Автоповторы остановлены до обновления "
+            "авторизации."
+        )
+    elif raw_status in TERMINAL_FAILURE_STATUSES:
+        text = (
+            f"⛔ <b>{html.escape(join_outcomes.failure_title(raw_status))}</b>\n\n"
+            f"Колесо: <code>{identifier}</code>\n"
+            f"Аккаунт: <b>{label}</b>\n"
+            f"Причина: {html.escape(_failure_reason(record))}\n"
+            "Повторной автоматической попытки для этого события не будет."
         )
     elif result_status == "referral_ineligible":
         text = (
@@ -275,13 +304,17 @@ def _message(
             "⚠️ <b>Результат участия не подтверждён</b>\n\n"
             f"Колесо: <code>{identifier}</code>\n"
             f"Аккаунт: <b>{label}</b>\n"
+            f"Причина: {html.escape(_failure_reason(record))}\n"
             "Повторная проверка запланирована."
         )
     return (
         text,
         {
             "inline_keyboard": [[
-                {"text": "🔥 Активные колёса", "callback_data": "bb:l:active"},
+                {
+                    "text": "🔥 Активные колёса",
+                    "callback_data": "bb:l:active",
+                },
                 {"text": "🏠 Главное меню", "callback_data": "page:menu"},
             ]]
         },
@@ -295,7 +328,11 @@ def sync_account_events(panel: Any) -> dict[str, int]:
     if not candidates:
         return {"pending": 0, "completed": 0, "failed": 0}
 
-    active = state.get("active_wheels") if isinstance(state.get("active_wheels"), dict) else {}
+    active = (
+        state.get("active_wheels")
+        if isinstance(state.get("active_wheels"), dict)
+        else {}
+    )
     completed = 0
     failed = 0
     original_context = (
@@ -310,11 +347,14 @@ def sync_account_events(panel: Any) -> dict[str, int]:
         if not key or not isinstance(item, dict):
             failed += 1
             continue
-        if str(record.get("event_token") or "") != account_base._base_event_token(item, key):
+        if str(record.get("event_token") or "") != account_base._base_event_token(
+            item, key
+        ):
             continue
         try:
             _access, user_id, user, chat_id = account_base._target_context(
-                panel, str(record.get("alert_user") or DEFAULT_ALERT_USER)
+                panel,
+                str(record.get("alert_user") or DEFAULT_ALERT_USER),
             )
             event_key = (
                 personal_wheel_voting.wheel_event_key(key, item)
@@ -337,11 +377,15 @@ def sync_account_events(panel: Any) -> dict[str, int]:
             if success:
                 raw_result = panel.mark_personal_participation(key)
                 vote_result = raw_result if isinstance(raw_result, dict) else {}
-                original_button_updated = auto_participation_owner_sync._mark_original_notification(
-                    panel, chat_id, item
+                original_button_updated = (
+                    auto_participation_owner_sync._mark_original_notification(
+                        panel, chat_id, item
+                    )
                 )
 
-            referral_restricted = wheel_publications_v2.entry_is_referral_restricted(item)
+            referral_restricted = (
+                wheel_publications_v2.entry_is_referral_restricted(item)
+            )
             notifications_enabled = _notification_enabled(user)
             should_send = _should_send_notification(user, item)
             now_text = datetime.now(UTC).isoformat()
@@ -372,7 +416,9 @@ def sync_account_events(panel: Any) -> dict[str, int]:
                     "referral_restricted": referral_restricted,
                     "original_button_updated": original_button_updated,
                     "vote_changed": bool(vote_result.get("changed")),
-                    "vote_command_id": str(vote_result.get("vote_command_id") or ""),
+                    "vote_command_id": str(
+                        vote_result.get("vote_command_id") or ""
+                    ),
                 },
             )
             completed += 1
@@ -383,9 +429,11 @@ def sync_account_events(panel: Any) -> dict[str, int]:
                 f"wheel={key} {type(exc).__name__}: {exc}"
             )
         finally:
-            panel.current_chat_id, panel.current_user_id, panel.current_role = (
-                original_context
-            )
+            (
+                panel.current_chat_id,
+                panel.current_user_id,
+                panel.current_role,
+            ) = original_context
 
     return {
         "pending": len(candidates),
@@ -395,16 +443,26 @@ def sync_account_events(panel: Any) -> dict[str, int]:
 
 
 def install_owner_sync() -> None:
-    if getattr(auto_participation_owner_sync, "_bbvg_xflarxx_sync_installed", False):
+    if getattr(
+        auto_participation_owner_sync,
+        "_bbvg_xflarxx_sync_installed",
+        False,
+    ):
         return
     original_sync_once = auto_participation_owner_sync.sync_once
 
     def sync_once_with_xflarxx(panel: Any) -> dict[str, int]:
         base = dict(original_sync_once(panel))
         extra = sync_account_events(panel)
-        base["pending"] = int(base.get("pending", 0)) + int(extra.get("pending", 0))
-        base["completed"] = int(base.get("completed", 0)) + int(extra.get("completed", 0))
-        base["failed"] = int(base.get("failed", 0)) + int(extra.get("failed", 0))
+        base["pending"] = int(base.get("pending", 0)) + int(
+            extra.get("pending", 0)
+        )
+        base["completed"] = int(base.get("completed", 0)) + int(
+            extra.get("completed", 0)
+        )
+        base["failed"] = int(base.get("failed", 0)) + int(
+            extra.get("failed", 0)
+        )
         base["xflarxx_completed"] = int(extra.get("completed", 0))
         return base
 
@@ -416,7 +474,9 @@ def self_test() -> None:
     previous5 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART5")
     previous6 = os.environ.get("BETBOOM_STORAGE_STATE_JSON_PART6")
     try:
-        raw = json.dumps({"cookies": [], "origins": []}, separators=(",", ":"))
+        raw = json.dumps(
+            {"cookies": [], "origins": []}, separators=(",", ":")
+        )
         middle = len(raw) // 2
         os.environ["BETBOOM_STORAGE_STATE_JSON_PART5"] = raw[:middle]
         os.environ["BETBOOM_STORAGE_STATE_JSON_PART6"] = raw[middle:]
@@ -439,6 +499,7 @@ def self_test() -> None:
     }
     assert _account_event_token(item).endswith("#account:xflarxx_primary")
     assert "authorization_required" in TERMINAL_FAILURE_STATUSES
+    assert "ineligible_promo_code" in TERMINAL_FAILURE_STATUSES
     auth_text, _auth_markup = _message(
         "wheel",
         {"identifier": "wheel"},
@@ -452,6 +513,21 @@ def self_test() -> None:
     assert "Требуется авторизация BetBoom" in auth_text
     assert "Автоповторы остановлены" in auth_text
     assert "Повторная проверка запланирована" not in auth_text
+    promo_text, _promo_markup = _message(
+        "rewsa",
+        {"identifier": "REWSA"},
+        {
+            "account_label": DEFAULT_ACCOUNT_LABEL,
+            "status": "ineligible_promo_code",
+            "bot_failure_detail": (
+                "BetBoom отказал в участии: Акция доступна только при "
+                "регистрации по промокоду стримера"
+            ),
+        },
+        False,
+    )
+    assert "промокод" in promo_text.casefold()
+    assert "повторной автоматической попытки" in promo_text.casefold()
     assert _notification_enabled({"notification_preferences": {}})
     assert not _notification_enabled(
         {"notification_preferences": {"auto_participation": False}}
