@@ -12,7 +12,7 @@ import xflarxx_account_participation as account3
 FIXTURE = (
     Path(__file__).resolve().parent
     / "fixtures"
-    / "betboom_join_promo_code_not_used.json"
+    / "betboom_join_promo_code_not_used.fixture"
 )
 UTC = timezone.utc
 
