@@ -1,0 +1,223 @@
+{
+  "account_attempts": [
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T074709824782Z-e6d6e434b9f6",
+      "attempt_id": "cde84150dce2947bccfaff7f0e668af5bc394368400835cd0ffc32cd1c9d9717",
+      "confidence": 20,
+      "confirmation": "raw_status:ineligible_promo_code; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; BetBoom отказал в участии: Акция доступна только при регистрации по промокоду стримера; betboom_reason=promo_code_not_used; clicked_by_bot=true; click=main:Принять участие",
+      "event_id": "evt:5253698a4593ffd501db",
+      "finished_at": "2026-09-09T07:47:11.199719+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-09T07:47:17.017119+00:00",
+      "started_at": "2026-09-09T07:47:11.199719+00:00",
+      "status": "unconfirmed"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T074714946860Z-536b98a033ed",
+      "attempt_id": "2c8f7e4a0a9a7d06959f5c53169bc9ae6b808a4c5dd11275fd3674d27d988c74",
+      "confidence": 20,
+      "confirmation": "raw_status:ineligible_promo_code; betboom_join_api",
+      "error_text": "BetBoom отказал в участии: Акция доступна только при регистрации по промокоду стримера; betboom_reason=promo_code_not_used; clicked_by_bot=true; click=main:Принять участие",
+      "event_id": "evt:5253698a4593ffd501db",
+      "finished_at": "2026-09-09T07:47:11.612053+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-09T07:47:17.018737+00:00",
+      "started_at": "2026-09-09T07:47:11.612053+00:00",
+      "status": "unconfirmed"
+    }
+  ],
+  "account_results": [
+    {
+      "account_key": "vyacheslav_primary",
+      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T074709824782Z-e6d6e434b9f6",
+      "attempt_count": 1,
+      "confidence": 20,
+      "confirmation": "raw_status:ineligible_promo_code; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; BetBoom отказал в участии: Акция доступна только при регистрации по промокоду стримера; betboom_reason=promo_code_not_used; clicked_by_bot=true; click=main:Принять участие",
+      "event_id": "evt:5253698a4593ffd501db",
+      "finished_at": "2026-09-09T07:47:11.199719+00:00",
+      "owner_id": "vyacheslav",
+      "started_at": "2026-09-09T07:47:11.199719+00:00",
+      "status": "unconfirmed",
+      "updated_at": "2026-09-09T07:47:17.017119+00:00"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "account_label": "Аккаунт 2",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T074714946860Z-536b98a033ed",
+      "attempt_count": 1,
+      "confidence": 20,
+      "confirmation": "raw_status:ineligible_promo_code; betboom_join_api",
+      "error_text": "BetBoom отказал в участии: Акция доступна только при регистрации по промокоду стримера; betboom_reason=promo_code_not_used; clicked_by_bot=true; click=main:Принять участие",
+      "event_id": "evt:5253698a4593ffd501db",
+      "finished_at": "2026-09-09T07:47:11.612053+00:00",
+      "owner_id": "vyacheslav",
+      "started_at": "2026-09-09T07:47:11.612053+00:00",
+      "status": "unconfirmed",
+      "updated_at": "2026-09-09T07:47:17.018737+00:00"
+    }
+  ],
+  "action_id": 2103,
+  "aliases": [
+    "aunkereref#action:2103:2026-09-09T07:45:26.081000+00:00",
+    "aunkereref#event:5253698a4593ffd501db",
+    "aunkereref#seen:2026-09-09T07:45:22+00:00"
+  ],
+  "api_confirmed_at": "2026-09-09T07:47:17.010470+00:00",
+  "browser_started_at": null,
+  "closed_at": null,
+  "created_at": "2026-09-09T07:47:17.010470+00:00",
+  "discovered_at": "2026-09-09T07:47:17.010470+00:00",
+  "dispatch_queued_at": null,
+  "event_id": "evt:5253698a4593ffd501db",
+  "final_sent_at": null,
+  "generation_id": "5253698a4593ffd501db",
+  "ledger_schema_version": 3,
+  "notification_sent_at": null,
+  "notifications": [],
+  "persisted_at": "2026-09-09T07:47:17.010470+00:00",
+  "provisional": 0,
+  "referral_restricted": 0,
+  "server_start_at": "2026-09-09T07:45:26.081000+00:00",
+  "source": "aunkereEZ",
+  "source_message_date": "2026-09-09T07:45:22+00:00",
+  "source_message_id": 5366,
+  "source_message_url": "https://telegram.me/aunkereEZ/5366",
+  "status": "preliminary",
+  "transitions": [
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-09T07:47:17.010470+00:00",
+      "payload": {
+        "action_id": 2103,
+        "available_at": "",
+        "deadline": "2026-09-09T08:05:26.081000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:5253698a4593ffd501db",
+        "expires_at": "2026-09-09T08:35:26.081000+00:00",
+        "generation_id": "5253698a4593ffd501db",
+        "identifier": "aunkereref",
+        "message_text": "🚨\nВСЕ В КОЛЕСО ФРИБЕТОВ:\nhttps://betboom.ru/freestream/aunkereref\n🎮\ntwitch.tv/aunkere\nLEGACY vs ALLIANCE\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5366\nhttps://betboom.ru/freestream/aunkereref\nhttp://twitch.tv/aunkere",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-09T07:45:26.081000+00:00",
+        "source": "aunkereEZ",
+        "source_message_date": "2026-09-09T07:45:22+00:00",
+        "source_message_id": 5366,
+        "source_message_url": "https://telegram.me/aunkereEZ/5366",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/aunkereref",
+        "verification_status": "confirmed",
+        "wheel_key": "aunkereref",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "720711ee6c17fce56789f24c920cb1c78bf7511b9b4dd52d5fc462d44c71258f"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-09T07:47:17.010470+00:00",
+      "payload": {
+        "action_id": 2103,
+        "available_at": "",
+        "deadline": "2026-09-09T08:05:26.081000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:5253698a4593ffd501db",
+        "expires_at": "2026-09-09T08:35:26.081000+00:00",
+        "generation_id": "5253698a4593ffd501db",
+        "identifier": "aunkereref",
+        "message_text": "🚨\nВСЕ В КОЛЕСО ФРИБЕТОВ:\nhttps://betboom.ru/freestream/aunkereref\n🎮\ntwitch.tv/aunkere\nLEGACY vs ALLIANCE\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5366\nhttps://betboom.ru/freestream/aunkereref\nhttp://twitch.tv/aunkere",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-09T07:45:26.081000+00:00",
+        "source": "aunkereEZ",
+        "source_message_date": "2026-09-09T07:45:22+00:00",
+        "source_message_id": 5366,
+        "source_message_url": "https://telegram.me/aunkereEZ/5366",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/aunkereref",
+        "verification_status": "confirmed",
+        "wheel_key": "aunkereref",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "3f16a0fbd6260a21006caa78c436dcf27e3da8fd25418a2450fbdb4f24e9497c"
+    },
+    {
+      "dedupe_key": "2103:2026-09-09T07:45:26.081000+00:00",
+      "occurred_at": "2026-09-09T07:47:17.010470+00:00",
+      "payload": {
+        "action_id": 2103,
+        "available_at": "",
+        "deadline": "2026-09-09T08:05:26.081000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:5253698a4593ffd501db",
+        "expires_at": "2026-09-09T08:35:26.081000+00:00",
+        "generation_id": "5253698a4593ffd501db",
+        "identifier": "aunkereref",
+        "message_text": "🚨\nВСЕ В КОЛЕСО ФРИБЕТОВ:\nhttps://betboom.ru/freestream/aunkereref\n🎮\ntwitch.tv/aunkere\nLEGACY vs ALLIANCE\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5366\nhttps://betboom.ru/freestream/aunkereref\nhttp://twitch.tv/aunkere",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-09T07:45:26.081000+00:00",
+        "source": "aunkereEZ",
+        "source_message_date": "2026-09-09T07:45:22+00:00",
+        "source_message_id": 5366,
+        "source_message_url": "https://telegram.me/aunkereEZ/5366",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/aunkereref",
+        "verification_status": "confirmed",
+        "wheel_key": "aunkereref",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "d38e0b80308fc315bb13d2ac0f01eb69b5680ad07b3acd5385597679e62dfa8a"
+    },
+    {
+      "dedupe_key": "34325564802",
+      "occurred_at": "2026-09-09T07:47:17.014552+00:00",
+      "payload": {
+        "workflow_run_id": "34325564802",
+        "workflow_sha": "b941d93d91699b2c79823fe8d9ad5f08145fdb7d"
+      },
+      "stage": "workflow_started",
+      "transition_id": "2c420264ec81e30571557ba829fd7854ac5a5e365cb37abb9647105c9dea49c4"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:cde84150dce2947bccfaff7f0e668af5bc394368400835cd0ffc32cd1c9d9717",
+      "occurred_at": "2026-09-09T07:47:11.199719+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T074709824782Z-e6d6e434b9f6",
+        "attempt_count": 1,
+        "confirmation": "raw_status:ineligible_promo_code; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "19ef7b9187c2794078c60cb2ff15c4376a723076687aa6981a85a670049f17da"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:2c8f7e4a0a9a7d06959f5c53169bc9ae6b808a4c5dd11275fd3674d27d988c74",
+      "occurred_at": "2026-09-09T07:47:11.612053+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T074714946860Z-536b98a033ed",
+        "attempt_count": 1,
+        "confirmation": "raw_status:ineligible_promo_code; betboom_join_api",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "842d4fa51e7927b866abe22aa3eda859a8c670209c1859cc505785f1a62728ad"
+    }
+  ],
+  "updated_at": "2026-09-09T07:47:17.014552+00:00",
+  "wheel_key": "aunkereref",
+  "workflow_started_at": "2026-09-09T07:47:17.014552+00:00"
+}
