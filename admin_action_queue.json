@@ -1506,12 +1506,6 @@
       "sequence": 519,
       "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"zonertw3#generation:88adbdd3e3ada77c50f2\",\"role\":\"owner\",\"sources\":[\"kolesaBB\"],\"weight\":5,\"wheel_key\":\"zonertw3\"}"
     },
-    "768bed488d9a457481d7bd2597fc49d0": {
-      "action": "set_deadline",
-      "created_at": "2026-07-16T14:32:32.313396+00:00",
-      "sequence": 47,
-      "value": "kyzko|2026-07-16T14:41:32.063534+00:00"
-    },
     "76f130cf77fc40818cc78a2475adc6e9": {
       "action": "record_personal_vote",
       "created_at": "2026-08-02T10:00:59.486455+00:00",
@@ -5592,6 +5586,12 @@
       "sequence": 565,
       "value": "{\"actor\":\"vote_6d354213070f7ecae88871feecfd6151\",\"event_key\":\"kekw#generation:f21ce5fa9c1754c1d07d\",\"role\":\"admin\",\"sources\":[\"burdakekw\",\"shadowkekw\"],\"weight\":5,\"wheel_key\":\"kekw\"}"
     },
+    "vote-d72da0491b449668c440511db20b6f38": {
+      "action": "record_personal_vote",
+      "created_at": "2026-09-09T12:29:52.613475+00:00",
+      "sequence": 1047,
+      "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"adam#generation:e6371927c0de3cfd5d7b\",\"role\":\"owner\",\"sources\":[\"AdamStaya\"],\"weight\":5,\"wheel_key\":\"adam\"}"
+    },
     "vote-d85b4cf9e1bdea9e4a0771826e434862": {
       "action": "record_personal_vote",
       "created_at": "2026-09-06T14:02:34.714321+00:00",
@@ -6002,5 +6002,5 @@
     }
   },
   "format": "bbvg-admin-action-queue-v1",
-  "sequence": 1046
+  "sequence": 1047
 }
