@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T130149303656Z-4c8d879462b9",
-      "attempt_id": "54ae969407911c0ef97a6bb8a9d15c1302db5cc81d57b0d4e82a8663a4137c80",
-      "confidence": 90,
-      "confirmation": "raw_status:participation_closed; workflow_state",
-      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_text:main:Пока ждёшь следующий запуск, заглядывай в другие акции; колесо уже завершилось до подтверждения участия; clicked_by_bot=false",
-      "event_id": "evt:cecbd8d39afc968b4614",
-      "finished_at": "2026-09-09T13:01:49.904592+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-09T13:01:54.063930+00:00",
-      "started_at": "2026-09-09T13:01:49.904592+00:00",
-      "status": "expired"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T130152845087Z-bf44531d566b",
       "attempt_id": "303b609a1bbb8da1397c3982fdbba85c9547acdadd9c0c44415f3258f4da0d80",
@@ -26,6 +12,20 @@
       "owner_id": "vyacheslav",
       "recorded_at": "2026-09-09T13:01:54.065176+00:00",
       "started_at": "2026-09-09T13:01:50.261743+00:00",
+      "status": "expired"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T130149303656Z-4c8d879462b9",
+      "attempt_id": "54ae969407911c0ef97a6bb8a9d15c1302db5cc81d57b0d4e82a8663a4137c80",
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_text:main:Пока ждёшь следующий запуск, заглядывай в другие акции; колесо уже завершилось до подтверждения участия; clicked_by_bot=false",
+      "event_id": "evt:cecbd8d39afc968b4614",
+      "finished_at": "2026-09-09T13:01:49.904592+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-09T13:01:54.063930+00:00",
+      "started_at": "2026-09-09T13:01:49.904592+00:00",
       "status": "expired"
     }
   ],
@@ -43,7 +43,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-09T13:01:49.904592+00:00",
       "status": "expired",
-      "updated_at": "2026-09-09T13:01:54.063930+00:00"
+      "updated_at": "2026-09-09T13:02:12.346470+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -58,7 +58,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-09T13:01:50.261743+00:00",
       "status": "expired",
-      "updated_at": "2026-09-09T13:01:54.065176+00:00"
+      "updated_at": "2026-09-09T13:02:12.347665+00:00"
     }
   ],
   "action_id": 2117,
@@ -90,6 +90,21 @@
   "status": "preliminary",
   "transitions": [
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:54ae969407911c0ef97a6bb8a9d15c1302db5cc81d57b0d4e82a8663a4137c80",
+      "occurred_at": "2026-09-09T13:01:49.904592+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T130149303656Z-4c8d879462b9",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "expired"
+      },
+      "stage": "account_result",
+      "transition_id": "09aeb614951dd37f2b039d2479ada03ebf5ddd3c7143457455bb5c92eaba4d4a"
+    },
+    {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-09T13:01:54.057456+00:00",
       "payload": {
@@ -119,33 +134,29 @@
       "transition_id": "32f367dccff88eb6622ab0bdbb56aa89836bfc1d12f9354df0afa4d99e58e784"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-09T13:01:54.057456+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:303b609a1bbb8da1397c3982fdbba85c9547acdadd9c0c44415f3258f4da0d80",
+      "occurred_at": "2026-09-09T13:01:50.261743+00:00",
       "payload": {
-        "action_id": 2117,
-        "available_at": "",
-        "deadline": "2026-09-09T13:19:38.085000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:cecbd8d39afc968b4614",
-        "expires_at": "2026-09-09T13:49:38.085000+00:00",
-        "generation_id": "cecbd8d39afc968b4614",
-        "identifier": "zonertw7",
-        "message_text": "ZONER КОЛЕСО ФРИБЕТОВ\nСтример: zoner\nЗакончится через: 19 мин 20 сек\nПризы: 500, 1000, 1500, 2000, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/zonertw7",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-09T12:59:38.085000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-09T12:59:43+00:00",
-        "source_message_id": 7897,
-        "source_message_url": "https://telegram.me/c/2445382077/7897",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zonertw7",
-        "verification_status": "confirmed",
-        "wheel_key": "zonertw7",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T130152845087Z-bf44531d566b",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; betboom_unconfirmed",
+        "owner_id": "vyacheslav",
+        "status": "expired"
       },
-      "stage": "persisted",
-      "transition_id": "e987f21a82bfc3bf4aacc658c999b9d4d5e9cf4664564da175d1f02be3b64624"
+      "stage": "account_result",
+      "transition_id": "3583e69904f17189dace5843d37b06c12d87f2ea8fad74a59abcb7835c34a78e"
+    },
+    {
+      "dedupe_key": "34354438882",
+      "occurred_at": "2026-09-09T13:01:54.061243+00:00",
+      "payload": {
+        "workflow_run_id": "34354438882",
+        "workflow_sha": "aaa6792b948fddfbfa415a76088b13fd4f969646"
+      },
+      "stage": "workflow_started",
+      "transition_id": "9226ff163b99bdf91ee5bc961edc134601d89bef09ece21510da89483d85074e"
     },
     {
       "dedupe_key": "2117:2026-09-09T12:59:38.085000+00:00",
@@ -177,47 +188,36 @@
       "transition_id": "9519054cb4ddb9f075d2b0f064edc1e3b12f535b198bdde70af2f55ad45c0653"
     },
     {
-      "dedupe_key": "34354438882",
-      "occurred_at": "2026-09-09T13:01:54.061243+00:00",
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-09T13:01:54.057456+00:00",
       "payload": {
-        "workflow_run_id": "34354438882",
-        "workflow_sha": "aaa6792b948fddfbfa415a76088b13fd4f969646"
+        "action_id": 2117,
+        "available_at": "",
+        "deadline": "2026-09-09T13:19:38.085000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:cecbd8d39afc968b4614",
+        "expires_at": "2026-09-09T13:49:38.085000+00:00",
+        "generation_id": "cecbd8d39afc968b4614",
+        "identifier": "zonertw7",
+        "message_text": "ZONER КОЛЕСО ФРИБЕТОВ\nСтример: zoner\nЗакончится через: 19 мин 20 сек\nПризы: 500, 1000, 1500, 2000, 5000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/zonertw7",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-09T12:59:38.085000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-09T12:59:43+00:00",
+        "source_message_id": 7897,
+        "source_message_url": "https://telegram.me/c/2445382077/7897",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zonertw7",
+        "verification_status": "confirmed",
+        "wheel_key": "zonertw7",
+        "wheel_type": "normal"
       },
-      "stage": "workflow_started",
-      "transition_id": "9226ff163b99bdf91ee5bc961edc134601d89bef09ece21510da89483d85074e"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:54ae969407911c0ef97a6bb8a9d15c1302db5cc81d57b0d4e82a8663a4137c80",
-      "occurred_at": "2026-09-09T13:01:49.904592+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T130149303656Z-4c8d879462b9",
-        "attempt_count": 1,
-        "confirmation": "raw_status:participation_closed; workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "expired"
-      },
-      "stage": "account_result",
-      "transition_id": "09aeb614951dd37f2b039d2479ada03ebf5ddd3c7143457455bb5c92eaba4d4a"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:303b609a1bbb8da1397c3982fdbba85c9547acdadd9c0c44415f3258f4da0d80",
-      "occurred_at": "2026-09-09T13:01:50.261743+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260909T130152845087Z-bf44531d566b",
-        "attempt_count": 1,
-        "confirmation": "raw_status:participation_closed; betboom_unconfirmed",
-        "owner_id": "vyacheslav",
-        "status": "expired"
-      },
-      "stage": "account_result",
-      "transition_id": "3583e69904f17189dace5843d37b06c12d87f2ea8fad74a59abcb7835c34a78e"
+      "stage": "persisted",
+      "transition_id": "e987f21a82bfc3bf4aacc658c999b9d4d5e9cf4664564da175d1f02be3b64624"
     }
   ],
-  "updated_at": "2026-09-09T13:01:54.061243+00:00",
+  "updated_at": "2026-09-09T13:02:12.337225+00:00",
   "wheel_key": "zonertw7",
   "workflow_started_at": "2026-09-09T13:01:54.061243+00:00"
 }
