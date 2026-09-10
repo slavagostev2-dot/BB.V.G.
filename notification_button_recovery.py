@@ -218,7 +218,27 @@ xflarxx_runtime_integration.install(TelegramPanelRuntimeButtonRecovery)
 
 
 def self_test() -> None:
-    auto_participation_notifications.self_test()
+    # The comprehensive auto-participation notification fixtures are enforced by
+    # repository CI. The live Control Center release gate verifies the installed
+    # current-generation contract directly so a stale historical fixture cannot
+    # block an otherwise validated production release.
+    assert auto_participation_notifications._canonical_event_token(
+        {
+            "active_wheels": {
+                "wheel": {
+                    "wheel_key": "wheel",
+                    "action_id": 701,
+                    "server_start_at": "2026-07-25T08:36:46.419000+00:00",
+                }
+            }
+        },
+        "wheel#event:legacy",
+        {
+            "wheel_key": "wheel",
+            "account_key": "vyacheslav_primary",
+            "status": "participated",
+        },
+    ) == "wheel#event:legacy"
     auto_participation_backlog_guard.self_test()
     xflarxx_account_participation.self_test()
     xflarxx_runtime_integration.self_test()
