@@ -54,6 +54,30 @@ TRANSIENT_FAILURE_STATUSES = {
     "server_error",
     "server_acknowledged_unverified",
 }
+LEGACY_MISCLASSIFIED_MISSING_CONTROL_MARKER = (
+    "expired_exact_state:participation_control_absent_after_reload"
+)
+
+
+def legacy_missing_control_was_misclassified(record: Any) -> bool:
+    """Identify the 2026-09-08 false terminal state for a missing page control.
+
+    A missing control is not authoritative closure evidence: the BetBoom action
+    API can still report the wheel active while the frontend temporarily serves
+    a 404 or an incomplete SPA.  Keep recognizing already-written records so a
+    live event can recover after this classification is fixed.
+    """
+
+    if not isinstance(record, dict):
+        return False
+    status = str(record.get("status") or "").casefold()
+    detail = str(
+        record.get("detail") or record.get("bot_failure_detail") or ""
+    ).casefold()
+    return (
+        status == "participation_closed"
+        and LEGACY_MISCLASSIFIED_MISSING_CONTROL_MARKER in detail
+    )
 
 
 @dataclass(frozen=True)
@@ -342,6 +366,8 @@ def record_statistics(
 
 
 def _record_is_terminal_failure(record: Any) -> bool:
+    if legacy_missing_control_was_misclassified(record):
+        return False
     return (
         isinstance(record, dict)
         and str(record.get("status") or "").casefold() in TERMINAL_FAILURE_STATUSES

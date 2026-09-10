@@ -9,6 +9,7 @@ from datetime import timedelta
 from typing import Any, Callable
 
 import betboom_auto_participation
+import betboom_join_outcomes
 import personal_wheel_voting
 
 
@@ -136,6 +137,8 @@ def _merge_dispatch_ledger_from_disk(state: dict[str, Any], monitor_module: Any)
 def _recoverable_processed_failure(record: Any, entry: dict[str, Any]) -> str:
     if not isinstance(record, dict):
         return ""
+    if betboom_join_outcomes.legacy_missing_control_was_misclassified(record):
+        return "legacy_missing_control_false_terminal"
     status = str(record.get("status") or entry.get("auto_participation_status") or "")
     if status == "workflow_dispatch_failed":
         detail = " ".join(

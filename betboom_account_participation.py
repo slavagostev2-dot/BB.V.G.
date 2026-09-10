@@ -195,6 +195,8 @@ def _legacy_weak_success(previous: Any) -> bool:
 def _should_attempt(previous: Any, current: datetime) -> bool:
     if not isinstance(previous, dict):
         return True
+    if join_outcomes.legacy_missing_control_was_misclassified(previous):
+        return True
     status = str(previous.get("status") or "").casefold()
     if status == "participated":
         return _legacy_weak_success(previous)

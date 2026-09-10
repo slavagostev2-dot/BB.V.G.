@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
 
 import betboom_auto_participation as auto
 import betboom_participation_browser as browser
@@ -105,3 +106,66 @@ def test_mismatched_old_success_cannot_win_new_profile_merge() -> None:
 
     assert merged["status"] == "button_not_found"
     assert merged["auth_revision"] == "auth:v1:new-profile"
+
+
+def test_identity_cache_rebuilds_when_workflow_step_changes_account(monkeypatch, tmp_path) -> None:
+    cache_path = tmp_path / "identities.json"
+    cache_path.write_text(
+        json.dumps(
+            {
+                "status": "ok",
+                "accounts": {"vyacheslav_primary": {"status": "ok"}},
+                "configured_account_keys": ["vyacheslav_primary"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        identity,
+        "configured_sessions",
+        lambda: [
+            ("vyacheslav_primary", None),
+            ("vyacheslav_secondary", {"cookies": []}),
+            ("xflarxx_primary", None),
+        ],
+    )
+    rebuilt = {
+        "status": "ok",
+        "accounts": {"vyacheslav_secondary": {"status": "ok"}},
+        "configured_account_keys": ["vyacheslav_secondary"],
+    }
+    calls = []
+    monkeypatch.setattr(
+        identity,
+        "build_identity_report",
+        lambda: calls.append("rebuilt") or rebuilt,
+    )
+
+    assert identity.load_or_build_identity_report(cache_path) == rebuilt
+    assert calls == ["rebuilt"]
+
+
+def test_identity_cache_is_reused_for_same_configured_accounts(monkeypatch, tmp_path) -> None:
+    cache_path = tmp_path / "identities.json"
+    cached = {
+        "status": "ok",
+        "accounts": {"xflarxx_primary": {"status": "ok"}},
+        "configured_account_keys": ["xflarxx_primary"],
+    }
+    cache_path.write_text(json.dumps(cached), encoding="utf-8")
+    monkeypatch.setattr(
+        identity,
+        "configured_sessions",
+        lambda: [
+            ("vyacheslav_primary", None),
+            ("vyacheslav_secondary", None),
+            ("xflarxx_primary", {"cookies": []}),
+        ],
+    )
+    monkeypatch.setattr(
+        identity,
+        "build_identity_report",
+        lambda: (_ for _ in ()).throw(AssertionError("cache was rebuilt")),
+    )
+
+    assert identity.load_or_build_identity_report(cache_path) == cached
