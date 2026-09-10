@@ -29,7 +29,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-10T11:30:15.440264+00:00",
       "status": "expired",
-      "updated_at": "2026-09-10T11:30:16.860495+00:00"
+      "updated_at": "2026-09-10T11:30:35.317422+00:00"
     }
   ],
   "action_id": 2156,
@@ -61,62 +61,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-10T11:30:16.853315+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_primary:11f72fae69ec6f749c827a1160648174de0bb9b7f45188190dcf3f3e6a4478f1",
+      "occurred_at": "2026-09-10T11:30:15.440264+00:00",
       "payload": {
-        "action_id": 2156,
-        "available_at": "",
-        "deadline": "2026-09-10T11:48:36.940000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:91f6f7fcbc7eb1a6f556",
-        "expires_at": "2026-09-10T12:18:36.940000+00:00",
-        "generation_id": "91f6f7fcbc7eb1a6f556",
-        "identifier": "zonertw4",
-        "message_text": "ZONER КОЛЕСО ФРИБЕТОВ\nСтример: zoner\nЗакончится через: 19 мин 52 сек\nПризы: 500, 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/zonertw4",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-10T11:28:36.940000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-10T11:28:44+00:00",
-        "source_message_id": 7905,
-        "source_message_url": "https://telegram.me/c/2445382077/7905",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zonertw4",
-        "verification_status": "confirmed",
-        "wheel_key": "zonertw4",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T113014534342Z-784ff224f9b3",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "expired"
       },
-      "stage": "source_discovered",
-      "transition_id": "e6426786a674531e3563b7ba4b60c7d539f8681c8be794bc207b427fe1caea67"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-10T11:30:16.853315+00:00",
-      "payload": {
-        "action_id": 2156,
-        "available_at": "",
-        "deadline": "2026-09-10T11:48:36.940000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:91f6f7fcbc7eb1a6f556",
-        "expires_at": "2026-09-10T12:18:36.940000+00:00",
-        "generation_id": "91f6f7fcbc7eb1a6f556",
-        "identifier": "zonertw4",
-        "message_text": "ZONER КОЛЕСО ФРИБЕТОВ\nСтример: zoner\nЗакончится через: 19 мин 52 сек\nПризы: 500, 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/zonertw4",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-10T11:28:36.940000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-10T11:28:44+00:00",
-        "source_message_id": 7905,
-        "source_message_url": "https://telegram.me/c/2445382077/7905",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zonertw4",
-        "verification_status": "confirmed",
-        "wheel_key": "zonertw4",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "b021c9f6f5c57c8ff622b36c1452caea92b5f423b380b9fd0277e00bf76eaa69"
+      "stage": "account_result",
+      "transition_id": "24924a11805286351dd57d34b8aab9b8075351eb8b73ca9b90396ddbad60780d"
     },
     {
       "dedupe_key": "2156:2026-09-10T11:28:36.940000+00:00",
@@ -148,6 +105,35 @@
       "transition_id": "462eeef4bc9d87573ddab037af98535541457072703c445a8f4cfcc2d3203e81"
     },
     {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-10T11:30:16.853315+00:00",
+      "payload": {
+        "action_id": 2156,
+        "available_at": "",
+        "deadline": "2026-09-10T11:48:36.940000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:91f6f7fcbc7eb1a6f556",
+        "expires_at": "2026-09-10T12:18:36.940000+00:00",
+        "generation_id": "91f6f7fcbc7eb1a6f556",
+        "identifier": "zonertw4",
+        "message_text": "ZONER КОЛЕСО ФРИБЕТОВ\nСтример: zoner\nЗакончится через: 19 мин 52 сек\nПризы: 500, 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/zonertw4",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T11:28:36.940000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-10T11:28:44+00:00",
+        "source_message_id": 7905,
+        "source_message_url": "https://telegram.me/c/2445382077/7905",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zonertw4",
+        "verification_status": "confirmed",
+        "wheel_key": "zonertw4",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "b021c9f6f5c57c8ff622b36c1452caea92b5f423b380b9fd0277e00bf76eaa69"
+    },
+    {
       "dedupe_key": "34471502495",
       "occurred_at": "2026-09-10T11:30:16.857757+00:00",
       "payload": {
@@ -158,22 +144,36 @@
       "transition_id": "b94f6cc3b1a7fc13da8f0b0991baa61424553950e49f78bcf1a4961a690a7947"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:11f72fae69ec6f749c827a1160648174de0bb9b7f45188190dcf3f3e6a4478f1",
-      "occurred_at": "2026-09-10T11:30:15.440264+00:00",
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-10T11:30:16.853315+00:00",
       "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T113014534342Z-784ff224f9b3",
-        "attempt_count": 1,
-        "confirmation": "raw_status:participation_closed; workflow_state",
-        "owner_id": "vyacheslav",
-        "status": "expired"
+        "action_id": 2156,
+        "available_at": "",
+        "deadline": "2026-09-10T11:48:36.940000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:91f6f7fcbc7eb1a6f556",
+        "expires_at": "2026-09-10T12:18:36.940000+00:00",
+        "generation_id": "91f6f7fcbc7eb1a6f556",
+        "identifier": "zonertw4",
+        "message_text": "ZONER КОЛЕСО ФРИБЕТОВ\nСтример: zoner\nЗакончится через: 19 мин 52 сек\nПризы: 500, 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/zonertw4",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T11:28:36.940000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-10T11:28:44+00:00",
+        "source_message_id": 7905,
+        "source_message_url": "https://telegram.me/c/2445382077/7905",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zonertw4",
+        "verification_status": "confirmed",
+        "wheel_key": "zonertw4",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "24924a11805286351dd57d34b8aab9b8075351eb8b73ca9b90396ddbad60780d"
+      "stage": "source_discovered",
+      "transition_id": "e6426786a674531e3563b7ba4b60c7d539f8681c8be794bc207b427fe1caea67"
     }
   ],
-  "updated_at": "2026-09-10T11:30:16.857757+00:00",
+  "updated_at": "2026-09-10T11:30:35.315145+00:00",
   "wheel_key": "zonertw4",
   "workflow_started_at": "2026-09-10T11:30:16.857757+00:00"
 }
