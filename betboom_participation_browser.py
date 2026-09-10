@@ -386,17 +386,17 @@ def _missing_participation_control_failure(
     *,
     preparations: list[str] | None = None,
 ) -> auto.ParticipationResult:
-    """Treat a stable missing join control as an inactive/completed wheel.
+    """Treat a missing join control as a transient frontend state.
 
-    This inference is used only after the page loaded, SPA hydration was waited
-    for, cookie controls were handled, the wheel was reloaded once, and explicit
-    success/auth/referral states were ruled out. It therefore covers short-lived
-    wheels and stale/non-active wheel links without depending on one BetBoom text.
+    The action API is authoritative for the event lifetime.  The frontend can
+    temporarily return a 404 or an incomplete SPA for an active wheel, so an
+    absent control alone must remain retryable.  Explicit closure text is still
+    handled by ``_wheel_closed_failure`` before this fallback is reached.
     """
 
     evidence = "participation_control_absent_after_reload"
     detail = (
-        f"expired_exact_state:{evidence}; кнопка участия отсутствует после ожидания "
+        f"transient_page_state:{evidence}; кнопка участия отсутствует после ожидания "
         "и повторной загрузки; авторизация, подтверждённое участие и реферальный "
         "отказ не обнаружены"
     )
@@ -405,8 +405,8 @@ def _missing_participation_control_failure(
     labels = _diagnostic_labels(page)
     if labels:
         detail += f"; видимые действия: {labels}"
-    artifact = _save_diagnostics(page, url, "participation_closed", detail)
-    return auto.ParticipationResult(False, "participation_closed", detail[:300], artifact)
+    artifact = _save_diagnostics(page, url, "button_not_found", detail)
+    return auto.ParticipationResult(False, "button_not_found", detail[:300], artifact)
 
 
 def _click_preparation_control(page: Any, pattern: re.Pattern[str], timeout_ms: int) -> str:
@@ -537,6 +537,8 @@ def _cached_primary_terminal(url: str) -> auto.ParticipationResult | None:
             return None
         status = str(record.get("status") or "").casefold()
         if status not in join_outcomes.TERMINAL_FAILURE_STATUSES:
+            return None
+        if join_outcomes.legacy_missing_control_was_misclassified(record):
             return None
         detail = str(record.get("detail") or record.get("bot_failure_detail") or status)
         return auto.ParticipationResult(False, status, f"Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; {detail}"[:300], str(record.get("artifact_url") or ""))

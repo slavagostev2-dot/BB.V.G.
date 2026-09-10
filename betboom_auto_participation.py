@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+import betboom_join_outcomes as join_outcomes
 from bbvg.storage import event_id_from_entry, legacy_event_aliases
 import wheel_publications_v2
 
@@ -556,14 +557,23 @@ def _rearm_legacy_button_not_found(
     monitor: Any,
     current: Any,
 ) -> tuple[bool, bool, str]:
-    """Retry one old button_not_found event once under the improved SPA-aware finder."""
+    """Rearm retryable records written by older participation classifiers."""
 
     previous = events.get(token)
     if not isinstance(previous, dict):
         return False, False, ""
-    if str(previous.get("status") or "") != "button_not_found":
+    legacy_false_terminal = join_outcomes.legacy_missing_control_was_misclassified(
+        previous
+    )
+    if (
+        str(previous.get("status") or "") != "button_not_found"
+        and not legacy_false_terminal
+    ):
         return False, False, ""
-    if _attempt_version(previous) >= _PARTICIPATION_ATTEMPT_VERSION:
+    if (
+        not legacy_false_terminal
+        and _attempt_version(previous) >= _PARTICIPATION_ATTEMPT_VERSION
+    ):
         return False, False, ""
     if not _eligible_for_event_attempt(entry, monitor, current):
         return False, False, ""
@@ -587,6 +597,11 @@ def _rearm_legacy_button_not_found(
     ):
         entry.pop(field, None)
     entry["auto_participation_rearmed_at"] = current.isoformat()
+    entry["auto_participation_rearm_reason"] = (
+        "legacy_missing_control_false_terminal"
+        if legacy_false_terminal
+        else "legacy_button_not_found_attempt"
+    )
     return True, previous_notified, previous_notification_at
 
 

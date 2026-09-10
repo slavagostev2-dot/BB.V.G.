@@ -52,6 +52,16 @@ def configured_sessions() -> list[tuple[str, dict[str, Any] | None]]:
     ]
 
 
+def configured_account_keys() -> list[str]:
+    """Return the non-secret cache scope for the sessions visible in this step."""
+
+    return sorted(
+        account_key
+        for account_key, storage_state in configured_sessions()
+        if storage_state is not None
+    )
+
+
 def _decode_jwt_payload(token: str) -> dict[str, Any]:
     parts = str(token or "").split(".")
     if len(parts) < 2:
@@ -187,7 +197,11 @@ def build_identity_report() -> dict[str, Any]:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
-        return {"status": "dependency_missing", "accounts": {}}
+        return {
+            "status": "dependency_missing",
+            "accounts": {},
+            "configured_account_keys": configured_account_keys(),
+        }
 
     timeout_ms = max(
         8000,
@@ -227,16 +241,22 @@ def build_identity_report() -> dict[str, Any]:
         "status": "collision" if collisions else "ok",
         "accounts": accounts,
         "collision_groups": collisions,
+        "configured_account_keys": configured_account_keys(),
     }
 
 
 def load_or_build_identity_report(
     cache_path: Path = DEFAULT_CACHE_PATH,
 ) -> dict[str, Any]:
+    current_scope = configured_account_keys()
     try:
         if cache_path.exists():
             value = json.loads(cache_path.read_text(encoding="utf-8"))
-            if isinstance(value, dict) and isinstance(value.get("accounts"), dict):
+            if (
+                isinstance(value, dict)
+                and isinstance(value.get("accounts"), dict)
+                and value.get("configured_account_keys") == current_scope
+            ):
                 return value
     except Exception:
         pass
