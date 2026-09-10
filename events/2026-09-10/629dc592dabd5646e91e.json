@@ -1,0 +1,179 @@
+{
+  "account_attempts": [
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
+      "attempt_id": "b586f8453d63a4a3d3f2eecc703beee1a558b49145dc1a42a033178a8a1b3fe9",
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участие и реферальный отказ не обнаружены; видимые действия: main:Линия | m",
+      "event_id": "evt:629dc592dabd5646e91e",
+      "finished_at": "2026-09-10T13:57:46.087505+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-10T13:57:47.478283+00:00",
+      "started_at": "2026-09-10T13:57:46.087505+00:00",
+      "status": "expired"
+    }
+  ],
+  "account_results": [
+    {
+      "account_key": "vyacheslav_primary",
+      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
+      "attempt_count": 1,
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участие и реферальный отказ не обнаружены; видимые действия: main:Линия | m",
+      "event_id": "evt:629dc592dabd5646e91e",
+      "finished_at": "2026-09-10T13:57:46.087505+00:00",
+      "owner_id": "vyacheslav",
+      "started_at": "2026-09-10T13:57:46.087505+00:00",
+      "status": "expired",
+      "updated_at": "2026-09-10T13:57:47.478283+00:00"
+    }
+  ],
+  "action_id": 2173,
+  "aliases": [
+    "dayneez#action:2173:2026-09-10T13:55:30.602000+00:00",
+    "dayneez#event:629dc592dabd5646e91e",
+    "dayneez#seen:2026-09-10T13:56:37.224960+00:00"
+  ],
+  "api_confirmed_at": "2026-09-10T13:57:47.470371+00:00",
+  "browser_started_at": null,
+  "closed_at": null,
+  "created_at": "2026-09-10T13:57:47.470371+00:00",
+  "discovered_at": "2026-09-10T13:57:47.470371+00:00",
+  "dispatch_queued_at": null,
+  "event_id": "evt:629dc592dabd5646e91e",
+  "final_sent_at": null,
+  "generation_id": "629dc592dabd5646e91e",
+  "ledger_schema_version": 3,
+  "notification_sent_at": null,
+  "notifications": [],
+  "persisted_at": "2026-09-10T13:57:47.470371+00:00",
+  "provisional": 0,
+  "referral_restricted": 0,
+  "server_start_at": "2026-09-10T13:55:30.602000+00:00",
+  "source": "bbvg_manual",
+  "source_message_date": "2026-09-10T13:56:37.224960+00:00",
+  "source_message_id": 205957655440539,
+  "source_message_url": "https://betboom.ru/freestream/dayneez",
+  "status": "preliminary",
+  "transitions": [
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-10T13:57:47.470371+00:00",
+      "payload": {
+        "action_id": 2173,
+        "available_at": "",
+        "deadline": "2026-09-10T14:25:30.602000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:629dc592dabd5646e91e",
+        "expires_at": "2026-09-10T14:55:30.602000+00:00",
+        "generation_id": "629dc592dabd5646e91e",
+        "identifier": "dayneez",
+        "message_text": "https://betboom.ru/freestream/dayneez",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T13:55:30.602000+00:00",
+        "source": "bbvg_manual",
+        "source_message_date": "2026-09-10T13:56:37.224960+00:00",
+        "source_message_id": 205957655440539,
+        "source_message_url": "https://betboom.ru/freestream/dayneez",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dayneez",
+        "verification_status": "confirmed",
+        "wheel_key": "dayneez",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "5a698f0f832daf474756ac315ba11168dadb1bf1ec84188667eb4660aa19ec51"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-10T13:57:47.470371+00:00",
+      "payload": {
+        "action_id": 2173,
+        "available_at": "",
+        "deadline": "2026-09-10T14:25:30.602000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:629dc592dabd5646e91e",
+        "expires_at": "2026-09-10T14:55:30.602000+00:00",
+        "generation_id": "629dc592dabd5646e91e",
+        "identifier": "dayneez",
+        "message_text": "https://betboom.ru/freestream/dayneez",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T13:55:30.602000+00:00",
+        "source": "bbvg_manual",
+        "source_message_date": "2026-09-10T13:56:37.224960+00:00",
+        "source_message_id": 205957655440539,
+        "source_message_url": "https://betboom.ru/freestream/dayneez",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dayneez",
+        "verification_status": "confirmed",
+        "wheel_key": "dayneez",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "91c8ed18064fca8d6a4fa98df46dbf13e098f44408d89de0265ab8008698714e"
+    },
+    {
+      "dedupe_key": "2173:2026-09-10T13:55:30.602000+00:00",
+      "occurred_at": "2026-09-10T13:57:47.470371+00:00",
+      "payload": {
+        "action_id": 2173,
+        "available_at": "",
+        "deadline": "2026-09-10T14:25:30.602000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:629dc592dabd5646e91e",
+        "expires_at": "2026-09-10T14:55:30.602000+00:00",
+        "generation_id": "629dc592dabd5646e91e",
+        "identifier": "dayneez",
+        "message_text": "https://betboom.ru/freestream/dayneez",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T13:55:30.602000+00:00",
+        "source": "bbvg_manual",
+        "source_message_date": "2026-09-10T13:56:37.224960+00:00",
+        "source_message_id": 205957655440539,
+        "source_message_url": "https://betboom.ru/freestream/dayneez",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dayneez",
+        "verification_status": "confirmed",
+        "wheel_key": "dayneez",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "9c27fa00638532a532d651ece909fa5d0ff4de02cdd2edb1da221f43e7c45797"
+    },
+    {
+      "dedupe_key": "34485848995",
+      "occurred_at": "2026-09-10T13:57:47.475453+00:00",
+      "payload": {
+        "workflow_run_id": "34485848995",
+        "workflow_sha": "117228ac5c0174e53c3d60db3b1619e76ecc5245"
+      },
+      "stage": "workflow_started",
+      "transition_id": "f5c2990ab35e4ee6682822d6a7378299fa4366f3c9ef34c904dce8e2a6521ad5"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:b586f8453d63a4a3d3f2eecc703beee1a558b49145dc1a42a033178a8a1b3fe9",
+      "occurred_at": "2026-09-10T13:57:46.087505+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "expired"
+      },
+      "stage": "account_result",
+      "transition_id": "a089e72510d713c315fc98f33baf94abdf877c02fd5c32bda7461232c3c1894c"
+    }
+  ],
+  "updated_at": "2026-09-10T13:57:47.475453+00:00",
+  "wheel_key": "dayneez",
+  "workflow_started_at": "2026-09-10T13:57:47.475453+00:00"
+}
