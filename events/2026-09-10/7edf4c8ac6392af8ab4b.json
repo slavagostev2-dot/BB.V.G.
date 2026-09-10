@@ -1,0 +1,179 @@
+{
+  "account_attempts": [
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T122415734559Z-05effe776dea",
+      "attempt_id": "a7bfd1bf335a468abfa8512b4a2b5ea14e7276d0ff76b18e4448464eec75acc3",
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участие и реферальный отказ не обнаружены; видимые действия: main:Линия | m",
+      "event_id": "evt:7edf4c8ac6392af8ab4b",
+      "finished_at": "2026-09-10T12:24:16.478422+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-10T12:24:17.520586+00:00",
+      "started_at": "2026-09-10T12:24:16.478422+00:00",
+      "status": "expired"
+    }
+  ],
+  "account_results": [
+    {
+      "account_key": "vyacheslav_primary",
+      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T122415734559Z-05effe776dea",
+      "attempt_count": 1,
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участие и реферальный отказ не обнаружены; видимые действия: main:Линия | m",
+      "event_id": "evt:7edf4c8ac6392af8ab4b",
+      "finished_at": "2026-09-10T12:24:16.478422+00:00",
+      "owner_id": "vyacheslav",
+      "started_at": "2026-09-10T12:24:16.478422+00:00",
+      "status": "expired",
+      "updated_at": "2026-09-10T12:24:17.520586+00:00"
+    }
+  ],
+  "action_id": 2167,
+  "aliases": [
+    "aunkereref#action:2167:2026-09-10T12:20:28.062000+00:00",
+    "aunkereref#event:7edf4c8ac6392af8ab4b",
+    "aunkereref#seen:2026-09-10T12:22:31+00:00"
+  ],
+  "api_confirmed_at": "2026-09-10T12:24:17.514482+00:00",
+  "browser_started_at": null,
+  "closed_at": null,
+  "created_at": "2026-09-10T12:24:17.514482+00:00",
+  "discovered_at": "2026-09-10T12:24:17.514482+00:00",
+  "dispatch_queued_at": null,
+  "event_id": "evt:7edf4c8ac6392af8ab4b",
+  "final_sent_at": null,
+  "generation_id": "7edf4c8ac6392af8ab4b",
+  "ledger_schema_version": 3,
+  "notification_sent_at": null,
+  "notifications": [],
+  "persisted_at": "2026-09-10T12:24:17.514482+00:00",
+  "provisional": 0,
+  "referral_restricted": 0,
+  "server_start_at": "2026-09-10T12:20:28.062000+00:00",
+  "source": "aunkereEZ",
+  "source_message_date": "2026-09-10T12:22:31+00:00",
+  "source_message_id": 5404,
+  "source_message_url": "https://telegram.me/aunkereEZ/5404",
+  "status": "preliminary",
+  "transitions": [
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-10T12:24:17.514482+00:00",
+      "payload": {
+        "action_id": 2167,
+        "available_at": "",
+        "deadline": "2026-09-10T12:40:28.062000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:7edf4c8ac6392af8ab4b",
+        "expires_at": "2026-09-10T13:10:28.062000+00:00",
+        "generation_id": "7edf4c8ac6392af8ab4b",
+        "identifier": "aunkereref",
+        "message_text": "🚨\nВСЕ В КОЛЕСО ФРИБЕТОВ\n—\nhttps://betboom.ru/freestream/aunkereref\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5404\nhttps://betboom.ru/freestream/aunkereref",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T12:20:28.062000+00:00",
+        "source": "aunkereEZ",
+        "source_message_date": "2026-09-10T12:22:31+00:00",
+        "source_message_id": 5404,
+        "source_message_url": "https://telegram.me/aunkereEZ/5404",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/aunkereref",
+        "verification_status": "confirmed",
+        "wheel_key": "aunkereref",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "8ee99df481b98379f4958e35c04fd4eee6da8c2dbfafbd8e9881608bf6b5651a"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-10T12:24:17.514482+00:00",
+      "payload": {
+        "action_id": 2167,
+        "available_at": "",
+        "deadline": "2026-09-10T12:40:28.062000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:7edf4c8ac6392af8ab4b",
+        "expires_at": "2026-09-10T13:10:28.062000+00:00",
+        "generation_id": "7edf4c8ac6392af8ab4b",
+        "identifier": "aunkereref",
+        "message_text": "🚨\nВСЕ В КОЛЕСО ФРИБЕТОВ\n—\nhttps://betboom.ru/freestream/aunkereref\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5404\nhttps://betboom.ru/freestream/aunkereref",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T12:20:28.062000+00:00",
+        "source": "aunkereEZ",
+        "source_message_date": "2026-09-10T12:22:31+00:00",
+        "source_message_id": 5404,
+        "source_message_url": "https://telegram.me/aunkereEZ/5404",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/aunkereref",
+        "verification_status": "confirmed",
+        "wheel_key": "aunkereref",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "60cfe9ba4b530107495f2668ed06ffc848edc9e363964ef632e065e12081850b"
+    },
+    {
+      "dedupe_key": "2167:2026-09-10T12:20:28.062000+00:00",
+      "occurred_at": "2026-09-10T12:24:17.514482+00:00",
+      "payload": {
+        "action_id": 2167,
+        "available_at": "",
+        "deadline": "2026-09-10T12:40:28.062000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:7edf4c8ac6392af8ab4b",
+        "expires_at": "2026-09-10T13:10:28.062000+00:00",
+        "generation_id": "7edf4c8ac6392af8ab4b",
+        "identifier": "aunkereref",
+        "message_text": "🚨\nВСЕ В КОЛЕСО ФРИБЕТОВ\n—\nhttps://betboom.ru/freestream/aunkereref\nhttps://telegram.me/aunkereEZ\nhttps://telegram.me/aunkereEZ/5404\nhttps://betboom.ru/freestream/aunkereref",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T12:20:28.062000+00:00",
+        "source": "aunkereEZ",
+        "source_message_date": "2026-09-10T12:22:31+00:00",
+        "source_message_id": 5404,
+        "source_message_url": "https://telegram.me/aunkereEZ/5404",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/aunkereref",
+        "verification_status": "confirmed",
+        "wheel_key": "aunkereref",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "21f3eda15ab6d6108a9923575f3cc78fd61faefd6da4f79c539b9ade9bf31638"
+    },
+    {
+      "dedupe_key": "34476471843",
+      "occurred_at": "2026-09-10T12:24:17.518342+00:00",
+      "payload": {
+        "workflow_run_id": "34476471843",
+        "workflow_sha": "fc4a3acb1918eded0d0f3e041b7edd87c418b773"
+      },
+      "stage": "workflow_started",
+      "transition_id": "2b267dd32da69a8b3442e0a25fa1d713719c6326ff66d4ffc90199f0250f34a6"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:a7bfd1bf335a468abfa8512b4a2b5ea14e7276d0ff76b18e4448464eec75acc3",
+      "occurred_at": "2026-09-10T12:24:16.478422+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T122415734559Z-05effe776dea",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "expired"
+      },
+      "stage": "account_result",
+      "transition_id": "f4cec8e3c963038978f276cb204a852c3e6cf5175cc687e3e1ab0becf56d1616"
+    }
+  ],
+  "updated_at": "2026-09-10T12:24:17.518342+00:00",
+  "wheel_key": "aunkereref",
+  "workflow_started_at": "2026-09-10T12:24:17.518342+00:00"
+}
