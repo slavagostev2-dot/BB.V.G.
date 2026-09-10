@@ -1,12 +1,8 @@
 {
   "cache": {
-    "21a7ad1157b483399c2e4ca62eac42ef6096a7bd8f3fc048d1b5846e2451bd1c": {
-      "expires_at": 1788704367.2456691,
-      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that wheels ('колесики') will be available later and includes a BetBoom promotion link.\"\n}"
-    },
-    "ae3406b375269e4166aa4614d559857d8c796b8b4675a482710c34c60a38192b": {
-      "expires_at": 1788704301.3332121,
-      "text": "{\n  \"classification\": \"possible_wheel_announcement\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly mentions that 'wheels' (колесики) will be available later and includes a BetBoom promotional link.\"\n}"
+    "7c580b5d8df932baa5157468db65b033b22138f09ef6045870b43ba311166faa": {
+      "expires_at": 1789009775.9180348,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post contains a direct promotional link for BetBoom with a call to action to spin a wheel for a bonus, explicitly labeled as an advertisement.\"\n}"
     }
   },
   "decisions": [
@@ -1768,10 +1764,23 @@
       "provider": "gemini",
       "reason": "The post explicitly mentions that wheels ('колесики') will be available later and includes a BetBoom promotion link.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 1.0,
+      "created_at": 1789008875.9180348,
+      "feature": "suspicious_post_analysis",
+      "id": "b0a0b0d6220a44e08eeaa875ba8e49a6",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "c98c1c02aca279e2c710711281a8eb3b373b53c35503dcd0e5865bd3818f2bd8",
+      "provider": "gemini",
+      "reason": "The post contains a direct promotional link for BetBoom with a call to action to spin a wheel for a bonus, explicitly labeled as an advertisement.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1788703467.2456691
+    1789008875.9180348
   ],
   "version": 1
 }
