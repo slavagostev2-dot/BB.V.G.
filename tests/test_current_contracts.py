@@ -345,8 +345,10 @@ def test_auto_participation_outcomes_publish_to_control_center_runtime_state() -
     assert "Publish fast auto participation outcome [skip ci]" not in workflow
     assert "git fetch origin main runtime-state" in workflow
     assert "git show origin/runtime-state:state.json > state.json" in workflow
+    assert "git reset --hard origin/main" not in workflow
+    assert "- name: Validate auto participation" not in workflow
     assert workflow.index("git show origin/runtime-state:state.json > state.json") < workflow.index(
-        "- name: Validate auto participation"
+        "- name: Run event-based auto participation"
     )
     fast_publish = workflow.split("- name: Publish fast participation state", 1)[1]
     fast_publish = fast_publish.split(
@@ -358,6 +360,7 @@ def test_auto_participation_outcomes_publish_to_control_center_runtime_state() -
     )[1]
     assert "git push origin HEAD:main" not in fast_publish
     assert "git push origin HEAD:main" not in final_publish
+
 
 def test_auto_participation_outcome_always_creates_a_new_message() -> None:
     panel = panel_interface.PanelInterfaceRuntime.__new__(
