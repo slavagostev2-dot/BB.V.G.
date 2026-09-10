@@ -11,6 +11,11 @@ from bbvg.storage import event_id_from_entry
 
 UTC = timezone.utc
 JOIN_PATH = "/api/streamer-wheel/action/join"
+STANDARD_ACCOUNT_KEYS = {
+    "vyacheslav_primary",
+    "vyacheslav_secondary",
+    "xflarxx_primary",
+}
 
 KNOWN_REASON_MAP: dict[str, tuple[str, bool, bool, str]] = {
     "promo_code_not_used": (
@@ -343,6 +348,26 @@ def _record_is_terminal_failure(record: Any) -> bool:
     )
 
 
+def _expected_account_keys(state: dict[str, Any]) -> set[str]:
+    """Return standard account slots, respecting only explicit disable switches."""
+
+    expected = set(STANDARD_ACCOUNT_KEYS)
+    registry = state.get("auto_participation_account_registry")
+    if not isinstance(registry, dict):
+        return expected
+    for raw_key, raw in registry.items():
+        if not isinstance(raw, dict):
+            continue
+        account_key = str(raw.get("account_key") or raw_key).strip()
+        if account_key not in STANDARD_ACCOUNT_KEYS:
+            continue
+        if bool(raw.get("enabled", True)):
+            expected.add(account_key)
+        else:
+            expected.discard(account_key)
+    return expected
+
+
 def finalize_event_account_summary(
     state: dict[str, Any], item: dict[str, Any]
 ) -> dict[str, Any]:
@@ -353,14 +378,7 @@ def finalize_event_account_summary(
     events = state.get("auto_participation_events")
     if not isinstance(events, dict):
         return {}
-    registry = state.get("auto_participation_account_registry")
-    expected = {
-        str(account_key)
-        for account_key, raw in (
-            registry.items() if isinstance(registry, dict) else []
-        )
-        if isinstance(raw, dict) and raw.get("enabled", True)
-    }
+    expected = _expected_account_keys(state)
     results: dict[str, dict[str, Any]] = {}
     for token, raw in events.items():
         if not isinstance(raw, dict):
@@ -466,6 +484,50 @@ def self_test() -> None:
     assert unknown is not None
     assert unknown.status == "unknown_betboom_error"
     assert unknown.reason == "new_reason"
+
+    # Regression from zonertw10/referral events: an incomplete registry must not
+    # terminalize the whole wheel before xFLARXx has its own account outcome.
+    item = {
+        "wheel_key": "wheel",
+        "identifier": "wheel",
+        "generation_id": "three-account-regression",
+    }
+    event_id = event_id_from_entry(item, wheel_key="wheel")
+    state = {
+        "active_wheels": {"wheel": dict(item)},
+        "auto_participation_account_registry": {
+            "vyacheslav_primary": {"enabled": True},
+            "vyacheslav_secondary": {"enabled": True},
+        },
+        "auto_participation_events": {
+            event_id: {
+                "event_token": event_id,
+                "account_key": "vyacheslav_primary",
+                "status": "participation_closed",
+            },
+            event_id + "#account:vyacheslav_secondary": {
+                "event_token": event_id,
+                "account_key": "vyacheslav_secondary",
+                "status": "participation_closed",
+            },
+        },
+    }
+    summary = finalize_event_account_summary(state, item)
+    assert summary["expected_accounts"] == sorted(STANDARD_ACCOUNT_KEYS)
+    assert summary["all_accounts_settled"] is False
+    assert summary["all_accounts_terminal_failure"] is False
+    assert state["active_wheels"]["wheel"]["auto_participation_terminal"] is False
+
+    state["auto_participation_events"][event_id + "#account:xflarxx_primary"] = {
+        "event_token": event_id,
+        "account_key": "xflarxx_primary",
+        "status": "participation_closed",
+    }
+    summary = finalize_event_account_summary(state, item)
+    assert summary["all_accounts_settled"] is True
+    assert summary["all_accounts_terminal_failure"] is True
+    assert state["active_wheels"]["wheel"]["auto_participation_terminal"] is True
+
     print("BetBoom authoritative join outcome self-test passed")
 
 

@@ -117,6 +117,21 @@ def _should_attempt(
     return account2._should_attempt(previous, current)
 
 
+def _terminal_summary_allows_skip(
+    item: dict[str, Any],
+    previous: Any,
+    current: Any,
+    auth_revision: str,
+) -> bool:
+    """Use an event terminal flag only when this account itself is settled."""
+
+    return bool(
+        item.get("auto_participation_terminal")
+        and isinstance(previous, dict)
+        and not _should_attempt(previous, current, auth_revision)
+    )
+
+
 def _causal_fields(result: Any) -> dict[str, Any]:
     status = str(getattr(result, "status", "") or "").casefold()
     detail = str(getattr(result, "detail", "") or "")
@@ -223,13 +238,14 @@ def run_configured_account(
         url = str(item.get("url") or "").strip()
         if not key or not url:
             continue
-        if bool(item.get("auto_participation_terminal")):
-            skipped += 1
-            continue
 
         token = _account_event_token(config, item, key)
         previous = events.get(token)
         same_revision = _same_auth_revision(previous, auth_revision)
+        if _terminal_summary_allows_skip(item, previous, current, auth_revision):
+            skipped += 1
+            join_outcomes.finalize_event_account_summary(state, item)
+            continue
         if not _should_attempt(previous, current, auth_revision):
             skipped += 1
             join_outcomes.finalize_event_account_summary(state, item)
@@ -383,6 +399,26 @@ def self_test() -> None:
         "confirmation_method": "betboom_post_reload",
     }
     assert _should_attempt(legacy_success, monitor.now_utc(), current_revision)
+
+    # A stale whole-event terminal flag must never skip an account that has no
+    # current-generation outcome of its own (the exact zonertw10 failure mode).
+    terminal_item = {"auto_participation_terminal": True}
+    assert not _terminal_summary_allows_skip(
+        terminal_item,
+        None,
+        monitor.now_utc(),
+        current_revision,
+    )
+    settled_terminal = {
+        "status": "participation_closed",
+        "auth_revision": current_revision,
+    }
+    assert _terminal_summary_allows_skip(
+        terminal_item,
+        settled_terminal,
+        monitor.now_utc(),
+        current_revision,
+    )
 
     class Result:
         detail = ""
