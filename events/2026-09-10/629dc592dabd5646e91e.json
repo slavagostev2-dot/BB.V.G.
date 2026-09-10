@@ -3,6 +3,20 @@
     {
       "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
+      "attempt_id": "332587f43339a4f8dacf97d8f4ae10885ccbdf9aa45a66111c4fd508e8020b5a",
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:",
+      "event_id": "evt:629dc592dabd5646e91e",
+      "finished_at": "2026-09-10T13:58:43.501713+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-10T13:58:44.827749+00:00",
+      "started_at": "2026-09-10T13:58:43.501713+00:00",
+      "status": "expired"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
       "attempt_id": "8aa7ec4969147084ccf0dba788a7567316edf1d8c4c284c3dda644af6dfed27e",
       "confidence": 90,
       "confirmation": "raw_status:participation_closed; workflow_state",
@@ -37,13 +51,13 @@
       "attempt_count": 1,
       "confidence": 90,
       "confirmation": "raw_status:participation_closed; workflow_state",
-      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участ",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:",
       "event_id": "evt:629dc592dabd5646e91e",
-      "finished_at": "2026-09-10T13:58:05.049174+00:00",
+      "finished_at": "2026-09-10T13:58:43.501713+00:00",
       "owner_id": "vyacheslav",
-      "started_at": "2026-09-10T13:57:46.087505+00:00",
+      "started_at": "2026-09-10T13:58:43.501713+00:00",
       "status": "expired",
-      "updated_at": "2026-09-10T13:58:08.401079+00:00"
+      "updated_at": "2026-09-10T13:58:44.827749+00:00"
     }
   ],
   "action_id": 2173,
@@ -75,8 +89,18 @@
   "status": "preliminary",
   "transitions": [
     {
+      "dedupe_key": "34485977496",
+      "occurred_at": "2026-09-10T13:58:44.821348+00:00",
+      "payload": {
+        "workflow_run_id": "34485977496",
+        "workflow_sha": "16ee1584c2ff28296cf30c53d5343eb7c82b9773"
+      },
+      "stage": "workflow_started",
+      "transition_id": "407b31085a63496ae3befc8291f712aa113ebded2e1275bd50030363219da498"
+    },
+    {
       "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-10T13:57:47.470371+00:00",
+      "occurred_at": "2026-09-10T13:58:44.815519+00:00",
       "payload": {
         "action_id": 2173,
         "available_at": "",
@@ -105,7 +129,7 @@
     },
     {
       "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-10T13:57:47.470371+00:00",
+      "occurred_at": "2026-09-10T13:58:44.815519+00:00",
       "payload": {
         "action_id": 2173,
         "available_at": "",
@@ -134,7 +158,7 @@
     },
     {
       "dedupe_key": "2173:2026-09-10T13:55:30.602000+00:00",
-      "occurred_at": "2026-09-10T13:57:47.470371+00:00",
+      "occurred_at": "2026-09-10T13:58:44.815519+00:00",
       "payload": {
         "action_id": 2173,
         "available_at": "",
@@ -177,6 +201,21 @@
       "transition_id": "a089e72510d713c315fc98f33baf94abdf877c02fd5c32bda7461232c3c1894c"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:332587f43339a4f8dacf97d8f4ae10885ccbdf9aa45a66111c4fd508e8020b5a",
+      "occurred_at": "2026-09-10T13:58:43.501713+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "expired"
+      },
+      "stage": "account_result",
+      "transition_id": "a3fa73ffd644b3a2b6d7f35cf0bd1e368c7fb1f534f5a009796a139cb46bff10"
+    },
+    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:8aa7ec4969147084ccf0dba788a7567316edf1d8c4c284c3dda644af6dfed27e",
       "occurred_at": "2026-09-10T13:58:05.049174+00:00",
       "payload": {
@@ -202,7 +241,7 @@
       "transition_id": "f5c2990ab35e4ee6682822d6a7378299fa4366f3c9ef34c904dce8e2a6521ad5"
     }
   ],
-  "updated_at": "2026-09-10T13:58:08.398783+00:00",
+  "updated_at": "2026-09-10T13:58:44.821348+00:00",
   "wheel_key": "dayneez",
   "workflow_started_at": "2026-09-10T13:57:47.475453+00:00"
 }
