@@ -1,10 +1,5 @@
 {
-  "cache": {
-    "ac2b52a2901ce231f823f6c7fe2fe7f3523d32d6a89e61434eb6b14a963da1dc": {
-      "expires_at": 1789074750.9570925,
-      "text": "{\n  \"summary\": \"Критическая ошибка: расхождение данных между настроенным inventory и результатами транспортной проверки (179 обнаружено против 178 ожидаемых).\",\n  \"impact\": \"Нарушение целостности конфигурации, которое может привести к некорректной обработке данных или сбоям в работе системы.\",\n  \"recommended_action\": \"Сверить настроенный inventory с последней транспортной проверкой.\",\n  \"confidence\": \"high\"\n}"
-    }
-  },
+  "cache": {},
   "decisions": [
     {
       "cached": false,
@@ -3184,10 +3179,21 @@
       "output_sha256": "2692a687a4e75dc74316ccba5aece6d8c6cfe4a11f9b1749d6597a5300619683",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1789081485.703976,
+      "error": "RuntimeError: Gemini HTTP 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n",
+      "feature": "health_inspector",
+      "id": "f40c1a5b73244692a5c52d4d486d23fd",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "bcdd3ba3c2e7e72bf31c7238c03da239947191fc87c996c8dfff0857d6c3353c",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1789073850.9570925
+    1789081485.703976
   ],
   "version": 1
 }
