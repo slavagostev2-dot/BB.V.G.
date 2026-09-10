@@ -1,0 +1,223 @@
+{
+  "account_attempts": [
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T042338854579Z-abd8377c3ee0",
+      "attempt_id": "72780b2157e99bc5b6303d043122494d45dbf690e014507930f9ed443f5c1bda",
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_text:main:Пока ждёшь следующий запуск, заглядывай в другие акции; колесо уже завершилось до подтверждения участия; clicked_by_bot=false",
+      "event_id": "evt:d637fc17cdb141e044b0",
+      "finished_at": "2026-09-10T04:23:39.546799+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-10T04:23:43.953113+00:00",
+      "started_at": "2026-09-10T04:23:39.546799+00:00",
+      "status": "expired"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T042342557733Z-56c276c11fcc",
+      "attempt_id": "779756268a13697a949b0c65343c9e1907af7c573aa41bb088081ac6727d973a",
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; betboom_unconfirmed",
+      "error_text": "expired_exact_text:main:Пока ждёшь следующий запуск, заглядывай в другие акции; колесо уже завершилось до подтверждения участия; clicked_by_bot=false",
+      "event_id": "evt:d637fc17cdb141e044b0",
+      "finished_at": "2026-09-10T04:23:40.069218+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-10T04:23:43.954774+00:00",
+      "started_at": "2026-09-10T04:23:40.069218+00:00",
+      "status": "expired"
+    }
+  ],
+  "account_results": [
+    {
+      "account_key": "vyacheslav_primary",
+      "account_label": "Аккаунт 1",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T042338854579Z-abd8377c3ee0",
+      "attempt_count": 1,
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_text:main:Пока ждёшь следующий запуск, заглядывай в другие акции; колесо уже завершилось до подтверждения участия; clicked_by_bot=false",
+      "event_id": "evt:d637fc17cdb141e044b0",
+      "finished_at": "2026-09-10T04:23:39.546799+00:00",
+      "owner_id": "vyacheslav",
+      "started_at": "2026-09-10T04:23:39.546799+00:00",
+      "status": "expired",
+      "updated_at": "2026-09-10T04:23:43.953113+00:00"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "account_label": "Аккаунт 2",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T042342557733Z-56c276c11fcc",
+      "attempt_count": 1,
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; betboom_unconfirmed",
+      "error_text": "expired_exact_text:main:Пока ждёшь следующий запуск, заглядывай в другие акции; колесо уже завершилось до подтверждения участия; clicked_by_bot=false",
+      "event_id": "evt:d637fc17cdb141e044b0",
+      "finished_at": "2026-09-10T04:23:40.069218+00:00",
+      "owner_id": "vyacheslav",
+      "started_at": "2026-09-10T04:23:40.069218+00:00",
+      "status": "expired",
+      "updated_at": "2026-09-10T04:23:43.954774+00:00"
+    }
+  ],
+  "action_id": 2163,
+  "aliases": [
+    "mager01#action:2163:2026-09-10T04:22:06.480000+00:00",
+    "mager01#event:d637fc17cdb141e044b0",
+    "mager01#seen:2026-09-10T04:22:14+00:00"
+  ],
+  "api_confirmed_at": "2026-09-10T04:23:43.946243+00:00",
+  "browser_started_at": null,
+  "closed_at": null,
+  "created_at": "2026-09-10T04:23:43.946243+00:00",
+  "discovered_at": "2026-09-10T04:23:43.946243+00:00",
+  "dispatch_queued_at": null,
+  "event_id": "evt:d637fc17cdb141e044b0",
+  "final_sent_at": null,
+  "generation_id": "d637fc17cdb141e044b0",
+  "ledger_schema_version": 3,
+  "notification_sent_at": null,
+  "notifications": [],
+  "persisted_at": "2026-09-10T04:23:43.946243+00:00",
+  "provisional": 0,
+  "referral_restricted": 0,
+  "server_start_at": "2026-09-10T04:22:06.480000+00:00",
+  "source": "private_2445382077",
+  "source_message_date": "2026-09-10T04:22:14+00:00",
+  "source_message_id": 7901,
+  "source_message_url": "https://telegram.me/c/2445382077/7901",
+  "status": "preliminary",
+  "transitions": [
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-10T04:23:43.946243+00:00",
+      "payload": {
+        "action_id": 2163,
+        "available_at": "",
+        "deadline": "2026-09-10T04:52:06.480000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:d637fc17cdb141e044b0",
+        "expires_at": "2026-09-10T05:22:06.480000+00:00",
+        "generation_id": "d637fc17cdb141e044b0",
+        "identifier": "MAGER01",
+        "message_text": "КОЛЕСО ФРИБЕТОВ MAGER\nСтример: MAGER01\nЗакончится через: 29 мин 5 сек\nПризы: 300, 500, 800, 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/MAGER01",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T04:22:06.480000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-10T04:22:14+00:00",
+        "source_message_id": 7901,
+        "source_message_url": "https://telegram.me/c/2445382077/7901",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/MAGER01",
+        "verification_status": "confirmed",
+        "wheel_key": "mager01",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "f1bd7e5f01e53c3c7617608f711421f7cfca3dd3b24da168d6e64f1f4e213a6c"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-10T04:23:43.946243+00:00",
+      "payload": {
+        "action_id": 2163,
+        "available_at": "",
+        "deadline": "2026-09-10T04:52:06.480000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:d637fc17cdb141e044b0",
+        "expires_at": "2026-09-10T05:22:06.480000+00:00",
+        "generation_id": "d637fc17cdb141e044b0",
+        "identifier": "MAGER01",
+        "message_text": "КОЛЕСО ФРИБЕТОВ MAGER\nСтример: MAGER01\nЗакончится через: 29 мин 5 сек\nПризы: 300, 500, 800, 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/MAGER01",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T04:22:06.480000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-10T04:22:14+00:00",
+        "source_message_id": 7901,
+        "source_message_url": "https://telegram.me/c/2445382077/7901",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/MAGER01",
+        "verification_status": "confirmed",
+        "wheel_key": "mager01",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "691712261fa94d2d0c0c5a36671dd4a0ef3de3becdb000297b7d303ced958009"
+    },
+    {
+      "dedupe_key": "2163:2026-09-10T04:22:06.480000+00:00",
+      "occurred_at": "2026-09-10T04:23:43.946243+00:00",
+      "payload": {
+        "action_id": 2163,
+        "available_at": "",
+        "deadline": "2026-09-10T04:52:06.480000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:d637fc17cdb141e044b0",
+        "expires_at": "2026-09-10T05:22:06.480000+00:00",
+        "generation_id": "d637fc17cdb141e044b0",
+        "identifier": "MAGER01",
+        "message_text": "КОЛЕСО ФРИБЕТОВ MAGER\nСтример: MAGER01\nЗакончится через: 29 мин 5 сек\nПризы: 300, 500, 800, 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/MAGER01",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-10T04:22:06.480000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-10T04:22:14+00:00",
+        "source_message_id": 7901,
+        "source_message_url": "https://telegram.me/c/2445382077/7901",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/MAGER01",
+        "verification_status": "confirmed",
+        "wheel_key": "mager01",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "12caa3f82ce6f0be422c6a4e5b14adfb1525976d5fcd13f34a62d794a4c06b50"
+    },
+    {
+      "dedupe_key": "34436974292",
+      "occurred_at": "2026-09-10T04:23:43.950143+00:00",
+      "payload": {
+        "workflow_run_id": "34436974292",
+        "workflow_sha": "8f84ae77a8d54cccd3f09047221383eab061141b"
+      },
+      "stage": "workflow_started",
+      "transition_id": "a18297742bbd0bbf48238251fe9c5f83bafe678985879fde251b635ac7f9e068"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:72780b2157e99bc5b6303d043122494d45dbf690e014507930f9ed443f5c1bda",
+      "occurred_at": "2026-09-10T04:23:39.546799+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T042338854579Z-abd8377c3ee0",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "expired"
+      },
+      "stage": "account_result",
+      "transition_id": "ba9445988672e39097d7fd663d4260da2eda6ee123c0a7248d2a9fbe98119016"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:779756268a13697a949b0c65343c9e1907af7c573aa41bb088081ac6727d973a",
+      "occurred_at": "2026-09-10T04:23:40.069218+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T042342557733Z-56c276c11fcc",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; betboom_unconfirmed",
+        "owner_id": "vyacheslav",
+        "status": "expired"
+      },
+      "stage": "account_result",
+      "transition_id": "383ddcbd15e8cc345e921ea462edac32547ba1f7cb2d6a0683805fcadf2f1a6e"
+    }
+  ],
+  "updated_at": "2026-09-10T04:23:43.950143+00:00",
+  "wheel_key": "mager01",
+  "workflow_started_at": "2026-09-10T04:23:43.950143+00:00"
+}
