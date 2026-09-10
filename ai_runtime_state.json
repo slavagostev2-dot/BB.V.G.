@@ -3143,10 +3143,21 @@
       "output_sha256": "1e3c2f355245dd16d484cfb69cb9cffd4a4736a2e2a78b3507ed7abe8762faf2",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1789038558.7579212,
+      "error": "RuntimeError: Gemini HTTP 500: {\n  \"error\": {\n    \"code\": 500,\n    \"message\": \"Internal error encountered.\",\n    \"status\": \"INTERNAL\"\n  }\n}\n",
+      "feature": "health_inspector",
+      "id": "8da6d9f5b109462d90b9874179abe337",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "bcdd3ba3c2e7e72bf31c7238c03da239947191fc87c996c8dfff0857d6c3353c",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1789020210.0006075
+    1789038558.7579212
   ],
   "version": 1
 }
