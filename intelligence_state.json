@@ -47,15 +47,15 @@
       ],
       "first_discovered_at": "2026-09-06T20:32:40.844469+00:00",
       "last_discovered_at": "2026-09-06T20:32:40.844466+00:00",
-      "last_lifecycle_run": "2026-09-09T21:03:31.029168+00:00",
+      "last_lifecycle_run": "2026-09-10T21:01:10.190219+00:00",
       "last_verified_at": "2026-09-06T20:32:40.844472+00:00",
       "latest_wheel_at": "2026-09-06T14:25:30+00:00",
       "lifecycle_reason": "источник уже находится в утверждённом мониторинге",
       "lifecycle_status": "approved",
       "mention_count": 3,
       "messages_checked": 19,
-      "observation_days": 3,
-      "observation_runs": 3,
+      "observation_days": 4,
+      "observation_runs": 4,
       "public": true,
       "recommendation_alert_count": 1,
       "recommendation_alerted_at": "2026-09-06T20:32:41.297294+00:00",
@@ -101,16 +101,16 @@
     }
   },
   "last_errors": [],
-  "last_run_at": "2026-09-09T21:03:31.029168+00:00",
+  "last_run_at": "2026-09-10T21:01:10.190219+00:00",
   "last_run_summary": {
     "empty_sources": 2,
     "error_types": {},
     "errors": 0,
     "known_sources": 178,
-    "references_found": 345,
+    "references_found": 340,
     "relevant_candidates": 160,
     "sources_scanned": 178,
-    "strong_candidates": 5,
+    "strong_candidates": 3,
     "telegram_domain": "telegram.me",
     "unique_candidates": 160,
     "verified_candidates": 150,
@@ -386,6 +386,21 @@
       "unique_candidates": 160,
       "verified_candidates": 150,
       "workers": 12
+    },
+    {
+      "at": "2026-09-10T21:01:10.190306+00:00",
+      "empty_sources": 2,
+      "error_types": {},
+      "errors": 0,
+      "known_sources": 178,
+      "references_found": 340,
+      "relevant_candidates": 160,
+      "sources_scanned": 178,
+      "strong_candidates": 3,
+      "telegram_domain": "telegram.me",
+      "unique_candidates": 160,
+      "verified_candidates": 150,
+      "workers": 12
     }
   ],
   "source_discovery_lifecycle": {
@@ -396,11 +411,11 @@
       "recommended": 0,
       "rejected": 0
     },
-    "evaluated_at": "2026-09-09T21:03:31.035061+00:00",
+    "evaluated_at": "2026-09-10T21:01:10.195978+00:00",
     "recommended": 0,
-    "run_marker": "2026-09-09T21:03:31.029168+00:00"
+    "run_marker": "2026-09-10T21:01:10.190219+00:00"
   },
   "telegram_domain": "telegram.me",
-  "updated_at": "2026-09-09T21:03:31.035297+00:00",
+  "updated_at": "2026-09-10T21:01:10.196225+00:00",
   "version": 1
 }
