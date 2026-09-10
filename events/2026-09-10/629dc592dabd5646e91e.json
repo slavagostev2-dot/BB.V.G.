@@ -3,6 +3,20 @@
     {
       "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
+      "attempt_id": "8aa7ec4969147084ccf0dba788a7567316edf1d8c4c284c3dda644af6dfed27e",
+      "confidence": 90,
+      "confirmation": "raw_status:participation_closed; workflow_state",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участ",
+      "event_id": "evt:629dc592dabd5646e91e",
+      "finished_at": "2026-09-10T13:58:05.049174+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-10T13:58:08.401079+00:00",
+      "started_at": "2026-09-10T13:58:05.049174+00:00",
+      "status": "expired"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
       "attempt_id": "b586f8453d63a4a3d3f2eecc703beee1a558b49145dc1a42a033178a8a1b3fe9",
       "confidence": 90,
       "confirmation": "raw_status:participation_closed; workflow_state",
@@ -23,13 +37,13 @@
       "attempt_count": 1,
       "confidence": 90,
       "confirmation": "raw_status:participation_closed; workflow_state",
-      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участие и реферальный отказ не обнаружены; видимые действия: main:Линия | m",
+      "error_text": "Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; Повторный клик пропущен: терминальный ответ BetBoom уже зафиксирован; expired_exact_state:participation_control_absent_after_reload; кнопка участия отсутствует после ожидания и повторной загрузки; авторизация, подтверждённое участ",
       "event_id": "evt:629dc592dabd5646e91e",
-      "finished_at": "2026-09-10T13:57:46.087505+00:00",
+      "finished_at": "2026-09-10T13:58:05.049174+00:00",
       "owner_id": "vyacheslav",
       "started_at": "2026-09-10T13:57:46.087505+00:00",
       "status": "expired",
-      "updated_at": "2026-09-10T13:57:47.478283+00:00"
+      "updated_at": "2026-09-10T13:58:08.401079+00:00"
     }
   ],
   "action_id": 2173,
@@ -148,16 +162,6 @@
       "transition_id": "9c27fa00638532a532d651ece909fa5d0ff4de02cdd2edb1da221f43e7c45797"
     },
     {
-      "dedupe_key": "34485848995",
-      "occurred_at": "2026-09-10T13:57:47.475453+00:00",
-      "payload": {
-        "workflow_run_id": "34485848995",
-        "workflow_sha": "117228ac5c0174e53c3d60db3b1619e76ecc5245"
-      },
-      "stage": "workflow_started",
-      "transition_id": "f5c2990ab35e4ee6682822d6a7378299fa4366f3c9ef34c904dce8e2a6521ad5"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:b586f8453d63a4a3d3f2eecc703beee1a558b49145dc1a42a033178a8a1b3fe9",
       "occurred_at": "2026-09-10T13:57:46.087505+00:00",
       "payload": {
@@ -171,9 +175,34 @@
       },
       "stage": "account_result",
       "transition_id": "a089e72510d713c315fc98f33baf94abdf877c02fd5c32bda7461232c3c1894c"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:8aa7ec4969147084ccf0dba788a7567316edf1d8c4c284c3dda644af6dfed27e",
+      "occurred_at": "2026-09-10T13:58:05.049174+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260910T135744867726Z-aa7b8ddc911a",
+        "attempt_count": 1,
+        "confirmation": "raw_status:participation_closed; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "expired"
+      },
+      "stage": "account_result",
+      "transition_id": "b492f2c4fae0faefd34f6ef118a47639a9a468affffba1663794e07fa0e18c80"
+    },
+    {
+      "dedupe_key": "34485848995",
+      "occurred_at": "2026-09-10T13:57:47.475453+00:00",
+      "payload": {
+        "workflow_run_id": "34485848995",
+        "workflow_sha": "117228ac5c0174e53c3d60db3b1619e76ecc5245"
+      },
+      "stage": "workflow_started",
+      "transition_id": "f5c2990ab35e4ee6682822d6a7378299fa4366f3c9ef34c904dce8e2a6521ad5"
     }
   ],
-  "updated_at": "2026-09-10T13:57:47.475453+00:00",
+  "updated_at": "2026-09-10T13:58:08.398783+00:00",
   "wheel_key": "dayneez",
   "workflow_started_at": "2026-09-10T13:57:47.475453+00:00"
 }
