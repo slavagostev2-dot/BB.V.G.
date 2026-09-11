@@ -4,9 +4,9 @@ import json
 import os
 from typing import Any
 
+import auto_participation_recovery as recovery
 import bbvg_monitor_runtime as runtime
 import betboom_auto_participation
-import betboom_participation_browser
 import betboom_profile_identity
 from bbvg.storage.event_payload import materialize_event_payload
 
@@ -193,17 +193,17 @@ def _queue_new_successes(
 
 
 def _run_exact_primary_attempt(state: dict[str, Any], monitor: Any) -> dict[str, Any]:
-    """Run event processing with the exact-label Playwright implementation.
+    """Run Account 1 through the shared persisted-participation implementation.
 
-    The legacy direct browser keeps compatibility helpers used elsewhere, but
-    production must not classify arbitrary wheel-rules text as a successful
-    participation result. The exact browser accepts only visible, standalone
-    confirmation labels and clicks only exact participation controls.
+    All configured accounts use the same exact browser click, authoritative
+    join-API handling and fresh-context persistence verification.
     """
 
     original_participate = betboom_auto_participation.participate
     original_notify = betboom_auto_participation._notify_manual_participation
-    betboom_auto_participation.participate = betboom_participation_browser.participate
+    betboom_auto_participation.participate = (
+        recovery.participate_primary_with_persistence_proof
+    )
     betboom_auto_participation._notify_manual_participation = _defer_failure_notification
     try:
         return dict(
