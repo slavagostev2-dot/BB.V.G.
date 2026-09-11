@@ -1,5 +1,10 @@
 {
-  "cache": {},
+  "cache": {
+    "ac2b52a2901ce231f823f6c7fe2fe7f3523d32d6a89e61434eb6b14a963da1dc": {
+      "expires_at": 1789089254.7272909,
+      "text": "{\n  \"summary\": \"Критическая ошибка: расхождение данных в транспортной проверке (179/178).\",\n  \"impact\": \"Нарушена целостность данных inventory, что может привести к некорректной работе системы с источниками.\",\n  \"recommended_action\": \"Сверить настроенный inventory с последней транспортной проверкой.\",\n  \"confidence\": \"high\"\n}"
+    }
+  },
   "decisions": [
     {
       "cached": false,
@@ -3190,10 +3195,20 @@
       "output_sha256": "bcdd3ba3c2e7e72bf31c7238c03da239947191fc87c996c8dfff0857d6c3353c",
       "provider": "gemini",
       "status": "provider_error"
+    },
+    {
+      "cached": false,
+      "created_at": 1789088354.7272909,
+      "feature": "health_inspector",
+      "id": "d0d32559dfaa4d0ab549891647db9ac4",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "f4a847ebd2f86fad792cb2d07649598d590cfbf2cd88f7ed048dc90c31489d54",
+      "provider": "gemini",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1789081485.703976
+    1789088354.7272909
   ],
   "version": 1
 }
