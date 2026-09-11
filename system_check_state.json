@@ -1,33 +1,33 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-09-11T14:16:27.858951+00:00",
-    "started_at": "2026-09-11T11:19:26.751891+00:00",
+    "age_minutes": 5,
+    "last_heartbeat_at": "2026-09-11T17:41:43.445561+00:00",
+    "started_at": "2026-09-11T15:50:26.516747+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
+    "ai_status": "provider_error",
     "cached": false,
-    "confidence": 0.0,
+    "confidence": 1.0,
     "critical_count": 1,
-    "decision_id": "87ef40fa33914358934776c3ed63ec22",
+    "decision_id": "673a22e4b01744459f89d93505f9bf6f",
     "finding_count": 1,
     "finding_kinds": [
       "source_transport_smoke"
     ],
-    "generated_at": "2026-09-11T14:18:06.040938+00:00",
-    "impact": "Нарушена целостность конфигурации inventory, что может привести к некорректной маршрутизации или ошибкам обработки данных.",
-    "mode": "ai",
+    "generated_at": "2026-09-11T17:47:17.204594+00:00",
+    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
+    "mode": "rules",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая ошибка: расхождение данных в транспортной проверке (179 записей при ожидаемых 178).",
-    "used_fallback": false,
+    "summary": "Система требует внимания: критических проблем — 1, предупреждений — 0. Источники последнего цикла: доступно 178/178, ошибок 0.",
+    "used_fallback": true,
     "version": 1,
     "warning_count": 0
   },
@@ -65,7 +65,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-11T14:18:03.957496+00:00",
+  "checked_at": "2026-09-11T17:46:55.870436+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -109,7 +109,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-09-11T14:16:27.858951+00:00",
+    "bot_panel_heartbeat": "2026-09-11T17:41:43.445561+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -119,16 +119,16 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-11T14:16:18.964293+00:00",
+      "last_checked_at": "2026-09-11T15:16:01.984567+00:00",
       "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-      "last_success_at": "2026-09-11T14:16:18.964293+00:00",
+      "last_success_at": "2026-09-11T15:16:01.984567+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "rules",
+    "health_inspector_status": "provider_error",
     "messages_attempted": 0,
     "opened": 0,
     "resolved": 0
@@ -158,31 +158,31 @@
     "brand": "BB V.G.",
     "checked_sources": 178,
     "checks_delta": 178,
-    "checks_total": 10575832,
+    "checks_total": 10607338,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "c40c7a88a00b2620a851373af6ff6614de4e543e",
-    "iteration": 96,
-    "last_iteration_at": "2026-09-11T14:13:07.726310+00:00",
-    "last_iteration_duration_seconds": 31,
+    "iteration": 136,
+    "last_iteration_at": "2026-09-11T17:42:17.578225+00:00",
+    "last_iteration_duration_seconds": 34,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-11T14:13:07.726310+00:00",
-    "last_successful_checks_total": 10575832,
-    "last_successful_iteration_at": "2026-09-11T14:13:07.726310+00:00",
+    "last_process_heartbeat_at": "2026-09-11T17:42:17.578225+00:00",
+    "last_successful_checks_total": 10607338,
+    "last_successful_iteration_at": "2026-09-11T17:42:17.578225+00:00",
     "pending_wheels": 0,
     "reachable_sources": 178,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34598300791",
-    "run_started_at": "2026-09-11T12:19:36.970076+00:00",
+    "run_id": "34613834394",
+    "run_started_at": "2026-09-11T15:04:13.106952+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34598300791"
+    "workflow_run_id": "34613834394"
   },
   "monitor_age_minutes": 4,
-  "monitor_effective_heartbeat_at": "2026-09-11T14:13:07.726310+00:00",
+  "monitor_effective_heartbeat_at": "2026-09-11T17:42:17.578225+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
@@ -190,7 +190,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 125,
+    "entry_count": 110,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -218,11 +218,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 984,
+    "personal_vote_records": 986,
     "policy": "personal_votes_v1",
     "rated_sources": 49,
     "score_mismatches": [],
-    "valid_personal_votes": 984
+    "valid_personal_votes": 986
   },
   "source_health_summary": {
     "configured_records": 178,
@@ -256,9 +256,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-11T14:16:18.964293+00:00",
+    "last_checked_at": "2026-09-11T15:16:01.984567+00:00",
     "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-    "last_success_at": "2026-09-11T14:16:18.964293+00:00",
+    "last_success_at": "2026-09-11T15:16:01.984567+00:00",
     "status": "ok"
   }
 }

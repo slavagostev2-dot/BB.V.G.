@@ -1,10 +1,5 @@
 {
-  "cache": {
-    "ac2b52a2901ce231f823f6c7fe2fe7f3523d32d6a89e61434eb6b14a963da1dc": {
-      "expires_at": 1789137185.0312197,
-      "text": "{\n  \"summary\": \"Критическая ошибка: расхождение данных в транспортной проверке (179 записей при ожидаемых 178).\",\n  \"impact\": \"Нарушена целостность конфигурации inventory, что может привести к некорректной маршрутизации или ошибкам обработки данных.\",\n  \"recommended_action\": \"Сверить настроенный inventory с последней транспортной проверкой.\",\n  \"confidence\": \"high\"\n}"
-    }
-  },
+  "cache": {},
   "decisions": [
     {
       "cached": false,
@@ -3235,10 +3230,21 @@
       "output_sha256": "2970b7767718466e09097028b7d8884e0603c0f69c3cbc4e51e6cb76b2deffdb",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1789148817.1578417,
+      "error": "ReadTimeout: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=20)",
+      "feature": "health_inspector",
+      "id": "673a22e4b01744459f89d93505f9bf6f",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "bcdd3ba3c2e7e72bf31c7238c03da239947191fc87c996c8dfff0857d6c3353c",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1789136285.0312197
+    1789148817.1578417
   ],
   "version": 1
 }
