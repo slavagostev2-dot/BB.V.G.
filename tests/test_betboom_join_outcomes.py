@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+import auto_participation_recovery as recovery
 import betboom_account_participation as account2
 import betboom_join_outcomes as outcomes
 import xflarxx_account_participation as account3
@@ -15,6 +16,39 @@ FIXTURE = (
     / "betboom_join_promo_code_not_used.fixture"
 )
 UTC = timezone.utc
+
+
+def test_primary_uses_same_persistence_proof_as_additional_accounts(
+    monkeypatch,
+) -> None:
+    session = {"cookies": [{"name": "session", "value": "account-1"}]}
+    expected = account2.primary_auto.ParticipationResult(
+        True,
+        "participated",
+        "server_persistence_verified=true",
+        "artifact",
+    )
+    observed: dict[str, object] = {}
+
+    monkeypatch.setattr(recovery.auto, "_storage_state", lambda: session)
+
+    def fake_persistent_participation(url: str, storage_state: dict):
+        observed["url"] = url
+        observed["storage_state"] = storage_state
+        return expected
+
+    monkeypatch.setattr(
+        recovery.persistent,
+        "participate_with_persistence_proof",
+        fake_persistent_participation,
+    )
+
+    result = recovery.participate_primary_with_persistence_proof(
+        "https://betboom.ru/freestream/PRIMARY"
+    )
+
+    assert result is expected
+    assert observed["storage_state"] is session
 
 
 def test_real_promo_code_refusal_is_terminal_and_not_retryable() -> None:
