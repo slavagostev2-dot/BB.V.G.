@@ -10,7 +10,7 @@
       "event_id": "evt:a5eeed8f75fcaed2661c",
       "finished_at": "2026-09-11T14:31:27.501322+00:00",
       "owner_id": "xflarxx",
-      "recorded_at": "2026-09-11T14:31:34.750490+00:00",
+      "recorded_at": "2026-09-11T14:32:39.356952+00:00",
       "started_at": "2026-09-11T14:31:27.501322+00:00",
       "status": "participated"
     },
@@ -24,7 +24,7 @@
       "event_id": "evt:a5eeed8f75fcaed2661c",
       "finished_at": "2026-09-11T14:31:17.241569+00:00",
       "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-11T14:31:34.749234+00:00",
+      "recorded_at": "2026-09-11T14:32:39.355715+00:00",
       "started_at": "2026-09-11T14:31:17.241569+00:00",
       "status": "participated"
     },
@@ -38,7 +38,7 @@
       "event_id": "evt:a5eeed8f75fcaed2661c",
       "finished_at": "2026-09-11T14:31:05.628249+00:00",
       "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-11T14:31:34.748034+00:00",
+      "recorded_at": "2026-09-11T14:32:39.354293+00:00",
       "started_at": "2026-09-11T14:31:05.628249+00:00",
       "status": "participated"
     }
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-11T14:31:05.628249+00:00",
       "status": "participated",
-      "updated_at": "2026-09-11T14:31:58.477550+00:00"
+      "updated_at": "2026-09-11T14:32:39.354293+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-11T14:31:17.241569+00:00",
       "status": "participated",
-      "updated_at": "2026-09-11T14:31:58.479100+00:00"
+      "updated_at": "2026-09-11T14:32:39.355715+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-11T14:31:27.501322+00:00",
       "status": "participated",
-      "updated_at": "2026-09-11T14:31:58.480667+00:00"
+      "updated_at": "2026-09-11T14:32:39.356952+00:00"
     }
   ],
   "action_id": 1690,
@@ -135,7 +135,7 @@
     },
     {
       "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-11T14:31:34.741542+00:00",
+      "occurred_at": "2026-09-11T14:32:39.347585+00:00",
       "payload": {
         "action_id": 1690,
         "available_at": "",
@@ -164,7 +164,7 @@
     },
     {
       "dedupe_key": "1690:2026-09-11T14:24:25.017000+00:00",
-      "occurred_at": "2026-09-11T14:31:34.741542+00:00",
+      "occurred_at": "2026-09-11T14:32:39.347585+00:00",
       "payload": {
         "action_id": 1690,
         "available_at": "",
@@ -217,6 +217,16 @@
       "transition_id": "6e0082d20b027d4b4132cb4d3acdbcbf5d7812d31ea142c75b05fcccfef436de"
     },
     {
+      "dedupe_key": "34610645834",
+      "occurred_at": "2026-09-11T14:32:39.351587+00:00",
+      "payload": {
+        "workflow_run_id": "34610645834",
+        "workflow_sha": "07512fb5d0348f311781ed137fcd11294b2dde53"
+      },
+      "stage": "workflow_started",
+      "transition_id": "9f8e361257cdb3d3854f65a90ca963f4e512438016b1172164e815df4d40a553"
+    },
+    {
       "dedupe_key": "xflarxx:xflarxx_primary:1792e44627a5ffa5e4e667319b58045186224e89f2c807f716ce2f8bb70978df",
       "occurred_at": "2026-09-11T14:31:27.501322+00:00",
       "payload": {
@@ -233,7 +243,7 @@
     },
     {
       "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-11T14:31:34.741542+00:00",
+      "occurred_at": "2026-09-11T14:32:39.347585+00:00",
       "payload": {
         "action_id": 1690,
         "available_at": "",
@@ -261,7 +271,7 @@
       "transition_id": "c25219db3bb483b18971038acfe99b9a99e9e1fd99678008ff37c338a31efc74"
     }
   ],
-  "updated_at": "2026-09-11T14:31:58.474185+00:00",
+  "updated_at": "2026-09-11T14:32:39.351587+00:00",
   "wheel_key": "avice",
   "workflow_started_at": "2026-09-11T14:31:34.745469+00:00"
 }
