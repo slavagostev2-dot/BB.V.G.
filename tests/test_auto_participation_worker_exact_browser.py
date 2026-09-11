@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import auto_participation_worker as worker
 import betboom_auto_participation as auto
-import betboom_participation_browser as browser
 
 
-def test_primary_worker_uses_exact_browser_and_restores_functions(monkeypatch) -> None:
+def test_primary_worker_uses_shared_persistence_proof_and_restores_functions(
+    monkeypatch,
+) -> None:
     original_participate = auto.participate
     original_notify = auto._notify_manual_participation
     observed: dict[str, object] = {}
@@ -23,7 +24,9 @@ def test_primary_worker_uses_exact_browser_and_restores_functions(monkeypatch) -
 
     result = worker._run_exact_primary_attempt(state, monitor)
 
-    assert observed["participate"] is browser.participate
+    assert observed["participate"] is (
+        worker.recovery.participate_primary_with_persistence_proof
+    )
     assert observed["notify"] is worker._defer_failure_notification
     assert observed["state"] is state
     assert observed["monitor"] is monitor

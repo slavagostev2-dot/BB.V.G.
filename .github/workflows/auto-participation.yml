@@ -116,7 +116,6 @@ jobs:
           python - <<'PY' | tee /tmp/bbvg-auto-participation-fast-recovery.json
           import json
           import auto_participation_recovery as recovery
-          import betboom_participation_browser
           import monitor
 
           state = recovery._json(monitor.STATE_PATH, {})
@@ -149,7 +148,9 @@ jobs:
                       "detail": "Участие уже подтверждено для этого события",
                   })
                   continue
-              result = betboom_participation_browser.participate(str(item["url"]))
+              result = recovery.participate_primary_with_persistence_proof(
+                  str(item["url"])
+              )
               attempts.append({
                   **item,
                   "success": bool(result.success),

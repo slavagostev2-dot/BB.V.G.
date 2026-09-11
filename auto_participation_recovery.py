@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import betboom_auto_participation as auto
-import betboom_participation_browser
+import betboom_persistent_participation as persistent
 import monitor
 import wheel_publications_v2
 from bbvg.storage import event_id_from_entry
@@ -29,6 +29,21 @@ TRANSIENT_FAILURE_STATUSES = {
     "technical_error",
 }
 RETRY_DELAY_MINUTES = 2
+
+
+def participate_primary_with_persistence_proof(
+    url: str,
+) -> auto.ParticipationResult:
+    """Run Account 1 through the same persisted-proof path as Accounts 2/3."""
+
+    storage_state = auto._storage_state()
+    if storage_state is None:
+        return auto.ParticipationResult(
+            False,
+            "technical_error",
+            "not_configured: сессия BetBoom не настроена",
+        )
+    return persistent.participate_with_persistence_proof(url, storage_state)
 
 
 def _json(path: Path, default: Any) -> Any:
@@ -576,7 +591,7 @@ def run_recovery() -> dict[str, Any]:
             )
             continue
 
-        result = betboom_participation_browser.participate(str(item["url"]))
+        result = participate_primary_with_persistence_proof(str(item["url"]))
         attempts.append(
             {
                 **item,
