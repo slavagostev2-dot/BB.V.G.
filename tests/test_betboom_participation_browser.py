@@ -8,9 +8,47 @@ from betboom_participation_browser import (
     SUCCESS_LABEL_RE,
     _matches_full_label,
     _matches_success_label,
+    _browser_user_agent,
+    _new_participation_context,
     _success,
     _visible_referral_ineligible,
 )
+
+
+class _Browser:
+    def __init__(self, version: str) -> None:
+        self.version = version
+        self.context_kwargs = None
+
+    def new_context(self, **kwargs):
+        self.context_kwargs = kwargs
+        return object()
+
+
+def test_browser_user_agent_uses_real_chrome_product_token() -> None:
+    user_agent = _browser_user_agent(_Browser("140.0.7339.81"))
+
+    assert "Chrome/140.0.7339.81" in user_agent
+    assert "HeadlessChrome" not in user_agent
+
+
+def test_browser_user_agent_has_safe_chrome_fallback() -> None:
+    user_agent = _browser_user_agent(_Browser(""))
+
+    assert "Chrome/" in user_agent
+    assert "HeadlessChrome" not in user_agent
+
+
+def test_participation_context_applies_non_headless_user_agent() -> None:
+    fake = _Browser("140.0.7339.81")
+    storage_state = {"cookies": [], "origins": []}
+
+    context = _new_participation_context(fake, storage_state)
+
+    assert context is not None
+    assert fake.context_kwargs["storage_state"] is storage_state
+    assert "Chrome/140.0.7339.81" in fake.context_kwargs["user_agent"]
+    assert "HeadlessChrome" not in fake.context_kwargs["user_agent"]
 
 
 class _Candidate:

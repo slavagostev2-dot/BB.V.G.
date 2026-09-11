@@ -54,6 +54,38 @@ WHEEL_CLOSED_TEXT_RE = re.compile(
 )
 PRECLICK_EXACT_CONFIRMATION_MARKER = "preclick_exact_success_label"
 SERVER_ACK_MARKER = "server_join_acknowledged=true"
+BROWSER_USER_AGENT_FALLBACK = (
+    "Mozilla/5.0 (X11; Linux x86_64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/126.0.0.0 Safari/537.36"
+)
+
+
+def _browser_user_agent(browser: Any) -> str:
+    """Use the launched Chrome version without Playwright's headless marker.
+
+    BetBoom's edge currently routes ``HeadlessChrome`` document requests to
+    its Next.js 404 page while the same active wheel returns the real
+    ``/freestream/[slug]`` route to Chrome. Keep the browser version truthful
+    and remove only that automation-only product token.
+    """
+
+    raw_version = str(getattr(browser, "version", "") or "").strip()
+    match = re.search(r"\d+(?:\.\d+){1,3}", raw_version)
+    if match is None:
+        return BROWSER_USER_AGENT_FALLBACK
+    return (
+        "Mozilla/5.0 (X11; Linux x86_64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        f"Chrome/{match.group(0)} Safari/537.36"
+    )
+
+
+def _new_participation_context(browser: Any, storage_state: dict[str, Any]) -> Any:
+    return browser.new_context(
+        storage_state=storage_state,
+        user_agent=_browser_user_agent(browser),
+    )
 
 
 def _normalized_label(value: object) -> str:
@@ -614,7 +646,7 @@ def participate(url: str, storage_state: dict[str, Any] | None = None) -> auto.P
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, channel=channel)
-            context = browser.new_context(storage_state=resolved_storage_state)
+            context = _new_participation_context(browser, resolved_storage_state)
             page = context.new_page()
             page.set_default_timeout(timeout_ms)
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
