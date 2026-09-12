@@ -1,8 +1,8 @@
 {
   "cache": {
-    "7c580b5d8df932baa5157468db65b033b22138f09ef6045870b43ba311166faa": {
-      "expires_at": 1789009775.9180348,
-      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post contains a direct promotional link for BetBoom with a call to action to spin a wheel for a bonus, explicitly labeled as an advertisement.\"\n}"
+    "4ffa6ac5eab30003e0f89016dcc43ef1de56c97add569103fdc78685ba0aa216": {
+      "expires_at": 1789227509.553534,
+      "text": "{\n  \"classification\": \"irrelevant\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post is an interview about marketing and SMM in the betting industry and retail, containing no information about a prize wheel or related promotions.\"\n}"
     }
   },
   "decisions": [
@@ -1777,10 +1777,23 @@
       "provider": "gemini",
       "reason": "The post contains a direct promotional link for BetBoom with a call to action to spin a wheel for a bonus, explicitly labeled as an advertisement.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "irrelevant",
+      "confidence": 1.0,
+      "created_at": 1789226609.553534,
+      "feature": "suspicious_post_analysis",
+      "id": "fc17b43771444f7c9380bb9206ea9939",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "0a9caecb7f267cb3649b9cb87dd6b09350611c7928cde6b856969dec3e4f7108",
+      "provider": "gemini",
+      "reason": "The post is an interview about marketing and SMM in the betting industry and retail, containing no information about a prize wheel or related promotions.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1789008875.9180348
+    1789226609.553534
   ],
   "version": 1
 }
