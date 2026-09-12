@@ -1,6 +1,20 @@
 {
   "account_attempts": [
     {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213538542928Z-a024e286419b",
+      "attempt_id": "09f7c3ff06a0c89c5333655e5b55e36898b49874a6e462c7c596dc0084d55157",
+      "confidence": 20,
+      "confirmation": "raw_status:ineligible_promo_code; betboom_join_api",
+      "error_text": "BetBoom отказал в участии: Акция доступна только при регистрации по промокоду стримера; betboom_reason=promo_code_not_used; clicked_by_bot=true; click=main:Принять участие",
+      "event_id": "evt:24c81a0c4cc698be005d",
+      "finished_at": "2026-09-12T21:35:33.274853+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-12T21:35:49.805818+00:00",
+      "started_at": "2026-09-12T21:35:33.274853+00:00",
+      "status": "unconfirmed"
+    },
+    {
       "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213527899771Z-2448b23eca18",
       "attempt_id": "1ed19561eb28c1e3df865a4b493999d045f92914a5d3f2ab69060904440028ec",
@@ -15,17 +29,17 @@
       "status": "unconfirmed"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213538542928Z-a024e286419b",
-      "attempt_id": "09f7c3ff06a0c89c5333655e5b55e36898b49874a6e462c7c596dc0084d55157",
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213607825587Z-d24481475aef",
+      "attempt_id": "6462bd50631ec26c028e0b7681d176b281e96075a0e92b2bfe3aff54e0ccfb12",
       "confidence": 20,
-      "confirmation": "raw_status:ineligible_promo_code; betboom_join_api",
+      "confirmation": "raw_status:ineligible_promo_code; workflow_state",
       "error_text": "BetBoom отказал в участии: Акция доступна только при регистрации по промокоду стримера; betboom_reason=promo_code_not_used; clicked_by_bot=true; click=main:Принять участие",
       "event_id": "evt:24c81a0c4cc698be005d",
-      "finished_at": "2026-09-12T21:35:33.274853+00:00",
+      "finished_at": "2026-09-12T21:36:01.932045+00:00",
       "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-12T21:35:49.805818+00:00",
-      "started_at": "2026-09-12T21:35:33.274853+00:00",
+      "recorded_at": "2026-09-12T21:36:18.401463+00:00",
+      "started_at": "2026-09-12T21:36:01.932045+00:00",
       "status": "unconfirmed"
     },
     {
@@ -47,17 +61,17 @@
     {
       "account_key": "vyacheslav_primary",
       "account_label": "Аккаунт 1",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213527899771Z-2448b23eca18",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213607825587Z-d24481475aef",
       "attempt_count": 1,
       "confidence": 20,
       "confirmation": "raw_status:ineligible_promo_code; workflow_state",
       "error_text": "BetBoom отказал в участии: Акция доступна только при регистрации по промокоду стримера; betboom_reason=promo_code_not_used; clicked_by_bot=true; click=main:Принять участие",
       "event_id": "evt:24c81a0c4cc698be005d",
-      "finished_at": "2026-09-12T21:35:22.871439+00:00",
+      "finished_at": "2026-09-12T21:36:01.932045+00:00",
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T21:35:22.871439+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-09-12T21:35:49.804547+00:00"
+      "updated_at": "2026-09-12T21:36:18.401463+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +86,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T21:35:33.274853+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-09-12T21:35:49.805818+00:00"
+      "updated_at": "2026-09-12T21:36:18.402450+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +101,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-12T21:35:43.561065+00:00",
       "status": "unconfirmed",
-      "updated_at": "2026-09-12T21:35:49.835737+00:00"
+      "updated_at": "2026-09-12T21:36:18.403299+00:00"
     }
   ],
   "action_id": 2202,
@@ -118,6 +132,16 @@
   "source_message_url": "https://telegram.me/c/2445382077/7944",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "34720348725",
+      "occurred_at": "2026-09-12T21:35:49.782780+00:00",
+      "payload": {
+        "workflow_run_id": "34720348725",
+        "workflow_sha": "18b143b4d5d2f91dfc866dbdf559a1d22937c60b"
+      },
+      "stage": "workflow_started",
+      "transition_id": "01419fb31378f41048c4ae64da12a6bf4f86789f2e7743964e9471a61d7d2ddc"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-12T21:35:49.611864+00:00",
@@ -177,6 +201,36 @@
       "transition_id": "24e74aa8444456ccb635bd1eec9102fe02fe9891f882f7a9d04c6cd07b44fbcc"
     },
     {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:6462bd50631ec26c028e0b7681d176b281e96075a0e92b2bfe3aff54e0ccfb12",
+      "occurred_at": "2026-09-12T21:36:01.932045+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213607825587Z-d24481475aef",
+        "attempt_count": 1,
+        "confirmation": "raw_status:ineligible_promo_code; workflow_state",
+        "owner_id": "vyacheslav",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "2645a1c81709ca4fb6e0717bb741dd48bba33d48fc06d94a50877156d93ee019"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:cd789076061484b74130d0e11f46eaecc24599d8bd9f4d555b9da3a3dc37f7e9",
+      "occurred_at": "2026-09-12T21:35:43.561065+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213548164333Z-e9f7bfc1f6be",
+        "attempt_count": 1,
+        "confirmation": "raw_status:ineligible_promo_code; betboom_join_api",
+        "owner_id": "xflarxx",
+        "status": "unconfirmed"
+      },
+      "stage": "account_result",
+      "transition_id": "c2b3ab9348735494614d39d1b9450c12194b525ad6e02865571827b82fdeafec"
+    },
+    {
       "dedupe_key": "2202:2026-09-12T21:31:12.279000+00:00",
       "occurred_at": "2026-09-12T21:35:49.611864+00:00",
       "payload": {
@@ -204,16 +258,6 @@
       },
       "stage": "api_confirmed",
       "transition_id": "d4e0f7c22c4fc5594cbeaffa1a9793cd6b8573ab09619d4d77ab0bf8d6dcff90"
-    },
-    {
-      "dedupe_key": "34720348725",
-      "occurred_at": "2026-09-12T21:35:49.782780+00:00",
-      "payload": {
-        "workflow_run_id": "34720348725",
-        "workflow_sha": "18b143b4d5d2f91dfc866dbdf559a1d22937c60b"
-      },
-      "stage": "workflow_started",
-      "transition_id": "01419fb31378f41048c4ae64da12a6bf4f86789f2e7743964e9471a61d7d2ddc"
     },
     {
       "dedupe_key": "vyacheslav:vyacheslav_primary:1ed19561eb28c1e3df865a4b493999d045f92914a5d3f2ab69060904440028ec",
@@ -244,24 +288,9 @@
       },
       "stage": "account_result",
       "transition_id": "fa0a87060cb5c134600a433fb6a6da5bdb8a80d366fa5517ec5aafdf808e79b1"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:cd789076061484b74130d0e11f46eaecc24599d8bd9f4d555b9da3a3dc37f7e9",
-      "occurred_at": "2026-09-12T21:35:43.561065+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T213548164333Z-e9f7bfc1f6be",
-        "attempt_count": 1,
-        "confirmation": "raw_status:ineligible_promo_code; betboom_join_api",
-        "owner_id": "xflarxx",
-        "status": "unconfirmed"
-      },
-      "stage": "account_result",
-      "transition_id": "c2b3ab9348735494614d39d1b9450c12194b525ad6e02865571827b82fdeafec"
     }
   ],
-  "updated_at": "2026-09-12T21:35:49.782780+00:00",
+  "updated_at": "2026-09-12T21:36:18.398232+00:00",
   "wheel_key": "bvwsa",
   "workflow_started_at": "2026-09-12T21:35:49.782780+00:00"
 }
