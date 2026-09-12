@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T114258161307Z-fb0b12e578d0",
-      "attempt_id": "b098684502cee3b6a49594f0efb5a70530134f7f8879c0dda454a55c36691592",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:bafcdef7b53635c5b1fe",
-      "finished_at": "2026-09-12T11:42:47.316848+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-12T11:43:12.446400+00:00",
-      "started_at": "2026-09-12T11:42:47.316848+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T114311536221Z-8fc800c0c0e3",
       "attempt_id": "9e8b29c1ec138a59f35a3a21fbc801753b60ea355fbde88665d2aa8119b54977",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-09-12T11:43:12.447741+00:00",
       "started_at": "2026-09-12T11:43:02.707583+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T114258161307Z-fb0b12e578d0",
+      "attempt_id": "b098684502cee3b6a49594f0efb5a70530134f7f8879c0dda454a55c36691592",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:bafcdef7b53635c5b1fe",
+      "finished_at": "2026-09-12T11:42:47.316848+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-12T11:43:12.446400+00:00",
+      "started_at": "2026-09-12T11:42:47.316848+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T11:42:30.792007+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T11:43:12.445084+00:00"
+      "updated_at": "2026-09-12T11:43:43.132251+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T11:42:47.316848+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T11:43:12.446400+00:00"
+      "updated_at": "2026-09-12T11:43:43.133599+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-12T11:43:02.707583+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T11:43:12.447741+00:00"
+      "updated_at": "2026-09-12T11:43:43.134803+00:00"
     }
   ],
   "action_id": 2194,
@@ -118,6 +118,36 @@
   "source_message_url": "https://telegram.me/c/2445382077/7931",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:b098684502cee3b6a49594f0efb5a70530134f7f8879c0dda454a55c36691592",
+      "occurred_at": "2026-09-12T11:42:47.316848+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T114258161307Z-fb0b12e578d0",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "01120346cea48047213dc10cf7f0498fde1c866e86e9eb18fe92f0b05196b46c"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:5e83d118a844063542c99939a886507ec4a97c8b82289b906f02b8adb4cf0541",
+      "occurred_at": "2026-09-12T11:42:30.792007+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T114241845090Z-3aeaf8c496dc",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "1b98f937d1f4c284b88d4e686ccbacc6de16de2dfa4c983996709f5f4d895072"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-12T11:43:12.438286+00:00",
@@ -216,36 +246,6 @@
       "transition_id": "a440d96bdd8393c238bbb7c2e088370513c630772fa5a67e0f7d0830cce8a763"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:5e83d118a844063542c99939a886507ec4a97c8b82289b906f02b8adb4cf0541",
-      "occurred_at": "2026-09-12T11:42:30.792007+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T114241845090Z-3aeaf8c496dc",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "1b98f937d1f4c284b88d4e686ccbacc6de16de2dfa4c983996709f5f4d895072"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:b098684502cee3b6a49594f0efb5a70530134f7f8879c0dda454a55c36691592",
-      "occurred_at": "2026-09-12T11:42:47.316848+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T114258161307Z-fb0b12e578d0",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "01120346cea48047213dc10cf7f0498fde1c866e86e9eb18fe92f0b05196b46c"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:9e8b29c1ec138a59f35a3a21fbc801753b60ea355fbde88665d2aa8119b54977",
       "occurred_at": "2026-09-12T11:43:02.707583+00:00",
       "payload": {
@@ -261,7 +261,7 @@
       "transition_id": "e870a0a8932e0d7784797d08893460b9af0aaae558ab95c811ad4fc19caa5a39"
     }
   ],
-  "updated_at": "2026-09-12T11:43:12.442296+00:00",
+  "updated_at": "2026-09-12T11:43:43.129656+00:00",
   "wheel_key": "papa",
   "workflow_started_at": "2026-09-12T11:43:12.442296+00:00"
 }
