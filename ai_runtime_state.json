@@ -1790,10 +1790,21 @@
       "provider": "gemini",
       "reason": "The post is an interview about marketing and SMM in the betting industry and retail, containing no information about a prize wheel or related promotions.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1789235643.4465182,
+      "error": "RuntimeError: Gemini HTTP 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n",
+      "feature": "suspicious_post_analysis",
+      "id": "3b9c509766eb4a969f23a4026d9b878f",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "06fad6ea648953fba50d2251c108b442d8c072a0f88a793dacdcce62f1a09711",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1789226609.553534
+    1789235643.4465182
   ],
   "version": 1
 }
