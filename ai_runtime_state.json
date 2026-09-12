@@ -1,8 +1,8 @@
 {
   "cache": {
-    "4ffa6ac5eab30003e0f89016dcc43ef1de56c97add569103fdc78685ba0aa216": {
-      "expires_at": 1789227509.553534,
-      "text": "{\n  \"classification\": \"irrelevant\",\n  \"confidence\": 1.0,\n  \"reason\": \"The post is an interview about marketing and SMM in the betting industry and retail, containing no information about a prize wheel or related promotions.\"\n}"
+    "c98dbaafff82a277c42bdd54335cdd9dce8f6f65595d429cdba4f9fb51741316": {
+      "expires_at": 1789236616.216005,
+      "text": "{\n  \"classification\": \"old_wheel_reference\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly states that the wheel has finished and lists the winners, while only mentioning a potential future wheel.\"\n}"
     }
   },
   "decisions": [
@@ -1801,10 +1801,23 @@
       "output_sha256": "06fad6ea648953fba50d2251c108b442d8c072a0f88a793dacdcce62f1a09711",
       "provider": "gemini",
       "status": "provider_error"
+    },
+    {
+      "cached": false,
+      "classification": "old_wheel_reference",
+      "confidence": 0.95,
+      "created_at": 1789235716.216005,
+      "feature": "suspicious_post_analysis",
+      "id": "86f2cac982824af08fcf4ac9fad815b7",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "3a6daf4bfffd720c5d6838dd9fca496ae5ed2ca3e2f08da97f627c917ce3a5cf",
+      "provider": "gemini",
+      "reason": "The post explicitly states that the wheel has finished and lists the winners, while only mentioning a potential future wheel.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1789235643.4465182
+    1789235716.216005
   ],
   "version": 1
 }
