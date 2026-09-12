@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T121730526788Z-d498fc36905d",
-      "attempt_id": "f48343dff9e4e6d02aa95018d824e563be8e4189a99cd525773da911dec29aca",
-      "confidence": 110,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:fa763520b6d8be5ae35b",
-      "finished_at": "2026-09-12T12:17:13.033643+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-12T12:18:09.414282+00:00",
-      "started_at": "2026-09-12T12:17:13.033643+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T121752034889Z-3bfbb4e0eb31",
       "attempt_id": "72b189aa79100025a334c4f0c7019265738e9ca6e63a35b66322144a485fdf9f",
@@ -26,6 +12,20 @@
       "owner_id": "vyacheslav",
       "recorded_at": "2026-09-12T12:18:09.415778+00:00",
       "started_at": "2026-09-12T12:17:42.204964+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T121730526788Z-d498fc36905d",
+      "attempt_id": "f48343dff9e4e6d02aa95018d824e563be8e4189a99cd525773da911dec29aca",
+      "confidence": 110,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:fa763520b6d8be5ae35b",
+      "finished_at": "2026-09-12T12:17:13.033643+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-12T12:18:09.414282+00:00",
+      "started_at": "2026-09-12T12:17:13.033643+00:00",
       "status": "participated"
     },
     {
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T12:17:13.033643+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T12:18:09.414282+00:00"
+      "updated_at": "2026-09-12T12:18:49.849399+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T12:17:42.204964+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T12:18:09.415778+00:00"
+      "updated_at": "2026-09-12T12:18:49.850650+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-12T12:17:57.267426+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T12:18:09.417024+00:00"
+      "updated_at": "2026-09-12T12:18:49.851820+00:00"
     }
   ],
   "action_id": 2230,
@@ -118,6 +118,75 @@
   "source_message_url": "https://telegram.me/c/2445382077/7939",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "34693242819",
+      "occurred_at": "2026-09-12T12:18:09.410762+00:00",
+      "payload": {
+        "workflow_run_id": "34693242819",
+        "workflow_sha": "7e3e54b59aad4158eb2541085cc0a210fc81ba6b"
+      },
+      "stage": "workflow_started",
+      "transition_id": "4056e7b522b46dc7c8504c493b31ca82d36834f22e585ab0156b56b528b08646"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:f48343dff9e4e6d02aa95018d824e563be8e4189a99cd525773da911dec29aca",
+      "occurred_at": "2026-09-12T12:17:13.033643+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T121730526788Z-d498fc36905d",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "53a23b97f88e947e8836d95aded4ea5831d9da0dff45dfd0dc17b6137f5727ca"
+    },
+    {
+      "dedupe_key": "xflarxx:xflarxx_primary:fc4fb37e5a3330fceb6268700ab745691cb07eff50eaa0c28e77583d17048c6e",
+      "occurred_at": "2026-09-12T12:17:57.267426+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T121808234696Z-1de489cdcb21",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "630346ca5c395244f5dbae18c1f72b4bc21c2589bd2134794253b6429b27b884"
+    },
+    {
+      "dedupe_key": "2230:2026-09-12T12:15:41.138000+00:00",
+      "occurred_at": "2026-09-12T12:18:09.403433+00:00",
+      "payload": {
+        "action_id": 2230,
+        "available_at": "",
+        "deadline": "2026-09-12T12:35:41.138000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:fa763520b6d8be5ae35b",
+        "expires_at": "2026-09-12T13:05:41.138000+00:00",
+        "generation_id": "fa763520b6d8be5ae35b",
+        "identifier": "avice",
+        "message_text": "КОЛЕСО ФРИБЕТОВ AVICE\nСтример: avice\nЗакончится через: 18 мин 56 сек\nПризы: 500, 1000, 5000, 10000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/avice",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-12T12:15:41.138000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-12T12:16:43+00:00",
+        "source_message_id": 7939,
+        "source_message_url": "https://telegram.me/c/2445382077/7939",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/avice",
+        "verification_status": "confirmed",
+        "wheel_key": "avice",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "757b3b5c2b146dfad46b2c6c8fa2b453c86ba749ed30a474a1b3aa1fdd9438dd"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-12T12:18:09.403433+00:00",
@@ -177,60 +246,6 @@
       "transition_id": "abf59e373ae17d71a2ccc6056dd6062d368c5668931f0d6b23c4e7b17353184f"
     },
     {
-      "dedupe_key": "2230:2026-09-12T12:15:41.138000+00:00",
-      "occurred_at": "2026-09-12T12:18:09.403433+00:00",
-      "payload": {
-        "action_id": 2230,
-        "available_at": "",
-        "deadline": "2026-09-12T12:35:41.138000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:fa763520b6d8be5ae35b",
-        "expires_at": "2026-09-12T13:05:41.138000+00:00",
-        "generation_id": "fa763520b6d8be5ae35b",
-        "identifier": "avice",
-        "message_text": "КОЛЕСО ФРИБЕТОВ AVICE\nСтример: avice\nЗакончится через: 18 мин 56 сек\nПризы: 500, 1000, 5000, 10000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/avice",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-12T12:15:41.138000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-12T12:16:43+00:00",
-        "source_message_id": 7939,
-        "source_message_url": "https://telegram.me/c/2445382077/7939",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/avice",
-        "verification_status": "confirmed",
-        "wheel_key": "avice",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "757b3b5c2b146dfad46b2c6c8fa2b453c86ba749ed30a474a1b3aa1fdd9438dd"
-    },
-    {
-      "dedupe_key": "34693242819",
-      "occurred_at": "2026-09-12T12:18:09.410762+00:00",
-      "payload": {
-        "workflow_run_id": "34693242819",
-        "workflow_sha": "7e3e54b59aad4158eb2541085cc0a210fc81ba6b"
-      },
-      "stage": "workflow_started",
-      "transition_id": "4056e7b522b46dc7c8504c493b31ca82d36834f22e585ab0156b56b528b08646"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:f48343dff9e4e6d02aa95018d824e563be8e4189a99cd525773da911dec29aca",
-      "occurred_at": "2026-09-12T12:17:13.033643+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T121730526788Z-d498fc36905d",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "53a23b97f88e947e8836d95aded4ea5831d9da0dff45dfd0dc17b6137f5727ca"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:72b189aa79100025a334c4f0c7019265738e9ca6e63a35b66322144a485fdf9f",
       "occurred_at": "2026-09-12T12:17:42.204964+00:00",
       "payload": {
@@ -244,24 +259,9 @@
       },
       "stage": "account_result",
       "transition_id": "e4dad807664bbe09f68363d635f6cffecc5aac2acd7554875244cc8c8ddc0267"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:fc4fb37e5a3330fceb6268700ab745691cb07eff50eaa0c28e77583d17048c6e",
-      "occurred_at": "2026-09-12T12:17:57.267426+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T121808234696Z-1de489cdcb21",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "630346ca5c395244f5dbae18c1f72b4bc21c2589bd2134794253b6429b27b884"
     }
   ],
-  "updated_at": "2026-09-12T12:18:09.410762+00:00",
+  "updated_at": "2026-09-12T12:18:49.846428+00:00",
   "wheel_key": "avice",
   "workflow_started_at": "2026-09-12T12:18:09.410762+00:00"
 }
