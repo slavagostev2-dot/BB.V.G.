@@ -1,6 +1,20 @@
 {
   "account_attempts": [
     {
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T060213024319Z-0854736ea128",
+      "attempt_id": "1af4cb2719698d068936432927fb919d11ba1113b135030507887ba6dd3a9342",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:2cf87b96d17b5ebdce70",
+      "finished_at": "2026-09-12T06:02:06.120951+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-09-12T06:02:13.873365+00:00",
+      "started_at": "2026-09-12T06:02:06.120951+00:00",
+      "status": "participated"
+    },
+    {
       "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T060150172896Z-152ffe9368c6",
       "attempt_id": "231f1bca30c949240f24c4c106ef5dc5b2db4739eca6724f29b46c096fab0791",
@@ -27,20 +41,6 @@
       "recorded_at": "2026-09-12T06:02:13.872349+00:00",
       "started_at": "2026-09-12T06:01:54.657839+00:00",
       "status": "participated"
-    },
-    {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T060213024319Z-0854736ea128",
-      "attempt_id": "1af4cb2719698d068936432927fb919d11ba1113b135030507887ba6dd3a9342",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:2cf87b96d17b5ebdce70",
-      "finished_at": "2026-09-12T06:02:06.120951+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-09-12T06:02:13.873365+00:00",
-      "started_at": "2026-09-12T06:02:06.120951+00:00",
-      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T06:01:43.292898+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T06:02:13.871343+00:00"
+      "updated_at": "2026-09-12T06:02:38.785717+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T06:01:54.657839+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T06:02:13.872349+00:00"
+      "updated_at": "2026-09-12T06:02:38.786882+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-12T06:02:06.120951+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T06:02:13.873365+00:00"
+      "updated_at": "2026-09-12T06:02:38.787919+00:00"
     }
   ],
   "action_id": 2182,
@@ -148,35 +148,6 @@
       "transition_id": "0349bb7b61de5222cf4a9018ee47b424939391d00c060a37a22a5d244fbc918b"
     },
     {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-12T06:02:13.865666+00:00",
-      "payload": {
-        "action_id": 2182,
-        "available_at": "",
-        "deadline": "2026-09-12T06:06:37.407000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2cf87b96d17b5ebdce70",
-        "expires_at": "2026-09-12T06:36:37.407000+00:00",
-        "generation_id": "2cf87b96d17b5ebdce70",
-        "identifier": "linck",
-        "message_text": "https://betboom.ru/freestream/linck",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-12T05:46:37.407000+00:00",
-        "source": "bbvg_manual",
-        "source_message_date": "2026-09-12T06:00:29.788483+00:00",
-        "source_message_id": 264517910232661,
-        "source_message_url": "https://betboom.ru/freestream/linck",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/linck",
-        "verification_status": "confirmed",
-        "wheel_key": "linck",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "9a2136854797b85ab490efbb4ddf02f56a851df12d540d49f0a4653bd8381c24"
-    },
-    {
       "dedupe_key": "2182:2026-09-12T05:46:37.407000+00:00",
       "occurred_at": "2026-09-12T06:02:13.865666+00:00",
       "payload": {
@@ -231,21 +202,6 @@
       "transition_id": "59b18c288475c7cbe7d93d98e13c7af8807673b56473c95c4fe3db8aff166f63"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:f4484f0dfbd4ec595d9fd752cfb9a75d0893d37121c0552b254f8c0414315b6c",
-      "occurred_at": "2026-09-12T06:01:54.657839+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T060202237630Z-4042289152a7",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "dc0a5c703546c55493f5ed1353f820846fc7875cc9b9eade7da1bda3441d1387"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:1af4cb2719698d068936432927fb919d11ba1113b135030507887ba6dd3a9342",
       "occurred_at": "2026-09-12T06:02:06.120951+00:00",
       "payload": {
@@ -259,9 +215,53 @@
       },
       "stage": "account_result",
       "transition_id": "6f315d28eb019578efbe8683c54b4cccebddb353df4ba476523e9d6d807e89b6"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-12T06:02:13.865666+00:00",
+      "payload": {
+        "action_id": 2182,
+        "available_at": "",
+        "deadline": "2026-09-12T06:06:37.407000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2cf87b96d17b5ebdce70",
+        "expires_at": "2026-09-12T06:36:37.407000+00:00",
+        "generation_id": "2cf87b96d17b5ebdce70",
+        "identifier": "linck",
+        "message_text": "https://betboom.ru/freestream/linck",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-12T05:46:37.407000+00:00",
+        "source": "bbvg_manual",
+        "source_message_date": "2026-09-12T06:00:29.788483+00:00",
+        "source_message_id": 264517910232661,
+        "source_message_url": "https://betboom.ru/freestream/linck",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/linck",
+        "verification_status": "confirmed",
+        "wheel_key": "linck",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "9a2136854797b85ab490efbb4ddf02f56a851df12d540d49f0a4653bd8381c24"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:f4484f0dfbd4ec595d9fd752cfb9a75d0893d37121c0552b254f8c0414315b6c",
+      "occurred_at": "2026-09-12T06:01:54.657839+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T060202237630Z-4042289152a7",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "dc0a5c703546c55493f5ed1353f820846fc7875cc9b9eade7da1bda3441d1387"
     }
   ],
-  "updated_at": "2026-09-12T06:02:13.869380+00:00",
+  "updated_at": "2026-09-12T06:02:38.784093+00:00",
   "wheel_key": "linck",
   "workflow_started_at": "2026-09-12T06:02:13.869380+00:00"
 }
