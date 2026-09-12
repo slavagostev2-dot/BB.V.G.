@@ -1,6 +1,20 @@
 {
   "account_attempts": [
     {
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T115514849123Z-1a7761f70d85",
+      "attempt_id": "2853894f6fa85f642a1241c7b2e991e82cde56b5e9f5fe546cc1476519a5954c",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:2e211daaf0a58c59ebfc",
+      "finished_at": "2026-09-12T11:55:06.189501+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-09-12T11:55:16.013527+00:00",
+      "started_at": "2026-09-12T11:55:06.189501+00:00",
+      "status": "participated"
+    },
+    {
       "account_key": "vyacheslav_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T115448347984Z-654318784818",
       "attempt_id": "b94a7737b151ffb4f538baca2e4dca69515e10f894e3a23e01ad3184b47d05b4",
@@ -27,20 +41,6 @@
       "recorded_at": "2026-09-12T11:55:16.012217+00:00",
       "started_at": "2026-09-12T11:54:53.245864+00:00",
       "status": "participated"
-    },
-    {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T115514849123Z-1a7761f70d85",
-      "attempt_id": "2853894f6fa85f642a1241c7b2e991e82cde56b5e9f5fe546cc1476519a5954c",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:2e211daaf0a58c59ebfc",
-      "finished_at": "2026-09-12T11:55:06.189501+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-09-12T11:55:16.013527+00:00",
-      "started_at": "2026-09-12T11:55:06.189501+00:00",
-      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T11:54:41.295599+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T11:55:16.010857+00:00"
+      "updated_at": "2026-09-12T11:55:42.718334+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T11:54:53.245864+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T11:55:16.012217+00:00"
+      "updated_at": "2026-09-12T11:55:42.719675+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-12T11:55:06.189501+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T11:55:16.013527+00:00"
+      "updated_at": "2026-09-12T11:55:42.720893+00:00"
     }
   ],
   "action_id": 2193,
@@ -119,33 +119,14 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-12T11:55:16.001824+00:00",
+      "dedupe_key": "34692245509",
+      "occurred_at": "2026-09-12T11:55:16.007974+00:00",
       "payload": {
-        "action_id": 2193,
-        "available_at": "",
-        "deadline": "2026-09-12T12:22:38.607000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:2e211daaf0a58c59ebfc",
-        "expires_at": "2026-09-12T12:52:38.607000+00:00",
-        "generation_id": "2e211daaf0a58c59ebfc",
-        "identifier": "dayneez",
-        "message_text": "Колесо Фрибетов на 10.000\n😍\nУсловия\n:\n• перейти по\nССЫЛКЕ\n• нажать «Принять участие»\nЧерез 28 минут будут итоги\n😍\n❤️\nЗабирай до 10к фрибетов по промокоду DEY\nhttps://telegram.me/dayneZz\nhttps://telegram.me/dayneZz/1343\nhttps://betboom.ru/freestream/dayneez\nhttps://betboom.ru/cyberbb?utm_campaign=esports&utm_content=DEY&utm_medium=esports&utm_source=Twitch&utm_term=DEY\nhttps://betboom.ru/cyberbb?utm_campaign=esports&amp;utm_content=DEY&amp;utm_medium=esports&amp;utm_source=Twitch&amp;utm_term=DEY",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-12T11:52:38.607000+00:00",
-        "source": "dayneZz",
-        "source_message_date": "2026-09-12T11:53:56+00:00",
-        "source_message_id": 1343,
-        "source_message_url": "https://telegram.me/dayneZz/1343",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/dayneez",
-        "verification_status": "confirmed",
-        "wheel_key": "dayneez",
-        "wheel_type": "normal"
+        "workflow_run_id": "34692245509",
+        "workflow_sha": "a43cfbe5ba5e311816331237264bcaa6f5b7ad93"
       },
-      "stage": "source_discovered",
-      "transition_id": "2c5408bb6b994ba0cfe951471c197c2542445a3a44078884595593a58d30c008"
+      "stage": "workflow_started",
+      "transition_id": "26b3141d27b0bb4a2caeceaad1369b4b85b6decb8d8a21917f275f60380f1f04"
     },
     {
       "dedupe_key": "durable-event",
@@ -177,6 +158,65 @@
       "transition_id": "26fb734c81e81e0067c6ab0d7b652bd0a29e220f1011347e25c0d17c382495ea"
     },
     {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-12T11:55:16.001824+00:00",
+      "payload": {
+        "action_id": 2193,
+        "available_at": "",
+        "deadline": "2026-09-12T12:22:38.607000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:2e211daaf0a58c59ebfc",
+        "expires_at": "2026-09-12T12:52:38.607000+00:00",
+        "generation_id": "2e211daaf0a58c59ebfc",
+        "identifier": "dayneez",
+        "message_text": "Колесо Фрибетов на 10.000\n😍\nУсловия\n:\n• перейти по\nССЫЛКЕ\n• нажать «Принять участие»\nЧерез 28 минут будут итоги\n😍\n❤️\nЗабирай до 10к фрибетов по промокоду DEY\nhttps://telegram.me/dayneZz\nhttps://telegram.me/dayneZz/1343\nhttps://betboom.ru/freestream/dayneez\nhttps://betboom.ru/cyberbb?utm_campaign=esports&utm_content=DEY&utm_medium=esports&utm_source=Twitch&utm_term=DEY\nhttps://betboom.ru/cyberbb?utm_campaign=esports&amp;utm_content=DEY&amp;utm_medium=esports&amp;utm_source=Twitch&amp;utm_term=DEY",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-12T11:52:38.607000+00:00",
+        "source": "dayneZz",
+        "source_message_date": "2026-09-12T11:53:56+00:00",
+        "source_message_id": 1343,
+        "source_message_url": "https://telegram.me/dayneZz/1343",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/dayneez",
+        "verification_status": "confirmed",
+        "wheel_key": "dayneez",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "2c5408bb6b994ba0cfe951471c197c2542445a3a44078884595593a58d30c008"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:f7827ca529f822e5b79004efee6282ec35f98674c4880108cd9d3e60b27d2556",
+      "occurred_at": "2026-09-12T11:54:53.245864+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T115501717335Z-e14688238eda",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "aae9d632c1e0c339c2e91fdf4113fd0c7c29e0c5e3179f70401534e773ff9ff3"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:b94a7737b151ffb4f538baca2e4dca69515e10f894e3a23e01ad3184b47d05b4",
+      "occurred_at": "2026-09-12T11:54:41.295599+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T115448347984Z-654318784818",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "c4cbd6da4ba9c19987ca9513dd0019e12642699aa986f9b4f362a53e21c95728"
+    },
+    {
       "dedupe_key": "2193:2026-09-12T11:52:38.607000+00:00",
       "occurred_at": "2026-09-12T11:55:16.001824+00:00",
       "payload": {
@@ -206,46 +246,6 @@
       "transition_id": "fbe1ea72062a55e4383f02c200b4e092bbabc8bb6fde423e17162b052d532a66"
     },
     {
-      "dedupe_key": "34692245509",
-      "occurred_at": "2026-09-12T11:55:16.007974+00:00",
-      "payload": {
-        "workflow_run_id": "34692245509",
-        "workflow_sha": "a43cfbe5ba5e311816331237264bcaa6f5b7ad93"
-      },
-      "stage": "workflow_started",
-      "transition_id": "26b3141d27b0bb4a2caeceaad1369b4b85b6decb8d8a21917f275f60380f1f04"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:b94a7737b151ffb4f538baca2e4dca69515e10f894e3a23e01ad3184b47d05b4",
-      "occurred_at": "2026-09-12T11:54:41.295599+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T115448347984Z-654318784818",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "c4cbd6da4ba9c19987ca9513dd0019e12642699aa986f9b4f362a53e21c95728"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:f7827ca529f822e5b79004efee6282ec35f98674c4880108cd9d3e60b27d2556",
-      "occurred_at": "2026-09-12T11:54:53.245864+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T115501717335Z-e14688238eda",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "aae9d632c1e0c339c2e91fdf4113fd0c7c29e0c5e3179f70401534e773ff9ff3"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:2853894f6fa85f642a1241c7b2e991e82cde56b5e9f5fe546cc1476519a5954c",
       "occurred_at": "2026-09-12T11:55:06.189501+00:00",
       "payload": {
@@ -261,7 +261,7 @@
       "transition_id": "ff38d5008ee63793a73c09447254f488db95d1265c385546ad2e0f8ef9332edf"
     }
   ],
-  "updated_at": "2026-09-12T11:55:16.007974+00:00",
+  "updated_at": "2026-09-12T11:55:42.716242+00:00",
   "wheel_key": "dayneez",
   "workflow_started_at": "2026-09-12T11:55:16.007974+00:00"
 }
