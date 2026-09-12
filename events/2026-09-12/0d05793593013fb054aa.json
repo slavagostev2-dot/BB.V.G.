@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T150204230293Z-623e4dc96c7b",
-      "attempt_id": "b1f2c367e1e3875fd999b122da6f39a4d7a68d0d9e9bf6c7f2806f93fa80a850",
-      "confidence": 110,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:0d05793593013fb054aa",
-      "finished_at": "2026-09-12T15:01:53.198480+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-12T15:02:35.050867+00:00",
-      "started_at": "2026-09-12T15:01:53.198480+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T150220417630Z-1db7538470df",
       "attempt_id": "7774384b01132f244751ad4f6e012be9575ea833a9ab3e7e48dad5826b6ed3f4",
@@ -26,6 +12,20 @@
       "owner_id": "vyacheslav",
       "recorded_at": "2026-09-12T15:02:35.052103+00:00",
       "started_at": "2026-09-12T15:02:09.626360+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T150204230293Z-623e4dc96c7b",
+      "attempt_id": "b1f2c367e1e3875fd999b122da6f39a4d7a68d0d9e9bf6c7f2806f93fa80a850",
+      "confidence": 110,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:0d05793593013fb054aa",
+      "finished_at": "2026-09-12T15:01:53.198480+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-12T15:02:35.050867+00:00",
+      "started_at": "2026-09-12T15:01:53.198480+00:00",
       "status": "participated"
     },
     {
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T15:01:53.198480+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T15:02:35.050867+00:00"
+      "updated_at": "2026-09-12T15:03:06.373191+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-12T15:02:09.626360+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T15:02:35.052103+00:00"
+      "updated_at": "2026-09-12T15:03:06.374453+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-12T15:02:25.110108+00:00",
       "status": "participated",
-      "updated_at": "2026-09-12T15:02:35.053334+00:00"
+      "updated_at": "2026-09-12T15:03:06.375668+00:00"
     }
   ],
   "action_id": 2204,
@@ -119,62 +119,19 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-12T15:02:35.044460+00:00",
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:7774384b01132f244751ad4f6e012be9575ea833a9ab3e7e48dad5826b6ed3f4",
+      "occurred_at": "2026-09-12T15:02:09.626360+00:00",
       "payload": {
-        "action_id": 2204,
-        "available_at": "",
-        "deadline": "2026-09-12T15:30:02.045000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:0d05793593013fb054aa",
-        "expires_at": "2026-09-12T16:00:02.045000+00:00",
-        "generation_id": "0d05793593013fb054aa",
-        "identifier": "zzone",
-        "message_text": "❤️\nКОЛЕСО ФРИБЕТОВ ОТ BETBOOM ДЛЯ ВАС\n❤️\nhttps://betboom.ru/freestream/zzone\nНажимай Участвовать и получай Фрибеты\n🎁\nhttps://telegram.me/ZZoneRM\nhttps://telegram.me/ZZoneRM/39813\nhttps://betboom.ru/freestream/zzone",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-12T15:00:02.045000+00:00",
-        "source": "ZZoneRM",
-        "source_message_date": "2026-09-12T15:00:04+00:00",
-        "source_message_id": 39813,
-        "source_message_url": "https://telegram.me/ZZoneRM/39813",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zzone",
-        "verification_status": "confirmed",
-        "wheel_key": "zzone",
-        "wheel_type": "normal"
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T150220417630Z-1db7538470df",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
       },
-      "stage": "source_discovered",
-      "transition_id": "fd7c910e56c88b0c302bccec49401117e4dd16615bd393b1f19fbfa0252af9b6"
-    },
-    {
-      "dedupe_key": "durable-event",
-      "occurred_at": "2026-09-12T15:02:35.044460+00:00",
-      "payload": {
-        "action_id": 2204,
-        "available_at": "",
-        "deadline": "2026-09-12T15:30:02.045000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:0d05793593013fb054aa",
-        "expires_at": "2026-09-12T16:00:02.045000+00:00",
-        "generation_id": "0d05793593013fb054aa",
-        "identifier": "zzone",
-        "message_text": "❤️\nКОЛЕСО ФРИБЕТОВ ОТ BETBOOM ДЛЯ ВАС\n❤️\nhttps://betboom.ru/freestream/zzone\nНажимай Участвовать и получай Фрибеты\n🎁\nhttps://telegram.me/ZZoneRM\nhttps://telegram.me/ZZoneRM/39813\nhttps://betboom.ru/freestream/zzone",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-12T15:00:02.045000+00:00",
-        "source": "ZZoneRM",
-        "source_message_date": "2026-09-12T15:00:04+00:00",
-        "source_message_id": 39813,
-        "source_message_url": "https://telegram.me/ZZoneRM/39813",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zzone",
-        "verification_status": "confirmed",
-        "wheel_key": "zzone",
-        "wheel_type": "normal"
-      },
-      "stage": "persisted",
-      "transition_id": "e717d00b8c337afb6c9fd9264cf479f318d79a63f9b2bdc0e5d3d998f9a42a73"
+      "stage": "account_result",
+      "transition_id": "0c51390cde959878999e2059b6288e586253e7d8829191e3cf08bc49a4273fa8"
     },
     {
       "dedupe_key": "2204:2026-09-12T15:00:02.045000+00:00",
@@ -206,16 +163,6 @@
       "transition_id": "3fc2299962c19d846250c4e226261de676ca5b0e843232a0eebf079b7ff3be55"
     },
     {
-      "dedupe_key": "34700966679",
-      "occurred_at": "2026-09-12T15:02:35.048759+00:00",
-      "payload": {
-        "workflow_run_id": "34700966679",
-        "workflow_sha": "ad9fb6c9e3a167b476893b29c4ccec55099df2c9"
-      },
-      "stage": "workflow_started",
-      "transition_id": "eacd6cf905c159517bf1b6e943c83eb12aa986dc81118a51066a56f73e07c241"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_primary:b1f2c367e1e3875fd999b122da6f39a4d7a68d0d9e9bf6c7f2806f93fa80a850",
       "occurred_at": "2026-09-12T15:01:53.198480+00:00",
       "payload": {
@@ -231,21 +178,6 @@
       "transition_id": "52bf4abe167207fbeb649a65705426fe6724ec3ba2dbfce0e75a6101fc7d324f"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:7774384b01132f244751ad4f6e012be9575ea833a9ab3e7e48dad5826b6ed3f4",
-      "occurred_at": "2026-09-12T15:02:09.626360+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260912T150220417630Z-1db7538470df",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "0c51390cde959878999e2059b6288e586253e7d8829191e3cf08bc49a4273fa8"
-    },
-    {
       "dedupe_key": "xflarxx:xflarxx_primary:c6dbfa8596bfa78d3d32eaa4b27eb2fed40570b04eb7d3c4a87a5a1f25ffee9e",
       "occurred_at": "2026-09-12T15:02:25.110108+00:00",
       "payload": {
@@ -259,9 +191,77 @@
       },
       "stage": "account_result",
       "transition_id": "6a7c372e60c3c7b046cbbbc3d7a61dbdcacc3f24e28a34e7a635f0670fc84613"
+    },
+    {
+      "dedupe_key": "durable-event",
+      "occurred_at": "2026-09-12T15:02:35.044460+00:00",
+      "payload": {
+        "action_id": 2204,
+        "available_at": "",
+        "deadline": "2026-09-12T15:30:02.045000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:0d05793593013fb054aa",
+        "expires_at": "2026-09-12T16:00:02.045000+00:00",
+        "generation_id": "0d05793593013fb054aa",
+        "identifier": "zzone",
+        "message_text": "❤️\nКОЛЕСО ФРИБЕТОВ ОТ BETBOOM ДЛЯ ВАС\n❤️\nhttps://betboom.ru/freestream/zzone\nНажимай Участвовать и получай Фрибеты\n🎁\nhttps://telegram.me/ZZoneRM\nhttps://telegram.me/ZZoneRM/39813\nhttps://betboom.ru/freestream/zzone",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-12T15:00:02.045000+00:00",
+        "source": "ZZoneRM",
+        "source_message_date": "2026-09-12T15:00:04+00:00",
+        "source_message_id": 39813,
+        "source_message_url": "https://telegram.me/ZZoneRM/39813",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zzone",
+        "verification_status": "confirmed",
+        "wheel_key": "zzone",
+        "wheel_type": "normal"
+      },
+      "stage": "persisted",
+      "transition_id": "e717d00b8c337afb6c9fd9264cf479f318d79a63f9b2bdc0e5d3d998f9a42a73"
+    },
+    {
+      "dedupe_key": "34700966679",
+      "occurred_at": "2026-09-12T15:02:35.048759+00:00",
+      "payload": {
+        "workflow_run_id": "34700966679",
+        "workflow_sha": "ad9fb6c9e3a167b476893b29c4ccec55099df2c9"
+      },
+      "stage": "workflow_started",
+      "transition_id": "eacd6cf905c159517bf1b6e943c83eb12aa986dc81118a51066a56f73e07c241"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-12T15:02:35.044460+00:00",
+      "payload": {
+        "action_id": 2204,
+        "available_at": "",
+        "deadline": "2026-09-12T15:30:02.045000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:0d05793593013fb054aa",
+        "expires_at": "2026-09-12T16:00:02.045000+00:00",
+        "generation_id": "0d05793593013fb054aa",
+        "identifier": "zzone",
+        "message_text": "❤️\nКОЛЕСО ФРИБЕТОВ ОТ BETBOOM ДЛЯ ВАС\n❤️\nhttps://betboom.ru/freestream/zzone\nНажимай Участвовать и получай Фрибеты\n🎁\nhttps://telegram.me/ZZoneRM\nhttps://telegram.me/ZZoneRM/39813\nhttps://betboom.ru/freestream/zzone",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-12T15:00:02.045000+00:00",
+        "source": "ZZoneRM",
+        "source_message_date": "2026-09-12T15:00:04+00:00",
+        "source_message_id": 39813,
+        "source_message_url": "https://telegram.me/ZZoneRM/39813",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zzone",
+        "verification_status": "confirmed",
+        "wheel_key": "zzone",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "fd7c910e56c88b0c302bccec49401117e4dd16615bd393b1f19fbfa0252af9b6"
     }
   ],
-  "updated_at": "2026-09-12T15:02:35.048759+00:00",
+  "updated_at": "2026-09-12T15:03:06.371486+00:00",
   "wheel_key": "zzone",
   "workflow_started_at": "2026-09-12T15:02:35.048759+00:00"
 }
