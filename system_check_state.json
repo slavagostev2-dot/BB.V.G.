@@ -1,9 +1,9 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 4,
-    "last_heartbeat_at": "2026-09-13T19:48:32.895196+00:00",
-    "started_at": "2026-09-13T17:31:38.512146+00:00",
+    "age_minutes": 2,
+    "last_heartbeat_at": "2026-09-13T22:18:32.974424+00:00",
+    "started_at": "2026-09-13T22:03:19.151992+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
@@ -13,20 +13,20 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "53700affbd294d4ca273376f4c28b718",
+    "decision_id": "f016ae1fe6ec49498bdd9705ad603fa8",
     "finding_count": 1,
     "finding_kinds": [
       "source_transport_smoke"
     ],
-    "generated_at": "2026-09-13T19:52:37.937060+00:00",
-    "impact": "Нарушена целостность данных между текущим состоянием системы и транспортным слоем, что может привести к некорректной обработке запросов.",
+    "generated_at": "2026-09-13T22:20:40.934129+00:00",
+    "impact": "Нарушена целостность конфигурации inventory, что может привести к некорректной маршрутизации или обработке данных.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая ошибка: расхождение данных в транспортной проверке (179 записей против 178 в inventory).",
+    "summary": "Критическая ошибка: расхождение данных в транспортной проверке (179 записей при ожидаемых 178).",
     "used_fallback": false,
     "version": 1,
     "warning_count": 0
@@ -65,7 +65,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-13T19:52:35.680757+00:00",
+  "checked_at": "2026-09-13T22:20:38.751899+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -109,7 +109,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-09-13T19:48:32.895196+00:00",
+    "bot_panel_heartbeat": "2026-09-13T22:18:32.974424+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -158,17 +158,17 @@
     "brand": "BB V.G.",
     "checked_sources": 178,
     "checks_delta": 178,
-    "checks_total": 11065866,
+    "checks_total": 11088116,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "c40c7a88a00b2620a851373af6ff6614de4e543e",
-    "iteration": 91,
-    "last_iteration_at": "2026-09-13T19:49:32.200260+00:00",
-    "last_iteration_duration_seconds": 40,
+    "iteration": 216,
+    "last_iteration_at": "2026-09-13T22:16:54.227017+00:00",
+    "last_iteration_duration_seconds": 36,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-13T19:49:32.200260+00:00",
-    "last_successful_checks_total": 11065866,
-    "last_successful_iteration_at": "2026-09-13T19:49:32.200260+00:00",
+    "last_process_heartbeat_at": "2026-09-13T22:16:54.227017+00:00",
+    "last_successful_checks_total": 11088116,
+    "last_successful_iteration_at": "2026-09-13T22:16:54.227017+00:00",
     "pending_wheels": 0,
     "reachable_sources": 178,
     "restart_recommended": false,
@@ -182,7 +182,7 @@
     "workflow_run_id": "34773362795"
   },
   "monitor_age_minutes": 3,
-  "monitor_effective_heartbeat_at": "2026-09-13T19:49:32.200260+00:00",
+  "monitor_effective_heartbeat_at": "2026-09-13T22:16:54.227017+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
