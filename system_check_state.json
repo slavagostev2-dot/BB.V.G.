@@ -1,8 +1,8 @@
 {
   "active_incidents": 1,
   "admin_panel": {
-    "age_minutes": 1,
-    "last_heartbeat_at": "2026-09-13T17:42:03.094473+00:00",
+    "age_minutes": 4,
+    "last_heartbeat_at": "2026-09-13T19:48:32.895196+00:00",
     "started_at": "2026-09-13T17:31:38.512146+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -13,13 +13,13 @@
     "cached": false,
     "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "d76d4b5bb0404c21a54badb515c46d88",
+    "decision_id": "53700affbd294d4ca273376f4c28b718",
     "finding_count": 1,
     "finding_kinds": [
       "source_transport_smoke"
     ],
-    "generated_at": "2026-09-13T17:43:35.256957+00:00",
-    "impact": "Нарушение целостности данных между конфигурацией системы и фактическим состоянием транспортного уровня.",
+    "generated_at": "2026-09-13T19:52:37.937060+00:00",
+    "impact": "Нарушена целостность данных между текущим состоянием системы и транспортным слоем, что может привести к некорректной обработке запросов.",
     "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
@@ -65,7 +65,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-13T17:43:31.576815+00:00",
+  "checked_at": "2026-09-13T19:52:35.680757+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -109,7 +109,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-09-13T17:42:03.094473+00:00",
+    "bot_panel_heartbeat": "2026-09-13T19:48:32.895196+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -119,9 +119,9 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-13T17:42:10.576325+00:00",
+      "last_checked_at": "2026-09-13T19:01:54.473920+00:00",
       "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-      "last_success_at": "2026-09-13T17:42:10.576325+00:00",
+      "last_success_at": "2026-09-13T19:01:54.473920+00:00",
       "status": "ok"
     }
   },
@@ -157,32 +157,32 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 178,
-    "checks_delta": 10103529,
-    "checks_total": 11046642,
+    "checks_delta": 178,
+    "checks_total": 11065866,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "c40c7a88a00b2620a851373af6ff6614de4e543e",
-    "iteration": 1,
-    "last_iteration_at": "2026-09-13T17:41:33.068792+00:00",
-    "last_iteration_duration_seconds": 77,
+    "iteration": 91,
+    "last_iteration_at": "2026-09-13T19:49:32.200260+00:00",
+    "last_iteration_duration_seconds": 40,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-13T17:41:33.068792+00:00",
-    "last_successful_checks_total": 11046642,
-    "last_successful_iteration_at": "2026-09-13T17:41:33.068792+00:00",
+    "last_process_heartbeat_at": "2026-09-13T19:49:32.200260+00:00",
+    "last_successful_checks_total": 11065866,
+    "last_successful_iteration_at": "2026-09-13T19:49:32.200260+00:00",
     "pending_wheels": 0,
     "reachable_sources": 178,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34772253393",
-    "run_started_at": "2026-09-13T17:40:16.883923+00:00",
+    "run_id": "34773362795",
+    "run_started_at": "2026-09-13T18:02:42.138910+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34772253393"
+    "workflow_run_id": "34773362795"
   },
-  "monitor_age_minutes": 1,
-  "monitor_effective_heartbeat_at": "2026-09-13T17:41:33.068792+00:00",
+  "monitor_age_minutes": 3,
+  "monitor_effective_heartbeat_at": "2026-09-13T19:49:32.200260+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
@@ -190,7 +190,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 161,
+    "entry_count": 171,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -256,9 +256,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-13T17:42:10.576325+00:00",
+    "last_checked_at": "2026-09-13T19:01:54.473920+00:00",
     "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-    "last_success_at": "2026-09-13T17:42:10.576325+00:00",
+    "last_success_at": "2026-09-13T19:01:54.473920+00:00",
     "status": "ok"
   }
 }
