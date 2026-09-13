@@ -1,20 +1,6 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260913T162153800239Z-0229e577f015",
-      "attempt_id": "c4774a3b4c6606388f5c64370745ec047b1d1370e0ab677a038a1080fa2f5821",
-      "confidence": 110,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:7445dd1bf8e425cba1b9",
-      "finished_at": "2026-09-13T16:21:40.565504+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-13T16:22:24.264456+00:00",
-      "started_at": "2026-09-13T16:21:40.565504+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "vyacheslav_secondary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260913T162212614757Z-6865e403b8f8",
       "attempt_id": "51677362bdfe495e137c52fc2b50e3b3ff4c17670940c4f8d043f230a2428eb3",
@@ -26,6 +12,20 @@
       "owner_id": "vyacheslav",
       "recorded_at": "2026-09-13T16:22:24.265711+00:00",
       "started_at": "2026-09-13T16:22:05.252659+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260913T162153800239Z-0229e577f015",
+      "attempt_id": "c4774a3b4c6606388f5c64370745ec047b1d1370e0ab677a038a1080fa2f5821",
+      "confidence": 110,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:7445dd1bf8e425cba1b9",
+      "finished_at": "2026-09-13T16:21:40.565504+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-13T16:22:24.264456+00:00",
+      "started_at": "2026-09-13T16:21:40.565504+00:00",
       "status": "participated"
     },
     {
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-13T16:21:40.565504+00:00",
       "status": "participated",
-      "updated_at": "2026-09-13T16:22:24.264456+00:00"
+      "updated_at": "2026-09-13T16:23:01.482015+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-13T16:22:05.252659+00:00",
       "status": "participated",
-      "updated_at": "2026-09-13T16:22:24.265711+00:00"
+      "updated_at": "2026-09-13T16:23:01.483129+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-13T16:22:16.724021+00:00",
       "status": "participated",
-      "updated_at": "2026-09-13T16:22:24.267001+00:00"
+      "updated_at": "2026-09-13T16:23:01.484226+00:00"
     }
   ],
   "action_id": 2215,
@@ -119,35 +119,6 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-13T16:22:24.257775+00:00",
-      "payload": {
-        "action_id": 2215,
-        "available_at": "",
-        "deadline": "2026-09-13T16:34:27.438000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:7445dd1bf8e425cba1b9",
-        "expires_at": "2026-09-13T17:04:27.438000+00:00",
-        "generation_id": "7445dd1bf8e425cba1b9",
-        "identifier": "gubinho",
-        "message_text": "Колесо фрибетов GUBINHO\nСтример: gubinho\nЗакончится через: 14 минут\nПризы: 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/gubinho",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-13T16:19:27.438000+00:00",
-        "source": "private_2445382077",
-        "source_message_date": "2026-09-13T16:20:11+00:00",
-        "source_message_id": 7963,
-        "source_message_url": "https://telegram.me/c/2445382077/7963",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/gubinho",
-        "verification_status": "confirmed",
-        "wheel_key": "gubinho",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "7c52b459e40e62a103fe6c1cf02615bab680a3dfe50700cde03551de2273d90e"
-    },
-    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-09-13T16:22:24.257775+00:00",
       "payload": {
@@ -177,7 +148,22 @@
       "transition_id": "549f230457d3879ae8f2b581ea98a9245ab01a0c887fad49359dde541789db6a"
     },
     {
-      "dedupe_key": "2215:2026-09-13T16:19:27.438000+00:00",
+      "dedupe_key": "xflarxx:xflarxx_primary:f4a9b3acd622923e1532198673de9b72b74deefe0ea9e6e9d6c4e81e28d7caea",
+      "occurred_at": "2026-09-13T16:22:16.724021+00:00",
+      "payload": {
+        "account_key": "xflarxx_primary",
+        "account_label": "xFLARXx",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260913T162223381081Z-21f698ca4634",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "xflarxx",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "734a9278c3c057c626131934574e83e8c4a7ee2132e5cde4a8b8d46313b22073"
+    },
+    {
+      "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-13T16:22:24.257775+00:00",
       "payload": {
         "action_id": 2215,
@@ -202,8 +188,23 @@
         "wheel_key": "gubinho",
         "wheel_type": "normal"
       },
-      "stage": "api_confirmed",
-      "transition_id": "fcc70180273bfa83ea3a232e5fba2cadc2588eb457d418b43aef1ff9e3098c4c"
+      "stage": "source_discovered",
+      "transition_id": "7c52b459e40e62a103fe6c1cf02615bab680a3dfe50700cde03551de2273d90e"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:51677362bdfe495e137c52fc2b50e3b3ff4c17670940c4f8d043f230a2428eb3",
+      "occurred_at": "2026-09-13T16:22:05.252659+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260913T162212614757Z-6865e403b8f8",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "969b1eda9ad01f45b792559d192f7c28c7055f959ede929af73dc833938e87c0"
     },
     {
       "dedupe_key": "34768322394",
@@ -231,37 +232,36 @@
       "transition_id": "f1b5ea81e42839189ed83eb36d170077cd80cb719e7576d169d91cae78c2e008"
     },
     {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:51677362bdfe495e137c52fc2b50e3b3ff4c17670940c4f8d043f230a2428eb3",
-      "occurred_at": "2026-09-13T16:22:05.252659+00:00",
+      "dedupe_key": "2215:2026-09-13T16:19:27.438000+00:00",
+      "occurred_at": "2026-09-13T16:22:24.257775+00:00",
       "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260913T162212614757Z-6865e403b8f8",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
+        "action_id": 2215,
+        "available_at": "",
+        "deadline": "2026-09-13T16:34:27.438000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:7445dd1bf8e425cba1b9",
+        "expires_at": "2026-09-13T17:04:27.438000+00:00",
+        "generation_id": "7445dd1bf8e425cba1b9",
+        "identifier": "gubinho",
+        "message_text": "Колесо фрибетов GUBINHO\nСтример: gubinho\nЗакончится через: 14 минут\nПризы: 1000\n\nАренда Fonbet - @arenda_fonbet_freebet\nhttps://betboom.ru/freestream/gubinho",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-13T16:19:27.438000+00:00",
+        "source": "private_2445382077",
+        "source_message_date": "2026-09-13T16:20:11+00:00",
+        "source_message_id": 7963,
+        "source_message_url": "https://telegram.me/c/2445382077/7963",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/gubinho",
+        "verification_status": "confirmed",
+        "wheel_key": "gubinho",
+        "wheel_type": "normal"
       },
-      "stage": "account_result",
-      "transition_id": "969b1eda9ad01f45b792559d192f7c28c7055f959ede929af73dc833938e87c0"
-    },
-    {
-      "dedupe_key": "xflarxx:xflarxx_primary:f4a9b3acd622923e1532198673de9b72b74deefe0ea9e6e9d6c4e81e28d7caea",
-      "occurred_at": "2026-09-13T16:22:16.724021+00:00",
-      "payload": {
-        "account_key": "xflarxx_primary",
-        "account_label": "xFLARXx",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260913T162223381081Z-21f698ca4634",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "xflarxx",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "734a9278c3c057c626131934574e83e8c4a7ee2132e5cde4a8b8d46313b22073"
+      "stage": "api_confirmed",
+      "transition_id": "fcc70180273bfa83ea3a232e5fba2cadc2588eb457d418b43aef1ff9e3098c4c"
     }
   ],
-  "updated_at": "2026-09-13T16:22:24.261752+00:00",
+  "updated_at": "2026-09-13T16:23:01.479740+00:00",
   "wheel_key": "gubinho",
   "workflow_started_at": "2026-09-13T16:22:24.261752+00:00"
 }
