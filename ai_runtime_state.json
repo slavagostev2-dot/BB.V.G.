@@ -1,8 +1,8 @@
 {
   "cache": {
-    "c98dbaafff82a277c42bdd54335cdd9dce8f6f65595d429cdba4f9fb51741316": {
-      "expires_at": 1789236616.216005,
-      "text": "{\n  \"classification\": \"old_wheel_reference\",\n  \"confidence\": 0.95,\n  \"reason\": \"The post explicitly states that the wheel has finished and lists the winners, while only mentioning a potential future wheel.\"\n}"
+    "3e79c76cb33b56fed2ba58ef3077b18b5601ca029a9d6347cad78104a8242cce": {
+      "expires_at": 1789402109.4856935,
+      "text": "{\n  \"classification\": \"betboom_promotion\",\n  \"confidence\": 0.98,\n  \"reason\": \"The post explicitly promotes a BetBoom freebet wheel giveaway and includes referral links to the platform.\"\n}"
     }
   },
   "decisions": [
@@ -1814,10 +1814,23 @@
       "provider": "gemini",
       "reason": "The post explicitly states that the wheel has finished and lists the winners, while only mentioning a potential future wheel.",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "classification": "betboom_promotion",
+      "confidence": 0.98,
+      "created_at": 1789401209.4856935,
+      "feature": "suspicious_post_analysis",
+      "id": "f657e537f9c04ab983afb217f214eab2",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "764b856c6aff62e3a57a687125e05275d0c7107d6a671f288d28618db8192d9b",
+      "provider": "gemini",
+      "reason": "The post explicitly promotes a BetBoom freebet wheel giveaway and includes referral links to the platform.",
+      "status": "ok"
     }
   ],
   "rate_calls": [
-    1789235716.216005
+    1789401209.4856935
   ],
   "version": 1
 }
