@@ -1,36 +1,37 @@
 {
-  "active_incidents": 2,
+  "active_incidents": 3,
   "admin_panel": {
     "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-14T20:25:02.867261+00:00",
-    "started_at": "2026-09-14T16:07:10.417397+00:00",
+    "last_heartbeat_at": "2026-09-14T23:19:53.332403+00:00",
+    "started_at": "2026-09-14T20:38:18.629862+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "provider_error",
+    "ai_status": "ok",
     "cached": false,
-    "confidence": 1.0,
+    "confidence": 0.0,
     "critical_count": 1,
-    "decision_id": "a3252b31465342a79691d6ce82088cea",
-    "finding_count": 2,
+    "decision_id": "c2d4ccae728d45f68e829a8c5f9080c4",
+    "finding_count": 3,
     "finding_kinds": [
+      "discovery_stale_разведка",
       "source_transport_smoke",
       "source_transport_stale"
     ],
-    "generated_at": "2026-09-14T20:27:44.651059+00:00",
-    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
-    "mode": "rules",
+    "generated_at": "2026-09-14T23:22:48.619794+00:00",
+    "impact": "Актуальность данных inventory не подтверждена, что может привести к использованию устаревшей информации при обработке источников.",
+    "mode": "ai",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Система требует внимания: критических проблем — 1, предупреждений — 1. Источники последнего цикла: доступно 178/178, ошибок 0.",
-    "used_fallback": true,
+    "summary": "Система находится в критическом состоянии: обнаружено 3 инцидента, включая 1 критический, связанный с расхождением данных транспортной проверки.",
+    "used_fallback": false,
     "version": 1,
-    "warning_count": 1
+    "warning_count": 2
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -56,7 +57,7 @@
   "check_matrix": {
     "automations": "failed",
     "bot_panel": "ok",
-    "discovery": "ok",
+    "discovery": "failed",
     "inventory": "ok",
     "miniapp": "ok",
     "monitor": "ok",
@@ -66,7 +67,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-14T20:27:35.532903+00:00",
+  "checked_at": "2026-09-14T23:22:45.176069+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -98,8 +99,15 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 2,
+  "finding_count": 3,
   "findings": [
+    {
+      "detail": "старше 48 ч.",
+      "kind": "discovery_stale_разведка",
+      "severity": "warning",
+      "subject": "",
+      "title": "Давно не обновлялась разведка упоминаний"
+    },
     {
       "detail": "status=success; domain=telegram.me; primary=179/178; nightly=0/0; accounted=179/178; reachable=179/178; errors=0; missing=0.",
       "kind": "source_transport_smoke",
@@ -116,8 +124,8 @@
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-09-14T20:25:02.867261+00:00",
+    "active_incidents": 3,
+    "bot_panel_heartbeat": "2026-09-14T23:19:53.332403+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -127,21 +135,21 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-14T19:12:41.144452+00:00",
+      "last_checked_at": "2026-09-14T22:12:22.325002+00:00",
       "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-      "last_success_at": "2026-09-14T19:12:41.144452+00:00",
+      "last_success_at": "2026-09-14T22:12:22.325002+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
-    "digest_sent": false,
-    "health_inspector_mode": "rules",
-    "health_inspector_status": "provider_error",
-    "messages_attempted": 0,
-    "opened": 0,
+    "digest_sent": true,
+    "health_inspector_mode": "ai",
+    "health_inspector_status": "ok",
+    "messages_attempted": 1,
+    "opened": 2,
     "resolved": 0
   },
-  "incident_sequence": 208,
+  "incident_sequence": 209,
   "inventory": {
     "configured": 178,
     "configured_total": 178,
@@ -166,31 +174,31 @@
     "brand": "BB V.G.",
     "checked_sources": 178,
     "checks_delta": 178,
-    "checks_total": 11289968,
+    "checks_total": 11316846,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "c40c7a88a00b2620a851373af6ff6614de4e543e",
-    "iteration": 246,
-    "last_iteration_at": "2026-09-14T20:22:12.816781+00:00",
-    "last_iteration_duration_seconds": 33,
+    "iteration": 116,
+    "last_iteration_at": "2026-09-14T23:19:49.512005+00:00",
+    "last_iteration_duration_seconds": 40,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-14T20:22:12.816781+00:00",
-    "last_successful_checks_total": 11289968,
-    "last_successful_iteration_at": "2026-09-14T20:22:12.816781+00:00",
+    "last_process_heartbeat_at": "2026-09-14T23:19:49.512005+00:00",
+    "last_successful_checks_total": 11316846,
+    "last_successful_iteration_at": "2026-09-14T23:19:49.512005+00:00",
     "pending_wheels": 0,
     "reachable_sources": 178,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34862754771",
-    "run_started_at": "2026-09-14T15:32:58.904777+00:00",
+    "run_id": "34896591142",
+    "run_started_at": "2026-09-14T21:04:05.049136+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34862754771"
+    "workflow_run_id": "34896591142"
   },
-  "monitor_age_minutes": 5,
-  "monitor_effective_heartbeat_at": "2026-09-14T20:22:12.816781+00:00",
+  "monitor_age_minutes": 2,
+  "monitor_effective_heartbeat_at": "2026-09-14T23:19:49.512005+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
@@ -198,7 +206,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 39,
+    "entry_count": 47,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -226,11 +234,11 @@
   "rating_consistency": {
     "administrator_decisions": 0,
     "inactive_wheel_leaks": [],
-    "personal_vote_records": 1044,
+    "personal_vote_records": 1046,
     "policy": "personal_votes_v1",
     "rated_sources": 51,
     "score_mismatches": [],
-    "valid_personal_votes": 1044
+    "valid_personal_votes": 1046
   },
   "source_health_summary": {
     "configured_records": 178,
@@ -264,9 +272,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-14T19:12:41.144452+00:00",
+    "last_checked_at": "2026-09-14T22:12:22.325002+00:00",
     "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-    "last_success_at": "2026-09-14T19:12:41.144452+00:00",
+    "last_success_at": "2026-09-14T22:12:22.325002+00:00",
     "status": "ok"
   }
 }
