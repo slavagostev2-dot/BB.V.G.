@@ -3456,10 +3456,21 @@
       "output_sha256": "130f312b99115070833975a27651a0c88d323c94cc0f76bdcfe5bb65913dab03",
       "provider": "gemini",
       "status": "ok"
+    },
+    {
+      "cached": false,
+      "created_at": 1789417656.8807874,
+      "error": "RuntimeError: Gemini HTTP 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n",
+      "feature": "health_inspector",
+      "id": "a3252b31465342a79691d6ce82088cea",
+      "model": "gemini-3.1-flash-lite",
+      "output_sha256": "5fd8a97216257e1a9884ab2aa5fdd6fe1c2c3f300b9a87345f726710195d8f65",
+      "provider": "gemini",
+      "status": "provider_error"
     }
   ],
   "rate_calls": [
-    1789403379.6038868
+    1789417656.8807874
   ],
   "version": 1
 }

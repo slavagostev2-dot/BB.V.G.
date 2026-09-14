@@ -1,35 +1,36 @@
 {
-  "active_incidents": 1,
+  "active_incidents": 2,
   "admin_panel": {
     "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-14T16:27:32.575123+00:00",
+    "last_heartbeat_at": "2026-09-14T20:25:02.867261+00:00",
     "started_at": "2026-09-14T16:07:10.417397+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
+    "ai_status": "provider_error",
     "cached": false,
-    "confidence": 0.0,
+    "confidence": 1.0,
     "critical_count": 1,
-    "decision_id": "f168635dabc1458fb7740b323adfa899",
-    "finding_count": 1,
+    "decision_id": "a3252b31465342a79691d6ce82088cea",
+    "finding_count": 2,
     "finding_kinds": [
-      "source_transport_smoke"
+      "source_transport_smoke",
+      "source_transport_stale"
     ],
-    "generated_at": "2026-09-14T16:29:42.323159+00:00",
-    "impact": "Нарушена целостность конфигурации inventory, что может привести к некорректной маршрутизации или обработке данных.",
-    "mode": "ai",
+    "generated_at": "2026-09-14T20:27:44.651059+00:00",
+    "impact": "Часть функций BB V.G. может работать неполно до устранения подтверждённой причины.",
+    "mode": "rules",
     "model": "gemini-3.1-flash-lite",
     "provider": "gemini",
     "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
     "requires_human_attention": true,
     "severity": "critical",
-    "summary": "Критическая ошибка: расхождение данных в транспортной проверке (179 записей при ожидаемых 178).",
-    "used_fallback": false,
+    "summary": "Система требует внимания: критических проблем — 1, предупреждений — 1. Источники последнего цикла: доступно 178/178, ошибок 0.",
+    "used_fallback": true,
     "version": 1,
-    "warning_count": 0
+    "warning_count": 1
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -65,7 +66,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-14T16:29:38.233993+00:00",
+  "checked_at": "2026-09-14T20:27:35.532903+00:00",
   "discovery": {
     "candidate_count": 1,
     "intelligence_domain": "telegram.me",
@@ -97,7 +98,7 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
+  "finding_count": 2,
   "findings": [
     {
       "detail": "status=success; domain=telegram.me; primary=179/178; nightly=0/0; accounted=179/178; reachable=179/178; errors=0; missing=0.",
@@ -105,11 +106,18 @@
       "severity": "critical",
       "subject": "",
       "title": "Транспортная проверка текущего inventory не подтверждена"
+    },
+    {
+      "detail": "Нет свежего транспортного прогона для 178 источников за последние 36 часов.",
+      "kind": "source_transport_stale",
+      "severity": "warning",
+      "subject": "",
+      "title": "Давно не выполнялась полная проверка текущего inventory"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 1,
-    "bot_panel_heartbeat": "2026-09-14T16:27:32.575123+00:00",
+    "active_incidents": 2,
+    "bot_panel_heartbeat": "2026-09-14T20:25:02.867261+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -119,21 +127,21 @@
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
-      "last_checked_at": "2026-09-14T16:28:45.099090+00:00",
+      "last_checked_at": "2026-09-14T19:12:41.144452+00:00",
       "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-      "last_success_at": "2026-09-14T16:28:45.099090+00:00",
+      "last_success_at": "2026-09-14T19:12:41.144452+00:00",
       "status": "ok"
     }
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "rules",
+    "health_inspector_status": "provider_error",
     "messages_attempted": 0,
     "opened": 0,
     "resolved": 0
   },
-  "incident_sequence": 207,
+  "incident_sequence": 208,
   "inventory": {
     "configured": 178,
     "configured_total": 178,
@@ -158,17 +166,17 @@
     "brand": "BB V.G.",
     "checked_sources": 178,
     "checks_delta": 178,
-    "checks_total": 11254368,
+    "checks_total": 11289968,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "c40c7a88a00b2620a851373af6ff6614de4e543e",
-    "iteration": 46,
-    "last_iteration_at": "2026-09-14T16:26:49.232712+00:00",
-    "last_iteration_duration_seconds": 35,
+    "iteration": 246,
+    "last_iteration_at": "2026-09-14T20:22:12.816781+00:00",
+    "last_iteration_duration_seconds": 33,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-14T16:26:49.232712+00:00",
-    "last_successful_checks_total": 11254368,
-    "last_successful_iteration_at": "2026-09-14T16:26:49.232712+00:00",
+    "last_process_heartbeat_at": "2026-09-14T20:22:12.816781+00:00",
+    "last_successful_checks_total": 11289968,
+    "last_successful_iteration_at": "2026-09-14T20:22:12.816781+00:00",
     "pending_wheels": 0,
     "reachable_sources": 178,
     "restart_recommended": false,
@@ -181,8 +189,8 @@
     "version": 3,
     "workflow_run_id": "34862754771"
   },
-  "monitor_age_minutes": 2,
-  "monitor_effective_heartbeat_at": "2026-09-14T16:26:49.232712+00:00",
+  "monitor_age_minutes": 5,
+  "monitor_effective_heartbeat_at": "2026-09-14T20:22:12.816781+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
@@ -190,7 +198,7 @@
   "notification_integrity": {
     "algorithm": "HMAC-SHA256",
     "contains_personal_fields": false,
-    "entry_count": 63,
+    "entry_count": 39,
     "format": "bbvg-notification-delivery-v3",
     "retention_seconds": 86400,
     "router_installed": true,
@@ -256,9 +264,9 @@
   "wheel_api_health": {
     "alert_threshold": 3,
     "consecutive_failures": 0,
-    "last_checked_at": "2026-09-14T16:28:45.099090+00:00",
+    "last_checked_at": "2026-09-14T19:12:41.144452+00:00",
     "last_failure_at": "2026-09-08T18:00:19.476579+00:00",
-    "last_success_at": "2026-09-14T16:28:45.099090+00:00",
+    "last_success_at": "2026-09-14T19:12:41.144452+00:00",
     "status": "ok"
   }
 }

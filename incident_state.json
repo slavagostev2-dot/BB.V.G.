@@ -1,5 +1,5 @@
 {
-  "active_count": 1,
+  "active_count": 2,
   "incidents": {
     "system_checks:discovery_domain:9e6b37ba02c42a92": {
       "detail": "Ожидался telegram.me, записано нет данных.",
@@ -300,11 +300,11 @@
       "first_seen_at": "2026-07-16T13:21:59.596712+00:00",
       "key": "system_checks:source_transport_smoke:581b534aecd3e81e",
       "kind": "source_transport_smoke",
-      "last_seen_at": "2026-09-14T16:29:39.600970+00:00",
+      "last_seen_at": "2026-09-14T20:27:36.843012+00:00",
       "lifecycle_started_at": "2026-09-06T16:09:54.656066+00:00",
       "metadata": {},
       "notification_skipped_because_resolved_before_delivery": "2026-09-06T10:28:56.714451+00:00",
-      "occurrences": 103,
+      "occurrences": 104,
       "open_notification_pending": false,
       "open_notified_at": "2026-09-06T17:44:56.223535+00:00",
       "opened_sequence": 197,
@@ -318,24 +318,22 @@
       "title": "Транспортная проверка текущего inventory не подтверждена"
     },
     "system_checks:source_transport_stale:ef48db29ab7add98": {
-      "detail": "Нет свежего транспортного прогона для 172 источников за последние 36 часов.",
+      "detail": "Нет свежего транспортного прогона для 178 источников за последние 36 часов.",
       "first_seen_at": "2026-09-01T16:33:03.023160+00:00",
       "key": "system_checks:source_transport_stale:ef48db29ab7add98",
       "kind": "source_transport_stale",
-      "last_seen_at": "2026-09-02T02:42:18.225101+00:00",
-      "lifecycle_started_at": "2026-09-01T16:33:03.023160+00:00",
+      "last_seen_at": "2026-09-14T20:27:36.843012+00:00",
+      "lifecycle_started_at": "2026-09-14T20:27:36.843012+00:00",
       "metadata": {},
-      "occurrences": 4,
+      "notification_stabilizing_until": "2026-09-14T20:32:36.843012+00:00",
+      "occurrences": 5,
       "open_notification_pending": false,
-      "open_notified_at": "2026-09-01T19:31:15.469667+00:00",
-      "opened_sequence": 167,
+      "opened_sequence": 208,
       "resolution_notification_expired_at": "2026-09-02T04:16:54.780284+00:00",
-      "resolution_notification_pending": false,
-      "resolved_at": "2026-09-02T02:42:18.225101+00:00",
       "resolved_sequence": 173,
       "scope": "system_checks",
       "severity": "warning",
-      "status": "resolved",
+      "status": "active",
       "subject": "",
       "title": "Давно не выполнялась полная проверка текущего inventory"
     },
@@ -362,17 +360,17 @@
       "title": "Источники попали в карантин"
     }
   },
-  "last_change_at": "2026-09-10T15:01:17.495398+00:00",
-  "last_reconcile_at": "2026-09-14T16:29:39.600970+00:00",
+  "last_change_at": "2026-09-14T20:27:36.843012+00:00",
+  "last_reconcile_at": "2026-09-14T20:27:36.843012+00:00",
   "last_reconcile_scope": "system_checks",
   "last_summary": {
-    "active": 1,
+    "active": 2,
     "new_notification_count": 0,
     "recovery_notification_count": 0,
     "scope": "system_checks"
   },
-  "sequence": 207,
+  "sequence": 208,
   "status": "initializing",
-  "updated_at": "2026-09-14T16:29:39.601076+00:00",
+  "updated_at": "2026-09-14T20:27:36.843128+00:00",
   "version": 1
 }
