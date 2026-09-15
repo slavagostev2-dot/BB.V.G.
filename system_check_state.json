@@ -1,7 +1,7 @@
 {
-  "active_incidents": 3,
+  "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 0,
+    "age_minutes": 2,
     "last_heartbeat_at": "2026-09-15T02:25:11.368996+00:00",
     "started_at": "2026-09-15T01:09:31.019400+00:00",
     "status": "running",
@@ -9,29 +9,9 @@
     "version": 41
   },
   "ai_health_inspector": {
-    "ai_status": "ok",
-    "cached": false,
-    "confidence": 0.0,
-    "critical_count": 1,
-    "decision_id": "5f56c28377584f33bb4d6b1129a3b75a",
-    "finding_count": 3,
-    "finding_kinds": [
-      "discovery_stale_разведка",
-      "source_transport_smoke",
-      "source_transport_stale"
-    ],
-    "generated_at": "2026-09-15T02:25:52.444306+00:00",
-    "impact": "Система работает, но актуальность данных под вопросом из-за отсутствия верификации транспортного уровня и задержек в обновлении разведки.",
-    "mode": "ai",
-    "model": "gemini-3.1-flash-lite",
-    "provider": "gemini",
-    "recommended_action": "Сверить настроенный inventory с последней транспортной проверкой.",
-    "requires_human_attention": true,
-    "severity": "critical",
-    "summary": "Критический сбой подтверждения транспортной проверки для 178 источников при наличии устаревших данных разведки.",
-    "used_fallback": false,
-    "version": 1,
-    "warning_count": 2
+    "ai_status": "deployment_grace",
+    "mode": "suppressed",
+    "reason": "system-health started from a code push"
   },
   "automation_state": {
     "expected_nightly_sources": 0,
@@ -43,7 +23,7 @@
     "recorded_primary_sources": 179,
     "source_policy": "single_public_inventory",
     "transport_accounted_sources": 179,
-    "transport_checked_at": "2026-09-13T08:23:07.921183+00:00",
+    "transport_checked_at": "2026-09-15T02:23:44.582183+00:00",
     "transport_domain": "telegram.me",
     "transport_error_sources": [],
     "transport_reachable_sources": 179,
@@ -57,7 +37,7 @@
   "check_matrix": {
     "automations": "failed",
     "bot_panel": "ok",
-    "discovery": "failed",
+    "discovery": "ok",
     "inventory": "ok",
     "miniapp": "ok",
     "monitor": "ok",
@@ -67,22 +47,22 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-15T02:25:49.471972+00:00",
+  "checked_at": "2026-09-15T02:27:17.360545+00:00",
   "discovery": {
-    "candidate_count": 1,
+    "candidate_count": 5,
     "intelligence_domain": "telegram.me",
-    "intelligence_last_run_at": "2026-09-12T20:41:59.993826+00:00",
+    "intelligence_last_run_at": "2026-09-15T02:24:19.098708+00:00",
     "intelligence_summary": {
       "empty_sources": 2,
       "error_types": {},
       "errors": 0,
       "known_sources": 178,
-      "references_found": 363,
-      "relevant_candidates": 177,
+      "references_found": 351,
+      "relevant_candidates": 164,
       "sources_scanned": 178,
-      "strong_candidates": 4,
+      "strong_candidates": 5,
       "telegram_domain": "telegram.me",
-      "unique_candidates": 177,
+      "unique_candidates": 164,
       "verified_candidates": 150,
       "workers": 12
     }
@@ -99,32 +79,18 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 3,
+  "finding_count": 1,
   "findings": [
-    {
-      "detail": "старше 48 ч.",
-      "kind": "discovery_stale_разведка",
-      "severity": "warning",
-      "subject": "",
-      "title": "Давно не обновлялась разведка упоминаний"
-    },
     {
       "detail": "status=success; domain=telegram.me; primary=179/178; nightly=0/0; accounted=179/178; reachable=179/178; errors=0; missing=0.",
       "kind": "source_transport_smoke",
       "severity": "critical",
       "subject": "",
       "title": "Транспортная проверка текущего inventory не подтверждена"
-    },
-    {
-      "detail": "Нет свежего транспортного прогона для 178 источников за последние 36 часов.",
-      "kind": "source_transport_stale",
-      "severity": "warning",
-      "subject": "",
-      "title": "Давно не выполнялась полная проверка текущего inventory"
     }
   ],
   "gpt_diagnostic_snapshot": {
-    "active_incidents": 3,
+    "active_incidents": 2,
     "bot_panel_heartbeat": "2026-09-15T02:25:11.368996+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
@@ -143,13 +109,15 @@
   },
   "incident_delivery": {
     "digest_sent": false,
-    "health_inspector_mode": "ai",
-    "health_inspector_status": "ok",
+    "health_inspector_mode": "suppressed",
+    "health_inspector_status": "deployment_grace",
     "messages_attempted": 0,
     "opened": 0,
-    "resolved": 0
+    "resolved": 1,
+    "suppressed": true,
+    "suppressed_reason": "code_update_push_grace"
   },
-  "incident_sequence": 209,
+  "incident_sequence": 210,
   "inventory": {
     "configured": 178,
     "configured_total": 178,
@@ -197,7 +165,7 @@
     "version": 3,
     "workflow_run_id": "34921022813"
   },
-  "monitor_age_minutes": 0,
+  "monitor_age_minutes": 2,
   "monitor_effective_heartbeat_at": "2026-09-15T02:25:13.361891+00:00",
   "monitor_source_expectation": {
     "configured": 178,
