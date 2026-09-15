@@ -1686,12 +1686,6 @@
       "sequence": 366,
       "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"hooch08#generation:7c3a2ed442591f2ac95c\",\"role\":\"owner\",\"sources\":[\"hoochcs2\"],\"weight\":5,\"wheel_key\":\"hooch08\"}"
     },
-    "ab7ad86924674277815c6aaf6dc9461a": {
-      "action": "record_personal_vote",
-      "created_at": "2026-07-21T14:31:02.554228+00:00",
-      "sequence": 166,
-      "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"zonertw5#action:685\",\"role\":\"owner\",\"sources\":[\"mechanogun\"],\"weight\":5,\"wheel_key\":\"zonertw5\"}"
-    },
     "abda36b71594491bb2367104cd102b89": {
       "action": "record_personal_vote",
       "created_at": "2026-07-28T20:44:24.946195+00:00",
@@ -4926,6 +4920,12 @@
       "sequence": 1132,
       "value": "{\"actor\":\"vote_6d354213070f7ecae88871feecfd6151\",\"event_key\":\"zonertg4#generation:b9fb4707ae280e0a42ff\",\"role\":\"admin\",\"sources\":[\"mechanogun\"],\"weight\":5,\"wheel_key\":\"zonertg4\"}"
     },
+    "vote-acf0b38738a2c12afb02f2660f8d7765": {
+      "action": "record_personal_vote",
+      "created_at": "2026-09-15T05:14:06.797630+00:00",
+      "sequence": 1166,
+      "value": "{\"actor\":\"vote_3092cd8d69b74beb8bd2579cd902c714\",\"event_key\":\"bolt#generation:1616a818d3463401c87b\",\"role\":\"owner\",\"sources\":[\"boltcast\"],\"weight\":5,\"wheel_key\":\"bolt\"}"
+    },
     "vote-ad5d327d4e6d90bb8bb0c0444a2404a6": {
       "action": "record_personal_vote",
       "created_at": "2026-09-05T15:12:08.270240+00:00",
@@ -6002,5 +6002,5 @@
     }
   },
   "format": "bbvg-admin-action-queue-v1",
-  "sequence": 1165
+  "sequence": 1166
 }
