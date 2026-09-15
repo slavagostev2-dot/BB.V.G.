@@ -15,20 +15,6 @@
       "status": "participated"
     },
     {
-      "account_key": "vyacheslav_secondary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T080625265547Z-cfa6485ee9f4",
-      "attempt_id": "ef6e7e644dc83a644729be365e9af936651f5d0268cc21110a771d1f58b90c14",
-      "confidence": 110,
-      "confirmation": "betboom_post_reload",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
-      "event_id": "evt:473847236ded4085660b",
-      "finished_at": "2026-09-15T08:06:18.108486+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-15T08:06:37.472482+00:00",
-      "started_at": "2026-09-15T08:06:18.108486+00:00",
-      "status": "participated"
-    },
-    {
       "account_key": "xflarxx_primary",
       "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T080636487677Z-d9d54823be54",
       "attempt_id": "e3738634a4bd9fb766940e9659504629028d70c5f7099e58b898e5e3dcb98c78",
@@ -40,6 +26,20 @@
       "owner_id": "xflarxx",
       "recorded_at": "2026-09-15T08:06:37.473758+00:00",
       "started_at": "2026-09-15T08:06:29.250645+00:00",
+      "status": "participated"
+    },
+    {
+      "account_key": "vyacheslav_secondary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T080625265547Z-cfa6485ee9f4",
+      "attempt_id": "ef6e7e644dc83a644729be365e9af936651f5d0268cc21110a771d1f58b90c14",
+      "confidence": 110,
+      "confirmation": "betboom_post_reload",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "event_id": "evt:473847236ded4085660b",
+      "finished_at": "2026-09-15T08:06:18.108486+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-15T08:06:37.472482+00:00",
+      "started_at": "2026-09-15T08:06:18.108486+00:00",
       "status": "participated"
     }
   ],
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-15T08:06:06.538279+00:00",
       "status": "participated",
-      "updated_at": "2026-09-15T08:06:37.471219+00:00"
+      "updated_at": "2026-09-15T08:07:03.387054+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-15T08:06:18.108486+00:00",
       "status": "participated",
-      "updated_at": "2026-09-15T08:06:37.472482+00:00"
+      "updated_at": "2026-09-15T08:07:03.388504+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-15T08:06:29.250645+00:00",
       "status": "participated",
-      "updated_at": "2026-09-15T08:06:37.473758+00:00"
+      "updated_at": "2026-09-15T08:07:03.389956+00:00"
     }
   ],
   "action_id": 2151,
@@ -118,6 +118,65 @@
   "source_message_url": "https://telegram.me/mechanogun/36469",
   "status": "preliminary",
   "transitions": [
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_secondary:ef6e7e644dc83a644729be365e9af936651f5d0268cc21110a771d1f58b90c14",
+      "occurred_at": "2026-09-15T08:06:18.108486+00:00",
+      "payload": {
+        "account_key": "vyacheslav_secondary",
+        "account_label": "Аккаунт 2",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T080625265547Z-cfa6485ee9f4",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_reload",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "0ed0b9ec61fde9c00c7b0316fb0875d262ba863e0593bb970fc1d31a1cc13e7f"
+    },
+    {
+      "dedupe_key": "2151:2026-09-15T08:00:55.473000+00:00",
+      "occurred_at": "2026-09-15T08:06:37.463246+00:00",
+      "payload": {
+        "action_id": 2151,
+        "available_at": "",
+        "deadline": "2026-09-15T18:00:55.473000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:473847236ded4085660b",
+        "expires_at": "2026-09-15T18:30:55.473000+00:00",
+        "generation_id": "473847236ded4085660b",
+        "identifier": "zonertg6",
+        "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ:\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\n10 ПО 1000 20 ПО 500\nИТОГИ ЧЕРЕЗ 10 ЧАСОВ\nhttps://telegram.me/mechanogun\nhttps://telegram.me/mechanogun/36469\nhttps://betboom.ru/freestream/zonertg6?utm_content=zoner&utm_source=freestream\nhttps://betboom.ru/freestream/zonertg6?utm_content=zoner&amp;utm_source=freestream",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-15T08:00:55.473000+00:00",
+        "source": "mechanogun",
+        "source_message_date": "2026-09-15T08:05:01+00:00",
+        "source_message_id": 36469,
+        "source_message_url": "https://telegram.me/mechanogun/36469",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/zonertg6",
+        "verification_status": "confirmed",
+        "wheel_key": "zonertg6",
+        "wheel_type": "normal"
+      },
+      "stage": "api_confirmed",
+      "transition_id": "19a7ba32f6a38aa17a3bda16c55efcb31346241bd228bae3ff8abd6d25628a59"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:6be61a4b351cdb048346d25779d10c9b0698ab38b23d1f7b72ae2e62fb7091d1",
+      "occurred_at": "2026-09-15T08:06:06.538279+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T080613647271Z-07be5b28f558",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "2e5528fcec6765a1c91a398497c84b1f901916d587b8a30fdfcd5fe5a6cc553e"
+    },
     {
       "dedupe_key": "workflow_payload",
       "occurred_at": "2026-09-15T08:06:37.463246+00:00",
@@ -177,35 +236,6 @@
       "transition_id": "7ba681878afa33999666cdbccc961be223723b4ac262753e0fdd5a63c63a058b"
     },
     {
-      "dedupe_key": "2151:2026-09-15T08:00:55.473000+00:00",
-      "occurred_at": "2026-09-15T08:06:37.463246+00:00",
-      "payload": {
-        "action_id": 2151,
-        "available_at": "",
-        "deadline": "2026-09-15T18:00:55.473000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:473847236ded4085660b",
-        "expires_at": "2026-09-15T18:30:55.473000+00:00",
-        "generation_id": "473847236ded4085660b",
-        "identifier": "zonertg6",
-        "message_text": "ЗАЛЕТАЙ НА КОЛЕСО ФРИБЕТОВ:\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\nКЛИКАЙ ДЛЯ УЧАСТИЯ\n10 ПО 1000 20 ПО 500\nИТОГИ ЧЕРЕЗ 10 ЧАСОВ\nhttps://telegram.me/mechanogun\nhttps://telegram.me/mechanogun/36469\nhttps://betboom.ru/freestream/zonertg6?utm_content=zoner&utm_source=freestream\nhttps://betboom.ru/freestream/zonertg6?utm_content=zoner&amp;utm_source=freestream",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-15T08:00:55.473000+00:00",
-        "source": "mechanogun",
-        "source_message_date": "2026-09-15T08:05:01+00:00",
-        "source_message_id": 36469,
-        "source_message_url": "https://telegram.me/mechanogun/36469",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/zonertg6",
-        "verification_status": "confirmed",
-        "wheel_key": "zonertg6",
-        "wheel_type": "normal"
-      },
-      "stage": "api_confirmed",
-      "transition_id": "19a7ba32f6a38aa17a3bda16c55efcb31346241bd228bae3ff8abd6d25628a59"
-    },
-    {
       "dedupe_key": "34945076798",
       "occurred_at": "2026-09-15T08:06:37.468351+00:00",
       "payload": {
@@ -214,36 +244,6 @@
       },
       "stage": "workflow_started",
       "transition_id": "b2dce394ed7773eb2202a35fa597ebdf5fa6e1f515240b630430ef84548016fe"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:6be61a4b351cdb048346d25779d10c9b0698ab38b23d1f7b72ae2e62fb7091d1",
-      "occurred_at": "2026-09-15T08:06:06.538279+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T080613647271Z-07be5b28f558",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "2e5528fcec6765a1c91a398497c84b1f901916d587b8a30fdfcd5fe5a6cc553e"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_secondary:ef6e7e644dc83a644729be365e9af936651f5d0268cc21110a771d1f58b90c14",
-      "occurred_at": "2026-09-15T08:06:18.108486+00:00",
-      "payload": {
-        "account_key": "vyacheslav_secondary",
-        "account_label": "Аккаунт 2",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T080625265547Z-cfa6485ee9f4",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_reload",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "0ed0b9ec61fde9c00c7b0316fb0875d262ba863e0593bb970fc1d31a1cc13e7f"
     },
     {
       "dedupe_key": "xflarxx:xflarxx_primary:e3738634a4bd9fb766940e9659504629028d70c5f7099e58b898e5e3dcb98c78",
@@ -261,7 +261,7 @@
       "transition_id": "fba55e2e3cca3efb0734eaccd5755a6389d6dea3176814d423230a307e888732"
     }
   ],
-  "updated_at": "2026-09-15T08:06:37.468351+00:00",
+  "updated_at": "2026-09-15T08:07:03.384750+00:00",
   "wheel_key": "zonertg6",
   "workflow_started_at": "2026-09-15T08:06:37.468351+00:00"
 }
