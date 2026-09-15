@@ -41,7 +41,23 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: main
-          fetch-depth: 0
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Load authoritative intelligence state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin \
+            +refs/heads/runtime-state:refs/remotes/origin/runtime-state
+          if git show origin/runtime-state:intelligence_state.json \
+              > intelligence_state.json.runtime.tmp; then
+            python -m json.tool intelligence_state.json.runtime.tmp >/dev/null
+            mv intelligence_state.json.runtime.tmp intelligence_state.json
+          else
+            rm -f intelligence_state.json.runtime.tmp
+            echo "No runtime intelligence snapshot yet; using the main seed."
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -92,27 +108,20 @@ jobs:
         run: python source_intelligence_reminder.py
 
       - name: Save intelligence state
-        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          set -euo pipefail
-          if [[ -z "$(git status --porcelain -- intelligence_state.json)" ]]; then
-            echo "Intelligence data did not change."
-            exit 0
-          fi
+          python - <<'PY'
+          import os
+          from pathlib import Path
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add intelligence_state.json
-          git commit -m "Update Telegram source intelligence [skip ci]"
+          from runtime_state_publisher import publish_monitor_runtime
 
-          for attempt in 1 2 3; do
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "Intelligence push attempt ${attempt} failed; rebasing before retry."
-            if ! git pull --rebase origin main; then
-              git rebase --abort || true
-              exit 1
-            fi
-          done
-          exit 1
+          result = publish_monitor_runtime(
+              Path("intelligence_state.json"),
+              token=os.environ["GITHUB_TOKEN"],
+              repository=os.environ["GITHUB_REPOSITORY"],
+          )
+          print("Authoritative intelligence state published:", result)
+          PY

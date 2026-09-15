@@ -22,7 +22,13 @@ def test_system_health_loads_authoritative_runtime_snapshots_before_checks() -> 
     assert "Load authoritative runtime snapshots" in workflow
     assert "load_snapshot runtime-status" in workflow
     assert "load_snapshot runtime-state" in workflow
-    for file_name in ("state.json", "source_stats.json", "source_health.json"):
+    for file_name in (
+        "state.json",
+        "source_stats.json",
+        "source_health.json",
+        "intelligence_state.json",
+        "source_transport_state.json",
+    ):
         assert file_name in workflow
 
     load_position = workflow.index("Load authoritative runtime snapshots")
@@ -34,7 +40,8 @@ def test_system_health_does_not_diagnose_from_stale_main_source_health() -> None
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     runtime_state_loop = (
-        "for file in state.json source_stats.json source_health.json; do\n"
+        "for file in state.json source_stats.json source_health.json "
+        "intelligence_state.json source_transport_state.json; do\n"
         "            load_snapshot runtime-state \"$file\""
     )
     assert runtime_state_loop in workflow
@@ -72,6 +79,27 @@ def test_transport_verification_has_a_recurring_schedule() -> None:
     ).read_text(encoding="utf-8")
     assert "schedule:" in workflow
     assert 'cron: "17 3 * * *"' in workflow
+
+
+def test_diagnostic_writers_use_runtime_state_without_main_pushes() -> None:
+    intelligence = (
+        ROOT / ".github" / "workflows" / "source-intelligence.yml"
+    ).read_text(encoding="utf-8")
+    transport = (
+        ROOT / ".github" / "workflows" / "telegram-source-transport.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "Load authoritative intelligence state" in intelligence
+    assert 'Path("intelligence_state.json")' in intelligence
+    assert "git push origin HEAD:main" not in intelligence
+    assert "fetch-depth: 1" in intelligence
+    assert "persist-credentials: false" in intelligence
+
+    assert 'Path("source_transport_state.json")' in transport
+    assert "git push origin HEAD:main" not in transport
+    assert "cancel-in-progress: false" in transport
+    assert "fetch-depth: 1" in transport
+    assert "persist-credentials: false" in transport
 
 
 def test_source_workflows_do_not_require_removed_secondary_inventory() -> None:
