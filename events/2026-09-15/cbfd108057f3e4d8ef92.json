@@ -1,18 +1,18 @@
 {
   "account_attempts": [
     {
-      "account_key": "vyacheslav_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T121114242931Z-5592f572f2a5",
-      "attempt_id": "8c429fcd2a85c5c2a11ad242d45affe9b50c067d06d7bffd84d6d9459126bdf3",
-      "confidence": 110,
-      "confirmation": "betboom_post_click",
-      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
+      "account_key": "xflarxx_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T121133549074Z-08464c0d6bc8",
+      "attempt_id": "0d272b7d28b5abc6de26a50df1648495263679e7f13fa1a2aa00f87d471850d8",
+      "confidence": 30,
+      "confirmation": "betboom_unconfirmed",
+      "error_text": "кнопка участия найдена, но клик не выполнен: TimeoutError: Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\", name=re.compile(r\"(?:принять\\s+участие|участвовать|участвую)\", re.IGNORECASE)).first\n",
       "event_id": "evt:cbfd108057f3e4d8ef92",
-      "finished_at": "2026-09-15T12:11:06.940321+00:00",
-      "owner_id": "vyacheslav",
-      "recorded_at": "2026-09-15T12:11:39.716867+00:00",
-      "started_at": "2026-09-15T12:11:06.940321+00:00",
-      "status": "participated"
+      "finished_at": "2026-09-15T12:11:30.446732+00:00",
+      "owner_id": "xflarxx",
+      "recorded_at": "2026-09-15T12:11:39.719602+00:00",
+      "started_at": "2026-09-15T12:11:30.446732+00:00",
+      "status": "technical_error"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -29,18 +29,18 @@
       "status": "participated"
     },
     {
-      "account_key": "xflarxx_primary",
-      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T121133549074Z-08464c0d6bc8",
-      "attempt_id": "0d272b7d28b5abc6de26a50df1648495263679e7f13fa1a2aa00f87d471850d8",
-      "confidence": 30,
-      "confirmation": "betboom_unconfirmed",
-      "error_text": "кнопка участия найдена, но клик не выполнен: TimeoutError: Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\", name=re.compile(r\"(?:принять\\s+участие|участвовать|участвую)\", re.IGNORECASE)).first\n",
+      "account_key": "vyacheslav_primary",
+      "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T121114242931Z-5592f572f2a5",
+      "attempt_id": "8c429fcd2a85c5c2a11ad242d45affe9b50c067d06d7bffd84d6d9459126bdf3",
+      "confidence": 110,
+      "confirmation": "betboom_post_click",
+      "error_text": "BetBoom подтвердил сохранённое участие в новом браузерном контексте; server_persistence_verified=true; fresh_attempt=1; initial_status=participated; verification_status=already_participating",
       "event_id": "evt:cbfd108057f3e4d8ef92",
-      "finished_at": "2026-09-15T12:11:30.446732+00:00",
-      "owner_id": "xflarxx",
-      "recorded_at": "2026-09-15T12:11:39.719602+00:00",
-      "started_at": "2026-09-15T12:11:30.446732+00:00",
-      "status": "technical_error"
+      "finished_at": "2026-09-15T12:11:06.940321+00:00",
+      "owner_id": "vyacheslav",
+      "recorded_at": "2026-09-15T12:11:39.716867+00:00",
+      "started_at": "2026-09-15T12:11:06.940321+00:00",
+      "status": "participated"
     }
   ],
   "account_results": [
@@ -57,7 +57,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-15T12:11:06.940321+00:00",
       "status": "participated",
-      "updated_at": "2026-09-15T12:11:39.716867+00:00"
+      "updated_at": "2026-09-15T12:12:09.241618+00:00"
     },
     {
       "account_key": "vyacheslav_secondary",
@@ -72,7 +72,7 @@
       "owner_id": "vyacheslav",
       "started_at": "2026-09-15T12:11:19.237229+00:00",
       "status": "participated",
-      "updated_at": "2026-09-15T12:11:39.718221+00:00"
+      "updated_at": "2026-09-15T12:12:09.242879+00:00"
     },
     {
       "account_key": "xflarxx_primary",
@@ -87,7 +87,7 @@
       "owner_id": "xflarxx",
       "started_at": "2026-09-15T12:11:30.446732+00:00",
       "status": "technical_error",
-      "updated_at": "2026-09-15T12:11:39.719602+00:00"
+      "updated_at": "2026-09-15T12:12:09.244075+00:00"
     }
   ],
   "action_id": 2263,
@@ -119,35 +119,6 @@
   "status": "preliminary",
   "transitions": [
     {
-      "dedupe_key": "workflow_payload",
-      "occurred_at": "2026-09-15T12:11:39.708856+00:00",
-      "payload": {
-        "action_id": 2263,
-        "available_at": "",
-        "deadline": "2026-09-15T12:18:20.865000+00:00",
-        "discovery_reason": "workflow_payload",
-        "event_id": "evt:cbfd108057f3e4d8ef92",
-        "expires_at": "2026-09-15T12:48:20.865000+00:00",
-        "generation_id": "cbfd108057f3e4d8ef92",
-        "identifier": "vovapain",
-        "message_text": "https://betboom.ru/freestream/vovapain",
-        "referral_classification_evidence": "",
-        "referral_restricted": false,
-        "server_start_at": "2026-09-15T12:08:20.865000+00:00",
-        "source": "bbvg_manual",
-        "source_message_date": "2026-09-15T12:09:50.602739+00:00",
-        "source_message_id": 187005619301382,
-        "source_message_url": "https://betboom.ru/freestream/vovapain",
-        "status": "preliminary",
-        "url": "https://betboom.ru/freestream/vovapain",
-        "verification_status": "confirmed",
-        "wheel_key": "vovapain",
-        "wheel_type": "normal"
-      },
-      "stage": "source_discovered",
-      "transition_id": "6aee639f03292423a2bceb053783c4727ebcf8f9c89ac886b7f92e7c599a71c9"
-    },
-    {
       "dedupe_key": "durable-event",
       "occurred_at": "2026-09-15T12:11:39.708856+00:00",
       "payload": {
@@ -175,6 +146,45 @@
       },
       "stage": "persisted",
       "transition_id": "113afb7679a187930e23dae8308b97fdd48319480106a6a27930bd8525d245db"
+    },
+    {
+      "dedupe_key": "34967357873",
+      "occurred_at": "2026-09-15T12:11:39.713338+00:00",
+      "payload": {
+        "workflow_run_id": "34967357873",
+        "workflow_sha": "58959e82448f379cdb49d0fb32443de28e4f4540"
+      },
+      "stage": "workflow_started",
+      "transition_id": "3e01f9924f243344e83e6500b7117433007a019ac9ac5b2da5b389c35c24b3fe"
+    },
+    {
+      "dedupe_key": "workflow_payload",
+      "occurred_at": "2026-09-15T12:11:39.708856+00:00",
+      "payload": {
+        "action_id": 2263,
+        "available_at": "",
+        "deadline": "2026-09-15T12:18:20.865000+00:00",
+        "discovery_reason": "workflow_payload",
+        "event_id": "evt:cbfd108057f3e4d8ef92",
+        "expires_at": "2026-09-15T12:48:20.865000+00:00",
+        "generation_id": "cbfd108057f3e4d8ef92",
+        "identifier": "vovapain",
+        "message_text": "https://betboom.ru/freestream/vovapain",
+        "referral_classification_evidence": "",
+        "referral_restricted": false,
+        "server_start_at": "2026-09-15T12:08:20.865000+00:00",
+        "source": "bbvg_manual",
+        "source_message_date": "2026-09-15T12:09:50.602739+00:00",
+        "source_message_id": 187005619301382,
+        "source_message_url": "https://betboom.ru/freestream/vovapain",
+        "status": "preliminary",
+        "url": "https://betboom.ru/freestream/vovapain",
+        "verification_status": "confirmed",
+        "wheel_key": "vovapain",
+        "wheel_type": "normal"
+      },
+      "stage": "source_discovered",
+      "transition_id": "6aee639f03292423a2bceb053783c4727ebcf8f9c89ac886b7f92e7c599a71c9"
     },
     {
       "dedupe_key": "2263:2026-09-15T12:08:20.865000+00:00",
@@ -206,31 +216,6 @@
       "transition_id": "790aedfcbebb66e903d897aa019517eb01f30bd555cba9c811ed03e6bacc8baf"
     },
     {
-      "dedupe_key": "34967357873",
-      "occurred_at": "2026-09-15T12:11:39.713338+00:00",
-      "payload": {
-        "workflow_run_id": "34967357873",
-        "workflow_sha": "58959e82448f379cdb49d0fb32443de28e4f4540"
-      },
-      "stage": "workflow_started",
-      "transition_id": "3e01f9924f243344e83e6500b7117433007a019ac9ac5b2da5b389c35c24b3fe"
-    },
-    {
-      "dedupe_key": "vyacheslav:vyacheslav_primary:8c429fcd2a85c5c2a11ad242d45affe9b50c067d06d7bffd84d6d9459126bdf3",
-      "occurred_at": "2026-09-15T12:11:06.940321+00:00",
-      "payload": {
-        "account_key": "vyacheslav_primary",
-        "account_label": "Аккаунт 1",
-        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T121114242931Z-5592f572f2a5",
-        "attempt_count": 1,
-        "confirmation": "betboom_post_click",
-        "owner_id": "vyacheslav",
-        "status": "participated"
-      },
-      "stage": "account_result",
-      "transition_id": "d44770d6c8fdd2beb518128a2dfe4485404a2364e9991b27a702768d3313d51c"
-    },
-    {
       "dedupe_key": "vyacheslav:vyacheslav_secondary:262dc83211e6131c58f8a15f918a36ecf55ef05a50a9fb81915072d8d3a45277",
       "occurred_at": "2026-09-15T12:11:19.237229+00:00",
       "payload": {
@@ -259,9 +244,24 @@
       },
       "stage": "account_result",
       "transition_id": "cddefaaea6c1da4e310f28d68f155898568c9e1848b0cbdf768b64b6517393ec"
+    },
+    {
+      "dedupe_key": "vyacheslav:vyacheslav_primary:8c429fcd2a85c5c2a11ad242d45affe9b50c067d06d7bffd84d6d9459126bdf3",
+      "occurred_at": "2026-09-15T12:11:06.940321+00:00",
+      "payload": {
+        "account_key": "vyacheslav_primary",
+        "account_label": "Аккаунт 1",
+        "artifact_url": "/home/runner/work/BB.V.G./BB.V.G./runtime/browser_diagnostics/20260915T121114242931Z-5592f572f2a5",
+        "attempt_count": 1,
+        "confirmation": "betboom_post_click",
+        "owner_id": "vyacheslav",
+        "status": "participated"
+      },
+      "stage": "account_result",
+      "transition_id": "d44770d6c8fdd2beb518128a2dfe4485404a2364e9991b27a702768d3313d51c"
     }
   ],
-  "updated_at": "2026-09-15T12:11:39.713338+00:00",
+  "updated_at": "2026-09-15T12:12:09.238841+00:00",
   "wheel_key": "vovapain",
   "workflow_started_at": "2026-09-15T12:11:39.713338+00:00"
 }
