@@ -2,7 +2,7 @@
   "active_incidents": 2,
   "admin_panel": {
     "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-15T02:25:11.368996+00:00",
+    "last_heartbeat_at": "2026-09-15T02:30:13.766634+00:00",
     "started_at": "2026-09-15T01:09:31.019400+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -17,10 +17,12 @@
     "expected_nightly_sources": 0,
     "expected_primary_sources": 178,
     "expected_total_sources": 178,
+    "expected_transport_sources": 178,
     "missing_sources": 0,
     "recorded_configured_sources": 179,
     "recorded_nightly_sources": 0,
     "recorded_primary_sources": 179,
+    "recorded_private_sources": 0,
     "source_policy": "single_public_inventory",
     "transport_accounted_sources": 179,
     "transport_checked_at": "2026-09-15T02:23:44.582183+00:00",
@@ -47,7 +49,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-15T02:27:17.360545+00:00",
+  "checked_at": "2026-09-15T02:32:29.272228+00:00",
   "discovery": {
     "candidate_count": 5,
     "intelligence_domain": "telegram.me",
@@ -82,7 +84,7 @@
   "finding_count": 1,
   "findings": [
     {
-      "detail": "status=success; domain=telegram.me; primary=179/178; nightly=0/0; accounted=179/178; reachable=179/178; errors=0; missing=0.",
+      "detail": "status=success; domain=telegram.me; primary=179/178; private=0; nightly=0/0; accounted=179/178; reachable=179/178; errors=0; missing=0.",
       "kind": "source_transport_smoke",
       "severity": "critical",
       "subject": "",
@@ -91,7 +93,7 @@
   ],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-09-15T02:25:11.368996+00:00",
+    "bot_panel_heartbeat": "2026-09-15T02:30:13.766634+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
     "domain": "telegram.me",
@@ -141,18 +143,18 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 178,
-    "checks_delta": 10401857,
-    "checks_total": 11344970,
+    "checks_delta": 178,
+    "checks_total": 11345860,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "c40c7a88a00b2620a851373af6ff6614de4e543e",
-    "iteration": 1,
-    "last_iteration_at": "2026-09-15T02:25:13.361891+00:00",
+    "iteration": 6,
+    "last_iteration_at": "2026-09-15T02:30:54.738569+00:00",
     "last_iteration_duration_seconds": 32,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-15T02:25:13.361891+00:00",
-    "last_successful_checks_total": 11344970,
-    "last_successful_iteration_at": "2026-09-15T02:25:13.361891+00:00",
+    "last_process_heartbeat_at": "2026-09-15T02:30:54.738569+00:00",
+    "last_successful_checks_total": 11345860,
+    "last_successful_iteration_at": "2026-09-15T02:30:54.738569+00:00",
     "pending_wheels": 0,
     "reachable_sources": 178,
     "restart_recommended": false,
@@ -165,8 +167,8 @@
     "version": 3,
     "workflow_run_id": "34921022813"
   },
-  "monitor_age_minutes": 2,
-  "monitor_effective_heartbeat_at": "2026-09-15T02:25:13.361891+00:00",
+  "monitor_age_minutes": 1,
+  "monitor_effective_heartbeat_at": "2026-09-15T02:30:54.738569+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
