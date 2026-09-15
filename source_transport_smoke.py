@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from monitor import read_list as read_static_source_list
 import bbvg_monitor_main as runtime
 import monitor_data as data_store
 import telegram_transport
@@ -29,11 +30,17 @@ def transport_status(
 
 def main() -> int:
     monitor = runtime.monitor
-    primary = monitor.read_list(ROOT / "public_sources.txt")
-    nightly = monitor.read_list(ROOT / "source_catalog.txt")
-    sources = data_store.operational_sources(primary, "fast")
+    # bbvg_monitor_main intentionally extends public_sources.txt with private
+    # aliases from the encrypted workflow configuration. Keep the checked union
+    # intact, but record the public inventory separately so System Health can
+    # compare like with like without knowing private configuration.
+    public = read_static_source_list(ROOT / "public_sources.txt")
+    primary_with_private = monitor.read_list(ROOT / "public_sources.txt")
+    nightly = read_static_source_list(ROOT / "source_catalog.txt")
+    sources = data_store.operational_sources(primary_with_private, "fast")
     sources += data_store.operational_sources(nightly, "nightly")
-    configured = primary + nightly
+    configured = primary_with_private + nightly
+    private_count = max(0, len(primary_with_private) - len(public))
     started = time.monotonic()
     checked_at = datetime.now(UTC).isoformat()
 
@@ -68,7 +75,8 @@ def main() -> int:
         "expected_sources": EXPECTED,
         "configured_sources": len(configured),
         "operational_sources": len(sources),
-        "primary_sources": len(primary),
+        "primary_sources": len(public),
+        "private_sources": private_count,
         "nightly_sources": len(nightly),
         "accounted_sources": len(accounted),
         "reachable_sources": len(messages_by_source),
