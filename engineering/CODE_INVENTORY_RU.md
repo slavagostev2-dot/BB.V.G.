@@ -82,8 +82,9 @@ compatibility API и запрещены preflight. В production сохраня�
 
 Отслеживаемые JSON разделяются на:
 
-- authoritative compatibility runtime state in branch `runtime-state`\n  (`state.json`, `source_stats.json`,
-  `source_health.json`);
+- authoritative compatibility and operational runtime state in branch
+  `runtime-state` (`state.json`, `source_stats.json`, `source_health.json`,
+  `intelligence_state.json`, `source_transport_state.json`);
 - зашифрованное приватное состояние (`bot_private_state.enc.json`);
 - очередь и delivery ledger (`admin_action_queue.json`,
   `notification_delivery_state.json`);

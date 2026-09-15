@@ -240,7 +240,7 @@ jobs:
           for file in monitor_status.json admin_panel_status.json; do
             load_snapshot runtime-status "$file"
           done
-          for file in state.json source_stats.json source_health.json; do
+          for file in state.json source_stats.json source_health.json intelligence_state.json source_transport_state.json; do
             load_snapshot runtime-state "$file"
           done
 
@@ -254,6 +254,8 @@ jobs:
               "state.json",
               "source_stats.json",
               "source_health.json",
+              "intelligence_state.json",
+              "source_transport_state.json",
           ):
               value = json.loads(Path(name).read_text(encoding="utf-8"))
               assert isinstance(value, dict), f"{name} must contain a JSON object"
