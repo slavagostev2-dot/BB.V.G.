@@ -733,6 +733,7 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
     expected_nightly = len(inventory["nightly_operational"])
     expected_total = len(inventory["operational_union"])
     recorded_primary = int(transport.get("primary_sources", 0) or 0)
+    recorded_private = int(transport.get("private_sources", 0) or 0)
     recorded_nightly = int(transport.get("nightly_sources", 0) or 0)
     recorded_total = int(transport.get("accounted_sources", 0) or 0)
     configured_total = int(transport.get("configured_sources", 0) or 0)
@@ -745,6 +746,7 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
     }
     missing = transport.get("missing_sources")
     missing = missing if isinstance(missing, list) else []
+    expected_transport_total = expected_total + recorded_private
     monitor_summary = details.get("monitor")
     monitor_summary = monitor_summary if isinstance(monitor_summary, dict) else {}
     monitor_at = parse_datetime(
@@ -777,7 +779,9 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
         "expected_primary_sources": expected_primary,
         "expected_nightly_sources": expected_nightly,
         "expected_total_sources": expected_total,
+        "expected_transport_sources": expected_transport_total,
         "recorded_primary_sources": recorded_primary,
+        "recorded_private_sources": recorded_private,
         "recorded_nightly_sources": recorded_nightly,
         "recorded_configured_sources": configured_total,
         "missing_sources": len(missing),
@@ -787,8 +791,8 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
         and transport.get("domain") == telegram_transport.PRIMARY_DOMAIN
         and recorded_primary == expected_primary
         and recorded_nightly == expected_nightly
-        and configured_total == expected_total
-        and recorded_total == expected_total
+        and configured_total == expected_transport_total
+        and recorded_total == expected_transport_total
         and not missing
         and (transport_error_count == 0 or monitor_confirms_transport_recovery)
     )
@@ -799,9 +803,10 @@ def check_automation_state(details: dict[str, Any], findings: list[dict[str, Any
             (
                 f"status={transport.get('status')}; domain={transport.get('domain')}; "
                 f"primary={recorded_primary}/{expected_primary}; "
+                f"private={recorded_private}; "
                 f"nightly={recorded_nightly}/{expected_nightly}; "
-                f"accounted={recorded_total}/{expected_total}; "
-                f"reachable={recorded_reachable}/{expected_total}; "
+                f"accounted={recorded_total}/{expected_transport_total}; "
+                f"reachable={recorded_reachable}/{expected_transport_total}; "
                 f"errors={transport_error_count}; missing={len(missing)}."
             ),
             severity="critical",

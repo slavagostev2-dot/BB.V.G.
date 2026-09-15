@@ -81,6 +81,59 @@ def test_transport_verification_has_a_recurring_schedule() -> None:
     assert 'cron: "17 3 * * *"' in workflow
 
 
+def test_health_compares_public_inventory_separately_from_private_transport() -> None:
+    fixed = datetime(2026, 9, 15, 2, 30, tzinfo=timezone.utc)
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        public = root / "public_sources.txt"
+        nightly = root / "source_catalog.txt"
+        transport = root / "source_transport_state.json"
+        public.write_text("alpha\nbeta\n", encoding="utf-8")
+        nightly.write_text("", encoding="utf-8")
+        transport.write_text(
+            json.dumps({
+                "status": "success",
+                "domain": "telegram.me",
+                "checked_at": fixed.isoformat(),
+                "configured_sources": 3,
+                "primary_sources": 2,
+                "private_sources": 1,
+                "nightly_sources": 0,
+                "accounted_sources": 3,
+                "reachable_sources": 3,
+                "error_sources": 0,
+                "missing_sources": [],
+            }),
+            encoding="utf-8",
+        )
+        original = (
+            system_checks.PUBLIC_SOURCES_PATH,
+            system_checks.NIGHTLY_SOURCES_PATH,
+            system_checks.SOURCE_TRANSPORT_STATE_PATH,
+            system_checks.now_utc,
+        )
+        try:
+            system_checks.PUBLIC_SOURCES_PATH = public
+            system_checks.NIGHTLY_SOURCES_PATH = nightly
+            system_checks.SOURCE_TRANSPORT_STATE_PATH = transport
+            system_checks.now_utc = lambda: fixed
+            details: dict = {}
+            findings: list[dict] = []
+            system_checks.check_automation_state(details, findings)
+        finally:
+            (
+                system_checks.PUBLIC_SOURCES_PATH,
+                system_checks.NIGHTLY_SOURCES_PATH,
+                system_checks.SOURCE_TRANSPORT_STATE_PATH,
+                system_checks.now_utc,
+            ) = original
+
+    assert not findings
+    assert details["automation_state"]["expected_primary_sources"] == 2
+    assert details["automation_state"]["recorded_private_sources"] == 1
+    assert details["automation_state"]["expected_transport_sources"] == 3
+
+
 def test_diagnostic_writers_use_runtime_state_without_main_pushes() -> None:
     intelligence = (
         ROOT / ".github" / "workflows" / "source-intelligence.yml"
