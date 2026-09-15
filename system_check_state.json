@@ -1,8 +1,8 @@
 {
   "active_incidents": 2,
   "admin_panel": {
-    "age_minutes": 2,
-    "last_heartbeat_at": "2026-09-15T02:30:13.766634+00:00",
+    "age_minutes": 0,
+    "last_heartbeat_at": "2026-09-15T02:35:16.129565+00:00",
     "started_at": "2026-09-15T01:09:31.019400+00:00",
     "status": "running",
     "update_consumer": "single_getUpdates_owner",
@@ -17,15 +17,15 @@
     "expected_nightly_sources": 0,
     "expected_primary_sources": 178,
     "expected_total_sources": 178,
-    "expected_transport_sources": 178,
+    "expected_transport_sources": 179,
     "missing_sources": 0,
     "recorded_configured_sources": 179,
     "recorded_nightly_sources": 0,
-    "recorded_primary_sources": 179,
-    "recorded_private_sources": 0,
+    "recorded_primary_sources": 178,
+    "recorded_private_sources": 1,
     "source_policy": "single_public_inventory",
     "transport_accounted_sources": 179,
-    "transport_checked_at": "2026-09-15T02:23:44.582183+00:00",
+    "transport_checked_at": "2026-09-15T02:32:22.478933+00:00",
     "transport_domain": "telegram.me",
     "transport_error_sources": [],
     "transport_reachable_sources": 179,
@@ -37,7 +37,7 @@
     "username": "slava_wheel_monitor_bot"
   },
   "check_matrix": {
-    "automations": "failed",
+    "automations": "ok",
     "bot_panel": "ok",
     "discovery": "ok",
     "inventory": "ok",
@@ -49,7 +49,7 @@
     "telegram_transport": "ok",
     "wheel_api": "ok"
   },
-  "checked_at": "2026-09-15T02:32:29.272228+00:00",
+  "checked_at": "2026-09-15T02:35:31.736767+00:00",
   "discovery": {
     "candidate_count": 5,
     "intelligence_domain": "telegram.me",
@@ -81,25 +81,17 @@
     "legacy_url_offenders": [],
     "primary": "telegram.me"
   },
-  "finding_count": 1,
-  "findings": [
-    {
-      "detail": "status=success; domain=telegram.me; primary=179/178; private=0; nightly=0/0; accounted=179/178; reachable=179/178; errors=0; missing=0.",
-      "kind": "source_transport_smoke",
-      "severity": "critical",
-      "subject": "",
-      "title": "Транспортная проверка текущего inventory не подтверждена"
-    }
-  ],
+  "finding_count": 0,
+  "findings": [],
   "gpt_diagnostic_snapshot": {
     "active_incidents": 2,
-    "bot_panel_heartbeat": "2026-09-15T02:30:13.766634+00:00",
+    "bot_panel_heartbeat": "2026-09-15T02:35:16.129565+00:00",
     "checked_sources": 178,
     "configured_sources": 178,
     "domain": "telegram.me",
     "reachable_sources": 178,
     "single_source": "system_check_state.json",
-    "status": "degraded",
+    "status": "ok",
     "wheel_api_health": {
       "alert_threshold": 3,
       "consecutive_failures": 0,
@@ -143,32 +135,32 @@
   "monitor": {
     "brand": "BB V.G.",
     "checked_sources": 178,
-    "checks_delta": 178,
-    "checks_total": 11345860,
+    "checks_delta": 10403103,
+    "checks_total": 11346216,
     "consecutive_failures": 0,
     "consecutive_no_progress": 0,
     "head_sha": "c40c7a88a00b2620a851373af6ff6614de4e543e",
-    "iteration": 6,
-    "last_iteration_at": "2026-09-15T02:30:54.738569+00:00",
+    "iteration": 1,
+    "last_iteration_at": "2026-09-15T02:33:50.750126+00:00",
     "last_iteration_duration_seconds": 32,
     "last_iteration_exit_code": 0,
-    "last_process_heartbeat_at": "2026-09-15T02:30:54.738569+00:00",
-    "last_successful_checks_total": 11345860,
-    "last_successful_iteration_at": "2026-09-15T02:30:54.738569+00:00",
+    "last_process_heartbeat_at": "2026-09-15T02:33:50.750126+00:00",
+    "last_successful_checks_total": 11346216,
+    "last_successful_iteration_at": "2026-09-15T02:33:50.750126+00:00",
     "pending_wheels": 0,
     "reachable_sources": 178,
     "restart_recommended": false,
     "run_attempt": "1",
-    "run_id": "34921022813",
-    "run_started_at": "2026-09-15T02:24:41.420555+00:00",
+    "run_id": "34921584407",
+    "run_started_at": "2026-09-15T02:33:18.863942+00:00",
     "source_errors": 0,
     "stats_counter_reset": false,
     "status": "running",
     "version": 3,
-    "workflow_run_id": "34921022813"
+    "workflow_run_id": "34921584407"
   },
   "monitor_age_minutes": 1,
-  "monitor_effective_heartbeat_at": "2026-09-15T02:30:54.738569+00:00",
+  "monitor_effective_heartbeat_at": "2026-09-15T02:33:50.750126+00:00",
   "monitor_source_expectation": {
     "configured": 178,
     "due_for_check": 178
@@ -230,7 +222,7 @@
       "tls": 0
     }
   },
-  "status": "degraded",
+  "status": "ok",
   "telegram_web": {
     "final_url": "https://telegram.me/s/mechanogun",
     "html_messages_detected": true,
